@@ -59,6 +59,9 @@ y al menos 3 profesionales se comprometen al piloto. Si no se cumple: revisar pr
 
 **Tareas**
 
+- [ ] F1.0 Contrato `Figure` v2 (ADR-0004): clave estable, fuentes tipadas (`SourceRef`), rango
+      opcional y marca `PROVISIONAL` propagada; porcentajes en tanto por uno; test de dirección
+      de dependencias entre módulos.
 - [x] F1.1 Cuota por sistema francés y cuadro de amortización (`engines/mortgage.py`).
 - [x] F1.2 Capacidad de compra por ahorro e ingresos, con plazo limitado por edad.
 - [x] F1.3 Cuota en escenario de estrés de tipos.
