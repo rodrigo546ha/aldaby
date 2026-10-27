@@ -1,0 +1,10 @@
+# EJEMPLO: valores NO reales. Copiar a un .yaml propio y rellenar desde la fuente oficial.
+- id: ejemplo-impuesto-compra
+  kind: impuesto_compra_segunda_mano
+  territory: ES-13
+  effective_from: 2026-01-01
+  status: vigente
+  verified: false
+  params: {rate: 0.00}
+  source_url: https://www.boe.es/
+  notes: "Rellenar con el tipo vigente según la ley autonómica"

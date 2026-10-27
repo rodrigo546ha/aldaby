@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: housefinder
+      POSTGRES_PASSWORD: housefinder
+      POSTGRES_DB: housefinder
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../db/migrations:/docker-entrypoint-initdb.d:ro
+volumes:
+  pgdata:
