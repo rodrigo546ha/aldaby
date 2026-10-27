@@ -43,7 +43,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   src/housefinder/
     core/figures.py       Figure, SourceRef, money() y ratio(): trazabilidad de cifras
     core/dated.py         lector común de registros con fecha y territorio
-    engines/mortgage.py   cuota, amortización, capacidad de compra, estrés
+    engines/mortgage.py   cuota, amortización, capacidad, estrés, comparación fija/variable/mixta
+    engines/rates.py      trayectoria del índice (RatePath) y condiciones de tipo
     engines/cashflow.py   cash flow y rentabilidad personal
     regulation/rules.py   motor de normativa versionada (RuleBook)
     params/               parámetros con fecha (ParamBook): criterios bancarios, tipos

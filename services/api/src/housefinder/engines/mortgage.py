@@ -1,4 +1,5 @@
-"""Motor de hipoteca: cuota, cuadro de amortización, capacidad de compra y estrés.
+"""Motor de hipoteca: cuota, cuadro de amortización, capacidad de compra, estrés y
+comparación de hipotecas fija, variable y mixta.
 
 Determinista y sin dependencias externas. Los criterios bancarios (LTV, ratio de
 endeudamiento, edad máxima) no viven en el código: llegan como `BankCriteria` resueltos
@@ -11,6 +12,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from housefinder.core.figures import Figure, SourceRef, combine_sources, money
+from housefinder.engines.rates import MortgageTerms, RatePath, RateSegment, rate_segments
 
 TWELVE = Decimal(12)
 
@@ -20,15 +22,21 @@ def monthly_payment(principal: Decimal, annual_rate: Decimal, years: int) -> Dec
 
     annual_rate en tanto por uno (0.03 = 3 %).
     """
-    if principal <= 0:
-        return Decimal(0)
     if years <= 0:
         raise ValueError("El plazo debe ser positivo")
-    n = years * 12
+    return payment_for_months(principal, annual_rate, years * 12)
+
+
+def payment_for_months(principal: Decimal, annual_rate: Decimal, months: int) -> Decimal:
+    """Cuota francesa para un plazo en meses (lo que queda tras una revisión de tipo)."""
+    if principal <= 0:
+        return Decimal(0)
+    if months <= 0:
+        raise ValueError("El plazo debe ser positivo")
     r = annual_rate / TWELVE
     if r == 0:
-        return money(principal / n)
-    factor = (1 + r) ** n
+        return money(principal / months)
+    factor = (1 + r) ** months
     return money(principal * r * factor / (factor - 1))
 
 
@@ -56,13 +64,32 @@ class AmortizationRow:
 def amortization_schedule(
     principal: Decimal, annual_rate: Decimal, years: int
 ) -> list[AmortizationRow]:
-    """Cuadro de amortización mensual. La última cuota absorbe el redondeo."""
-    payment = monthly_payment(principal, annual_rate, years)
-    r = annual_rate / TWELVE
+    """Cuadro de amortización mensual a tipo fijo. La última cuota absorbe el redondeo."""
+    if years <= 0:
+        raise ValueError("El plazo debe ser positivo")
+    return amortization_schedule_segments(principal, years * 12, (RateSegment(0, annual_rate),))
+
+
+def amortization_schedule_segments(
+    principal: Decimal, months: int, segments: tuple[RateSegment, ...]
+) -> list[AmortizationRow]:
+    """Cuadro mensual con tipo por tramos (variable o mixta).
+
+    Al empezar cada tramo se recalcula la cuota francesa con el capital pendiente y los
+    meses que quedan. La última cuota absorbe el redondeo.
+    """
+    if not segments or segments[0].start_month != 0:
+        raise ValueError("El primer tramo de tipo debe empezar en el mes 0")
+    rate_from = {s.start_month: s.annual_rate for s in segments}
     balance = principal
+    payment = Decimal(0)
+    r = Decimal(0)
     rows: list[AmortizationRow] = []
-    n = years * 12
+    n = months
     for month in range(1, n + 1):
+        if month - 1 in rate_from:
+            r = rate_from[month - 1] / TWELVE
+            payment = payment_for_months(balance, rate_from[month - 1], n - month + 1)
         interest = money(balance * r)
         amort = payment - interest
         if month == n:
@@ -204,4 +231,99 @@ def stressed_payment(
         "EUR/mes",
         f"cuota francesa con tipo {annual_rate} + {rate_shock}",
         combine_sources(sources, (STRESS_SCENARIO,)),
+    )
+
+
+@dataclass(frozen=True)
+class MortgageCost:
+    label: str
+    first_payment: Figure
+    expected_total_interest: Figure  # coste total esperado con la trayectoria del índice
+    stressed_max_payment: Figure  # peor cuota con la trayectoria + choque de tipos
+
+
+@dataclass(frozen=True)
+class MortgageComparison:
+    options: tuple[MortgageCost, ...]  # en el orden recibido
+    cheapest_expected: str  # etiqueta con menos intereses esperados
+    lowest_stressed_payment: str  # etiqueta con la peor cuota más baja en estrés
+
+
+def compare_mortgages(
+    principal: Decimal,
+    years: int,
+    options: tuple[MortgageTerms, ...],
+    expected_path: RatePath,
+    rate_shock: Decimal,
+    principal_sources: tuple[SourceRef, ...] = (),
+) -> MortgageComparison:
+    """Compara ofertas fija, variable y mixta: coste esperado y peor cuota en estrés (F1.6).
+
+    El estrés suma `rate_shock` al índice en todas las revisiones; el tramo inicial de
+    cada oferta no cambia. A igualdad gana la primera opción recibida.
+    """
+    if not options:
+        raise ValueError("No hay ofertas que comparar")
+    labels = [terms.label for terms in options]
+    if len(set(labels)) != len(labels):
+        raise ValueError(f"Etiquetas repetidas en la comparación: {labels}")
+    months = years * 12
+    stressed_path = expected_path.shifted(rate_shock, STRESS_SCENARIO)
+    costs = tuple(
+        _mortgage_cost(principal, months, terms, expected_path, stressed_path, principal_sources)
+        for terms in options
+    )
+    cheapest = min(costs, key=lambda c: c.expected_total_interest.value)
+    safest = min(costs, key=lambda c: c.stressed_max_payment.value)
+    return MortgageComparison(costs, cheapest.label, safest.label)
+
+
+def _mortgage_cost(
+    principal: Decimal,
+    months: int,
+    terms: MortgageTerms,
+    expected_path: RatePath,
+    stressed_path: RatePath,
+    principal_sources: tuple[SourceRef, ...],
+) -> MortgageCost:
+    expected = amortization_schedule_segments(
+        principal, months, rate_segments(terms, expected_path, months)
+    )
+    stressed_segments = rate_segments(terms, stressed_path, months)
+    stressed = amortization_schedule_segments(principal, months, stressed_segments)
+    # Cuota pactada al empezar cada tramo; la última fila no cuenta como «peor cuota»
+    # por absorber el céntimo de redondeo.
+    starts = {segment.start_month for segment in stressed_segments}
+    stressed_installments = [row.payment for row in stressed if row.month - 1 in starts]
+    base_sources = combine_sources(principal_sources, terms.sources)
+    if terms.is_indexed_within(months):
+        expected_sources = combine_sources(base_sources, expected_path.sources)
+        stressed_sources = combine_sources(base_sources, stressed_path.sources)
+    else:
+        expected_sources = base_sources
+        stressed_sources = combine_sources(base_sources, (STRESS_SCENARIO,))
+    key = f"mortgage_comparison.{terms.label}"
+    return MortgageCost(
+        label=terms.label,
+        first_payment=Figure(
+            f"{key}.first_payment",
+            expected[0].payment,
+            "EUR/mes",
+            "cuota francesa del primer mes con el tipo inicial",
+            base_sources,
+        ),
+        expected_total_interest=Figure(
+            f"{key}.expected_total_interest",
+            money(sum((row.interest for row in expected), Decimal(0))),
+            "EUR",
+            "suma de intereses del cuadro con la trayectoria esperada del índice",
+            expected_sources,
+        ),
+        stressed_max_payment=Figure(
+            f"{key}.stressed_max_payment",
+            max(stressed_installments),
+            "EUR/mes",
+            "cuota pactada más alta de los tramos con la trayectoria del índice + choque de estrés",
+            stressed_sources,
+        ),
     )
