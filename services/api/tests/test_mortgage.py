@@ -1,9 +1,19 @@
+from dataclasses import replace
 from decimal import Decimal
 
 import pytest
 
 from housefinder.core.figures import SourceRef
 from housefinder.engines import mortgage as m
+
+# Valores de prueba, NO criterios reales de ningún banco.
+CRITERIOS = m.BankCriteria(
+    max_ltv=Decimal("0.70"),
+    max_dti=Decimal("0.35"),
+    max_age_at_end=75,
+    max_years=30,
+    source=SourceRef("param", "criterios-de-prueba", provisional=True),
+)
 
 
 def test_cuota_francesa_valor_conocido():
@@ -33,6 +43,7 @@ def test_capacidad_limitada_por_ahorro():
         m.BuyerFinances(Decimal(4000), Decimal(0), Decimal(60000), 30),
         annual_rate=Decimal("0.03"),
         purchase_cost_rate=Decimal("0.10"),
+        criteria=CRITERIOS,
     )
     # 60.000 / (1 - 0,70 + 0,10) = 150.000
     assert res.binding_constraint == "ahorro"
@@ -45,6 +56,7 @@ def test_capacidad_limitada_por_ingresos():
         m.BuyerFinances(Decimal(1500), Decimal(200), Decimal(500000), 40),
         annual_rate=Decimal("0.03"),
         purchase_cost_rate=Decimal("0.10"),
+        criteria=CRITERIOS,
     )
     assert res.binding_constraint == "ingresos"
     assert res.max_payment.value == Decimal("325.00")
@@ -55,6 +67,7 @@ def test_plazo_limitado_por_edad():
         m.BuyerFinances(Decimal(3000), Decimal(0), Decimal(80000), 60),
         annual_rate=Decimal("0.03"),
         purchase_cost_rate=Decimal("0.10"),
+        criteria=CRITERIOS,
     )
     assert res.years.value == Decimal(15)
 
@@ -65,14 +78,16 @@ def test_sin_plazo_por_edad_lanza_error():
             m.BuyerFinances(Decimal(3000), Decimal(0), Decimal(80000), 80),
             annual_rate=Decimal("0.03"),
             purchase_cost_rate=Decimal("0.10"),
+            criteria=CRITERIOS,
         )
 
 
-def test_capacidad_con_criterios_por_defecto_es_provisional():
+def test_capacidad_con_criterios_provisionales_es_provisional():
     res = m.affordability(
         m.BuyerFinances(Decimal(4000), Decimal(0), Decimal(60000), 30),
         annual_rate=Decimal("0.03"),
         purchase_cost_rate=Decimal("0.10"),
+        criteria=CRITERIOS,
     )
     assert res.max_price.key == "affordability.max_price"
     assert res.max_price.provisional
@@ -82,7 +97,7 @@ def test_capacidad_con_criterios_por_defecto_es_provisional():
 
 
 def test_capacidad_con_criterios_calibrados_cita_sus_fuentes():
-    criterios = m.BankCriteria(source=SourceRef("param", "criterios-banco-x-2026"))
+    criterios = replace(CRITERIOS, source=SourceRef("param", "criterios-banco-x-2026"))
     gastos = SourceRef("rule", "madrid-itp-2026")
     tipo = SourceRef("user_input", "tipo-de-interes")
     res = m.affordability(

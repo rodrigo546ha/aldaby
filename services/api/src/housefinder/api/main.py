@@ -2,15 +2,31 @@
 
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
+from functools import lru_cache
+from typing import Annotated
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from housefinder.core.figures import SourceRef
 from housefinder.engines import mortgage
+from housefinder.params.bank import bank_criteria
+from housefinder.params.book import ParamBook, default_params_dir
 
 app = FastAPI(title="HouseFinder API", version="0.1.0")
+
+# La capacidad de compra aún no depende de la ubicación: criterios de ámbito nacional.
+AFFORDABILITY_TERRITORY = "ES"
+
+
+@lru_cache
+def get_param_book() -> ParamBook:
+    return ParamBook.from_dir(default_params_dir())
+
+
+ParamBookDep = Annotated[ParamBook, Depends(get_param_book)]
 
 
 @app.get("/health")
@@ -29,7 +45,11 @@ class AffordabilityRequest(BaseModel):
 
 
 @app.post("/simulate/affordability")
-def simulate_affordability(req: AffordabilityRequest) -> dict:
+def simulate_affordability(req: AffordabilityRequest, params: ParamBookDep) -> dict:
+    try:
+        criteria = bank_criteria(params, AFFORDABILITY_TERRITORY, date.today())
+    except LookupError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     try:
         result = mortgage.affordability(
             mortgage.BuyerFinances(
@@ -40,6 +60,7 @@ def simulate_affordability(req: AffordabilityRequest) -> dict:
             ),
             annual_rate=req.annual_rate,
             purchase_cost_rate=req.purchase_cost_rate,
+            criteria=criteria,
             rate_sources=(SourceRef("user_input", "tipo-de-interes"),),
             # PROVISIONAL hasta que el motor de normativa resuelva los gastos de compra (F2.7).
             purchase_cost_sources=(

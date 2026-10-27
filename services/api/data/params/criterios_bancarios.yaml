@@ -1,0 +1,18 @@
+# Criterios bancarios de concesión para inversión. Ver data/params/README.md y ADR-0005.
+# PROVISIONAL: estos valores son los que estaban por defecto en el código; no tienen fuente
+# documentada. Se sustituyen en F1.5 con un registro nuevo calibrado con 2–3 bancos o un
+# intermediario (nueva vigencia, provisional: false, source y source_url).
+- id: criterios-bancarios-por-defecto
+  kind: criterios_bancarios
+  territory: ES
+  effective_from: 2026-10-27
+  effective_to: null
+  provisional: true
+  params:
+    max_ltv: 0.70          # financiación máxima sobre el precio
+    max_dti: 0.35          # cuota total / ingresos netos mensuales
+    max_age_at_end: 75     # edad máxima al terminar de pagar
+    max_years: 30          # plazo máximo
+  source: "Valores por defecto heredados del código; sin fuente documentada"
+  source_url: null
+  notes: "Pendiente de calibrar en F1.5"

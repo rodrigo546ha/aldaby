@@ -41,13 +41,16 @@ de alquiler, gestión activa o pasiva, pruebas de estrés, escenarios normativos
 apps/web/                 Next.js (App Router, TypeScript): interfaz
 services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, agente
   src/housefinder/
-    core/figures.py       Figure y money(): trazabilidad de cifras
+    core/figures.py       Figure, SourceRef, money() y ratio(): trazabilidad de cifras
+    core/dated.py         lector común de registros con fecha y territorio
     engines/mortgage.py   cuota, amortización, capacidad de compra, estrés
     engines/cashflow.py   cash flow y rentabilidad personal
     regulation/rules.py   motor de normativa versionada (RuleBook)
+    params/               parámetros con fecha (ParamBook): criterios bancarios, tipos
     ingestion/boe.py      sumario diario del BOE (esquema por verificar, fase 4)
     api/main.py           endpoints HTTP
   data/rules/             reglas de normativa en YAML
+  data/params/            parámetros con fecha en YAML (ADR-0005)
   tests/                  pytest; un test por regla de negocio
 db/migrations/            SQL de PostgreSQL + PostGIS
 infra/docker-compose.yml  base de datos local

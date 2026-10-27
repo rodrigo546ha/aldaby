@@ -15,7 +15,15 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-import yaml
+from housefinder.core.dated import (
+    applies_on,
+    load_yaml_records,
+    most_specific,
+    optional_date,
+    require_keys,
+    territory_contains,
+    to_date,
+)
 
 VALID_STATUS = {"vigente", "pendiente_convalidacion", "derogada"}
 
@@ -34,7 +42,7 @@ class Rule:
     verified: bool = False  # False = pendiente de verificación humana
 
     def applies_on(self, on: date) -> bool:
-        return self.effective_from <= on and (self.effective_to is None or on < self.effective_to)
+        return applies_on(self.effective_from, self.effective_to, on)
 
 
 @dataclass
@@ -43,11 +51,7 @@ class RuleBook:
 
     @classmethod
     def from_dir(cls, path: Path) -> RuleBook:
-        rules: list[Rule] = []
-        for file in sorted(path.glob("*.yaml")):
-            for raw in yaml.safe_load(file.read_text(encoding="utf-8")) or []:
-                rules.append(_parse_rule(raw))
-        return cls(rules)
+        return cls([_parse_rule(raw) for raw in load_yaml_records(path)])
 
     def resolve(
         self,
@@ -59,46 +63,31 @@ class RuleBook:
     ) -> Rule | None:
         """Regla aplicable más específica para un territorio y una fecha."""
         allowed = {"vigente"} | ({"pendiente_convalidacion"} if include_pending else set())
-        candidates = [
+        return most_specific(
             r
             for r in self.rules
             if r.kind == kind
             and r.status in allowed
             and r.applies_on(on)
             and (r.verified or allow_unverified)
-            and _territory_contains(r.territory, territory)
-        ]
-        if not candidates:
-            return None
-        # Más específico primero; a igualdad, la de inicio de vigencia más reciente.
-        candidates.sort(key=lambda r: (r.territory.count("-"), r.effective_from), reverse=True)
-        return candidates[0]
-
-
-def _territory_contains(rule_territory: str, target: str) -> bool:
-    return target == rule_territory or target.startswith(rule_territory + "-")
+            and territory_contains(r.territory, territory)
+        )
 
 
 def _parse_rule(raw: dict[str, Any]) -> Rule:
     status = raw.get("status", "vigente")
     if status not in VALID_STATUS:
         raise ValueError(f"Estado no válido en la regla {raw.get('id')}: {status}")
-    for key in ("id", "kind", "territory", "effective_from", "source_url"):
-        if key not in raw:
-            raise ValueError(f"Falta '{key}' en una regla: {raw}")
+    require_keys(raw, ("id", "kind", "territory", "effective_from", "source_url"))
     return Rule(
         id=raw["id"],
         kind=raw["kind"],
         territory=raw["territory"],
-        effective_from=_to_date(raw["effective_from"]),
-        effective_to=_to_date(raw["effective_to"]) if raw.get("effective_to") else None,
+        effective_from=to_date(raw["effective_from"]),
+        effective_to=optional_date(raw.get("effective_to")),
         status=status,
         params=raw.get("params", {}),
         source_url=raw["source_url"],
         notes=raw.get("notes", ""),
         verified=bool(raw.get("verified", False)),
     )
-
-
-def _to_date(value: Any) -> date:
-    return value if isinstance(value, date) else date.fromisoformat(str(value))

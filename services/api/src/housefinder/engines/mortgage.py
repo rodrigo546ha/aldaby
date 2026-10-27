@@ -1,9 +1,8 @@
 """Motor de hipoteca: cuota, cuadro de amortización, capacidad de compra y estrés.
 
-Determinista y sin dependencias externas. Los parámetros bancarios (LTV, ratio de
-endeudamiento, edad máxima) son configurables: los valores por defecto de
-`BankCriteria` son PROVISIONALES y deben calibrarse con criterios reales de bancos
-o de un intermediario colaborador (ver docs/ROADMAP.md, fase 1).
+Determinista y sin dependencias externas. Los criterios bancarios (LTV, ratio de
+endeudamiento, edad máxima) no viven en el código: llegan como `BankCriteria` resueltos
+desde data/params por `housefinder.params.bank` (ADR-0005), con su `SourceRef`.
 """
 
 from __future__ import annotations
@@ -84,13 +83,13 @@ def first_year_interest(principal: Decimal, annual_rate: Decimal, years: int) ->
 
 @dataclass(frozen=True)
 class BankCriteria:
-    """Criterios de concesión. Valores por defecto PROVISIONALES: calibrar."""
+    """Criterios de concesión, resueltos desde data/params (sin valores por defecto)."""
 
-    max_ltv: Decimal = Decimal("0.70")  # financiación máxima sobre el precio (inversión)
-    max_dti: Decimal = Decimal("0.35")  # cuota total / ingresos netos mensuales
-    max_age_at_end: int = 75
-    max_years: int = 30
-    source: SourceRef = SourceRef("param", "criterios-bancarios-por-defecto", provisional=True)
+    max_ltv: Decimal  # financiación máxima sobre el precio (inversión)
+    max_dti: Decimal  # cuota total / ingresos netos mensuales
+    max_age_at_end: int
+    max_years: int
+    source: SourceRef
 
 
 @dataclass(frozen=True)
@@ -119,7 +118,7 @@ def affordability(
     finances: BuyerFinances,
     annual_rate: Decimal,
     purchase_cost_rate: Decimal,
-    criteria: BankCriteria | None = None,
+    criteria: BankCriteria,
     rate_sources: tuple[SourceRef, ...] = (),
     purchase_cost_sources: tuple[SourceRef, ...] = (),
 ) -> AffordabilityResult:
@@ -132,7 +131,7 @@ def affordability(
       - Ahorro: entrada (1 - LTV) + gastos de compra <= ahorro disponible.
       - Ingresos: cuota <= ingresos * DTI - otras deudas, y préstamo = precio * LTV.
     """
-    c = criteria or BankCriteria()
+    c = criteria
     years = max_term_years(finances.age, c)
     if years <= 0:
         raise ValueError("Por edad, no hay plazo hipotecario posible con estos criterios")

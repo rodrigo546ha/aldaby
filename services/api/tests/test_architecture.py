@@ -1,7 +1,7 @@
 """Dirección de dependencias entre módulos (docs/PLAN_DISENO.md, §2).
 
-Los motores son puros: solo importan `core`. Ni los motores ni la normativa
-llaman a un LLM ni hacen E/S de red.
+Los motores son puros: solo importan `core`. Ni los motores, ni la normativa, ni los
+parámetros llaman a un LLM ni hacen E/S de red.
 """
 
 import ast
@@ -14,6 +14,7 @@ PACKAGE = Path(__file__).resolve().parents[1] / "src" / "housefinder"
 ALLOWED_INTERNAL = {
     "engines": {"core", "engines"},
     "regulation": {"core", "regulation"},
+    "params": {"core", "params", "engines"},  # engines solo por los tipos (BankCriteria)
     "core": {"core"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi"}

@@ -66,7 +66,7 @@ y al menos 3 profesionales se comprometen al piloto. Si no se cumple: revisar pr
 - [x] F1.2 Capacidad de compra por ahorro e ingresos, con plazo limitado por edad.
 - [x] F1.3 Cuota en escenario de estrés de tipos.
 - [x] F1.4 Cash flow, rentabilidad bruta, dinero aportado y cash-on-cash (`engines/cashflow.py`).
-- [ ] F1.5a Criterios bancarios como datos con fecha (`ParamBook`, ADR-0005), sin valores por
+- [x] F1.5a Criterios bancarios como datos con fecha (`ParamBook`, ADR-0005), sin valores por
       defecto en el código.
 - [ ] F1.5 Calibrar `BankCriteria` (LTV, ratio de endeudamiento, edad máxima) con 2–3 bancos o un
       intermediario; documentar la fuente y quitar la marca `PROVISIONAL`.
