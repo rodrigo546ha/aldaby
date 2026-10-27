@@ -7,6 +7,7 @@ from decimal import Decimal
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+from housefinder.core.figures import SourceRef
 from housefinder.engines import mortgage
 
 app = FastAPI(title="HouseFinder API", version="0.1.0")
@@ -39,7 +40,11 @@ def simulate_affordability(req: AffordabilityRequest) -> dict:
             ),
             annual_rate=req.annual_rate,
             purchase_cost_rate=req.purchase_cost_rate,
-            purchase_cost_source="tasa-enviada-por-cliente",
+            rate_sources=(SourceRef("user_input", "tipo-de-interes"),),
+            # PROVISIONAL hasta que el motor de normativa resuelva los gastos de compra (F2.7).
+            purchase_cost_sources=(
+                SourceRef("user_input", "tasa-de-gastos-de-compra", provisional=True),
+            ),
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

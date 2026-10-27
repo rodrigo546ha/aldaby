@@ -7,10 +7,10 @@ porcentaje legal escrito en el código.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 
-from housefinder.core.figures import Figure, money
+from housefinder.core.figures import Figure, SourceRef, combine_sources, money, ratio
 
 TWELVE = Decimal(12)
 
@@ -24,6 +24,7 @@ class RentalAssumptions:
     insurance_annual: Decimal  # hogar + impago
     management_fee_rate: Decimal  # % de la renta cobrada (0 si gestión activa)
     maintenance_reserve_rate: Decimal  # % de la renta reservado a mantenimiento
+    sources: tuple[SourceRef, ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
@@ -33,7 +34,11 @@ class TaxParams:
     marginal_rate: Decimal  # tipo marginal del usuario (tanto por uno)
     rental_income_reduction: Decimal  # reducción sobre el rendimiento neto positivo
     depreciation_rate: Decimal  # amortización anual sobre el valor de construcción
-    rule_ids: tuple[str, ...]
+    sources: tuple[SourceRef, ...]
+
+    @property
+    def rule_ids(self) -> tuple[str, ...]:
+        return tuple(ref.id for ref in self.sources if ref.kind == "rule")
 
 
 @dataclass(frozen=True)
@@ -45,6 +50,7 @@ class InvestmentInputs:
     monthly_mortgage_payment: Decimal
     first_year_interest: Decimal
     construction_value: Decimal  # base de la amortización fiscal
+    sources: tuple[SourceRef, ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
@@ -81,33 +87,51 @@ def compute_cashflow(
     after_tax_monthly = money((operating_cashflow - annual_tax) / TWELVE)
     cash_invested = money(inv.price + inv.purchase_costs + inv.renovation - inv.loan)
     coc = (
-        money((operating_cashflow - annual_tax) / cash_invested * 100)
+        ratio((operating_cashflow - annual_tax) / cash_invested)
         if cash_invested > 0
         else Decimal(0)
     )
-    gross = money(annual_rent / inv.price * 100) if inv.price > 0 else Decimal(0)
+    gross = ratio(annual_rent / inv.price) if inv.price > 0 else Decimal(0)
 
-    tax_sources = tax.rule_ids
+    operating_sources = combine_sources(inv.sources, rent.sources)
+    all_sources = combine_sources(inv.sources, rent.sources, tax.sources)
     return CashflowResult(
-        gross_yield=Figure(gross, "%", "renta anual / precio × 100"),
+        gross_yield=Figure(
+            "cashflow.gross_yield", gross, "ratio", "renta anual / precio", operating_sources
+        ),
         annual_operating_cashflow=Figure(
+            "cashflow.annual_operating",
             operating_cashflow,
             "EUR/año",
             "renta cobrada − gastos de explotación − cuotas hipotecarias",
+            operating_sources,
         ),
         annual_tax=Figure(
+            "cashflow.annual_tax",
             annual_tax,
             "EUR/año",
             "máx(0, rendimiento neto × (1 − reducción)) × tipo marginal",
-            tax_sources,
+            all_sources,
         ),
         monthly_cashflow_after_tax=Figure(
-            after_tax_monthly, "EUR/mes", "(cash flow operativo − impuesto) / 12", tax_sources
+            "cashflow.monthly_after_tax",
+            after_tax_monthly,
+            "EUR/mes",
+            "(cash flow operativo − impuesto) / 12",
+            all_sources,
         ),
         cash_invested=Figure(
-            cash_invested, "EUR", "precio + gastos de compra + reforma − préstamo"
+            "cashflow.cash_invested",
+            cash_invested,
+            "EUR",
+            "precio + gastos de compra + reforma − préstamo",
+            inv.sources,
         ),
         cash_on_cash=Figure(
-            coc, "%", "cash flow anual tras impuestos / dinero aportado × 100", tax_sources
+            "cashflow.cash_on_cash",
+            coc,
+            "ratio",
+            "cash flow anual tras impuestos / dinero aportado",
+            all_sources,
         ),
     )

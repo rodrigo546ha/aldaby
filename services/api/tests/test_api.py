@@ -22,6 +22,10 @@ def test_affordability_devuelve_cifras_trazables():
     )
     assert resp.status_code == 200
     body = resp.json()
+    assert body["max_price"]["key"] == "affordability.max_price"
     assert body["max_price"]["value"] == "150000.00"
     assert body["max_price"]["formula"]
-    assert body["max_price"]["sources"]
+    # Criterios bancarios y tasa de gastos de compra aún sin fuente firme: provisional.
+    assert body["max_price"]["provisional"] is True
+    kinds = {s["kind"] for s in body["max_price"]["sources"]}
+    assert {"param", "user_input"} <= kinds

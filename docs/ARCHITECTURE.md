@@ -31,8 +31,10 @@ Ingesta ──▶ Enriquecimiento ──▶ Motores ──▶ Plan
 
 ## Trazabilidad
 
-Cada cifra del plan es un `Figure` (valor, unidad, fórmula, fuentes, fecha). Cada regla legal aplicada
-queda en `plans.rule_ids`. Así cualquier plan se puede auditar y reproducir.
+Cada cifra del plan es un `Figure` (ADR-0004): clave estable, valor, unidad, fórmula, fuentes
+tipadas (`SourceRef`), fecha y, si es una estimación, rango. Una cifra derivada cita las fuentes de
+todas sus entradas, y es `provisional` si alguna lo es. Cada regla legal aplicada queda en
+`plans.rule_ids`. Así cualquier plan se puede auditar y reproducir.
 
 ## Stack
 

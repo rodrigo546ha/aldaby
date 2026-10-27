@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal
 
-from housefinder.core.figures import Figure, money
+from housefinder.core.figures import Figure, SourceRef, combine_sources, money
 
 TWELVE = Decimal(12)
 
@@ -90,7 +90,7 @@ class BankCriteria:
     max_dti: Decimal = Decimal("0.35")  # cuota total / ingresos netos mensuales
     max_age_at_end: int = 75
     max_years: int = 30
-    source_id: str = "criterios-bancarios-por-defecto-PROVISIONAL"
+    source: SourceRef = SourceRef("param", "criterios-bancarios-por-defecto", provisional=True)
 
 
 @dataclass(frozen=True)
@@ -99,6 +99,7 @@ class BuyerFinances:
     existing_monthly_debt: Decimal  # cuotas de otros préstamos
     available_savings: Decimal  # ahorro que el usuario está dispuesto a invertir
     age: int
+    sources: tuple[SourceRef, ...] = (SourceRef("user_input", "finanzas-del-comprador"),)
 
 
 @dataclass(frozen=True)
@@ -119,7 +120,8 @@ def affordability(
     annual_rate: Decimal,
     purchase_cost_rate: Decimal,
     criteria: BankCriteria | None = None,
-    purchase_cost_source: str = "",
+    rate_sources: tuple[SourceRef, ...] = (),
+    purchase_cost_sources: tuple[SourceRef, ...] = (),
 ) -> AffordabilityResult:
     """Precio máximo de compra según ahorro e ingresos.
 
@@ -147,34 +149,60 @@ def affordability(
     else:
         max_price, binding = price_by_income, "ingresos"
 
-    sources = (c.source_id, purchase_cost_source) if purchase_cost_source else (c.source_id,)
+    payment_sources = combine_sources(finances.sources, (c.source,))
+    price_sources = combine_sources(payment_sources, rate_sources, purchase_cost_sources)
     return AffordabilityResult(
         max_price=Figure(
+            "affordability.max_price",
             max_price,
             "EUR",
             "mín(ahorro / (1 − LTV + gastos de compra), préstamo máximo por ingresos / LTV)",
-            sources,
+            price_sources,
         ),
-        max_loan=Figure(money(max_price * c.max_ltv), "EUR", "precio máximo × LTV", sources),
+        max_loan=Figure(
+            "affordability.max_loan",
+            money(max_price * c.max_ltv),
+            "EUR",
+            "precio máximo × LTV",
+            price_sources,
+        ),
         max_payment=Figure(
-            max_payment, "EUR/mes", "ingresos netos × ratio de endeudamiento − otras deudas",
-            (c.source_id,),
+            "affordability.max_payment",
+            max_payment,
+            "EUR/mes",
+            "ingresos netos × ratio de endeudamiento − otras deudas",
+            payment_sources,
         ),
         years=Figure(
-            Decimal(years), "años", "mín(plazo máximo, edad máxima al final − edad)", (c.source_id,)
+            "affordability.years",
+            Decimal(years),
+            "años",
+            "mín(plazo máximo, edad máxima al final − edad)",
+            payment_sources,
         ),
         binding_constraint=binding,
     )
 
 
+STRESS_SCENARIO = SourceRef("assumption", "escenario-estres")
+
+
 def stressed_payment(
-    principal: Decimal, annual_rate: Decimal, years: int, rate_shock: Decimal
+    principal: Decimal,
+    annual_rate: Decimal,
+    years: int,
+    rate_shock: Decimal,
+    sources: tuple[SourceRef, ...] = (),
 ) -> Figure:
-    """Cuota si el tipo sube `rate_shock` (p. ej. 0.02 = +2 puntos)."""
+    """Cuota si el tipo sube `rate_shock` (p. ej. 0.02 = +2 puntos).
+
+    `sources`: procedencia del capital y del tipo, para que la cifra la herede.
+    """
     value = monthly_payment(principal, annual_rate + rate_shock, years)
     return Figure(
+        "mortgage.stressed_payment",
         value,
         "EUR/mes",
         f"cuota francesa con tipo {annual_rate} + {rate_shock}",
-        ("escenario-estres",),
+        combine_sources(sources, (STRESS_SCENARIO,)),
     )

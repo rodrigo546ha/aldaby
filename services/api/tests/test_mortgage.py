@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import pytest
 
+from housefinder.core.figures import SourceRef
 from housefinder.engines import mortgage as m
 
 
@@ -67,8 +68,39 @@ def test_sin_plazo_por_edad_lanza_error():
         )
 
 
+def test_capacidad_con_criterios_por_defecto_es_provisional():
+    res = m.affordability(
+        m.BuyerFinances(Decimal(4000), Decimal(0), Decimal(60000), 30),
+        annual_rate=Decimal("0.03"),
+        purchase_cost_rate=Decimal("0.10"),
+    )
+    assert res.max_price.key == "affordability.max_price"
+    assert res.max_price.provisional
+    assert res.max_loan.provisional
+    assert res.max_payment.provisional
+    assert res.years.provisional
+
+
+def test_capacidad_con_criterios_calibrados_cita_sus_fuentes():
+    criterios = m.BankCriteria(source=SourceRef("param", "criterios-banco-x-2026"))
+    gastos = SourceRef("rule", "madrid-itp-2026")
+    tipo = SourceRef("user_input", "tipo-de-interes")
+    res = m.affordability(
+        m.BuyerFinances(Decimal(4000), Decimal(0), Decimal(60000), 30),
+        annual_rate=Decimal("0.03"),
+        purchase_cost_rate=Decimal("0.10"),
+        criteria=criterios,
+        rate_sources=(tipo,),
+        purchase_cost_sources=(gastos,),
+    )
+    assert not res.max_price.provisional
+    assert {criterios.source, gastos, tipo} <= set(res.max_price.sources)
+    assert gastos not in res.max_payment.sources
+
+
 def test_estres_sube_la_cuota():
     base = m.monthly_payment(Decimal(150000), Decimal("0.03"), 30)
     stressed = m.stressed_payment(Decimal(150000), Decimal("0.03"), 30, Decimal("0.02"))
     assert stressed.value > base
-    assert "escenario-estres" in stressed.sources
+    assert stressed.key == "mortgage.stressed_payment"
+    assert SourceRef("assumption", "escenario-estres") in stressed.sources
