@@ -73,7 +73,7 @@ y al menos 3 profesionales se comprometen al piloto. Si no se cumple: revisar pr
 - [x] F1.6 Hipoteca mixta y comparación fija / variable / mixta: coste total esperado y peor cuota.
 - [ ] F1.7 Trayectoria esperada del Euríbor a partir de la curva publicada (Banco de España / BCE),
       como datos con fecha, no como predicción propia.
-- [ ] F1.8 Plazo recomendado: el mínimo que mantiene el cash flow positivo en el escenario de estrés.
+- [x] F1.8 Plazo recomendado: el mínimo que mantiene el cash flow positivo en el escenario de estrés.
 - [ ] F1.9 TIR a 10 años con escenarios de revalorización (que llegarán de F5) como parámetro.
 - [ ] F1.10 Endpoint `POST /simulate/investment` y página web del simulador de capacidad.
 
