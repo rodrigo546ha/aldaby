@@ -47,6 +47,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     engines/rates.py      trayectoria del índice (RatePath) y condiciones de tipo
     engines/cashflow.py   cash flow y rentabilidad personal
     engines/term.py       plazo recomendado con cash flow en estrés
+    engines/irr.py        TIR de la inversión con revalorización y venta
     regulation/rules.py   motor de normativa versionada (RuleBook)
     params/               parámetros con fecha (ParamBook): criterios bancarios, tipos
     ingestion/boe.py      sumario diario del BOE (esquema por verificar, fase 4)
