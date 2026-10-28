@@ -113,6 +113,16 @@ def test_con_y_sin_el_rdl_29_2026_valor_conocido():
 
 def test_normativa_pendiente_aplicable():
     book = RuleBook.from_dir(default_rules_dir())
-    pendientes = book.pending(MADRID, date(2027, 1, 15), allow_unverified=True)
-    assert [r.id for r in pendientes] == ["irpf-reduccion-alquiler-rdl-29-2026"]
-    assert book.pending(MADRID, date(2026, 11, 15), allow_unverified=True) == []
+    lau = {
+        "alquiler-habitual-rdl-29-2026",
+        "alquiler-temporada-rdl-29-2026",
+        "alquiler-habitaciones-rdl-29-2026",
+    }
+    # En noviembre de 2026 ya rigen (pendientes) los cambios de la LAU del RDL 29/2026…
+    noviembre = book.pending(MADRID, date(2026, 11, 15), allow_unverified=True)
+    assert {r.id for r in noviembre} == lau
+    # …y desde el 1 de diciembre, también la nueva reducción del IRPF.
+    enero = book.pending(MADRID, date(2027, 1, 15), allow_unverified=True)
+    assert {r.id for r in enero} == lau | {"irpf-reduccion-alquiler-rdl-29-2026"}
+    # Antes del RDL 29/2026 no hay nada pendiente.
+    assert book.pending(MADRID, date(2026, 9, 1), allow_unverified=True) == []

@@ -24,13 +24,16 @@ from housefinder.engines.irpf import (
     personal_minimum,
 )
 from housefinder.regulation.kinds import (
+    RENTAL_TYPES,
     BracketScale,
     DescendantsMinimum,
     InterestRepairLimit,
     RateParams,
     ReductionCases,
     RentalFacts,
+    RentalRegime,
     TaxpayerMinimum,
+    ZoneDeclaration,
     parse_params,
 )
 from housefinder.regulation.rules import Rule, RuleBook
@@ -230,6 +233,95 @@ def _scale(rule: Rule) -> tuple[Bracket, ...]:
     if not isinstance(params, BracketScale):
         raise TypeError(f"{rule.id}: se esperaba una escala por tramos")
     return tuple(Bracket(b.from_amount, b.rate) for b in params.brackets)
+
+
+@dataclass(frozen=True)
+class StressedZone:
+    declared: bool
+    checked_through: date  # última resolución trimestral revisada
+    rule: Rule
+
+
+def stressed_zone(
+    book: RuleBook, territory: str, on: date, allow_unverified: bool = False
+) -> StressedZone:
+    """Si el inmueble está en zona de mercado residencial tensionado (hecho `stressed_zone`).
+
+    Un territorio sin regla no se da por no tensionado: es un error, porque no consta que se
+    hayan revisado sus resoluciones.
+    """
+    rule = _rule(book, "zona_tensionada", territory, on, False, allow_unverified)
+    zone = parse_params(rule.kind, rule.params)
+    if not isinstance(zone, ZoneDeclaration):
+        raise TypeError(f"{rule.id}: se esperaba una declaración de zona")
+    return StressedZone(zone.declared, zone.checked_through, rule)
+
+
+@dataclass(frozen=True)
+class RegimeRequirement:
+    code: str
+    description: str
+    source_url: str
+    rule_id: str  # regla de la que sale
+
+
+@dataclass(frozen=True)
+class RentalRegimeResult:
+    rental_type: str
+    regime: str  # el del nivel más específico
+    allowed: bool  # False si algún nivel lo prohíbe
+    requirements: tuple[RegimeRequirement, ...]  # de todos los niveles, del estatal al municipal
+    rules: tuple[Rule, ...]
+
+
+def rental_regime(
+    book: RuleBook,
+    rental_type: str,
+    territory: str,
+    on: date,
+    include_pending: bool = False,
+    allow_unverified: bool = False,
+) -> RentalRegimeResult:
+    """Régimen y requisitos de un tipo de alquiler en un territorio.
+
+    A diferencia de los tipos impositivos, aquí no gana la regla más específica: los
+    requisitos estatales, autonómicos y municipales se suman.
+    """
+    if rental_type not in RENTAL_TYPES:
+        known = ", ".join(RENTAL_TYPES)
+        raise ValueError(f"Tipo de alquiler desconocido: {rental_type!r} ({known})")
+    kind = f"regimen_alquiler_{rental_type}"
+    rules: list[Rule] = []
+    for level in _territory_levels(territory):
+        rule = book.resolve(kind, level, on, include_pending, allow_unverified)
+        if rule is not None and rule.id not in {r.id for r in rules}:
+            rules.append(rule)
+    if not rules:
+        raise LookupError(f"No hay régimen de {kind} para {territory} el {on}")
+    regimes: list[RentalRegime] = []
+    for rule in rules:
+        regime = parse_params(rule.kind, rule.params)
+        if not isinstance(regime, RentalRegime):
+            raise TypeError(f"{rule.id}: se esperaba un régimen de alquiler")
+        regimes.append(regime)
+    requirements = tuple(
+        RegimeRequirement(req.code, req.description, req.source_url, rule.id)
+        for rule, regime in zip(rules, regimes, strict=True)
+        for req in regime.requirements
+    )
+    return RentalRegimeResult(
+        rental_type=rental_type,
+        regime=regimes[-1].regime,
+        allowed=all(regime.allowed for regime in regimes),
+        requirements=requirements,
+        rules=tuple(rules),
+    )
+
+
+def _territory_levels(territory: str) -> list[str]:
+    """«ES-13-28079» → ["ES", "ES-13", "ES-13-28079"]."""
+    parts = territory.split("-")
+    return ["-".join(parts[: i + 1]) for i in range(len(parts))]
 
 
 def _rule(

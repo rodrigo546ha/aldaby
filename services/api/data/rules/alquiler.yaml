@@ -1,0 +1,201 @@
+# Regulación del alquiler (F2.4). Ver README.md y docs/normativa/verificacion-tanda-3.md.
+# SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+#
+# Régimen por tipo de alquiler: los requisitos de los niveles estatal (ES), autonómico (ES-13)
+# y municipal (ES-13-28079) se SUMAN (resolvers.rental_regime). El RDL 29/2026 va como
+# pendiente_convalidacion: el plan base usa la LAU anterior y el RDL entra en escenarios.
+
+# --- Zonas de mercado residencial tensionado ---------------------------------------------------
+
+# Ningún municipio de la Comunidad de Madrid aparece en las diez resoluciones trimestrales del
+# Ministerio publicadas hasta la del segundo trimestre de 2026 (en todas, «Madrid» solo aparece en
+# la firma). Revisadas: BOE-A-2024-5214, BOE-A-2024-20576, BOE-A-2025-1721, BOE-A-2025-8636,
+# BOE-A-2025-15728 (y su corrección BOE-A-2025-20246), BOE-A-2025-21901, BOE-A-2026-2448,
+# BOE-A-2026-9175 y BOE-A-2026-16532. Revisar con cada resolución nueva y actualizar checked_through.
+- id: madrid-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-13
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre."
+
+# --- Vivienda habitual ---------------------------------------------------------------------------
+
+- id: alquiler-habitual-lau
+  kind: regimen_alquiler_habitual
+  territory: ES
+  effective_from: 1995-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Arrendamiento de vivienda (LAU, art. 2 y título II): necesidad permanente de vivienda del arrendatario"
+    requirements:
+      - code: plazo-minimo-y-prorrogas
+        description: "Plazo mínimo y prórrogas de los arts. 9 y 10 de la LAU"
+        source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a9
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a2
+  notes: "Redacción del art. 2 anterior al RDL 29/2026 (la vigente tras derogarse el RDL 26/2026)."
+
+- id: alquiler-habitual-rdl-29-2026
+  kind: regimen_alquiler_habitual
+  territory: ES
+  effective_from: 2026-10-08
+  effective_to: null
+  status: pendiente_convalidacion
+  verified: false
+  params:
+    regime: "Arrendamiento de vivienda habitual (LAU, art. 2.1, redacción del RDL 29/2026), incluido el arrendamiento parcial de una habitación"
+    requirements:
+      - code: plazo-minimo-y-prorrogas
+        description: "Plazo mínimo y prórrogas de los arts. 9 y 10 de la LAU"
+        source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a9
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2026-20823#a3
+
+# --- Temporada ------------------------------------------------------------------------------------
+
+# Antes del RDL 29/2026: uso distinto del de vivienda. Modelado desde el 01/07/2025, cuando entra en
+# efecto el Registro Único de Arrendamientos; el periodo anterior no se modela.
+- id: alquiler-temporada-lau
+  kind: regimen_alquiler_temporada
+  territory: ES
+  effective_from: 2025-07-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Uso distinto del de vivienda (LAU, art. 3.2): arrendamiento por temporada, sin el régimen de vivienda"
+    requirements:
+      - code: registro-unico-arrendamientos
+        description: "Número del Registro Único de Arrendamientos antes de anunciarlo en plataformas en línea (alquiler de corta duración, turístico o no)"
+        source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2024-26931
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a3
+  notes: "Art. 3.2 anterior al RDL 29/2026: «los arrendamientos de fincas urbanas celebrados por temporada, sea ésta de verano o cualquier otra»."
+
+- id: alquiler-temporada-rdl-29-2026
+  kind: regimen_alquiler_temporada
+  territory: ES
+  effective_from: 2026-10-08
+  effective_to: null
+  status: pendiente_convalidacion
+  verified: false
+  params:
+    regime: "Vivienda temporal (LAU, arts. 2.3 y 9 bis, redacción del RDL 29/2026); el uso distinto del de vivienda excluye el alojamiento u hospedaje"
+    requirements:
+      - code: causa-justificada-desplazamiento
+        description: "El arrendatario está temporalmente desplazado de su domicilio habitual por causa justificada y acreditable"
+        source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2026-20823#a3
+      - code: duracion-31-dias-a-12-meses
+        description: "Duración superior a 31 días y, como regla general, no mayor de 12 meses"
+        source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2026-20823#a3
+      - code: conversion-en-vivienda-habitual
+        description: "Más de 12 meses sin causa o más de dos contratos temporales seguidos entre las mismas partes: pasa a vivienda habitual, con plazo mínimo y prórrogas"
+        source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2026-20823#a3
+      - code: registro-unico-arrendamientos
+        description: "Número del Registro Único de Arrendamientos para anunciarlo en plataformas (por confirmar: el RD 1312/2024 se remite al art. 3.2 de la LAU, que el RDL cambia)"
+        source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2024-26931
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2026-20823#a3
+
+# --- Habitaciones ---------------------------------------------------------------------------------
+
+- id: alquiler-habitaciones-lau
+  kind: regimen_alquiler_habitaciones
+  territory: ES
+  effective_from: 1995-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "No regulado expresamente en la LAU anterior al RDL 29/2026 (su art. 2 exige necesidad permanente de vivienda); régimen por confirmar en la consulta legal (F0.6)"
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a2
+
+- id: alquiler-habitaciones-rdl-29-2026
+  kind: regimen_alquiler_habitaciones
+  territory: ES
+  effective_from: 2026-10-08
+  effective_to: null
+  status: pendiente_convalidacion
+  verified: false
+  params:
+    regime: "Arrendamiento de vivienda habitual (LAU, art. 2.1, redacción del RDL 29/2026): incluye el arrendamiento parcial de una habitación o estancia"
+    requirements:
+      - code: plazo-minimo-y-prorrogas
+        description: "Plazo mínimo y prórrogas de los arts. 9 y 10 de la LAU"
+        source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a9
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2026-20823#a3
+
+# --- Uso turístico --------------------------------------------------------------------------------
+
+# Estatal. Modelado desde el 01/07/2025 (Registro Único); la aprobación previa de la comunidad
+# rige desde el 03/04/2025 (LO 1/2025).
+- id: alquiler-turistico-estatal
+  kind: regimen_alquiler_turistico
+  territory: ES
+  effective_from: 2025-07-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico (LAU, art. 5.e), sujeta a la normativa turística autonómica"
+    requirements:
+      - code: aprobacion-previa-comunidad
+        description: "Aprobación expresa y previa de la comunidad de propietarios: 3/5 de los propietarios que representen 3/5 de las cuotas (LPH, arts. 7.3 y 17.12)"
+        source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1960-10906
+      - code: registro-unico-arrendamientos
+        description: "Número del Registro Único de Arrendamientos antes de anunciarla en plataformas en línea"
+        source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2024-26931
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1960-10906
+
+# Comunidad de Madrid (Decreto 79/2014, modificado por el Decreto 27/2026). Requisitos tal como los
+# publica la sede electrónica (consultada el 2026-10-28, actualizada el 08/10/2026).
+- id: madrid-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-13
+  effective_from: 2026-10-08
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico en la Comunidad de Madrid: actividad profesional del titular, sin residencia permanente de los usuarios"
+    requirements:
+      - code: declaracion-responsable
+        description: "Declaración responsable del titular de la actividad ante la Dirección General de Turismo, por medios electrónicos"
+        source_url: https://sede.comunidad.madrid/comunicaciones-declaraciones/vivienda-uso-turistico
+      - code: civut
+        description: "Certificado de idoneidad para vivienda de uso turístico (CIVUT) suscrito por técnico competente"
+        source_url: https://sede.comunidad.madrid/comunicaciones-declaraciones/vivienda-uso-turistico
+      - code: certificado-comunidad
+        description: "Certificado de que la comunidad no ha prohibido la actividad y aprobación de la comunidad"
+        source_url: https://sede.comunidad.madrid/comunicaciones-declaraciones/vivienda-uso-turistico
+      - code: seguro-responsabilidad-civil
+        description: "Seguro de responsabilidad civil en vigor durante la actividad"
+        source_url: https://sede.comunidad.madrid/comunicaciones-declaraciones/vivienda-uso-turistico
+      - code: vivienda-completa
+        description: "Se cede la vivienda completa (no por habitaciones), amueblada y equipada"
+        source_url: https://sede.comunidad.madrid/comunicaciones-declaraciones/vivienda-uso-turistico
+      - code: capacidad-maxima
+        description: "Capacidad máxima según superficie útil (hasta 2 personas con menos de 25 m², hasta 4 entre 25 y 40 m², 2 más por cada 10 m² y pieza adicional)"
+        source_url: https://sede.comunidad.madrid/comunicaciones-declaraciones/vivienda-uso-turistico
+  source_url: https://sede.comunidad.madrid/comunicaciones-declaraciones/vivienda-uso-turistico
+  notes: "Fecha de inicio = fecha de la sede consultada; la entrada en vigor del Decreto 27/2026 (BOCM 06/04/2026) está por verificar."
+
+# Municipio de Madrid.
+- id: madrid-capital-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-13-28079
+  effective_from: 2026-10-08
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico en el municipio de Madrid: además, licencia urbanística municipal"
+    requirements:
+      - code: licencia-urbanistica-actividad
+        description: "Licencia urbanística de actividad y funcionamiento del Ayuntamiento de Madrid"
+        source_url: https://sede.comunidad.madrid/comunicaciones-declaraciones/vivienda-uso-turistico
+  source_url: https://sede.comunidad.madrid/comunicaciones-declaraciones/vivienda-uso-turistico
+  notes: "El Plan Reside del Ayuntamiento limita dónde se puede obtener la licencia (fuentes secundarias); falta leerlo en el BOCM y comprobarlo por dirección."

@@ -51,9 +51,12 @@ Decidido calcular la **cuota incremental** del IRPF (ADR-0007): las filas 2.3 a 
 
 ## 4. Fuera de F2.2
 
-- **Regulación del alquiler (F2.4):** zonas tensionadas, alquiler de temporada, por habitaciones
-  y turístico. Afecta al tipo de alquiler recomendado, no a las cifras del plan; tiene su propio
-  inventario en F2.4.
+- **Regulación del alquiler (F2.4): cargada sin verificar** en `data/rules/alquiler.yaml`
+  (ver `verificacion-tanda-3.md`): zona tensionada (ninguna en la Comunidad de Madrid), y régimen y
+  requisitos de los alquileres de vivienda habitual, temporada, habitaciones y turístico, con la LAU
+  anterior como base y el RDL 29/2026 como escenario.
+- **RDL 29/2026, pendiente de revisar para las cifras:** art. 1 (límite a compras por debajo del 70 %
+  del valor para ciertas entidades), y arts. 7, 8 y 10 (IVA, Haciendas Locales, plusvalía municipal).
 - **No son reglas legales:** tasación, gestoría, comisiones de agencia, seguros y comunidad.
   Son precios de mercado: van como parámetros o supuestos con su fuente, no en `data/rules/`.
 

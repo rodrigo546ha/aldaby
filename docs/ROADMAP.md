@@ -95,7 +95,7 @@ plan manual de F0 reproducido por el motor con diferencias menores de 1 €.
       nueva), gastos de notaría y registro, IBI orientativo, reducción del rendimiento del alquiler,
       amortización fiscal, mínimos de IRPF relevantes.
 - [ ] F2.3 Cargar cada regla desde la fuente oficial con `verified: true` tras revisión.
-- [ ] F2.4 Normativa de alquiler: zonas tensionadas (lista oficial), alquiler de temporada, por
+- [x] F2.4 Normativa de alquiler: zonas tensionadas (lista oficial), alquiler de temporada, por
       habitaciones y turístico (mayoría de 3/5 de la comunidad, registro autonómico).
 - [x] F2.5 Escenarios: reglas `pendiente_convalidacion` y comparación «con / sin» en el plan.
 - [ ] F2.6 Monitor del BOE y del BOCM: detectar disposiciones nuevas sobre vivienda y abrir una

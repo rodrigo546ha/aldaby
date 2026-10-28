@@ -48,6 +48,8 @@ añade su esquema al catálogo.
 | `minimo_contribuyente` | `general`, `over_65_extra`, `over_75_extra` en euros |
 | `minimo_descendientes` | `first`, `second`, `third`, `fourth_and_more`, `under_3_extra` en euros |
 | `limite_intereses_reparacion` | `carryforward_years`: años a los que se arrastra el exceso |
+| `zona_tensionada` | `declared` (sí o no) y `checked_through` (fecha de la última resolución trimestral revisada) |
+| `regimen_alquiler_habitual`, `regimen_alquiler_temporada`, `regimen_alquiler_habitaciones`, `regimen_alquiler_turistico` | `regime` (texto), `allowed` y `requirements`: lista de `{code, description, source_url}`. Los requisitos de cada nivel territorial se suman |
 
 ## Hechos del contrato (`when`)
 

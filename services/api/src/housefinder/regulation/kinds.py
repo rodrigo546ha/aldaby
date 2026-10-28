@@ -8,6 +8,7 @@ en data/rules/*.yaml con su fuente oficial (ADR-0003).
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 from typing import Annotated, Any, Literal
 
@@ -159,6 +160,36 @@ class InterestRepairLimit(RuleParams):
     carryforward_years: int = Field(gt=0)
 
 
+class ZoneDeclaration(RuleParams):
+    """Si el territorio es zona de mercado residencial tensionado (Ley 12/2023, art. 18).
+
+    `checked_through`: fecha de la última resolución trimestral del Ministerio revisada.
+    """
+
+    declared: bool
+    checked_through: date
+
+
+class Requirement(RuleParams):
+    code: Condition  # identificador estable: «aprobacion-previa-comunidad»
+    description: str = Field(min_length=1)
+    source_url: str = Field(pattern=r"^https?://")
+
+
+class RentalRegime(RuleParams):
+    """Régimen jurídico de un tipo de alquiler y requisitos para ejercerlo.
+
+    Los requisitos se suman entre niveles (estatal, autonómico, municipal).
+    """
+
+    regime: str = Field(min_length=1)
+    allowed: bool = True  # False: el tipo de alquiler no se puede ejercer en el territorio
+    requirements: tuple[Requirement, ...] = ()
+
+
+RENTAL_TYPES = ("habitual", "temporada", "habitaciones", "turistico")
+
+
 @dataclass(frozen=True)
 class KindSpec:
     params: type[RuleParams]
@@ -199,6 +230,14 @@ KINDS: dict[str, KindSpec] = {
         InterestRepairLimit,
         "Límite de intereses y gastos de reparación en el rendimiento del capital inmobiliario",
     ),
+    "zona_tensionada": KindSpec(
+        ZoneDeclaration, "Declaración de zona de mercado residencial tensionado"
+    ),
+    # Un tipo de regla por tipo de alquiler: así cada uno tiene su vigencia sin solaparse.
+    "regimen_alquiler_habitual": KindSpec(RentalRegime, "Alquiler de vivienda habitual"),
+    "regimen_alquiler_temporada": KindSpec(RentalRegime, "Alquiler de temporada o temporal"),
+    "regimen_alquiler_habitaciones": KindSpec(RentalRegime, "Alquiler por habitaciones"),
+    "regimen_alquiler_turistico": KindSpec(RentalRegime, "Alquiler de uso turístico"),
     "tipo_ibi": KindSpec(RateParams, "Tipo del IBI sobre el valor catastral"),
 }
 
