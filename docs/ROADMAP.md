@@ -91,7 +91,7 @@ plan manual de F0 reproducido por el motor con diferencias menores de 1 €.
 - [x] F2.1 Motor `RuleBook`: territorio jerárquico, vigencia, estado y verificación.
 - [x] F2.1a Catálogo de tipos de regla con esquema de parámetros y validador de reglas
       (`make rules-check`, también en CI): territorios, vigencias solapadas y revisor obligatorio.
-- [ ] F2.2 Inventario de reglas necesarias para Madrid: impuesto de compra (segunda mano y obra
+- [x] F2.2 Inventario de reglas necesarias para Madrid: impuesto de compra (segunda mano y obra
       nueva), gastos de notaría y registro, IBI orientativo, reducción del rendimiento del alquiler,
       amortización fiscal, mínimos de IRPF relevantes.
 - [ ] F2.3 Cargar cada regla desde la fuente oficial con `verified: true` tras revisión.
