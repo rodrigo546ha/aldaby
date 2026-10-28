@@ -1,6 +1,7 @@
 # Inventario de reglas para un plan de Madrid (F2.2)
 
-**Fecha:** 2026-10-28 · **Estado:** inventario; ninguna regla cargada ni verificada.
+**Fecha:** 2026-10-28 · **Estado:** tanda 1 cargada sin verificar (1.1, 2.1, 2.2, 2.7); ver
+`docs/normativa/verificacion-tanda-1.md`.
 
 Qué reglas legales necesita el motor para calcular un plan de inversión en Madrid
 (`ES-13`, municipio de Madrid `ES-13-28079`). **Aquí no hay valores**: cada regla se carga en
@@ -16,7 +17,7 @@ BOE o el BOCM, y anotar la URL exacta en `source_url`.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1.1 | ITP de vivienda usada | `impuesto_compra_segunda_mano` | ES-13 | gastos de compra → capacidad de compra, dinero aportado | Texto refundido de tributos cedidos de la Comunidad de Madrid; Texto refundido de la Ley del ITP y AJD | ✔ |
 | 1.2 | IVA de vivienda nueva | `iva_vivienda_nueva` | ES | gastos de compra | Ley 37/1992 del IVA | ✔ |
-| 1.3 | AJD de la compra de vivienda nueva | `ajd_vivienda_nueva` | ES-13 | gastos de compra | Tributos cedidos de la Comunidad de Madrid; TR de la Ley del ITP y AJD | ✔ |
+| 1.3 | AJD de la compra de vivienda nueva | por definir | ES-13 | gastos de compra | DL 1/2010 de la Comunidad de Madrid, art. 32 | pendiente: el tipo depende del valor y se aplica al total |
 | 1.4 | Quién paga los gastos de la hipoteca (notaría, registro, AJD de la escritura de préstamo, gestoría) | por definir | ES | gastos de compra: qué parte paga el comprador | Ley 5/2019 de contratos de crédito inmobiliario; TR de la Ley del ITP y AJD | pendiente |
 | 1.5 | Arancel notarial de la compraventa | por definir | ES | gastos de compra | Real Decreto 1426/1989 (aranceles de los notarios) | pendiente |
 | 1.6 | Arancel registral de la compraventa | por definir | ES | gastos de compra | Real Decreto 1427/1989 (aranceles de los registradores) | pendiente |
@@ -29,8 +30,8 @@ valor y del número de folios: decidir al leerla si se calcula o se toma como es
 
 | # | Regla | `kind` | Territorio | Alimenta | Fuente candidata | Esquema |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2.1 | Reducción del rendimiento neto del alquiler de vivienda, por casos | `reduccion_irpf_alquiler` | ES | `TaxParams.rental_income_reduction` | Ley 35/2006 del IRPF (art. 23) en su redacción tras la Ley 12/2023 por el derecho a la vivienda | ✔ |
-| 2.2 | Amortización fiscal del inmueble alquilado y su base | `amortizacion_inmueble_alquiler` | ES | `TaxParams.depreciation_rate`; base de la amortización | Reglamento del IRPF (Real Decreto 439/2007) | ✔ (tasa); la base, por definir |
+| 2.1 | Reducción del rendimiento neto del alquiler de vivienda, por casos | `reduccion_irpf_alquiler` | ES | `TaxParams.rental_income_reduction` | Ley 35/2006 del IRPF, art. 23.2: redacción de la Ley 12/2023 y del RDL 29/2026 (pendiente de convalidación) | ✔ |
+| 2.2 | Amortización fiscal del inmueble alquilado y su base | `amortizacion_inmueble_alquiler` | ES | `TaxParams.depreciation_rate`; base de la amortización | Ley 35/2006 del IRPF, art. 23.1.b; Reglamento del IRPF, art. 14.2.a | ✔ (tasa); la base, por definir |
 | 2.3 | Límite de la deducción de intereses y gastos de reparación y conservación | por definir | ES | cálculo del rendimiento neto en `engines/cashflow.py` (hoy deduce los intereses sin límite) | Ley 35/2006 del IRPF (art. 23) | pendiente |
 | 2.4 | Escala estatal de la base general | `escala_irpf_general` | ES | impuesto incremental del alquiler (D-G2-1) | Ley 35/2006 del IRPF | ✔ |
 | 2.5 | Escala autonómica de Madrid de la base general | `escala_irpf_general` | ES-13 | impuesto incremental del alquiler (D-G2-1) | Texto refundido de tributos cedidos de la Comunidad de Madrid | ✔ |

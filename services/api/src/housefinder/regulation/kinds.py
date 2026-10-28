@@ -54,17 +54,19 @@ class ReductionCase(RuleParams):
 
 
 class ReductionCases(RuleParams):
-    """Reducción que depende de condiciones; siempre hay un caso «general»."""
+    """Reducción que depende de condiciones (un caso por supuesto de la norma).
+
+    No se exige un caso «general»: hay redacciones sin supuesto residual (p. ej. el
+    art. 23.2 de la Ley del IRPF tras el Real Decreto-ley 29/2026).
+    """
 
     cases: tuple[ReductionCase, ...] = Field(min_length=1)
 
     @model_validator(mode="after")
-    def _general(self) -> ReductionCases:
+    def _unique(self) -> ReductionCases:
         conditions = [c.condition for c in self.cases]
         if len(set(conditions)) != len(conditions):
             raise ValueError("condiciones repetidas")
-        if "general" not in conditions:
-            raise ValueError("falta el caso 'general'")
         return self
 
     def case(self, condition: str) -> ReductionCase:
@@ -80,14 +82,13 @@ class KindSpec:
     description: str
 
 
+# AJD de vivienda nueva: pendiente. En Madrid el tipo depende del valor y se aplica al total
+# (art. 32 del DL 1/2010), una forma que no es ni tasa única ni escala por tramos.
 KINDS: dict[str, KindSpec] = {
     "impuesto_compra_segunda_mano": KindSpec(
         RateParams, "Impuesto de compra de vivienda usada (ITP) sobre el precio"
     ),
     "iva_vivienda_nueva": KindSpec(RateParams, "IVA de la compra de vivienda nueva"),
-    "ajd_vivienda_nueva": KindSpec(
-        RateParams, "Actos jurídicos documentados de la compra de vivienda nueva"
-    ),
     "reduccion_irpf_alquiler": KindSpec(
         ReductionCases, "Reducción del rendimiento neto positivo del alquiler de vivienda"
     ),

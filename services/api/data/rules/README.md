@@ -38,8 +38,8 @@ añade su esquema al catálogo.
 
 | `kind` | `params` |
 | --- | --- |
-| `impuesto_compra_segunda_mano`, `iva_vivienda_nueva`, `ajd_vivienda_nueva`, `amortizacion_inmueble_alquiler`, `tipo_ibi` | `rate` en tanto por uno |
-| `reduccion_irpf_alquiler` | `cases`: lista de `{condition, reduction}` con un caso `general` |
+| `impuesto_compra_segunda_mano`, `iva_vivienda_nueva`, `amortizacion_inmueble_alquiler`, `tipo_ibi` | `rate` en tanto por uno |
+| `reduccion_irpf_alquiler` | `cases`: lista de `{condition, reduction}`, sin condiciones repetidas |
 | `escala_irpf_general`, `escala_irpf_ahorro` | `brackets`: lista de `{from, rate}`; el primero desde 0, crecientes |
 
 ## Comprobar

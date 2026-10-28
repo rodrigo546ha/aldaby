@@ -1,0 +1,28 @@
+# Comunidad de Madrid (ES-13) y municipio de Madrid (ES-13-28079). Ver README.md.
+# SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente
+# (lista de comprobación en docs/normativa/verificacion-tanda-1.md).
+
+# ITP de inmuebles, tipo general. Los tipos reducidos de los arts. 29 (vivienda habitual de
+# familias numerosas) y 30 (empresas inmobiliarias) no aplican a un inversor particular.
+- id: madrid-itp-inmuebles-2014
+  kind: impuesto_compra_segunda_mano
+  territory: ES-13
+  effective_from: 2014-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.06}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCM-m-2010-90068#a28
+  notes: "Decreto Legislativo 1/2010 de la Comunidad de Madrid, art. 28, redacción de la Ley 6/2013 (en vigor el 1 de enero de 2014)."
+
+# IBI de inmuebles urbanos del municipio de Madrid para 2026 (0,414 %).
+- id: madrid-ibi-urbana-2026
+  kind: tipo_ibi
+  territory: ES-13-28079
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.00414}
+  source_url: https://www.bocm.es/boletin/CM_Orden_BOCM/2025/12/26/BOCM-20251226-63.PDF
+  notes: "Ordenanza Fiscal del IBI del Ayuntamiento de Madrid, art. 8.2, redacción de la Ordenanza 9/2025 (BOCM núm. 307, 26/12/2025, pp. 232–235). En vigor el 1 de enero de 2026."

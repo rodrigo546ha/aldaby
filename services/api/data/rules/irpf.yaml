@@ -1,0 +1,92 @@
+# IRPF: rendimientos del capital inmobiliario por alquiler de vivienda. Ver README.md.
+# Valores copiados del texto consolidado del BOE (consultado el 2026-10-28).
+# SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente
+# (lista de comprobación en docs/normativa/verificacion-tanda-1.md).
+
+# La vigencia de las reducciones se cuenta por FECHA DE CELEBRACIÓN DEL CONTRATO de
+# arrendamiento: la regla aplicable es la de la fecha en que se firma el contrato.
+
+# Art. 23.2 en la redacción de la Ley 12/2023 (disp. final 2.1), en vigor el 1 de enero de 2024
+# para contratos celebrados desde el 26 de mayo de 2023. El RDL 29/2026 la mantiene para los
+# contratos celebrados hasta el 1 de diciembre de 2026 (disp. transitoria 38.ª de la Ley del IRPF).
+# Si el RDL 29/2026 se convalida, esta regla se cierra con effective_to: 2026-12-01.
+# No modela el RDL 26/2026, en vigor del 1 al 2 de octubre de 2026 y derogado por el Congreso.
+- id: irpf-reduccion-alquiler-ley-12-2023
+  kind: reduccion_irpf_alquiler
+  territory: ES
+  effective_from: 2024-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    cases:
+      # a) nuevo contrato del mismo arrendador, zona tensionada, renta rebajada más de un 5 %
+      - {condition: zona-tensionada-rebaja-renta, reduction: 0.90}
+      # b) 1.º primer alquiler en zona tensionada con arrendatario de 18 a 35 años
+      - {condition: primer-alquiler-zona-tensionada-joven, reduction: 0.70}
+      # b) 2.º arrendatario Administración o entidad sin fines lucrativos, o programa con renta limitada
+      - {condition: administracion-o-renta-limitada, reduction: 0.70}
+      # c) rehabilitación terminada en los dos años anteriores al contrato
+      - {condition: rehabilitacion-reciente, reduction: 0.60}
+      # d) «en cualquier otro caso»
+      - {condition: general, reduction: 0.50}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2023-12203#df-2
+  notes: "Ley 35/2006, art. 23.2, redacción de la Ley 12/2023, disp. final 2.1. Requisitos al celebrar el contrato; la reducción se aplica mientras se cumplan."
+
+# Art. 23.2 en la redacción del Real Decreto-ley 29/2026 (art. 6.2.2), en vigor el 8 de octubre
+# de 2026 y PENDIENTE DE CONVALIDACIÓN. Según la disp. transitoria 38.ª, se aplica a los contratos
+# celebrados desde el 1 de diciembre de 2026. Solo entra en escenarios hasta que se convalide.
+# Los supuestos a) y b) y la prórroga tácita exigen que el arrendador NO sea gran tenedor
+# (art. 3.k de la Ley 12/2023). Si se cumplen varios, se aplica la reducción mayor.
+- id: irpf-reduccion-alquiler-rdl-29-2026
+  kind: reduccion_irpf_alquiler
+  territory: ES
+  effective_from: 2026-12-01
+  effective_to: null
+  status: pendiente_convalidacion
+  verified: false
+  params:
+    cases:
+      # a) nuevo contrato del mismo arrendador; 1.º renta inicial rebajada más de un 5 %
+      - {condition: nuevo-contrato-rebaja-renta-prorroga-mismo-arrendatario, reduction: 1.00}  # a´)
+      - {condition: nuevo-contrato-rebaja-renta-bajo-indice, reduction: 1.00}  # a´) otro arrendatario
+      - {condition: nuevo-contrato-rebaja-renta-zona-tensionada-joven, reduction: 0.95}  # b´)
+      - {condition: nuevo-contrato-rebaja-renta-zona-tensionada, reduction: 0.90}  # c´)
+      - {condition: nuevo-contrato-rebaja-renta-joven, reduction: 0.85}  # d´)
+      - {condition: nuevo-contrato-rebaja-renta, reduction: 0.70}  # e´) restantes casos
+      # a) 2.º renta inicial no superior a la última renta
+      - {condition: nuevo-contrato-renta-no-superior, reduction: 0.50}
+      # a) 3.º renta inicial incrementada respecto de la última renta
+      - {condition: nuevo-contrato-subida-hasta-5, reduction: 0.40}
+      - {condition: nuevo-contrato-subida-5-a-10, reduction: 0.30}
+      - {condition: nuevo-contrato-subida-10-a-15, reduction: 0.25}
+      - {condition: nuevo-contrato-subida-15-a-20, reduction: 0.20}
+      - {condition: nuevo-contrato-subida-mas-de-20, reduction: 0.15}
+      # b) primer alquiler de la vivienda
+      - {condition: primer-alquiler-bajo-indice, reduction: 1.00}  # 1.º
+      - {condition: primer-alquiler-zona-tensionada-joven, reduction: 0.95}  # 2.º
+      - {condition: primer-alquiler-zona-tensionada, reduction: 0.90}  # 3.º
+      - {condition: primer-alquiler-joven, reduction: 0.85}  # 4.º
+      - {condition: primer-alquiler-sobre-indice, reduction: 0.50}  # 5.º
+      # c) Administración o entidad sin fines lucrativos, o programa público con renta limitada
+      - {condition: administracion-o-renta-limitada, reduction: 0.70}
+      # d) rehabilitación terminada en los dos años anteriores al contrato
+      - {condition: rehabilitacion-reciente, reduction: 0.60}
+      # prórroga tácita con renta que no excede el índice de referencia
+      - {condition: prorroga-tacita-bajo-indice, reduction: 0.80}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2026-20823#a6
+  notes: "Ley 35/2006, art. 23.2, redacción del RDL 29/2026 (BOE-A-2026-20823). Índice = sistema de índices de precios de referencia (DA 2.ª del RDL 7/2019)."
+
+# Amortización del inmueble: 3 % sobre el mayor entre el coste de adquisición satisfecho y el
+# valor catastral, sin incluir el suelo. Sin valor del suelo conocido, se prorratea el coste
+# entre los valores catastrales del suelo y de la construcción (Reglamento, art. 14.2.a).
+- id: irpf-amortizacion-inmueble
+  kind: amortizacion_inmueble_alquiler
+  territory: ES
+  effective_from: 2007-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.03}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a23
+  notes: "Ley 35/2006, art. 23.1.b; Real Decreto 439/2007, art. 14.2.a (https://www.boe.es/buscar/act.php?id=BOE-A-2007-6820#a14)."

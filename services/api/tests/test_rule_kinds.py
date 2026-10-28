@@ -75,11 +75,24 @@ def test_escala_debe_ser_creciente():
         )
 
 
-def test_reduccion_por_casos_exige_el_general():
-    with pytest.raises(ValueError, match="general"):
+def test_reduccion_sin_caso_general_vale():
+    params = parse_params(
+        "reduccion_irpf_alquiler",
+        {"cases": [{"condition": "zona-tensionada", "reduction": 0.9}]},
+    )
+    assert params.case("zona-tensionada").reduction == Decimal("0.9")
+
+
+def test_reduccion_con_condiciones_repetidas():
+    with pytest.raises(ValueError, match="repetidas"):
         parse_params(
             "reduccion_irpf_alquiler",
-            {"cases": [{"condition": "zona-tensionada", "reduction": 0.9}]},
+            {
+                "cases": [
+                    {"condition": "general", "reduction": 0.5},
+                    {"condition": "general", "reduction": 0.6},
+                ]
+            },
         )
 
 
