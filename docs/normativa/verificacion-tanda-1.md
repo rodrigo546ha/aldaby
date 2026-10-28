@@ -68,10 +68,10 @@ Después, `make rules-check` y `make test`.
 
 ## Decisiones para ti
 
-1. **Real Decreto-ley pendiente de convalidación.** Jurídicamente el RDL 29/2026 ya está en vigor,
-   pero lo he cargado como `pendiente_convalidacion` porque el RDL 26/2026 se derogó a los pocos días
-   y su régimen solo afecta a contratos desde el 01/12/2026. ¿Te parece bien que el plan base use la
-   Ley 12/2023 hasta que se convalide?
+1. **Real Decreto-ley pendiente de convalidación. Decidido (2026-10-28, Rodrigo):** el plan base usa
+   la Ley 12/2023 y el RDL 29/2026 solo entra en escenarios hasta que se convalide, aunque
+   jurídicamente ya esté en vigor. Motivo: el RDL 26/2026 se derogó a los pocos días. La misma
+   pauta vale para cualquier real decreto-ley futuro (ver `services/api/data/rules/README.md`).
 2. **Las reducciones dependen de datos del contrato** que el plan aún no pide: si es primer alquiler o
    nuevo contrato, la renta anterior, el índice de referencia, la zona tensionada, la edad del
    arrendatario y si el arrendador es gran tenedor. Para un inversor que compra para alquilar, el caso

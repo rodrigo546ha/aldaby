@@ -26,6 +26,10 @@ Una ley que cambia se refleja añadiendo una regla nueva con su vigencia, nunca 
 - Las reglas sin verificar no se aplican salvo con `allow_unverified=True` (solo para desarrollo).
 - Las normas pendientes de convalidación se cargan con `status: pendiente_convalidacion`
   y se usan en escenarios, no en el cálculo base.
+- Un **real decreto-ley** se carga como `pendiente_convalidacion` hasta que el Congreso (o la
+  Diputación Permanente) lo convalide, aunque ya esté en vigor: el plan base sigue con la norma
+  anterior y el real decreto-ley entra en escenarios. Al convalidarse, pasa a `vigente` y la norma
+  anterior se cierra con `effective_to`; si se deroga, pasa a `derogada`. Decidido el 2026-10-28.
 - Dos reglas del mismo `kind`, territorio y estado no pueden solaparse en el tiempo: al cambiar
   una ley, la regla anterior se cierra con `effective_to` igual al `effective_from` de la nueva.
 - `plantilla.yaml.example` es un ejemplo: no se carga y sus valores no son reales.
