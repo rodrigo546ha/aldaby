@@ -4,8 +4,15 @@ from decimal import Decimal
 import pytest
 
 from housefinder.core.figures import SourceRef
-from housefinder.engines.cashflow import InvestmentInputs, RentalAssumptions, TaxParams
-from housefinder.engines.irr import investment_irr, irr
+from housefinder.engines.cashflow import (
+    InvestmentInputs,
+    PendingExcess,
+    RentalAssumptions,
+    TaxParams,
+    compute_cashflow,
+)
+from housefinder.engines.irr import investment_irr, irr, yearly_cashflows
+from housefinder.engines.mortgage import amortization_schedule
 
 OFERTA = SourceRef("user_input", "oferta-de-prueba")
 REGLA = SourceRef("rule", "regla-de-prueba")
@@ -66,6 +73,7 @@ TAX = TaxParams(
     marginal_rate=Decimal("0.30"),
     rental_income_reduction=Decimal("0.50"),
     depreciation_rate=Decimal("0.03"),
+    interest_repair_carryforward_years=4,
     sources=(REGLA,),
 )
 
@@ -148,3 +156,27 @@ def test_cita_la_revalorizacion_y_la_venta():
     res = _irr()
     assert {OFERTA, REGLA, REVALORIZACION, VENTA} <= set(res.irr.sources)
     assert res.irr.provisional
+
+
+
+def test_el_exceso_de_intereses_pasa_al_ano_siguiente():
+    # Préstamo de 105.000 al 20 % a 2 años (intereses del cuadro: 16.818,45 y 6.438,99).
+    # Tope de intereses + reparación = renta cobrada = 10.260; reparación = 513 al año.
+    #   Año 1: 16.818,45 + 513 = 17.331,45 → exceso 7.071,45 (cuatro años por delante)
+    #   Año 2: el arrastre ocupa 7.071,45 del tope; quedan 3.188,55 para los 6.951,99 del año
+    #          → nuevo exceso 3.763,44
+    #   Impuesto del año 2: 0 con el arrastre; sin él, (10.260 − 1.370 − 6.951,99 − 1.800)
+    #          × 0,5 × 0,30 = 20,70
+    caro = replace(INV, loan=Decimal(105000))
+    anos = yearly_cashflows(caro, RENT, TAX, Decimal("0.20"), 2, 2)
+    assert anos[0].pending_excess == (PendingExcess(Decimal("7071.45"), 4),)
+    assert anos[1].pending_excess == (PendingExcess(Decimal("3763.44"), 4),)
+    assert anos[1].annual_tax.value == Decimal("0.00")
+
+    rows = amortization_schedule(Decimal(105000), Decimal("0.20"), 2)
+    ano2 = replace(
+        caro,
+        monthly_mortgage_payment=sum(r.payment for r in rows[12:]) / 12,
+        first_year_interest=sum(r.interest for r in rows[12:]),
+    )
+    assert compute_cashflow(ano2, RENT, TAX).annual_tax.value == Decimal("20.70")

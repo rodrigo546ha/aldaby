@@ -101,6 +101,8 @@ plan manual de F0 reproducido por el motor con diferencias menores de 1 €.
 - [ ] F2.6 Monitor del BOE y del BOCM: detectar disposiciones nuevas sobre vivienda y abrir una
       tarea de revisión (la IA resume, una persona decide).
 - [x] F2.7 Conectar `TaxParams` del motor de cash flow con `RuleBook`, citando `rule_ids`.
+- [x] F2.7a Cuota incremental del IRPF (ADR-0007): escalas estatal y autonómica, mínimos,
+      límite de intereses y reparación con arrastre a cuatro años, también en la TIR.
 
 **Criterio de salida.** Un plan de Madrid sale con todas sus reglas citadas y verificadas, y cambiar
 una ley solo requiere añadir una regla en YAML.

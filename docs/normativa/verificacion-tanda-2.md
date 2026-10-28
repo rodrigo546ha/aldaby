@@ -37,6 +37,13 @@ el año del ejercicio.
   derecho, de la cuantía de los rendimientos íntegros obtenidos. El exceso se podrá deducir en los
   cuatro años siguientes».
 - [ ] Los cuatro años de arrastre y la vigencia desde 2007 (texto original).
+- [ ] **Interpretación mía, a confirmar:** el Reglamento (art. 13.a) dice que lo arrastrado,
+      «conjuntamente con los gastos por estos mismos conceptos correspondientes a cada uno de estos
+      años», no puede superar los rendimientos íntegros, pero no dice qué va primero. El motor usa
+      primero lo más antiguo (lo que antes caduca). El total deducido cada año no cambia; solo cambia
+      qué parte caduca. [Reglamento, art. 13](https://www.boe.es/buscar/act.php?id=BOE-A-2007-6820#a13)
+- [ ] Que «reparación y conservación» incluye la reserva de mantenimiento del plan (pintado, arreglo
+      de instalaciones, sustitución de elementos), y no las mejoras.
 
 ## Comunidad de Madrid (`services/api/data/rules/madrid.yaml`)
 

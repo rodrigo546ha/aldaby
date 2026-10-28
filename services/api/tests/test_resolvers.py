@@ -14,6 +14,7 @@ from housefinder.engines.cashflow import InvestmentInputs, RentalAssumptions, co
 from housefinder.regulation.kinds import RentalFacts
 from housefinder.regulation.resolvers import (
     ibi_annual,
+    income_tax_profile,
     purchase_tax,
     rental_reduction,
     tax_params,
@@ -89,7 +90,12 @@ def test_tax_params_contrato_de_2026(book: RuleBook):
     assert tax.rental_income_reduction == Decimal("0.50")  # Ley 12/2023, d) cualquier otro caso
     assert tax.depreciation_rate == Decimal("0.03")
     assert tax.marginal_rate == Decimal("0.30")
-    assert tax.rule_ids == ("irpf-reduccion-alquiler-ley-12-2023", "irpf-amortizacion-inmueble")
+    assert tax.rule_ids == (
+        "irpf-reduccion-alquiler-ley-12-2023",
+        "irpf-amortizacion-inmueble",
+        "irpf-limite-intereses-reparacion",
+    )
+    assert tax.interest_repair_carryforward_years == 4
     assert TIPO_MARGINAL in tax.sources
 
 
@@ -142,5 +148,87 @@ def test_las_cifras_del_cash_flow_citan_las_reglas(book: RuleBook):
     )
     res = compute_cashflow(inv, rent, tax)
     ids = {ref.id for ref in res.annual_tax.sources if ref.kind == "rule"}
-    assert ids == {"irpf-reduccion-alquiler-ley-12-2023", "irpf-amortizacion-inmueble"}
+    assert ids == {
+        "irpf-reduccion-alquiler-ley-12-2023",
+        "irpf-amortizacion-inmueble",
+        "irpf-limite-intereses-reparacion",
+    }
     assert res.annual_tax.provisional
+
+
+
+# --- Perfil del IRPF para la cuota incremental (ADR-0007) ---------------------------
+
+EJERCICIO = date(2026, 12, 31)
+BASE = SourceRef("user_input", "base-liquidable-de-prueba")
+
+
+def test_perfil_irpf_residente_en_madrid(book: RuleBook):
+    perfil = income_tax_profile(
+        book, residence="ES-13", tax_year=EJERCICIO, other_base=Decimal(30000), age=40,
+        descendant_ages=(), other_base_sources=(BASE,), allow_unverified=True,
+    )
+    assert perfil.state.minimum == Decimal(5550)
+    assert perfil.regional.minimum == Decimal("5956.65")
+    assert perfil.regional.scale[1].start == Decimal("13362.22")
+    ids = {ref.id for ref in perfil.sources if ref.kind == "rule"}
+    assert ids == {
+        "irpf-escala-general-estatal-2021",
+        "madrid-irpf-escala-general-2023",
+        "irpf-minimo-contribuyente-2015",
+        "irpf-minimo-descendientes-2015",
+        "madrid-irpf-minimo-contribuyente-2023",
+        "madrid-irpf-minimo-descendientes-2023",
+    }
+    assert BASE in perfil.sources
+
+
+def test_minimos_con_edad_y_descendientes(book: RuleBook):
+    perfil = income_tax_profile(
+        book, residence="ES-13", tax_year=EJERCICIO, other_base=Decimal(30000), age=70,
+        descendant_ages=(10, 2), allow_unverified=True,
+    )
+    # Estatal: 5.550 + 1.150 + 2.400 + 2.700 + 2.800 = 14.600
+    # Madrid:  5.956,65 + 1.234,26 + 2.575,85 + 2.897,83 + 3.005,16 = 15.669,75
+    assert perfil.state.minimum == Decimal(14600)
+    assert perfil.regional.minimum == Decimal("15669.75")
+
+
+def test_residencia_sin_escala_autonomica(book: RuleBook):
+    with pytest.raises(LookupError, match="escala_irpf_general_autonomica"):
+        income_tax_profile(
+            book, residence="ES-09", tax_year=EJERCICIO, other_base=Decimal(30000), age=40,
+            descendant_ages=(), allow_unverified=True,
+        )
+
+
+def test_cash_flow_con_cuota_incremental_y_reglas_reales(book: RuleBook):
+    perfil = income_tax_profile(
+        book, residence="ES-13", tax_year=EJERCICIO, other_base=Decimal(30000), age=40,
+        descendant_ages=(), allow_unverified=True,
+    )
+    tax = tax_params(
+        book, MADRID, contract_date=date(2026, 11, 15), situation=PRIMER_ALQUILER,
+        income=perfil, allow_unverified=True,
+    )
+    inv = InvestmentInputs(
+        price=Decimal(150000), purchase_costs=Decimal(15000), renovation=Decimal(0),
+        loan=Decimal(105000), monthly_mortgage_payment=Decimal("442.68"),
+        first_year_interest=Decimal(3100), construction_value=Decimal(60000),
+    )
+    rent = RentalAssumptions(
+        monthly_rent=Decimal(900), vacancy_rate=Decimal("0.05"),
+        community_fees_monthly=Decimal(60), ibi_annual=Decimal(300),
+        insurance_annual=Decimal(350), management_fee_rate=Decimal(0),
+        maintenance_reserve_rate=Decimal("0.05"),
+    )
+    # Mismo caso que tests/test_cashflow.py: 1.738,50 reducidos sobre 30.000 → 483,31
+    assert compute_cashflow(inv, rent, tax).annual_tax.value == Decimal("483.31")
+
+
+def test_tax_params_exige_un_modo(book: RuleBook):
+    with pytest.raises(ValueError):
+        tax_params(
+            book, MADRID, contract_date=date(2026, 11, 15), situation=PRIMER_ALQUILER,
+            allow_unverified=True,
+        )

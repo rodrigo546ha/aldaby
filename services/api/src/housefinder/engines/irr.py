@@ -21,7 +21,9 @@ from decimal import Decimal
 
 from housefinder.core.figures import Figure, SourceRef, combine_sources, money, ratio
 from housefinder.engines.cashflow import (
+    CashflowResult,
     InvestmentInputs,
+    PendingExcess,
     RentalAssumptions,
     TaxParams,
     compute_cashflow,
@@ -96,15 +98,14 @@ def investment_irr(
     if horizon_years <= 0:
         raise ValueError("El horizonte debe ser positivo")
 
-    rows = (
-        amortization_schedule(investment.loan, annual_rate, loan_years)
-        if investment.loan > 0
-        else []
-    )
+    rows = _schedule(investment, annual_rate, loan_years)
     acquisition = investment.price + investment.purchase_costs + investment.renovation
     flows = [-money(acquisition - investment.loan)]  # dinero aportado
-    for year in range(1, horizon_years + 1):
-        flows.append(_after_tax_cashflow(investment, rent, tax, rows, year))
+    for year_result in yearly_cashflows(investment, rent, tax, annual_rate, loan_years,
+                                        horizon_years):
+        flows.append(
+            year_result.annual_operating_cashflow.value - year_result.annual_tax.value
+        )
 
     sale_price = money(investment.price * (1 + appreciation_rate) ** horizon_years)
     sale_costs = money(sale_price * sale_cost_rate)
@@ -155,21 +156,40 @@ def investment_irr(
     )
 
 
-def _after_tax_cashflow(
+def yearly_cashflows(
     investment: InvestmentInputs,
     rent: RentalAssumptions,
     tax: TaxParams,
-    rows: list[AmortizationRow],
-    year: int,
-) -> Decimal:
-    """Cash flow tras impuestos del año `year`, con las cuotas e intereses de ese año."""
-    year_rows = rows[12 * (year - 1) : 12 * year]
-    payments = sum((r.payment for r in year_rows), Decimal(0))
-    interest = sum((r.interest for r in year_rows), Decimal(0))
-    inputs = replace(
-        investment,
-        monthly_mortgage_payment=payments / 12,
-        first_year_interest=interest,  # en compute_cashflow, los intereses del año evaluado
-    )
-    result = compute_cashflow(inputs, rent, tax)
-    return result.annual_operating_cashflow.value - result.annual_tax.value
+    annual_rate: Decimal,
+    loan_years: int,
+    years: int,
+) -> tuple[CashflowResult, ...]:
+    """Cash flow de cada año con las cuotas e intereses reales del cuadro.
+
+    El exceso de intereses y reparación de un año pasa a los siguientes (LIRPF
+    art. 23.1.a.1.º), así que cada año depende del anterior.
+    """
+    rows = _schedule(investment, annual_rate, loan_years)
+    results: list[CashflowResult] = []
+    pending: tuple[PendingExcess, ...] = ()
+    for year in range(1, years + 1):
+        year_rows = rows[12 * (year - 1) : 12 * year]
+        payments = sum((r.payment for r in year_rows), Decimal(0))
+        interest = sum((r.interest for r in year_rows), Decimal(0))
+        inputs = replace(
+            investment,
+            monthly_mortgage_payment=payments / 12,
+            first_year_interest=interest,  # en compute_cashflow, los intereses del año
+        )
+        result = compute_cashflow(inputs, rent, tax, pending_excess=pending)
+        pending = result.pending_excess
+        results.append(result)
+    return tuple(results)
+
+
+def _schedule(
+    investment: InvestmentInputs, annual_rate: Decimal, loan_years: int
+) -> list[AmortizationRow]:
+    if investment.loan <= 0:
+        return []
+    return amortization_schedule(investment.loan, annual_rate, loan_years)

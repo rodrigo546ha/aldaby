@@ -40,6 +40,7 @@ TAX = TaxParams(
     marginal_rate=Decimal("0.30"),
     rental_income_reduction=Decimal("0.50"),
     depreciation_rate=Decimal("0.03"),
+    interest_repair_carryforward_years=4,
     sources=(REGLA,),
 )
 

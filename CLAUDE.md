@@ -45,7 +45,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     core/dated.py         lector común de registros con fecha y territorio
     engines/mortgage.py   cuota, amortización, capacidad, estrés, comparación fija/variable/mixta
     engines/rates.py      trayectoria del índice (RatePath) y condiciones de tipo
-    engines/cashflow.py   cash flow y rentabilidad personal
+    engines/cashflow.py   cash flow, límite de intereses y su arrastre, rentabilidad personal
+    engines/irpf.py       escalas, mínimos y cuota incremental del IRPF (ADR-0007)
     engines/term.py       plazo recomendado con cash flow en estrés
     engines/irr.py        TIR de la inversión con revalorización y venta
     regulation/rules.py   motor de normativa versionada (RuleBook)
