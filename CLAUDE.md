@@ -52,6 +52,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     regulation/kinds.py   catálogo de tipos de regla y esquema de sus parámetros
     regulation/resolvers.py  de reglas a entradas de los motores (TaxParams, ITP, IBI)
     params/               parámetros con fecha (ParamBook): criterios bancarios, Euríbor (ADR-0006)
+    planning/scenarios.py escenarios normativos: comparación con / sin reglas pendientes
     ingestion/boe.py      sumario diario del BOE (esquema por verificar, fase 4)
     api/main.py           endpoints HTTP
   data/rules/             reglas de normativa en YAML

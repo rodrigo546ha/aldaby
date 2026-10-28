@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
@@ -48,9 +48,59 @@ class BracketScale(RuleParams):
         return self
 
 
+ContractType = Literal["primer-alquiler", "nuevo-contrato", "prorroga-tacita"]
+RentChange = Literal[
+    "rebaja-mas-5",  # renta inicial rebajada más de un 5 % respecto de la última
+    "no-superior",  # no superior a la última renta (incluye rebajas de hasta el 5 %)
+    "subida-hasta-5",
+    "subida-5-a-10",
+    "subida-10-a-15",
+    "subida-15-a-20",
+    "subida-mas-de-20",
+]
+
+
+class RentalFacts(RuleParams):
+    """Situación de un contrato de alquiler de vivienda, en el vocabulario de las reglas.
+
+    Los hechos que no se conocen valen False: solo desbloquean reducciones mayores, así que
+    suponerlos falsos nunca da una reducción que no se pueda justificar. `large_holder` es
+    obligatorio porque suponerlo falso sí podría darla.
+    """
+
+    contract: ContractType
+    large_holder: bool  # gran tenedor (art. 3.k de la Ley 12/2023)
+    rent_change: RentChange | None = None  # solo en «nuevo-contrato»
+    below_reference_index: bool = False  # renta por debajo del índice de referencia
+    stressed_zone: bool = False  # zona de mercado residencial tensionado declarada
+    young_tenant: bool = False  # arrendatario de 18 a 35 años
+    public_or_social_tenant: bool = False  # Administración, entidad sin fines lucrativos…
+    recent_rehabilitation: bool = False  # rehabilitación terminada en los dos años anteriores
+    same_tenant_after_term: bool = False  # nuevo contrato con el mismo arrendatario al acabar
+
+
+class RentalConditions(RuleParams):
+    """Hechos que exige un caso; los que no aparecen dan igual."""
+
+    contract: ContractType | None = None
+    large_holder: bool | None = None
+    rent_change: RentChange | None = None
+    below_reference_index: bool | None = None
+    stressed_zone: bool | None = None
+    young_tenant: bool | None = None
+    public_or_social_tenant: bool | None = None
+    recent_rehabilitation: bool | None = None
+    same_tenant_after_term: bool | None = None
+
+    def matches(self, facts: RentalFacts) -> bool:
+        required = self.model_dump(exclude_none=True)
+        return all(getattr(facts, name) == value for name, value in required.items())
+
+
 class ReductionCase(RuleParams):
-    condition: Condition  # "general" o un caso concreto ("zona-tensionada-rebaja-renta"…)
+    condition: Condition  # nombre del supuesto ("general", "zona-tensionada-rebaja-renta"…)
     reduction: Fraction
+    when: RentalConditions = RentalConditions()  # sin condiciones = se aplica siempre
 
 
 class ReductionCases(RuleParams):
@@ -74,6 +124,14 @@ class ReductionCases(RuleParams):
             if c.condition == condition:
                 return c
         raise KeyError(condition)
+
+    def best(self, facts: RentalFacts) -> ReductionCase | None:
+        """Caso de mayor reducción entre los que cumple la situación; None si ninguno.
+
+        La norma aplica «la reducción de mayor cuantía» cuando se cumplen varios supuestos.
+        """
+        matching = [c for c in self.cases if c.when.matches(facts)]
+        return max(matching, key=lambda c: c.reduction) if matching else None
 
 
 @dataclass(frozen=True)

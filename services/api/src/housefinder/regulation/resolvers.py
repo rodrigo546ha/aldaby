@@ -10,12 +10,13 @@ devengo y las reducciones del IRPF en la fecha de celebración del contrato de a
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
 from housefinder.core.figures import Figure, SourceRef, combine_sources, money
 from housefinder.engines.cashflow import TaxParams
-from housefinder.regulation.kinds import RateParams, ReductionCases, parse_params
+from housefinder.regulation.kinds import RateParams, ReductionCases, RentalFacts, parse_params
 from housefinder.regulation.rules import Rule, RuleBook
 
 
@@ -68,11 +69,42 @@ def ibi_annual(
     )
 
 
+@dataclass(frozen=True)
+class RentalReduction:
+    rule: Rule
+    case: str | None  # supuesto aplicado; None si la situación no encaja en ninguno
+    reduction: Decimal  # 0 si no hay supuesto aplicable
+
+
+def rental_reduction(
+    book: RuleBook,
+    territory: str,
+    contract_date: date,
+    situation: RentalFacts,
+    include_pending: bool = False,
+    allow_unverified: bool = False,
+) -> RentalReduction:
+    """Reducción del art. 23.2 de la Ley del IRPF para una situación de contrato.
+
+    Cada caso de la regla declara los hechos que exige; se aplica el de mayor reducción
+    entre los que se cumplen. Si no se cumple ninguno, no hay reducción.
+    """
+    rule = _rule(book, "reduccion_irpf_alquiler", territory, contract_date, include_pending,
+                 allow_unverified)
+    cases = parse_params(rule.kind, rule.params)
+    if not isinstance(cases, ReductionCases):
+        raise TypeError(f"{rule.id}: se esperaba una reducción por casos")
+    best = cases.best(situation)
+    if best is None:
+        return RentalReduction(rule, None, Decimal(0))
+    return RentalReduction(rule, best.condition, best.reduction)
+
+
 def tax_params(
     book: RuleBook,
     territory: str,
     contract_date: date,
-    reduction_case: str,
+    situation: RentalFacts,
     marginal_rate: Decimal,
     marginal_rate_sources: tuple[SourceRef, ...] = (),
     include_pending: bool = False,
@@ -80,30 +112,17 @@ def tax_params(
 ) -> TaxParams:
     """Parámetros fiscales del alquiler para el motor de cash flow.
 
-    `reduction_case`: supuesto de la reducción del art. 23.2 de la Ley del IRPF (una
-    `condition` de la regla aplicable, p. ej. «general» o «primer-alquiler-zona-tensionada»).
     `marginal_rate` llega del usuario mientras no se calcule la cuota incremental (D-G2-1).
     """
-    reduction_rule = _rule(book, "reduccion_irpf_alquiler", territory, contract_date,
-                           include_pending, allow_unverified)
+    reduction = rental_reduction(book, territory, contract_date, situation, include_pending,
+                                 allow_unverified)
     depreciation_rule = _rule(book, "amortizacion_inmueble_alquiler", territory,
                               contract_date, include_pending, allow_unverified)
-    cases = parse_params(reduction_rule.kind, reduction_rule.params)
-    if not isinstance(cases, ReductionCases):
-        raise TypeError(f"{reduction_rule.id}: se esperaba una reducción por casos")
-    try:
-        reduction = cases.case(reduction_case).reduction
-    except KeyError:
-        available = ", ".join(c.condition for c in cases.cases)
-        raise ValueError(
-            f"La regla {reduction_rule.id} no tiene el caso {reduction_case!r}. "
-            f"Casos: {available}"
-        ) from None
     return TaxParams(
         marginal_rate=marginal_rate,
-        rental_income_reduction=reduction,
+        rental_income_reduction=reduction.reduction,
         depreciation_rate=_rate(depreciation_rule),
-        sources=(reduction_rule.ref, depreciation_rule.ref, *marginal_rate_sources),
+        sources=(reduction.rule.ref, depreciation_rule.ref, *marginal_rate_sources),
     )
 
 

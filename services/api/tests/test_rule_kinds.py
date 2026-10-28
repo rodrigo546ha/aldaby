@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from housefinder.regulation.check import main as rules_check
-from housefinder.regulation.kinds import KINDS, BracketScale, parse_params
+from housefinder.regulation.kinds import KINDS, BracketScale, RentalFacts, parse_params
 from housefinder.regulation.rules import Rule, RuleBook, default_rules_dir
 from housefinder.regulation.validate import check_rules
 
@@ -189,3 +189,56 @@ def test_comando_de_comprobacion(tmp_path: Path, capsys):
     (tmp_path / "mala.yaml").write_text(MALA, encoding="utf-8")
     assert rules_check([str(tmp_path)]) == 1
     assert "mala:" in capsys.readouterr().out
+
+
+# --- Condiciones de los casos ------------------------------------------------
+
+CASOS = {
+    "cases": [
+        {"condition": "general", "reduction": 0.5},
+        {"condition": "zona", "reduction": 0.9, "when": {"stressed_zone": True}},
+        {
+            "condition": "joven-sin-gran-tenedor",
+            "reduction": 0.7,
+            "when": {"young_tenant": True, "large_holder": False},
+        },
+    ]
+}
+
+
+def _facts(**kw) -> RentalFacts:
+    return RentalFacts(contract="primer-alquiler", large_holder=False, **kw)
+
+
+def test_se_aplica_la_mayor_reduccion_de_las_que_cumple():
+    casos = parse_params("reduccion_irpf_alquiler", CASOS)
+    assert casos.best(_facts()).condition == "general"
+    assert casos.best(_facts(young_tenant=True)).condition == "joven-sin-gran-tenedor"
+    assert casos.best(_facts(young_tenant=True, stressed_zone=True)).condition == "zona"
+
+
+def test_una_condicion_falsa_excluye_el_caso():
+    casos = parse_params("reduccion_irpf_alquiler", CASOS)
+    gran_tenedor = RentalFacts(contract="primer-alquiler", large_holder=True, young_tenant=True)
+    assert casos.best(gran_tenedor).condition == "general"
+
+
+def test_ningun_caso_aplicable():
+    casos = parse_params(
+        "reduccion_irpf_alquiler",
+        {"cases": [{"condition": "zona", "reduction": 0.9, "when": {"stressed_zone": True}}]},
+    )
+    assert casos.best(_facts()) is None
+
+
+def test_condicion_desconocida_en_la_regla():
+    with pytest.raises(ValueError, match="edad_inventada"):
+        parse_params(
+            "reduccion_irpf_alquiler",
+            {"cases": [{"condition": "x", "reduction": 0.5, "when": {"edad_inventada": True}}]},
+        )
+
+
+def test_gran_tenedor_es_obligatorio():
+    with pytest.raises(ValueError):
+        RentalFacts(contract="primer-alquiler")

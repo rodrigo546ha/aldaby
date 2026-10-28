@@ -26,6 +26,7 @@ Después, `make rules-check` y `make test`.
   renta limitada), 60 % (rehabilitación en los dos años anteriores), 50 % («en cualquier otro caso»).
 - **Comprueba:**
   - [ ] Los cinco casos y sus porcentajes.
+  - [ ] Las condiciones (`when`) de cada caso: qué hechos del contrato exige.
   - [ ] La vigencia: en vigor el 01/01/2024, para contratos celebrados desde el 26/05/2023.
   - [ ] Que la disposición transitoria 38.ª de la Ley del IRPF, en la redacción del RDL 29/2026,
         la mantiene para contratos celebrados hasta el 01/12/2026.
@@ -39,6 +40,9 @@ Después, `make rules-check` y `make test`.
   sigue usando la Ley 12/2023 y este régimen solo entra en escenarios.
 - **Comprueba:**
   - [ ] Los 20 casos y sus porcentajes (los comentarios del YAML dicen a qué letra corresponde cada uno).
+  - [ ] Las condiciones (`when`) de cada caso, en especial que a), b) y la prórroga tácita exigen
+        `large_holder: false`, y que el 50 % del primer alquiler (b 5.º) exige renta igual o superior
+        al índice (`below_reference_index: false`).
   - [ ] Que no hay un caso residual para el gran tenedor: si lo es, solo le quedan c) y d).
   - [ ] **Si ya se ha convalidado** (resolución del Congreso o de la Diputación Permanente en el BOE):
         pasar esta regla a `vigente` y cerrar la de la Ley 12/2023 con `effective_to: 2026-12-01`.

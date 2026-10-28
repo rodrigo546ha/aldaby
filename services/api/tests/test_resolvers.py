@@ -11,12 +11,20 @@ import pytest
 
 from housefinder.core.figures import SourceRef
 from housefinder.engines.cashflow import InvestmentInputs, RentalAssumptions, compute_cashflow
-from housefinder.regulation.resolvers import ibi_annual, purchase_tax, tax_params
+from housefinder.regulation.kinds import RentalFacts
+from housefinder.regulation.resolvers import (
+    ibi_annual,
+    purchase_tax,
+    rental_reduction,
+    tax_params,
+)
 from housefinder.regulation.rules import RuleBook, default_rules_dir
 
 MADRID = "ES-13-28079"
 PRECIO = SourceRef("user_input", "precio-de-prueba")
 TIPO_MARGINAL = SourceRef("user_input", "tipo-marginal-de-prueba")
+# Inversor particular que alquila por primera vez a un adulto, fuera de zona tensionada.
+PRIMER_ALQUILER = RentalFacts(contract="primer-alquiler", large_holder=False)
 
 
 @pytest.fixture(scope="module")
@@ -74,39 +82,51 @@ def test_ibi_sin_regla_para_el_ano(book: RuleBook):
 
 def test_tax_params_contrato_de_2026(book: RuleBook):
     tax = tax_params(
-        book, MADRID, contract_date=date(2026, 11, 15), reduction_case="general",
+        book, MADRID, contract_date=date(2026, 11, 15), situation=PRIMER_ALQUILER,
         marginal_rate=Decimal("0.30"), marginal_rate_sources=(TIPO_MARGINAL,),
         allow_unverified=True,
     )
-    assert tax.rental_income_reduction == Decimal("0.50")
+    assert tax.rental_income_reduction == Decimal("0.50")  # Ley 12/2023, d) cualquier otro caso
     assert tax.depreciation_rate == Decimal("0.03")
     assert tax.marginal_rate == Decimal("0.30")
     assert tax.rule_ids == ("irpf-reduccion-alquiler-ley-12-2023", "irpf-amortizacion-inmueble")
     assert TIPO_MARGINAL in tax.sources
 
 
-def test_tax_params_escenario_rdl_29_2026(book: RuleBook):
-    tax = tax_params(
-        book, MADRID, contract_date=date(2027, 1, 15),
-        reduction_case="primer-alquiler-zona-tensionada", marginal_rate=Decimal("0.30"),
-        include_pending=True, allow_unverified=True,
+def test_misma_situacion_distinto_regimen(book: RuleBook):
+    # Primer alquiler en zona tensionada, arrendatario adulto, contrato de 2027.
+    situacion = PRIMER_ALQUILER.model_copy(update={"stressed_zone": True})
+    contrato = date(2027, 1, 15)
+    base = rental_reduction(book, MADRID, contrato, situacion, allow_unverified=True)
+    rdl = rental_reduction(
+        book, MADRID, contrato, situacion, include_pending=True, allow_unverified=True
     )
-    assert tax.rental_income_reduction == Decimal("0.90")
-    assert "irpf-reduccion-alquiler-rdl-29-2026" in tax.rule_ids
+    # Ley 12/2023: la zona tensionada solo da el 70 % con arrendatario joven → 50 %.
+    assert (base.case, base.reduction) == ("general", Decimal("0.50"))
+    # RDL 29/2026: b) 3.º primer alquiler en zona tensionada → 90 %.
+    assert (rdl.case, rdl.reduction) == ("primer-alquiler-zona-tensionada", Decimal("0.90"))
 
 
-def test_caso_que_no_existe_en_la_regla(book: RuleBook):
-    # El régimen del RDL 29/2026 no tiene caso «general»: el error lista los disponibles.
-    with pytest.raises(ValueError, match="primer-alquiler-sobre-indice"):
-        tax_params(
-            book, MADRID, contract_date=date(2027, 1, 15), reduction_case="general",
-            marginal_rate=Decimal("0.30"), include_pending=True, allow_unverified=True,
-        )
+def test_se_aplica_la_mayor_reduccion(book: RuleBook):
+    # Joven y zona tensionada con el RDL 29/2026: 95 % (no 90 % ni 85 %).
+    situacion = PRIMER_ALQUILER.model_copy(update={"stressed_zone": True, "young_tenant": True})
+    res = rental_reduction(
+        book, MADRID, date(2027, 1, 15), situacion, include_pending=True, allow_unverified=True
+    )
+    assert (res.case, res.reduction) == ("primer-alquiler-zona-tensionada-joven", Decimal("0.95"))
+
+
+def test_gran_tenedor_sin_otro_supuesto_no_tiene_reduccion(book: RuleBook):
+    gran_tenedor = RentalFacts(contract="primer-alquiler", large_holder=True)
+    res = rental_reduction(
+        book, MADRID, date(2027, 1, 15), gran_tenedor, include_pending=True, allow_unverified=True
+    )
+    assert (res.case, res.reduction) == (None, Decimal(0))
 
 
 def test_las_cifras_del_cash_flow_citan_las_reglas(book: RuleBook):
     tax = tax_params(
-        book, MADRID, contract_date=date(2026, 11, 15), reduction_case="general",
+        book, MADRID, contract_date=date(2026, 11, 15), situation=PRIMER_ALQUILER,
         marginal_rate=Decimal("0.30"), allow_unverified=True,
     )
     inv = InvestmentInputs(

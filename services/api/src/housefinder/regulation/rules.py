@@ -92,6 +92,19 @@ class RuleBook:
             and territory_contains(r.territory, territory)
         )
 
+    def pending(
+        self, territory: str, on: date, allow_unverified: bool = False
+    ) -> list[Rule]:
+        """Reglas pendientes de convalidación aplicables: avisan de que hay un escenario."""
+        return [
+            r
+            for r in self.rules
+            if r.status == "pendiente_convalidacion"
+            and r.applies_on(on)
+            and (r.verified or allow_unverified)
+            and territory_contains(r.territory, territory)
+        ]
+
 
 def _parse_rule(raw: dict[str, Any]) -> Rule:
     status = raw.get("status", "vigente")

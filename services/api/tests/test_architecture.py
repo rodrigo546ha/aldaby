@@ -15,6 +15,7 @@ ALLOWED_INTERNAL = {
     "engines": {"core", "engines"},
     "regulation": {"core", "regulation", "engines"},  # engines solo por los tipos (TaxParams)
     "params": {"core", "params", "engines"},  # engines solo por los tipos (BankCriteria)
+    "planning": {"core", "engines", "regulation", "params", "planning"},
     "core": {"core"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi"}

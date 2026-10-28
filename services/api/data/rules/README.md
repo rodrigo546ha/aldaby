@@ -43,8 +43,18 @@ añade su esquema al catálogo.
 | `kind` | `params` |
 | --- | --- |
 | `impuesto_compra_segunda_mano`, `iva_vivienda_nueva`, `amortizacion_inmueble_alquiler`, `tipo_ibi` | `rate` en tanto por uno |
-| `reduccion_irpf_alquiler` | `cases`: lista de `{condition, reduction}`, sin condiciones repetidas |
+| `reduccion_irpf_alquiler` | `cases`: lista de `{condition, reduction, when}`, sin condiciones repetidas; `when` son los hechos del contrato que exige el caso (ver abajo) |
 | `escala_irpf_general`, `escala_irpf_ahorro` | `brackets`: lista de `{from, rate}`; el primero desde 0, crecientes |
+
+## Hechos del contrato (`when`)
+
+Cada caso de `reduccion_irpf_alquiler` declara en `when` los hechos que exige, con el vocabulario
+de `RentalFacts` (`src/housefinder/regulation/kinds.py`): `contract` (`primer-alquiler`,
+`nuevo-contrato`, `prorroga-tacita`), `rent_change` (`rebaja-mas-5`, `no-superior`,
+`subida-hasta-5` … `subida-mas-de-20`), `large_holder`, `below_reference_index`, `stressed_zone`,
+`young_tenant`, `public_or_social_tenant`, `recent_rehabilitation` y `same_tenant_after_term`.
+Un caso sin `when` se aplica siempre. Se aplica el caso de mayor reducción entre los que se
+cumplen; si no se cumple ninguno, no hay reducción.
 
 ## Comprobar
 

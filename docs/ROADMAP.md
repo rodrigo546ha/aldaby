@@ -97,7 +97,7 @@ plan manual de F0 reproducido por el motor con diferencias menores de 1 €.
 - [ ] F2.3 Cargar cada regla desde la fuente oficial con `verified: true` tras revisión.
 - [ ] F2.4 Normativa de alquiler: zonas tensionadas (lista oficial), alquiler de temporada, por
       habitaciones y turístico (mayoría de 3/5 de la comunidad, registro autonómico).
-- [ ] F2.5 Escenarios: reglas `pendiente_convalidacion` y comparación «con / sin» en el plan.
+- [x] F2.5 Escenarios: reglas `pendiente_convalidacion` y comparación «con / sin» en el plan.
 - [ ] F2.6 Monitor del BOE y del BOCM: detectar disposiciones nuevas sobre vivienda y abrir una
       tarea de revisión (la IA resume, una persona decide).
 - [x] F2.7 Conectar `TaxParams` del motor de cash flow con `RuleBook`, citando `rule_ids`.

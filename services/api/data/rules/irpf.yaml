@@ -3,6 +3,8 @@
 # SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente
 # (lista de comprobación en docs/normativa/verificacion-tanda-1.md).
 
+# Cada caso declara en `when` los hechos del contrato que exige (vocabulario en
+# regulation/kinds.py, RentalFacts); se aplica el de mayor reducción entre los que se cumplen.
 # La vigencia de las reducciones se cuenta por FECHA DE CELEBRACIÓN DEL CONTRATO de
 # arrendamiento: la regla aplicable es la de la fecha en que se firma el contrato.
 
@@ -21,15 +23,24 @@
   params:
     cases:
       # a) nuevo contrato del mismo arrendador, zona tensionada, renta rebajada más de un 5 %
-      - {condition: zona-tensionada-rebaja-renta, reduction: 0.90}
+      - condition: zona-tensionada-rebaja-renta
+        reduction: 0.90
+        when: {contract: nuevo-contrato, rent_change: rebaja-mas-5, stressed_zone: true}
       # b) 1.º primer alquiler en zona tensionada con arrendatario de 18 a 35 años
-      - {condition: primer-alquiler-zona-tensionada-joven, reduction: 0.70}
+      - condition: primer-alquiler-zona-tensionada-joven
+        reduction: 0.70
+        when: {contract: primer-alquiler, stressed_zone: true, young_tenant: true}
       # b) 2.º arrendatario Administración o entidad sin fines lucrativos, o programa con renta limitada
-      - {condition: administracion-o-renta-limitada, reduction: 0.70}
+      - condition: administracion-o-renta-limitada
+        reduction: 0.70
+        when: {public_or_social_tenant: true}
       # c) rehabilitación terminada en los dos años anteriores al contrato
-      - {condition: rehabilitacion-reciente, reduction: 0.60}
+      - condition: rehabilitacion-reciente
+        reduction: 0.60
+        when: {recent_rehabilitation: true}
       # d) «en cualquier otro caso»
-      - {condition: general, reduction: 0.50}
+      - condition: general
+        reduction: 0.50
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2023-12203#df-2
   notes: "Ley 35/2006, art. 23.2, redacción de la Ley 12/2023, disp. final 2.1. Requisitos al celebrar el contrato; la reducción se aplica mientras se cumplan."
 
@@ -48,32 +59,72 @@
   params:
     cases:
       # a) nuevo contrato del mismo arrendador; 1.º renta inicial rebajada más de un 5 %
-      - {condition: nuevo-contrato-rebaja-renta-prorroga-mismo-arrendatario, reduction: 1.00}  # a´)
-      - {condition: nuevo-contrato-rebaja-renta-bajo-indice, reduction: 1.00}  # a´) otro arrendatario
-      - {condition: nuevo-contrato-rebaja-renta-zona-tensionada-joven, reduction: 0.95}  # b´)
-      - {condition: nuevo-contrato-rebaja-renta-zona-tensionada, reduction: 0.90}  # c´)
-      - {condition: nuevo-contrato-rebaja-renta-joven, reduction: 0.85}  # d´)
-      - {condition: nuevo-contrato-rebaja-renta, reduction: 0.70}  # e´) restantes casos
+      - condition: nuevo-contrato-rebaja-renta-prorroga-mismo-arrendatario  # a´)
+        reduction: 1.00
+        when: {contract: nuevo-contrato, rent_change: rebaja-mas-5, same_tenant_after_term: true, large_holder: false}
+      - condition: nuevo-contrato-rebaja-renta-bajo-indice  # a´) otro arrendatario
+        reduction: 1.00
+        when: {contract: nuevo-contrato, rent_change: rebaja-mas-5, below_reference_index: true, large_holder: false}
+      - condition: nuevo-contrato-rebaja-renta-zona-tensionada-joven  # b´)
+        reduction: 0.95
+        when: {contract: nuevo-contrato, rent_change: rebaja-mas-5, stressed_zone: true, young_tenant: true, large_holder: false}
+      - condition: nuevo-contrato-rebaja-renta-zona-tensionada  # c´)
+        reduction: 0.90
+        when: {contract: nuevo-contrato, rent_change: rebaja-mas-5, stressed_zone: true, large_holder: false}
+      - condition: nuevo-contrato-rebaja-renta-joven  # d´)
+        reduction: 0.85
+        when: {contract: nuevo-contrato, rent_change: rebaja-mas-5, young_tenant: true, large_holder: false}
+      - condition: nuevo-contrato-rebaja-renta  # e´) restantes casos
+        reduction: 0.70
+        when: {contract: nuevo-contrato, rent_change: rebaja-mas-5, large_holder: false}
       # a) 2.º renta inicial no superior a la última renta
-      - {condition: nuevo-contrato-renta-no-superior, reduction: 0.50}
+      - condition: nuevo-contrato-renta-no-superior
+        reduction: 0.50
+        when: {contract: nuevo-contrato, rent_change: no-superior, large_holder: false}
       # a) 3.º renta inicial incrementada respecto de la última renta
-      - {condition: nuevo-contrato-subida-hasta-5, reduction: 0.40}
-      - {condition: nuevo-contrato-subida-5-a-10, reduction: 0.30}
-      - {condition: nuevo-contrato-subida-10-a-15, reduction: 0.25}
-      - {condition: nuevo-contrato-subida-15-a-20, reduction: 0.20}
-      - {condition: nuevo-contrato-subida-mas-de-20, reduction: 0.15}
+      - condition: nuevo-contrato-subida-hasta-5
+        reduction: 0.40
+        when: {contract: nuevo-contrato, rent_change: subida-hasta-5, large_holder: false}
+      - condition: nuevo-contrato-subida-5-a-10
+        reduction: 0.30
+        when: {contract: nuevo-contrato, rent_change: subida-5-a-10, large_holder: false}
+      - condition: nuevo-contrato-subida-10-a-15
+        reduction: 0.25
+        when: {contract: nuevo-contrato, rent_change: subida-10-a-15, large_holder: false}
+      - condition: nuevo-contrato-subida-15-a-20
+        reduction: 0.20
+        when: {contract: nuevo-contrato, rent_change: subida-15-a-20, large_holder: false}
+      - condition: nuevo-contrato-subida-mas-de-20
+        reduction: 0.15
+        when: {contract: nuevo-contrato, rent_change: subida-mas-de-20, large_holder: false}
       # b) primer alquiler de la vivienda
-      - {condition: primer-alquiler-bajo-indice, reduction: 1.00}  # 1.º
-      - {condition: primer-alquiler-zona-tensionada-joven, reduction: 0.95}  # 2.º
-      - {condition: primer-alquiler-zona-tensionada, reduction: 0.90}  # 3.º
-      - {condition: primer-alquiler-joven, reduction: 0.85}  # 4.º
-      - {condition: primer-alquiler-sobre-indice, reduction: 0.50}  # 5.º
+      - condition: primer-alquiler-bajo-indice  # 1.º
+        reduction: 1.00
+        when: {contract: primer-alquiler, below_reference_index: true, large_holder: false}
+      - condition: primer-alquiler-zona-tensionada-joven  # 2.º
+        reduction: 0.95
+        when: {contract: primer-alquiler, stressed_zone: true, young_tenant: true, large_holder: false}
+      - condition: primer-alquiler-zona-tensionada  # 3.º
+        reduction: 0.90
+        when: {contract: primer-alquiler, stressed_zone: true, large_holder: false}
+      - condition: primer-alquiler-joven  # 4.º
+        reduction: 0.85
+        when: {contract: primer-alquiler, young_tenant: true, large_holder: false}
+      - condition: primer-alquiler-sobre-indice  # 5.º
+        reduction: 0.50
+        when: {contract: primer-alquiler, below_reference_index: false, large_holder: false}
       # c) Administración o entidad sin fines lucrativos, o programa público con renta limitada
-      - {condition: administracion-o-renta-limitada, reduction: 0.70}
+      - condition: administracion-o-renta-limitada
+        reduction: 0.70
+        when: {public_or_social_tenant: true}
       # d) rehabilitación terminada en los dos años anteriores al contrato
-      - {condition: rehabilitacion-reciente, reduction: 0.60}
+      - condition: rehabilitacion-reciente
+        reduction: 0.60
+        when: {recent_rehabilitation: true}
       # prórroga tácita con renta que no excede el índice de referencia
-      - {condition: prorroga-tacita-bajo-indice, reduction: 0.80}
+      - condition: prorroga-tacita-bajo-indice
+        reduction: 0.80
+        when: {contract: prorroga-tacita, below_reference_index: true, large_holder: false}
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2026-20823#a6
   notes: "Ley 35/2006, art. 23.2, redacción del RDL 29/2026 (BOE-A-2026-20823). Índice = sistema de índices de precios de referencia (DA 2.ª del RDL 7/2019)."
 
