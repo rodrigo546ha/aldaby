@@ -31,3 +31,5 @@ Un cambio se refleja añadiendo un registro nuevo con su vigencia, nunca editand
 | `kind` | `params` |
 | --- | --- |
 | `criterios_bancarios` | `max_ltv` y `max_dti` en tanto por uno (0, 1]; `max_age_at_end` y `max_years` enteros positivos |
+| `trayectoria_euribor_3m` | Ronda de proyecciones del BCE (ADR-0006): `round`, `cut_off`, `series`, `unit: percent` y `quarters` (`2026-Q3: 2.5`, consecutivos), copiados tal cual de la API |
+| `euribor_12m_oficial` | Euríbor a un año del BOE: `month` (`2026-07`), `unit: percent` y `value`, copiados tal cual de la resolución mensual |

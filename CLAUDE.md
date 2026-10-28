@@ -49,7 +49,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     engines/term.py       plazo recomendado con cash flow en estrés
     engines/irr.py        TIR de la inversión con revalorización y venta
     regulation/rules.py   motor de normativa versionada (RuleBook)
-    params/               parámetros con fecha (ParamBook): criterios bancarios, tipos
+    params/               parámetros con fecha (ParamBook): criterios bancarios, Euríbor (ADR-0006)
     ingestion/boe.py      sumario diario del BOE (esquema por verificar, fase 4)
     api/main.py           endpoints HTTP
   data/rules/             reglas de normativa en YAML

@@ -71,7 +71,7 @@ y al menos 3 profesionales se comprometen al piloto. Si no se cumple: revisar pr
 - [ ] F1.5 Calibrar `BankCriteria` (LTV, ratio de endeudamiento, edad máxima) con 2–3 bancos o un
       intermediario; documentar la fuente y quitar la marca `PROVISIONAL`.
 - [x] F1.6 Hipoteca mixta y comparación fija / variable / mixta: coste total esperado y peor cuota.
-- [ ] F1.7 Trayectoria esperada del Euríbor a partir de la curva publicada (Banco de España / BCE),
+- [x] F1.7 Trayectoria esperada del Euríbor a partir de la curva publicada (Banco de España / BCE),
       como datos con fecha, no como predicción propia.
 - [x] F1.8 Plazo recomendado: el mínimo que mantiene el cash flow positivo en el escenario de estrés.
 - [x] F1.9 TIR a 10 años con escenarios de revalorización (que llegarán de F5) como parámetro.

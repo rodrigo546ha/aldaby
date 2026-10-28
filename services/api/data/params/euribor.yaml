@@ -1,0 +1,51 @@
+# Trayectoria esperada del Euríbor a un año (ADR-0006). Ver data/params/README.md.
+# Valores copiados tal cual se publican, en porcentaje.
+
+# Ronda de proyecciones del BCE: supuesto de tipos a corto plazo (Euríbor a tres meses),
+# media trimestral. Una ronda nueva cada trimestre; las antiguas se conservan.
+- id: euribor-3m-bce-s26
+  kind: trayectoria_euribor_3m
+  territory: ES
+  effective_from: 2026-09-10       # fecha de publicación de las proyecciones
+  effective_to: null
+  provisional: false
+  params:
+    round: S26
+    cut_off: 2026-08-19
+    series: MPD.Q.U2.STN.I.S26.0000
+    unit: percent
+    quarters:
+      2025-Q1: 2.6
+      2025-Q2: 2.1
+      2025-Q3: 2
+      2025-Q4: 2
+      2026-Q1: 2
+      2026-Q2: 2.2
+      2026-Q3: 2.5
+      2026-Q4: 2.7
+      2027-Q1: 2.9
+      2027-Q2: 3
+      2027-Q3: 3
+      2027-Q4: 3
+      2028-Q1: 3
+      2028-Q2: 3
+      2028-Q3: 3
+      2028-Q4: 3
+  source: "BCE, proyecciones macroeconómicas del personal, septiembre de 2026; consultado en la API el 2026-10-28"
+  source_url: https://data-api.ecb.europa.eu/service/data/MPD/Q.U2.STN.I.S26.0000?format=csvdata
+  notes: "La media anual coincide con la fila «Three-month EURIBOR» de la tabla de supuestos: 2.2, 2.4, 3.0, 3.0"
+
+# Euríbor a un año oficial, media mensual publicada por el Banco de España en el BOE.
+# Ancla de la ronda S26 (corte 19 de agosto de 2026 → julio de 2026).
+- id: euribor-12m-boe-2026-07
+  kind: euribor_12m_oficial
+  territory: ES
+  effective_from: 2026-08-04       # fecha de publicación en el BOE
+  effective_to: null
+  provisional: false
+  params:
+    month: 2026-07
+    unit: percent
+    value: 2.855
+  source: "BOE núm. 189, de 4 de agosto de 2026, Resolución de 3 de agosto de 2026 del Banco de España"
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16997

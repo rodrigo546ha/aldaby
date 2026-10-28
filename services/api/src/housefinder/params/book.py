@@ -64,6 +64,9 @@ class ParamBook:
             seen.add(p.id)
         return cls(params)
 
+    def of_kind(self, kind: str) -> list[Param]:
+        return [p for p in self.params if p.kind == kind]
+
     def resolve(self, kind: str, territory: str, on: date) -> Param | None:
         """Parámetro vigente más específico para un territorio y una fecha."""
         return most_specific(
