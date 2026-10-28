@@ -134,6 +134,31 @@ class ReductionCases(RuleParams):
         return max(matching, key=lambda c: c.reduction) if matching else None
 
 
+class TaxpayerMinimum(RuleParams):
+    """Mínimo del contribuyente (Ley del IRPF, art. 57, o el autonómico que lo sustituya)."""
+
+    general: Amount
+    over_65_extra: Amount  # aumento si tiene más de 65 años
+    over_75_extra: Amount  # aumento adicional si tiene más de 75 años
+
+
+class DescendantsMinimum(RuleParams):
+    """Mínimo por descendientes (Ley del IRPF, art. 58, o el autonómico que lo sustituya)."""
+
+    first: Amount
+    second: Amount
+    third: Amount
+    fourth_and_more: Amount  # por el cuarto y cada uno de los siguientes
+    under_3_extra: Amount  # aumento por cada descendiente menor de tres años
+
+
+class InterestRepairLimit(RuleParams):
+    """Límite de intereses y gastos de reparación y conservación: no pueden superar los
+    rendimientos íntegros del inmueble; el exceso se arrastra `carryforward_years` años."""
+
+    carryforward_years: int = Field(gt=0)
+
+
 @dataclass(frozen=True)
 class KindSpec:
     params: type[RuleParams]
@@ -153,8 +178,27 @@ KINDS: dict[str, KindSpec] = {
     "amortizacion_inmueble_alquiler": KindSpec(
         RateParams, "Amortización fiscal anual del inmueble alquilado"
     ),
-    "escala_irpf_general": KindSpec(BracketScale, "Escala de la base liquidable general"),
-    "escala_irpf_ahorro": KindSpec(BracketScale, "Escala de la base liquidable del ahorro"),
+    # Estatal y autonómica son tipos distintos: una comunidad sin escala cargada no hereda la
+    # estatal (ADR-0007). Los mínimos sí se heredan: la parte autonómica usa los estatales
+    # salvo que la comunidad los sustituya (Ley del IRPF, art. 56.3).
+    "escala_irpf_general_estatal": KindSpec(
+        BracketScale, "Escala estatal de la base liquidable general"
+    ),
+    "escala_irpf_general_autonomica": KindSpec(
+        BracketScale, "Escala autonómica de la base liquidable general"
+    ),
+    "escala_irpf_ahorro_estatal": KindSpec(
+        BracketScale, "Escala estatal de la base liquidable del ahorro"
+    ),
+    "escala_irpf_ahorro_autonomica": KindSpec(
+        BracketScale, "Escala autonómica de la base liquidable del ahorro"
+    ),
+    "minimo_contribuyente": KindSpec(TaxpayerMinimum, "Mínimo del contribuyente en el IRPF"),
+    "minimo_descendientes": KindSpec(DescendantsMinimum, "Mínimo por descendientes en el IRPF"),
+    "limite_intereses_reparacion": KindSpec(
+        InterestRepairLimit,
+        "Límite de intereses y gastos de reparación en el rendimiento del capital inmobiliario",
+    ),
     "tipo_ibi": KindSpec(RateParams, "Tipo del IBI sobre el valor catastral"),
 }
 

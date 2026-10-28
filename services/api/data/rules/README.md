@@ -44,7 +44,10 @@ añade su esquema al catálogo.
 | --- | --- |
 | `impuesto_compra_segunda_mano`, `iva_vivienda_nueva`, `amortizacion_inmueble_alquiler`, `tipo_ibi` | `rate` en tanto por uno |
 | `reduccion_irpf_alquiler` | `cases`: lista de `{condition, reduction, when}`, sin condiciones repetidas; `when` son los hechos del contrato que exige el caso (ver abajo) |
-| `escala_irpf_general`, `escala_irpf_ahorro` | `brackets`: lista de `{from, rate}`; el primero desde 0, crecientes |
+| `escala_irpf_general_estatal`, `escala_irpf_general_autonomica`, `escala_irpf_ahorro_estatal`, `escala_irpf_ahorro_autonomica` | `brackets`: lista de `{from, rate}`; el primero desde 0, crecientes. La estatal va en `ES`; la autonómica, en `ES-<ccaa>` |
+| `minimo_contribuyente` | `general`, `over_65_extra`, `over_75_extra` en euros |
+| `minimo_descendientes` | `first`, `second`, `third`, `fourth_and_more`, `under_3_extra` en euros |
+| `limite_intereses_reparacion` | `carryforward_years`: años a los que se arrastra el exceso |
 
 ## Hechos del contrato (`when`)
 

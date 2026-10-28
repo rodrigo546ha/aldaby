@@ -62,3 +62,39 @@ def test_reduccion_contrato_de_2027_base_y_escenario(book: RuleBook):
     assert escenario.id == "irpf-reduccion-alquiler-rdl-29-2026"
     params = parse_params(escenario.kind, escenario.params)
     assert params.case("primer-alquiler-sobre-indice").reduction == Decimal("0.50")
+
+
+# --- Tanda 2: IRPF (ADR-0007) -------------------------------------------------------
+
+EJERCICIO = date(2026, 12, 31)
+
+
+def test_escala_estatal(book: RuleBook):
+    rule = book.resolve("escala_irpf_general_estatal", "ES", EJERCICIO, allow_unverified=True)
+    escala = parse_params(rule.kind, rule.params)
+    assert [(b.from_amount, b.rate) for b in escala.brackets][-1] == (
+        Decimal(300000),
+        Decimal("0.245"),
+    )
+
+
+def test_escala_autonomica_de_madrid(book: RuleBook):
+    rule = book.resolve("escala_irpf_general_autonomica", "ES-13", EJERCICIO, allow_unverified=True)
+    escala = parse_params(rule.kind, rule.params)
+    assert escala.brackets[1].from_amount == Decimal("13362.22")
+    assert escala.brackets[0].rate == Decimal("0.085")
+
+
+def test_otra_comunidad_no_hereda_la_escala_estatal(book: RuleBook):
+    # Cataluña (ES-09) no tiene escala cargada: debe faltar, no usar la estatal.
+    regla = book.resolve(
+        "escala_irpf_general_autonomica", "ES-09", EJERCICIO, allow_unverified=True
+    )
+    assert regla is None
+
+
+def test_minimos_madrid_sustituyen_y_otras_heredan(book: RuleBook):
+    madrid = book.resolve("minimo_contribuyente", "ES-13", EJERCICIO, allow_unverified=True)
+    otra = book.resolve("minimo_contribuyente", "ES-09", EJERCICIO, allow_unverified=True)
+    assert parse_params(madrid.kind, madrid.params).general == Decimal("5956.65")
+    assert parse_params(otra.kind, otra.params).general == Decimal(5550)  # la estatal

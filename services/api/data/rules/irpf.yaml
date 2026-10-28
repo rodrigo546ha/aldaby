@@ -141,3 +141,64 @@
   params: {rate: 0.03}
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a23
   notes: "Ley 35/2006, art. 23.1.b; Real Decreto 439/2007, art. 14.2.a (https://www.boe.es/buscar/act.php?id=BOE-A-2007-6820#a14)."
+
+# --- Tanda 2 (ADR-0007): cuota incremental del IRPF ---------------------------------
+# Las reglas de escalas y mínimos se resuelven por PERIODO IMPOSITIVO (año natural).
+
+# Escala estatal de la base liquidable general (art. 63.1.1.º), redacción de la Ley 11/2020,
+# con efectos desde el 1 de enero de 2021. Cada tipo se aplica a la parte de la base desde `from`.
+- id: irpf-escala-general-estatal-2021
+  kind: escala_irpf_general_estatal
+  territory: ES
+  effective_from: 2021-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.095}
+      - {from: 12450, rate: 0.12}
+      - {from: 20200, rate: 0.15}
+      - {from: 35200, rate: 0.185}
+      - {from: 60000, rate: 0.225}
+      - {from: 300000, rate: 0.245}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a63
+  notes: "Ley 35/2006, art. 63.1. La cuota es la escala sobre la base menos la escala sobre el mínimo personal y familiar (63.1.2.º)."
+
+# Mínimo del contribuyente (art. 57), redacción de la Ley 26/2014, en vigor el 1 de enero de 2015.
+- id: irpf-minimo-contribuyente-2015
+  kind: minimo_contribuyente
+  territory: ES
+  effective_from: 2015-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {general: 5550, over_65_extra: 1150, over_75_extra: 1400}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a57
+  notes: "Ley 35/2006, art. 57. Aumento de 1.150 € con más de 65 años y 1.400 € adicionales con más de 75."
+
+# Mínimo por descendientes (art. 58), redacción de la Ley 26/2014, en vigor el 1 de enero de 2015.
+# Por descendiente menor de 25 años (o con discapacidad) que conviva y no tenga rentas > 8.000 €.
+- id: irpf-minimo-descendientes-2015
+  kind: minimo_descendientes
+  territory: ES
+  effective_from: 2015-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {first: 2400, second: 2700, third: 4000, fourth_and_more: 4500, under_3_extra: 2800}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a58
+  notes: "Ley 35/2006, art. 58. Requisitos del descendiente en el apartado 1; aumento por menor de tres años en el apartado 2."
+
+# Límite de intereses y gastos de reparación y conservación (art. 23.1.a.1.º): no pueden superar los
+# rendimientos íntegros de cada inmueble; el exceso se deduce en los cuatro años siguientes.
+- id: irpf-limite-intereses-reparacion
+  kind: limite_intereses_reparacion
+  territory: ES
+  effective_from: 2007-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {carryforward_years: 4}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a23
+  notes: "Ley 35/2006, art. 23.1.a.1.º (texto original; las modificaciones del art. 23 afectan a los apartados 2 y 3)."

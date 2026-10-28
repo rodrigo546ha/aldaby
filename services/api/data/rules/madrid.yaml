@@ -26,3 +26,49 @@
   params: {rate: 0.00414}
   source_url: https://www.bocm.es/boletin/CM_Orden_BOCM/2025/12/26/BOCM-20251226-63.PDF
   notes: "Ordenanza Fiscal del IBI del Ayuntamiento de Madrid, art. 8.2, redacción de la Ordenanza 9/2025 (BOCM núm. 307, 26/12/2025, pp. 232–235). En vigor el 1 de enero de 2026."
+
+# --- IRPF, tramo autonómico de la Comunidad de Madrid (ADR-0007) ---------------------
+# Redacción de la Ley 13/2023, «de aplicación a todos los periodos impositivos que se inicien a
+# partir del 1 de enero de 2023» (disposición final única). Se resuelven por periodo impositivo.
+
+# Escala autonómica (DL 1/2010, art. 1).
+- id: madrid-irpf-escala-general-2023
+  kind: escala_irpf_general_autonomica
+  territory: ES-13
+  effective_from: 2023-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.085}
+      - {from: 13362.22, rate: 0.107}
+      - {from: 19004.63, rate: 0.128}
+      - {from: 35425.68, rate: 0.174}
+      - {from: 57320.40, rate: 0.205}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCM-m-2010-90068#a1
+  notes: "Decreto Legislativo 1/2010 de la Comunidad de Madrid, art. 1, redacción de la Ley 13/2023 (BOE-A-2024-5610)."
+
+# Mínimo del contribuyente autonómico, que sustituye al estatal en el gravamen autonómico (art. 2).
+- id: madrid-irpf-minimo-contribuyente-2023
+  kind: minimo_contribuyente
+  territory: ES-13
+  effective_from: 2023-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {general: 5956.65, over_65_extra: 1234.26, over_75_extra: 1502.58}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCM-m-2010-90068#a2
+  notes: "Decreto Legislativo 1/2010 de la Comunidad de Madrid, art. 2, redacción de la Ley 13/2023."
+
+# Mínimo por descendientes autonómico, que sustituye al estatal en el gravamen autonómico (art. 2 bis).
+- id: madrid-irpf-minimo-descendientes-2023
+  kind: minimo_descendientes
+  territory: ES-13
+  effective_from: 2023-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {first: 2575.85, second: 2897.83, third: 4400, fourth_and_more: 4950, under_3_extra: 3005.16}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCM-m-2010-90068#a2-3
+  notes: "Decreto Legislativo 1/2010 de la Comunidad de Madrid, art. 2 bis, redacción de la Ley 13/2023."

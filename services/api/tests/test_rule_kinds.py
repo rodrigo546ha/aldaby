@@ -54,7 +54,7 @@ def test_tipo_desconocido():
 
 def test_escala_por_tramos():
     scale = parse_params(
-        "escala_irpf_general",
+        "escala_irpf_general_estatal",
         {"brackets": [{"from": 0, "rate": 0.1}, {"from": 10000, "rate": 0.2}]},
     )
     assert isinstance(scale, BracketScale)
@@ -64,13 +64,13 @@ def test_escala_por_tramos():
 
 def test_escala_debe_empezar_en_cero():
     with pytest.raises(ValueError, match="0"):
-        parse_params("escala_irpf_general", {"brackets": [{"from": 100, "rate": 0.1}]})
+        parse_params("escala_irpf_general_estatal", {"brackets": [{"from": 100, "rate": 0.1}]})
 
 
 def test_escala_debe_ser_creciente():
     with pytest.raises(ValueError, match="crecientes"):
         parse_params(
-            "escala_irpf_general",
+            "escala_irpf_general_estatal",
             {"brackets": [{"from": 0, "rate": 0.1}, {"from": 0, "rate": 0.2}]},
         )
 
@@ -102,6 +102,30 @@ def test_reduccion_por_casos():
         {"cases": [{"condition": "general", "reduction": 0.5}]},
     )
     assert params.case("general").reduction == Decimal("0.5")
+
+
+def test_minimos():
+    contribuyente = parse_params(
+        "minimo_contribuyente", {"general": 100, "over_65_extra": 10, "over_75_extra": 20}
+    )
+    assert contribuyente.general == Decimal(100)
+    descendientes = parse_params(
+        "minimo_descendientes",
+        {"first": 1, "second": 2, "third": 3, "fourth_and_more": 4, "under_3_extra": 5},
+    )
+    assert descendientes.fourth_and_more == Decimal(4)
+
+
+def test_minimo_incompleto():
+    with pytest.raises(ValueError, match="over_75_extra"):
+        parse_params("minimo_contribuyente", {"general": 100, "over_65_extra": 10})
+
+
+def test_limite_de_intereses():
+    limite = parse_params("limite_intereses_reparacion", {"carryforward_years": 4})
+    assert limite.carryforward_years == 4
+    with pytest.raises(ValueError):
+        parse_params("limite_intereses_reparacion", {"carryforward_years": 0})
 
 
 def test_cada_tipo_tiene_descripcion():

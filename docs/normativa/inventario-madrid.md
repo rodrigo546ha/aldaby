@@ -1,7 +1,7 @@
 # Inventario de reglas para un plan de Madrid (F2.2)
 
-**Fecha:** 2026-10-28 · **Estado:** tanda 1 cargada sin verificar (1.1, 2.1, 2.2, 2.7); ver
-`docs/normativa/verificacion-tanda-1.md`.
+**Fecha:** 2026-10-28 · **Estado:** tanda 1 (1.1, 2.1, 2.2, 2.7) y tanda 2 (2.3–2.6) cargadas sin verificar; ver
+`docs/normativa/verificacion-tanda-1.md` y `verificacion-tanda-2.md`.
 
 Qué reglas legales necesita el motor para calcular un plan de inversión en Madrid
 (`ES-13`, municipio de Madrid `ES-13-28079`). **Aquí no hay valores**: cada regla se carga en
@@ -32,21 +32,20 @@ valor y del número de folios: decidir al leerla si se calcula o se toma como es
 | --- | --- | --- | --- | --- | --- | --- |
 | 2.1 | Reducción del rendimiento neto del alquiler de vivienda, por casos | `reduccion_irpf_alquiler` | ES | `TaxParams.rental_income_reduction` | Ley 35/2006 del IRPF, art. 23.2: redacción de la Ley 12/2023 y del RDL 29/2026 (pendiente de convalidación) | ✔ |
 | 2.2 | Amortización fiscal del inmueble alquilado y su base | `amortizacion_inmueble_alquiler` | ES | `TaxParams.depreciation_rate`; base de la amortización | Ley 35/2006 del IRPF, art. 23.1.b; Reglamento del IRPF, art. 14.2.a | ✔ (tasa); la base, por definir |
-| 2.3 | Límite de la deducción de intereses y gastos de reparación y conservación | por definir | ES | cálculo del rendimiento neto en `engines/cashflow.py` (hoy deduce los intereses sin límite) | Ley 35/2006 del IRPF (art. 23) | pendiente |
-| 2.4 | Escala estatal de la base general | `escala_irpf_general` | ES | impuesto incremental del alquiler (D-G2-1) | Ley 35/2006 del IRPF | ✔ |
-| 2.5 | Escala autonómica de Madrid de la base general | `escala_irpf_general` | ES-13 | impuesto incremental del alquiler (D-G2-1) | Texto refundido de tributos cedidos de la Comunidad de Madrid | ✔ |
-| 2.6 | Mínimo personal y familiar, estatal y de Madrid | por definir | ES, ES-13 | impuesto incremental del alquiler | Ley 35/2006 del IRPF; tributos cedidos de la Comunidad de Madrid | pendiente |
+| 2.3 | Límite de la deducción de intereses y gastos de reparación y conservación | `limite_intereses_reparacion` | ES | cálculo del rendimiento neto en `engines/cashflow.py` (hoy deduce los intereses sin límite) | Ley 35/2006 del IRPF (art. 23.1.a.1.º) | ✔ |
+| 2.4 | Escala estatal de la base general | `escala_irpf_general_estatal` | ES | impuesto incremental del alquiler (D-G2-1) | Ley 35/2006 del IRPF | ✔ |
+| 2.5 | Escala autonómica de Madrid de la base general | `escala_irpf_general_autonomica` | ES-13 | impuesto incremental del alquiler (D-G2-1) | Texto refundido de tributos cedidos de la Comunidad de Madrid | ✔ |
+| 2.6 | Mínimo personal y familiar, estatal y de Madrid | `minimo_contribuyente`, `minimo_descendientes` | ES, ES-13 | impuesto incremental del alquiler | Ley 35/2006 del IRPF, arts. 56–58; DL 1/2010 de Madrid, arts. 2 y 2 bis | ✔ (contribuyente y descendientes; ascendientes y discapacidad, pendientes) |
 | 2.7 | Tipo del IBI del municipio de Madrid | `tipo_ibi` | ES-13-28079 | `RentalAssumptions.ibi_annual` (con el valor catastral) | Ordenanza fiscal del IBI del Ayuntamiento de Madrid | ✔ |
+| 2.8 | Deducción autonómica por gastos del arrendamiento de viviendas (10 %, con límite anual) | por definir | ES-13 | cuota autonómica del arrendador | DL 1/2010 de Madrid, art. 8 bis | pendiente (fuera del ADR-0007 por ahora) |
 
-Con el tipo marginal actual (`TaxParams.marginal_rate`) bastarían 2.1 y 2.2. Las filas 2.4 a 2.6
-solo son necesarias si se decide calcular la **cuota incremental** del IRPF (D-G2-1 en
-`docs/PLAN_DISENO.md`), que es lo recomendado.
+Decidido calcular la **cuota incremental** del IRPF (ADR-0007): las filas 2.3 a 2.6 son necesarias.
 
 ## 3. Venta (TIR, F1.9)
 
 | # | Regla | `kind` | Territorio | Alimenta | Fuente candidata | Esquema |
 | --- | --- | --- | --- | --- | --- | --- |
-| 3.1 | Escala de la base del ahorro (ganancia patrimonial) | `escala_irpf_ahorro` | ES, ES-13 | `capital_gains_tax_rate` de `investment_irr` | Ley 35/2006 del IRPF | ✔ |
+| 3.1 | Escala de la base del ahorro (ganancia patrimonial) | `escala_irpf_ahorro_estatal`, `escala_irpf_ahorro_autonomica` | ES, ES-13 | `capital_gains_tax_rate` de `investment_irr` | Ley 35/2006 del IRPF | ✔ |
 | 3.2 | Cálculo de la ganancia: valor de adquisición, mejoras, amortizaciones | por definir | ES | fórmula de la ganancia en `engines/irr.py` (hoy, aproximada) | Ley 35/2006 del IRPF (arts. 33–35) | pendiente |
 | 3.3 | Impuesto sobre el incremento de valor de los terrenos (plusvalía municipal) | por definir | ES-13-28079 | gastos de venta | Real Decreto Legislativo 2/2004 (Haciendas Locales); ordenanza fiscal de Madrid | pendiente |
 
