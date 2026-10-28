@@ -50,6 +50,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     engines/irr.py        TIR de la inversión con revalorización y venta
     regulation/rules.py   motor de normativa versionada (RuleBook)
     regulation/kinds.py   catálogo de tipos de regla y esquema de sus parámetros
+    regulation/resolvers.py  de reglas a entradas de los motores (TaxParams, ITP, IBI)
     params/               parámetros con fecha (ParamBook): criterios bancarios, Euríbor (ADR-0006)
     ingestion/boe.py      sumario diario del BOE (esquema por verificar, fase 4)
     api/main.py           endpoints HTTP

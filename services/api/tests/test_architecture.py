@@ -13,7 +13,7 @@ PACKAGE = Path(__file__).resolve().parents[1] / "src" / "housefinder"
 
 ALLOWED_INTERNAL = {
     "engines": {"core", "engines"},
-    "regulation": {"core", "regulation"},
+    "regulation": {"core", "regulation", "engines"},  # engines solo por los tipos (TaxParams)
     "params": {"core", "params", "engines"},  # engines solo por los tipos (BankCriteria)
     "core": {"core"},
 }

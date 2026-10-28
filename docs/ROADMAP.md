@@ -100,7 +100,7 @@ plan manual de F0 reproducido por el motor con diferencias menores de 1 €.
 - [ ] F2.5 Escenarios: reglas `pendiente_convalidacion` y comparación «con / sin» en el plan.
 - [ ] F2.6 Monitor del BOE y del BOCM: detectar disposiciones nuevas sobre vivienda y abrir una
       tarea de revisión (la IA resume, una persona decide).
-- [ ] F2.7 Conectar `TaxParams` del motor de cash flow con `RuleBook`, citando `rule_ids`.
+- [x] F2.7 Conectar `TaxParams` del motor de cash flow con `RuleBook`, citando `rule_ids`.
 
 **Criterio de salida.** Un plan de Madrid sale con todas sus reglas citadas y verificadas, y cambiar
 una ley solo requiere añadir una regla en YAML.

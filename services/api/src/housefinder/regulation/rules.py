@@ -24,6 +24,7 @@ from housefinder.core.dated import (
     territory_contains,
     to_date,
 )
+from housefinder.core.figures import SourceRef
 from housefinder.regulation.validate import check_rules
 
 VALID_STATUS = {"vigente", "pendiente_convalidacion", "derogada"}
@@ -51,6 +52,11 @@ class Rule:
 
     def applies_on(self, on: date) -> bool:
         return applies_on(self.effective_from, self.effective_to, on)
+
+    @property
+    def ref(self) -> SourceRef:
+        """Cita de la regla; provisional mientras no esté verificada."""
+        return SourceRef("rule", self.id, provisional=not self.verified)
 
 
 @dataclass
