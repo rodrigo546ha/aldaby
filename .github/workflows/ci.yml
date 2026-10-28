@@ -13,4 +13,5 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
       - run: ruff check src tests
+      - run: python -m housefinder.regulation.check
       - run: python -m pytest -q

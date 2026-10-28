@@ -1,4 +1,4 @@
-.PHONY: setup db test lint api web
+.PHONY: setup db test lint rules-check api web
 
 PYTHON ?= python3
 VENV := .venv/bin
@@ -15,6 +15,9 @@ test:
 
 lint:
 	cd services/api && $(VENV)/ruff check src tests
+
+rules-check:
+	cd services/api && $(VENV)/python -m housefinder.regulation.check
 
 api:
 	cd services/api && $(VENV)/uvicorn housefinder.api.main:app --reload --app-dir src

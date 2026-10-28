@@ -49,6 +49,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     engines/term.py       plazo recomendado con cash flow en estrés
     engines/irr.py        TIR de la inversión con revalorización y venta
     regulation/rules.py   motor de normativa versionada (RuleBook)
+    regulation/kinds.py   catálogo de tipos de regla y esquema de sus parámetros
     params/               parámetros con fecha (ParamBook): criterios bancarios, Euríbor (ADR-0006)
     ingestion/boe.py      sumario diario del BOE (esquema por verificar, fase 4)
     api/main.py           endpoints HTTP
@@ -67,6 +68,7 @@ make setup     # entorno Python (.venv) y dependencias web
 make db        # PostgreSQL + PostGIS en Docker (aplica db/migrations al crear)
 make test      # pytest de la API
 make lint      # ruff
+make rules-check  # valida data/rules (catálogo de tipos, vigencias, revisor)
 make api       # API en http://localhost:8000 (docs en /docs)
 make web       # web en http://localhost:3000
 ```

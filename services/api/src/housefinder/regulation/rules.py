@@ -24,8 +24,14 @@ from housefinder.core.dated import (
     territory_contains,
     to_date,
 )
+from housefinder.regulation.validate import check_rules
 
 VALID_STATUS = {"vigente", "pendiente_convalidacion", "derogada"}
+
+
+def default_rules_dir() -> Path:
+    """services/api/data/rules"""
+    return Path(__file__).resolve().parents[3] / "data" / "rules"
 
 
 @dataclass(frozen=True)
@@ -40,6 +46,8 @@ class Rule:
     source_url: str
     notes: str = ""
     verified: bool = False  # False = pendiente de verificación humana
+    verified_by: str = ""  # quién leyó la fuente oficial
+    verified_on: date | None = None  # cuándo
 
     def applies_on(self, on: date) -> bool:
         return applies_on(self.effective_from, self.effective_to, on)
@@ -51,7 +59,12 @@ class RuleBook:
 
     @classmethod
     def from_dir(cls, path: Path) -> RuleBook:
-        return cls([_parse_rule(raw) for raw in load_yaml_records(path)])
+        """Carga y valida las reglas (catálogo de tipos, territorios, vigencias)."""
+        rules = [_parse_rule(raw) for raw in load_yaml_records(path)]
+        errors = check_rules(rules)
+        if errors:
+            raise ValueError("Reglas no válidas:\n" + "\n".join(f"- {e}" for e in errors))
+        return cls(rules)
 
     def resolve(
         self,
@@ -90,4 +103,6 @@ def _parse_rule(raw: dict[str, Any]) -> Rule:
         source_url=raw["source_url"],
         notes=raw.get("notes", ""),
         verified=bool(raw.get("verified", False)),
+        verified_by=raw.get("verified_by", ""),
+        verified_on=optional_date(raw.get("verified_on")),
     )
