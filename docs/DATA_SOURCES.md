@@ -13,7 +13,7 @@ condiciones de reutilización y sin quedar registrada en la tabla `sources`.
 | Demografía | Atlas de renta y padrón (INE), afiliación (Seguridad Social) | Descarga pública | F3 | Pendiente |
 | Precios | Notariado, valor tasado (Ministerio), IPV (INE) | Público; revisar reutilización | F5 | Pendiente |
 | Alquiler | Sistema Estatal de Referencia, IPVA (INE) | Público; acceso a revisar | F5 | Pendiente |
-| Tipos | Banco de España, BCE | Público | F1 | Pendiente |
+| Tipos | Trayectoria a 3 meses de las proyecciones del BCE (API, serie `MPD.Q.U2.STN.I.<ronda>.0000`) y Euríbor a un año oficial (BOE, resolución mensual del Banco de España) | Público; ADR-0006 | F1 | Decidida |
 | Normativa | BOE, BOCM | Datos abiertos y revisión humana | F2 | Motor listo |
 
 Fuera del MVP: portales inmobiliarios por scraping (prohibido sin ADR), conexión bancaria directa

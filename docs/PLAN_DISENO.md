@@ -198,7 +198,7 @@ el mismo lector que las reglas.
 El endpoint del simulador, el plan completo y las herramientas del agente llaman a las mismas
 funciones de `planning/`. Evita que el simulador y el plan den cifras distintas para lo mismo.
 
-### D5 · Migraciones con un ejecutor propio (G4) — ADR-0006
+### D5 · Migraciones con un ejecutor propio (G4) — ADR-0007
 
 - **Alembic:** estándar, pero arrastra SQLAlchemy y su modelo cuando aquí el SQL es explícito.
 - **yoyo / sqitch:** dependencias pequeñas, otra herramienta que aprender.
@@ -213,7 +213,7 @@ ORM acaban en SQL igualmente. Funciones de repositorio pequeñas por dominio, ti
 contra la base de Docker. Compromiso: más SQL escrito a mano; a cambio, ninguna magia entre la
 consulta y la cifra.
 
-### D7 · Cola de trabajos en PostgreSQL (G4) — ADR-0007
+### D7 · Cola de trabajos en PostgreSQL (G4) — ADR-0008
 
 - **Celery + Redis:** potente, pero otra pieza que operar.
 - **AWS EventBridge + Lambda:** ata el diseño a AWS antes de F7.
@@ -222,7 +222,7 @@ consulta y la cifra.
   en una tabla. Revisar si se superan decenas de miles de trabajos al día o hace falta paralelismo
   entre máquinas.
 
-### D8 · Datos personales cifrados de verdad (G4) — ADR-0008
+### D8 · Datos personales cifrados de verdad (G4) — ADR-0009
 
 `user_profiles` pasa a `data_enc BYTEA` + `key_id`, con cifrado de sobre: una clave de datos por
 perfil, cifrada con una clave maestra (fichero local en desarrollo, AWS KMS en F7). Solo van en
@@ -248,7 +248,7 @@ La web importa tipos generados desde el OpenAPI de FastAPI (`openapi-typescript`
 viajan como texto (ya lo hace `Figure.to_dict`). Un componente `<FigureView>` muestra valor,
 rango, fórmula, fuentes y el aviso `PROVISIONAL`. La web nunca calcula, solo formatea.
 
-### D12 · El agente no escribe cifras: escribe referencias (G7) — ADR-0009
+### D12 · El agente no escribe cifras: escribe referencias (G7) — ADR-0010
 
 El texto del agente usa marcadores `{{fig:cashflow.monthly_after_tax}}` y el render los sustituye
 por la `Figure`. La evaluación de F6.9 se convierte en una comprobación mecánica: el texto en bruto
@@ -505,10 +505,11 @@ Qué revisaría al crecer:
 | --- | --- | --- |
 | 0004 | Contrato `Figure` v2 y fuentes tipadas | G0 |
 | 0005 | Parámetros con fecha como datos (`ParamBook`) | G1 |
-| 0006 | Migraciones con ejecutor propio | G4 |
-| 0007 | Cola de trabajos en PostgreSQL | G4 |
-| 0008 | Cifrado de datos personales y separación por cliente | G4 |
-| 0009 | El agente escribe referencias a cifras, no cifras | G7 |
+| 0006 | Trayectoria esperada del Euríbor a un año | G1 |
+| 0007 | Migraciones con ejecutor propio | G4 |
+| 0008 | Cola de trabajos en PostgreSQL | G4 |
+| 0009 | Cifrado de datos personales y separación por cliente | G4 |
+| 0010 | El agente escribe referencias a cifras, no cifras | G7 |
 | — | Librería de modelos estadísticos | G6 |
 | — | Motor de PDF | G7 |
 | — | Autenticación y despliegue | G8 |
