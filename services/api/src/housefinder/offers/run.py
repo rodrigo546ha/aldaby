@@ -11,6 +11,7 @@ import httpx
 
 from housefinder.agent.llm import LLMClient
 from housefinder.db.connection import connect
+from housefinder.db.offers import link_corrections
 from housefinder.db.review_tasks import mark_issue_read, read_issues
 from housefinder.db.sections import SourceRecord, upsert_source
 from housefinder.geo.cartociudad import Geocoded, geocode
@@ -33,8 +34,14 @@ def run_boe_v(
     geocoder: Callable[[str], Geocoded] | None = None,
     parcels: Callable[[str], Parcel] | None = None,
 ) -> dict[str, Any]:
-    """Lee los días del BOE de los últimos `days` que este canal no ha leído aún."""
+    """Lee los días del BOE de los últimos `days` que este canal no ha leído aún.
+
+    Las correcciones se enlazan con el anuncio que corrigen (F4.4); el informe dice cuáles se
+    resolvieron y cómo, y cuáles no.
+    """
     total = IngestReport()
+    linked = 0
+    corrections: list[dict[str, Any]] = []
     with connect(conninfo) as conn:
         upsert_source(conn, SourceRecord(boe_v.SOURCE_ID, boe_v.SOURCE_NAME, boe_v.LICENSE_URL,
                                          boe_v.LICENSE, datetime.now(UTC)))
@@ -48,12 +55,15 @@ def run_boe_v(
                 continue
             channel = boe_v.BoeSectionV([day])
             report = ingest(conn, channel, channel.fetch(client), locate)
+            linked += link_corrections(conn, boe_v.NAME)
+            conn.commit()
+            corrections += [log.__dict__ for log in channel.corrections]
             if day in channel.days_found or day < today:
                 mark_issue_read(conn, ISSUES, day.isoformat(), report.items, report.offers_new)
                 conn.commit()
             for key, value in report.as_dict().items():
                 setattr(total, key, getattr(total, key) + value)
-    return total.as_dict()
+    return {**total.as_dict(), "corrections_linked": linked, "corrections": corrections}
 
 
 def run_boe_auctions(conninfo: str, client: httpx.Client, today: date,

@@ -1,0 +1,80 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20261027"
+   },
+   "diario": [
+    {
+     "numero": "266",
+     "seccion": [
+      {
+       "codigo": "5B",
+       "nombre": "V. Anuncios. - B. Otros anuncios oficiales",
+       "departamento": [
+        {
+         "codigo": "6110",
+         "nombre": "MINISTERIO DE DEFENSA",
+         "item": {
+          "identificador": "BOE-B-2026-35103",
+          "titulo": "Anuncio de corrección de plazos de la Junta Secundaria de Enajenaciones y Liquidadora de Material del Ejército de Tierra, relativo a la subasta del Expediente 2228/0002/26/00/11, para la enajenación de vehículos y material diverso \"COMO TAL\".",
+          "url_pdf": {
+           "szBytes": "202684",
+           "szKBytes": "198",
+           "pagina_inicial": "56901",
+           "pagina_final": "56901",
+           "texto": "https://www.boe.es/boe/dias/2026/10/27/pdfs/BOE-B-2026-35103.pdf"
+          },
+          "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35103",
+          "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-35103"
+         }
+        },
+        {
+         "codigo": "5140",
+         "nombre": "MINISTERIO DE HACIENDA",
+         "item": {
+          "identificador": "BOE-B-2026-35104",
+          "titulo": "Anuncio de la Delegación Especial de Economía y Hacienda en la Comunidad Valenciana-Valencia sobre la rectificación del anuncio de licitación de subasta patrimonial.",
+          "url_pdf": {
+           "szBytes": "201687",
+           "szKBytes": "197",
+           "pagina_inicial": "56902",
+           "pagina_final": "56902",
+           "texto": "https://www.boe.es/boe/dias/2026/10/27/pdfs/BOE-B-2026-35104.pdf"
+          },
+          "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35104",
+          "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-35104"
+         }
+        },
+        {
+         "codigo": "9579",
+         "nombre": "MINISTERIO DE INCLUSIÓN, SEGURIDAD SOCIAL Y MIGRACIONES",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-35167",
+           "titulo": "Anuncio de corrección de errores en la Resolución de la Dirección Provincial de la Tesorería General de la Seguridad Social de Salamanca por la que se convoca cuarta subasta pública para la enajenación de un inmueble de su propiedad.",
+           "url_pdf": {
+            "szBytes": "204803",
+            "szKBytes": "200",
+            "pagina_inicial": "57019",
+            "pagina_final": "57019",
+            "texto": "https://www.boe.es/boe/dias/2026/10/27/pdfs/BOE-B-2026-35167.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35167",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-35167"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

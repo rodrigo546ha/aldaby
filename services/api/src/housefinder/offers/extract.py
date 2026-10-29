@@ -55,7 +55,12 @@ def extract_pending(
         report.announcements += 1
         report.rejected_fields += checked.rejected
         if checked.is_correction:
+            # Una corrección no trae lotes nuevos (F4.4): si el canal no la reconoció por el
+            # título, la detecta el LLM y no se crean lotes duplicados.
             report.corrections += 1
+            mark_extracted(conn, announcement.id, document_summary(checked))
+            conn.commit()
+            continue
         links = IngestReport()
         for index, lot in enumerate(checked.lots, start=1):
             offer = lot_offer(announcement, lot, index)

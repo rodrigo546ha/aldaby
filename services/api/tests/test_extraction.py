@@ -272,6 +272,10 @@ def test_lotes_extraidos_ubicados_y_pendientes_de_confirmar(migrated_database: s
         conn.execute("DELETE FROM watch_issues WHERE source = 'offers_boe_v'")
         # Sin parcelas en la caché: el Catastro no responde aquí y se ubica por dirección.
         conn.execute("DELETE FROM geocode_cache WHERE query LIKE 'rc:%'")
+        # Solo este anuncio pendiente: otros tests dejan anuncios del canal en la misma base.
+        conn.execute("UPDATE offers SET extraction_status = 'no_aplica' "
+                     "WHERE channel = 'boe_seccion_v' AND kind = 'anuncio' "
+                     "AND extraction_status = 'pendiente' AND external_id <> 'BOE-B-2026-35273'")
         conn.execute("UPDATE offers SET extraction_status = 'pendiente' "
                      "WHERE external_id = 'BOE-B-2026-35273'")
     run_boe_v(migrated_database, boe_client(), date(2026, 10, 28), days=1)

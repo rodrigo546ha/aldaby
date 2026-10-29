@@ -299,3 +299,52 @@ def list_auction_notices(
         (channel, limit),
     ).fetchall()
     return [AuctionNoticeRow(*r) for r in rows]
+
+
+# --- Correcciones del BOE (F4.4) -----------------------------------------------------------------
+
+
+def link_corrections(conn: psycopg.Connection, channel: str) -> int:
+    """Enlaza las correcciones sin enlazar con el anuncio que corrigen, si ya está guardado.
+
+    Un anuncio guardado como pendiente antes de reconocerse como corrección deja de estarlo: no
+    tiene lotes nuevos que extraer.
+    """
+    conn.execute(
+        """
+        UPDATE offers SET extraction_status = 'no_aplica'
+        WHERE channel = %s AND raw ? 'corrige' AND extraction_status = 'pendiente'
+        """,
+        (channel,),
+    )
+    rows = conn.execute(
+        """
+        UPDATE offers c SET corrects_id = o.id
+        FROM offers o
+        WHERE c.channel = %s AND c.corrects_id IS NULL AND o.channel = c.channel
+          AND o.external_id = c.raw->'corrige'->>'boe'
+        RETURNING c.id
+        """,
+        (channel,),
+    ).fetchall()
+    return len(rows)
+
+
+@dataclass(frozen=True)
+class CorrectionRow:
+    external_id: str
+    url: str | None
+    published_on: date | None
+    title: str | None
+
+
+def corrections_of(conn: psycopg.Connection, offer_id: UUID) -> list[CorrectionRow]:
+    """Correcciones publicadas de un anuncio, de la más antigua a la más reciente."""
+    rows = conn.execute(
+        """
+        SELECT external_id, url, published_on, title FROM offers
+        WHERE corrects_id = %s ORDER BY published_on, external_id
+        """,
+        (offer_id,),
+    ).fetchall()
+    return [CorrectionRow(*r) for r in rows]

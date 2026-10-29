@@ -1,0 +1,44 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20261007"
+   },
+   "diario": [
+    {
+     "numero": "249",
+     "seccion": [
+      {
+       "codigo": "5B",
+       "nombre": "V. Anuncios. - B. Otros anuncios oficiales",
+       "departamento": [
+        {
+         "codigo": "5140",
+         "nombre": "MINISTERIO DE HACIENDA",
+         "item": {
+          "identificador": "BOE-B-2026-32556",
+          "titulo": "Anuncio de la Resolución de la Delegación Especial de Economía y Hacienda de Valencia por la que se acuerda y anuncia convocatoria de subasta pública al alza, mediante el procedimiento de presentación de ofertas en sobre cerrado, de bienes patrimoniales propiedad de la Administración General del Estado y bien procedente de abintestato, sitos en la provincia de Valencia, y pliego de cláusulas que rige dicha subasta.",
+          "url_pdf": {
+           "szBytes": "356714",
+           "szKBytes": "348",
+           "pagina_inicial": "52889",
+           "pagina_final": "52913",
+           "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-B-2026-32556.pdf"
+          },
+          "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-32556",
+          "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-32556"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

@@ -172,12 +172,15 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       (`data/offers/subastas_boe.yaml`) y enviar la consulta a la AEBOE
       (`docs/research/borrador-correo-aeboe-subastas.md`). Investigación:
       `docs/research/f4-3-portal-subastas.md`.
-- [ ] F4.4 Anuncios de la sección V del BOE: Seguridad Social, INVIED, Patrimonio del Estado.
-      *Estado:* el canal `boe_seccion_v` guarda cada día los anuncios enteros y el trabajo
+- [x] F4.4 Anuncios de la sección V del BOE: Seguridad Social, INVIED, Patrimonio del Estado.
+      *Hecho:* el canal `boe_seccion_v` guarda cada día los anuncios enteros y el trabajo
       `extract_offers` extrae sus lotes con evidencia comprobada (ADR-0013), los ubica y los
-      deduplica; cada cita tiene que estar en el tramo de su lote (ADR-0014). Falta enlazar las
-      correcciones de errores con su anuncio.
-      Volumen: `docs/research/f4-volumen-boe.md`.
+      deduplica; cada cita tiene que estar en el tramo de su lote (ADR-0014). Las correcciones no
+      crean lotes: se enlazan con el anuncio que corrigen por la página o, sin página, por el
+      departamento y el número de expediente (`offers/corrections.py`, columna `corrects_id`).
+      *Por revisar:* el filtro de títulos exige «inmueble», «vivienda», «finca», «local» o
+      «piso» y deja fuera subastas de «bienes patrimoniales» del Estado que pueden ser
+      inmuebles (BOE-B-2026-32556). Volumen: `docs/research/f4-volumen-boe.md`.
 - [ ] F4.5 Servicers (Solvia, Servihabitat, Aliseda, Altamira, Hipoges): revisar términos de uso de
       cada web, ADR por servicer y contacto comercial para acuerdo.
 - [x] F4.6 Normalización y deduplicación por referencia catastral y geolocalización: interfaz

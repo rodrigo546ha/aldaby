@@ -76,6 +76,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/offers.py          ofertas, versiones de lo recibido e inmuebles (deduplicación)
     offers/               canales de oferta (interfaz Channel), ingesta, ubicación y deduplicación
     offers/channels/      canales: BOE sección V (anuncios) y sección IV (avisos de subastas judiciales, ADR-0017)
+    offers/corrections.py correcciones del BOE: cita, página y anuncio que corrigen (F4.4)
     offers/link.py        descarga única del enlace pegado: robots.txt, bloqueos y veto a la red interna (ADR-0015)
     offers/pasted.py      enlace o texto pegado: oferta privada, extracción en la cola y confirmación
     agent/llm.py          cliente del LLM (modelo abierto en servidor propio, API compatible con OpenAI) y cliente falso (ADR-0014); solo agent/ llama al LLM

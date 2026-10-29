@@ -1,0 +1,44 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20261020"
+   },
+   "diario": [
+    {
+     "numero": "260",
+     "seccion": [
+      {
+       "codigo": "5B",
+       "nombre": "V. Anuncios. - B. Otros anuncios oficiales",
+       "departamento": [
+        {
+         "codigo": "9579",
+         "nombre": "MINISTERIO DE INCLUSIÓN, SEGURIDAD SOCIAL Y MIGRACIONES",
+         "item": {
+          "identificador": "BOE-B-2026-34188",
+          "titulo": "Resolución de la Dirección Provincial de la Tesorería General de la Seguridad Social de Salamanca por la que se convoca cuarta subasta pública para la enajenación de un inmueble de su propiedad.",
+          "url_pdf": {
+           "szBytes": "207347",
+           "szKBytes": "202",
+           "pagina_inicial": "55514",
+           "pagina_final": "55515",
+           "texto": "https://www.boe.es/boe/dias/2026/10/20/pdfs/BOE-B-2026-34188.pdf"
+          },
+          "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-34188",
+          "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-34188"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

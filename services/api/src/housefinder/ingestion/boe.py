@@ -38,6 +38,7 @@ class BoeItem:
     published_on: date
     section: str = ""  # código de sección: '1', '3', '5B'…
     department: str = ""
+    pages: tuple[int, int] | None = None  # páginas del diario (las del año, correlativas)
 
 
 def fetch_sumario(day: date, client: httpx.Client | None = None) -> dict[str, Any] | None:
@@ -77,6 +78,7 @@ def iter_items(
             published_on=day,
             section=section,
             department=department,
+            pages=_pages(payload.get("url_pdf")),
         )
         return
     if key == "seccion":
@@ -97,3 +99,12 @@ def _text(value: Any) -> str | None:
     if isinstance(value, dict):
         return value.get("texto") or value.get("url")
     return value if isinstance(value, str) else None
+
+
+def _pages(value: Any) -> tuple[int, int] | None:
+    if not isinstance(value, dict):
+        return None
+    try:
+        return int(value["pagina_inicial"]), int(value["pagina_final"])
+    except (KeyError, TypeError, ValueError):
+        return None
