@@ -3,6 +3,8 @@ name: housefinder
 services:
   db:
     image: postgis/postgis:16-3.4
+    # Vuelve a arrancar con Docker (el worker la necesita siempre, ver infra/launchd/).
+    restart: unless-stopped
     environment:
       POSTGRES_USER: housefinder
       POSTGRES_PASSWORD: housefinder

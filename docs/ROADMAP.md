@@ -195,7 +195,9 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       `housefinder.alertas`; `make worker`. Primeros tipos: `ine_sections` e `ine_adrh`.
       Programaciones diarias en `data/jobs/programaciones.yaml` (`make schedules`): sección V y
       avisos de subastas del BOE, vigilancia del BOE y del BOCM y, si el LLM está configurado,
-      la extracción de lotes. *Pendiente:* un worker siempre en marcha (despliegue, F7).
+      la extracción de lotes. En desarrollo, el worker queda siempre en marcha con launchd
+      (`make worker-install`, `infra/launchd/`) y Ollama como servicio de Homebrew; la base se
+      reinicia con Docker. En producción, F7.
 
 **Criterio de salida.** Cada día entran ofertas nuevas de al menos dos canales, sin duplicados, con
 sección censal asignada.

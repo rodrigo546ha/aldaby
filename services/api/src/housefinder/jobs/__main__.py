@@ -1,6 +1,6 @@
 """Línea de órdenes de la cola (ADR-0010).
 
-    python -m housefinder.jobs worker [--once] [--poll 5]
+    python -m housefinder.jobs [--env-file .env] worker [--once] [--poll 5]
     python -m housefinder.jobs enqueue KIND [--payload JSON] [--dedupe-key CLAVE]
     python -m housefinder.jobs schedule NOMBRE KIND --every SEGUNDOS [--payload JSON]
     python -m housefinder.jobs programar [--fichero data/jobs/programaciones.yaml]
@@ -26,6 +26,9 @@ from housefinder.jobs.worker import Worker
 
 def main() -> int:
     parser = argparse.ArgumentParser(prog="python -m housefinder.jobs")
+    parser.add_argument("--env-file", type=Path,
+                        help="lee VARIABLE=valor de este fichero (el agente de launchd no pasa "
+                             "por make); no pisa las variables ya definidas")
     sub = parser.add_subparsers(dest="command", required=True)
     w = sub.add_parser("worker", help="ejecuta trabajos")
     w.add_argument("--once", action="store_true", help="una sola vuelta")
@@ -43,6 +46,8 @@ def main() -> int:
     p.add_argument("--fichero", type=Path)
     sub.add_parser("status", help="trabajos por estado y últimos fallos")
     args = parser.parse_args()
+    if args.env_file:
+        load_env_file(args.env_file)
 
     url = database_url()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -92,6 +97,14 @@ def main() -> int:
             ):
                 print(f"  fallido {job_id} ({kind}): {error}")
     return 0
+
+
+def load_env_file(path: Path) -> None:
+    """VARIABLE=valor por línea, como .env.example; las vacías y los comentarios se saltan."""
+    for line in path.read_text(encoding="utf-8").splitlines():
+        name, sep, value = line.strip().partition("=")
+        if sep and name and not name.startswith("#") and value:
+            os.environ.setdefault(name.strip(), value.strip())
 
 
 if __name__ == "__main__":

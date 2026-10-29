@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Worker de la cola de HouseFinder como agente de launchd (desarrollo en un Mac, hasta F7).
+  No se instala a mano: `make worker-install` sustituye __REPO__ y __LOGS__ y lo carga.
+  Arranca al iniciar sesión y vuelve a arrancar si termina (como mucho una vez por minuto).
+  Lanza el Python del entorno directamente (sin make ni shell): si el repositorio está en una
+  carpeta protegida por macOS (Documentos), solo ese Python necesita «Acceso total al disco».
+  La configuración (base de datos, LLM) la lee de .env con --env-file.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.housefinder.worker</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__REPO__/services/api/.venv/bin/python</string>
+    <string>-m</string>
+    <string>housefinder.jobs</string>
+    <string>--env-file</string>
+    <string>__REPO__/.env</string>
+    <string>worker</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>__REPO__/services/api</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>PYTHONUNBUFFERED</key>
+    <string>1</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>60</integer>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>__LOGS__/worker.log</string>
+  <key>StandardErrorPath</key>
+  <string>__LOGS__/worker.log</string>
+</dict>
+</plist>

@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections adrh worker schedules test lint rules-check api web openapi
+.PHONY: setup db migrate sections adrh worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi
 
 # Configuración local (copia de .env.example, fuera de git): LLM, base de datos, claves…
 -include .env
@@ -41,6 +41,29 @@ worker:
 # Programaciones diarias de data/jobs/programaciones.yaml (ADR-0010). Hace falta un worker en marcha.
 schedules:
 	cd services/api && $(VENV)/python -m housefinder.jobs programar
+
+# Worker siempre en marcha en este Mac con launchd (infra/launchd/). Logs en ~/Library/Logs/housefinder.
+WORKER_LABEL := com.housefinder.worker
+WORKER_PLIST := $(HOME)/Library/LaunchAgents/$(WORKER_LABEL).plist
+WORKER_LOGS := $(HOME)/Library/Logs/housefinder
+
+worker-install:
+	mkdir -p $(WORKER_LOGS) $(HOME)/Library/LaunchAgents
+	sed -e 's|__REPO__|$(CURDIR)|g' -e 's|__LOGS__|$(WORKER_LOGS)|g' \
+		infra/launchd/$(WORKER_LABEL).plist > $(WORKER_PLIST)
+	plutil -lint $(WORKER_PLIST)
+	-launchctl bootout gui/$$(id -u)/$(WORKER_LABEL) 2>/dev/null
+	launchctl bootstrap gui/$$(id -u) $(WORKER_PLIST)
+	@echo "Worker instalado. Logs: make worker-logs"
+	@echo "Si el repositorio está en Documentos, el Python que necesita «Acceso total al disco» es:"
+	@cd services/api && $(VENV)/python -c "import os; print(os.path.realpath('$(VENV)/python'))"
+
+worker-uninstall:
+	-launchctl bootout gui/$$(id -u)/$(WORKER_LABEL)
+	rm -f $(WORKER_PLIST)
+
+worker-logs:
+	tail -n 50 -f $(WORKER_LOGS)/worker.log
 
 test:
 	cd services/api && $(VENV)/python -m pytest -q

@@ -7,6 +7,7 @@ agotados los intentos, avisa.
 
 from __future__ import annotations
 
+import logging
 import os
 import socket
 import time
@@ -15,13 +16,14 @@ from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import Any
 
-from housefinder.db.connection import connect
+from housefinder.db.connection import DatabaseUnavailable, connect
 from housefinder.db.jobs import Job, claim, complete, enqueue_due, fail, requeue_stale
 from housefinder.jobs.alerts import alert_failed
 from housefinder.jobs.retry import backoff
 
 Handler = Callable[[dict[str, Any]], dict[str, Any] | None]
 MAX_ERROR = 2000
+log = logging.getLogger(__name__)
 
 
 def default_name() -> str:
@@ -58,8 +60,19 @@ class Worker:
             complete(conn, job, self.name, result)
             return job
 
-    def run_forever(self, poll_seconds: float = 5.0) -> None:
-        """Ejecuta trabajos mientras los haya; si no, espera `poll_seconds`."""
+    def run_forever(self, poll_seconds: float = 5.0, db_wait_seconds: float = 60.0) -> None:
+        """Ejecuta trabajos mientras los haya; si no, espera `poll_seconds`.
+
+        Si la base no responde (al arrancar el equipo, Docker aún parado), espera y lo vuelve a
+        intentar en lugar de terminar.
+        """
         while True:
-            if self.run_once() is None:
+            try:
+                job = self.run_once()
+            except DatabaseUnavailable as exc:
+                log.warning("La base no responde (%s); nuevo intento en %ss", exc,
+                            int(db_wait_seconds))
+                time.sleep(db_wait_seconds)
+                continue
+            if job is None:
                 time.sleep(poll_seconds)

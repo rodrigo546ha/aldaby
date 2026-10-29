@@ -170,3 +170,44 @@ def test_programacion_vencida_encola_una_sola_copia(conn):
                             (name,)).fetchone()[0]
     assert timedelta(0) < next_run <= timedelta(days=1)  # mantiene la hora del día
     assert name not in enqueue_due(conn)  # ya no está vencida
+
+
+def test_sin_base_el_worker_espera_y_sigue(monkeypatch):
+    # Al arrancar el equipo Docker puede ir por detrás: el worker no termina, espera.
+    from housefinder.db.connection import DatabaseUnavailable
+    from housefinder.jobs import worker as worker_module
+    from housefinder.jobs.worker import Worker
+
+    class Stop(Exception):
+        pass
+
+    outcomes = iter([DatabaseUnavailable("La base de datos no responde"), None, Stop()])
+    sleeps: list[float] = []
+
+    def run_once(self):
+        outcome = next(outcomes)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    monkeypatch.setattr(Worker, "run_once", run_once)
+    monkeypatch.setattr(worker_module.time, "sleep", sleeps.append)
+    with pytest.raises(Stop):
+        Worker("postgresql://sin-conexion", {}).run_forever(poll_seconds=5, db_wait_seconds=60)
+    assert sleeps == [60, 5]  # espera de la base y espera normal sin trabajos
+
+
+def test_fichero_de_entorno_del_agente(tmp_path, monkeypatch):
+    from housefinder.jobs.__main__ import load_env_file
+
+    env = tmp_path / ".env"
+    env.write_text("# comentario\nLLM_MODEL_ID=qwen3:8b\nLLM_API_KEY=\nDATABASE_URL=postgresql://otra\n")
+    monkeypatch.delenv("LLM_MODEL_ID", raising=False)
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    monkeypatch.setenv("DATABASE_URL", "postgresql://la-de-fuera")
+    load_env_file(env)
+    import os
+
+    assert os.environ["LLM_MODEL_ID"] == "qwen3:8b"
+    assert "LLM_API_KEY" not in os.environ  # vacía: como si no estuviera
+    assert os.environ["DATABASE_URL"] == "postgresql://la-de-fuera"  # no pisa lo definido
