@@ -50,6 +50,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     engines/term.py       plazo recomendado con cash flow en estrés
     engines/irr.py        TIR de la inversión con revalorización y venta
     engines/taxes.py      formas de cálculo de aranceles, AJD por bandas y plusvalía municipal
+    engines/lease.py      indemnización por no prorrogar el alquiler
     regulation/rules.py   motor de normativa versionada (RuleBook)
     regulation/kinds.py   catálogo de tipos de regla y esquema de sus parámetros
     regulation/resolvers.py  de reglas a entradas de los motores (TaxParams, ITP, IBI, IRPF)

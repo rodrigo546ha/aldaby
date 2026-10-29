@@ -1,14 +1,17 @@
 """Regulación del alquiler (F2.4): zona tensionada y régimen por tipo de alquiler."""
 
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
 
+from housefinder.engines.lease import non_renewal_compensation
 from housefinder.regulation.kinds import RentalRegime, ZoneDeclaration, parse_params
-from housefinder.regulation.resolvers import rental_regime, stressed_zone
+from housefinder.regulation.resolvers import lease_extension, rental_regime, stressed_zone
 from housefinder.regulation.rules import RuleBook, default_rules_dir
 
+D = Decimal
 MADRID = "ES-13-28079"
 ALCALA = "ES-13-28005"
 HOY = date(2026, 10, 28)
@@ -139,3 +142,46 @@ def test_regimen_no_permitido(tmp_path: Path):
         RuleBook.from_dir(tmp_path), "turistico", MADRID, HOY, allow_unverified=True
     )
     assert res.allowed is False
+
+
+# --- Duración y prórroga (LAU, arts. 9 y 10; RDL 28/2026) ----------------------------------
+
+
+def test_prorroga_base_ley_12_2023(book: RuleBook):
+    res = lease_extension(book, MADRID, date(2026, 11, 20), allow_unverified=True)
+    p = res.params
+    assert res.rule.id == "prorroga-alquiler-habitual-ley-12-2023"
+    assert (p.minimum_years.natural_person, p.minimum_years.legal_person) == (5, 7)
+    assert p.tacit_period_years.natural_person == 1 and p.tacit_max_years == 3
+    assert (p.landlord_notice_months, p.tenant_notice_months) == (4, 2)
+    assert p.compensation is None
+
+
+def test_prorroga_con_el_rdl_28_2026(book: RuleBook):
+    res = lease_extension(book, MADRID, date(2026, 11, 20), include_pending=True,
+                          allow_unverified=True)
+    p = res.params
+    assert res.rule.id == "prorroga-alquiler-habitual-rdl-28-2026"
+    assert (p.tacit_period_years.natural_person, p.tacit_period_years.legal_person) == (5, 7)
+    assert p.tacit_max_years is None  # prórrogas sucesivas sin límite
+    assert p.landlord_notice_months == 6
+    assert p.compensation is not None and p.compensation.flat_months == 12
+    assert "nuevo-contrato" in p.compensation.exceptions
+
+
+def test_el_rdl_28_no_aplica_antes_del_15_de_noviembre(book: RuleBook):
+    res = lease_extension(book, MADRID, date(2026, 11, 1), include_pending=True,
+                          allow_unverified=True)
+    assert res.rule.id == "prorroga-alquiler-habitual-ley-12-2023"
+
+
+@pytest.mark.parametrize(
+    ("years", "expected"),
+    [
+        ("7.5", "14400.00"),  # 12 mensualidades > 7,5: 12 × 1.200
+        ("15", "18000.00"),  # 15 años > 12 mensualidades: 15 × 1.200
+        ("12.25", "14700.00"),  # fracción de año prorrateada: 12,25 × 1.200
+    ],
+)
+def test_indemnizacion_por_no_prorrogar(years, expected):
+    assert non_renewal_compensation(D(12), D(1), D(1200), D(years)) == D(expected)

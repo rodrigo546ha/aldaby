@@ -262,6 +262,36 @@ class DeedPayer(RuleParams):
     deed: Literal["vendedor", "comprador"]
     first_copy: Literal["vendedor", "comprador"]
 
+
+class ByLandlord(RuleParams):
+    """Un plazo que depende de si el arrendador es persona física o jurídica."""
+
+    natural_person: int = Field(gt=0)
+    legal_person: int = Field(gt=0)
+
+
+class NonRenewalCompensation(RuleParams):
+    """Indemnización al arrendatario si el arrendador no prorroga: la mayor de
+    `flat_months` mensualidades o `months_per_year` mensualidades por año de residencia,
+    calculadas sobre `basis`. No procede en los casos de `exceptions`."""
+
+    flat_months: Decimal = Field(gt=0)
+    months_per_year: Decimal = Field(gt=0)
+    basis: str = Field(min_length=1)
+    exceptions: tuple[Condition, ...] = ()
+
+
+class LeaseExtension(RuleParams):
+    """Duración mínima, prórroga tácita y preaviso del alquiler de vivienda habitual
+    (LAU, arts. 9 y 10)."""
+
+    minimum_years: ByLandlord
+    tacit_period_years: ByLandlord  # duración de cada prórroga tácita
+    tacit_max_years: int | None = Field(gt=0)  # None: prórrogas sucesivas sin límite
+    landlord_notice_months: int = Field(gt=0)
+    tenant_notice_months: int = Field(gt=0)
+    compensation: NonRenewalCompensation | None = None
+
 RENTAL_TYPES = ("habitual", "temporada", "habitaciones", "turistico")
 
 
@@ -320,6 +350,9 @@ KINDS: dict[str, KindSpec] = {
     "regimen_alquiler_temporada": KindSpec(RentalRegime, "Alquiler de temporada o temporal"),
     "regimen_alquiler_habitaciones": KindSpec(RentalRegime, "Alquiler por habitaciones"),
     "regimen_alquiler_turistico": KindSpec(RentalRegime, "Alquiler de uso turístico"),
+    "prorroga_alquiler_habitual": KindSpec(
+        LeaseExtension, "Duración mínima, prórroga tácita y preaviso del alquiler de vivienda"
+    ),
     "tipo_ibi": KindSpec(RateParams, "Tipo del IBI sobre el valor catastral"),
     # Los coeficientes máximos son estatales; un municipio que fije otros menores carga una
     # regla propia del mismo tipo, que gana por ser más específica.

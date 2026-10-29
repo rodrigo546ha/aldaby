@@ -28,6 +28,7 @@ from housefinder.regulation.kinds import (
     BracketScale,
     DescendantsMinimum,
     InterestRepairLimit,
+    LeaseExtension,
     RateParams,
     ReductionCases,
     RentalFacts,
@@ -361,3 +362,26 @@ def _rate(rule: Rule) -> Decimal:
     if not isinstance(params, RateParams):
         raise TypeError(f"{rule.id}: se esperaba un tipo único (rate)")
     return params.rate
+
+
+@dataclass(frozen=True)
+class LeaseExtensionResult:
+    params: LeaseExtension
+    rule: Rule
+
+
+def lease_extension(
+    book: RuleBook,
+    territory: str,
+    on: date,
+    include_pending: bool = False,
+    allow_unverified: bool = False,
+) -> LeaseExtensionResult:
+    """Duración mínima, prórroga tácita, preaviso e indemnización del alquiler de vivienda
+    habitual vigentes en `on` (o en el escenario con reglas pendientes)."""
+    rule = _rule(book, "prorroga_alquiler_habitual", territory, on, include_pending,
+                 allow_unverified)
+    params = parse_params(rule.kind, rule.params)
+    if not isinstance(params, LeaseExtension):
+        raise TypeError(f"{rule.id}: se esperaba la prórroga del alquiler")
+    return LeaseExtensionResult(params, rule)

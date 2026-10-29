@@ -49,6 +49,7 @@ añade su esquema al catálogo.
 | `ajd_compra_vivienda` | `bands`: lista de `{up_to, rate}` (la última con `up_to: null`); el tipo de la banda se aplica a todo el valor. `cap_jumps`: el salto de banda no sube la cuota más que la base. `legal_person_rate` opcional |
 | `pagador_escritura_compraventa` | `deed` y `first_copy`: `vendedor` o `comprador` (salvo pacto) |
 | `coeficientes_plusvalia` | `by_years`: 21 coeficientes (menos de 1 año, 1… 19, 20 o más). Los máximos van en `ES`; un municipio con coeficientes propios los carga en su territorio y se aplica el menor |
+| `prorroga_alquiler_habitual` | `minimum_years` y `tacit_period_years` (`natural_person`, `legal_person`), `tacit_max_years` (null = sin límite), `landlord_notice_months`, `tenant_notice_months` y, si la hay, `compensation` (`flat_months`, `months_per_year`, `basis`, `exceptions`) |
 | `minimo_contribuyente` | `general`, `over_65_extra`, `over_75_extra` en euros |
 | `minimo_descendientes` | `first`, `second`, `third`, `fourth_and_more`, `under_3_extra` en euros |
 | `limite_intereses_reparacion` | `carryforward_years`: años a los que se arrastra el exceso |

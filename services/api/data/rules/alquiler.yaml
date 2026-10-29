@@ -199,3 +199,54 @@
         source_url: https://sede.comunidad.madrid/comunicaciones-declaraciones/vivienda-uso-turistico
   source_url: https://sede.comunidad.madrid/comunicaciones-declaraciones/vivienda-uso-turistico
   notes: "El Plan Reside del Ayuntamiento limita dónde se puede obtener la licencia (fuentes secundarias); falta leerlo en el BOCM y comprobarlo por dirección."
+
+# --- Duración y prórroga del alquiler de vivienda habitual (LAU, arts. 9 y 10) -----------------
+
+# Base: art. 9.1 (5 años, 7 si el arrendador es persona jurídica) y art. 10 en la redacción de la
+# Ley 12/2023: prórrogas tácitas anuales hasta 3 años más; preaviso de 4 meses el arrendador y 2
+# el arrendatario. El RDL 29/2026 solo añade «de arrendamiento de vivienda habitual» al 10.1.
+- id: prorroga-alquiler-habitual-ley-12-2023
+  kind: prorroga_alquiler_habitual
+  territory: ES
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    minimum_years: {natural_person: 5, legal_person: 7}
+    tacit_period_years: {natural_person: 1, legal_person: 1}
+    tacit_max_years: 3
+    landlord_notice_months: 4
+    tenant_notice_months: 2
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a10
+  notes: "Prórrogas extraordinarias aparte: 1 año por vulnerabilidad (obligatoria para el gran tenedor) y hasta 3 años en zona tensionada (art. 10.2 y 10.3)."
+
+# RDL 28/2026, artículo único (nuevo art. 10 de la LAU), en vigor el 15/11/2026 y PENDIENTE DE
+# CONVALIDACIÓN: prórrogas tácitas sucesivas de 5 años (7 persona jurídica), preaviso de 6 meses
+# del arrendador e indemnización si no prorroga. Se aplica a los contratos vigentes desde su
+# siguiente vencimiento (disposición transitoria única).
+- id: prorroga-alquiler-habitual-rdl-28-2026
+  kind: prorroga_alquiler_habitual
+  territory: ES
+  effective_from: 2026-11-15
+  effective_to: null
+  status: pendiente_convalidacion
+  verified: false
+  params:
+    minimum_years: {natural_person: 5, legal_person: 7}
+    tacit_period_years: {natural_person: 5, legal_person: 7}
+    tacit_max_years: null
+    landlord_notice_months: 6
+    tenant_notice_months: 2
+    compensation:
+      flat_months: 12
+      months_per_year: 1
+      basis: "Valor superior del rango individualizado de la vivienda en el sistema estatal de referencia de precios del alquiler; si no lo hay, la renta mensual vigente"
+      exceptions:
+        - necesidad-arrendador-persona-fisica
+        - arrendatario-no-habita
+        - otra-vivienda-en-el-municipio
+        - nuevo-contrato
+        - rechazo-oferta-nuevo-contrato
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2026-20822#au
+  notes: "Indemnización: la mayor de 12 mensualidades o 1 por año de residencia. La paga el adquirente si la vivienda se vende con el inquilino. Prórrogas extraordinarias en los apartados 5 y 6."

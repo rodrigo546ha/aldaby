@@ -55,6 +55,9 @@ Decidido calcular la **cuota incremental** del IRPF (ADR-0007): las filas 2.3 a 
   (ver `verificacion-tanda-3.md`): zona tensionada (ninguna en la Comunidad de Madrid), y régimen y
   requisitos de los alquileres de vivienda habitual, temporada, habitaciones y turístico, con la LAU
   anterior como base y el RDL 29/2026 como escenario.
+- **RDL 28/2026 (prórroga del alquiler de vivienda habitual), cargado sin verificar** como pendiente
+  desde el 15/11/2026, con la base de la Ley 12/2023 (`prorroga_alquiler_habitual`); ver
+  `verificacion-tanda-5.md`. Lo detectó la vigilancia del BOE (F2.6).
 - **RDL 29/2026, revisado:** art. 10 (coeficientes máximos de la plusvalía) cargado como pendiente;
   arts. 7 y 8 (IVA de alquileres amueblados de hasta 30 noches y obras de renovación; recargos del IBI
   a viviendas vacías o turísticas) anotados en `verificacion-tanda-4.md`, sin efecto en el plan de un

@@ -38,7 +38,8 @@ def test_los_rdl_de_vivienda_se_siguen_con_sus_reglas():
     assert "irpf-reduccion-alquiler-rdl-29-2026" in rdl29.rule_ids
     assert "convalidación" in rdl29.notes[0]
     rdl28 = tasks["BOE-A-2026-20822"]
-    assert rdl28.rule_ids == () and "No cargado" in rdl28.notes[0]
+    assert rdl28.rule_ids == ("prorroga-alquiler-habitual-rdl-28-2026",)
+    assert "15/11/2026" in rdl28.notes[0]
     assert rdl28.section == "1" and rdl28.department == "JEFATURA DEL ESTADO"
 
 

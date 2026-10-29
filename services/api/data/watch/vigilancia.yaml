@@ -76,8 +76,9 @@ tracked:
       - plusvalia-coeficientes-maximos-rdl-29-2026
     note: "Pendiente de convalidación. Si se convalida, sus reglas pasan a vigente; si se deroga, a derogada."
   - pattern: "real decreto-ley 28/2026"
-    rules: []
-    note: "No cargado: medidas sobre la estabilidad de los contratos de alquiler de vivienda habitual. Revisar si cambia el régimen del alquiler."
+    rules:
+      - prorroga-alquiler-habitual-rdl-28-2026
+    note: "Pendiente de convalidación y en vigor el 15/11/2026: prórrogas de 5 años (7 persona jurídica), preaviso de 6 meses e indemnización por no prorrogar."
   - pattern: "tipos de interes oficiales de referencia del mercado hipotecario"
     rules: []
     note: "Euríbor oficial del mes (Banco de España): añadir el dato a data/params/euribor.yaml si ancla una ronda nueva (ADR-0006)."
