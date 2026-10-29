@@ -1,0 +1,325 @@
+"use client";
+
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+
+import type { components } from "../lib/api-types";
+import { LISTING_LABELS, ORIGIN, spanishNumber } from "../lib/format";
+
+type OfferOut = components["schemas"]["OfferOut"];
+type OfferSummary = components["schemas"]["OfferSummary"];
+type FieldOut = components["schemas"]["FieldOut"];
+
+const STATUS: Record<string, string> = {
+  pendiente: "Extrayendo",
+  extraida: "Por confirmar",
+  confirmada: "Confirmada",
+};
+const POLL_MS = 5000;
+
+export function Offers() {
+  const [offers, setOffers] = useState<OfferSummary[]>([]);
+  const [selected, setSelected] = useState<OfferOut | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    try {
+      const resp = await fetch("/api/offers");
+      if (resp.ok) setOffers((await resp.json()) as OfferSummary[]);
+    } catch {
+      setFailure("No se ha podido conectar con la API. ¿Está arrancada con make api?");
+    }
+  }, []);
+
+  const open = useCallback(async (id: string) => {
+    const resp = await fetch(`/api/offers/${id}`);
+    if (resp.ok) setSelected((await resp.json()) as OfferOut);
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  // Mientras el trabajo de extracción no termina, se vuelve a preguntar cada pocos segundos.
+  useEffect(() => {
+    if (selected?.status !== "pendiente") return;
+    const timer = setTimeout(() => void open(selected.id).then(refresh), POLL_MS);
+    return () => clearTimeout(timer);
+  }, [selected, open, refresh]);
+
+  function created(offer: OfferOut) {
+    setSelected(offer);
+    void refresh();
+  }
+
+  return (
+    <div className="offers">
+      <div className="results">
+        <PasteForm onCreated={created} />
+        {failure && <p className="failure">{failure}</p>}
+        {offers.length > 0 && (
+          <fieldset>
+            <legend>Tus anuncios</legend>
+            <ul className="offer-list">
+              {offers.map((o) => (
+                <li key={o.id}>
+                  <button
+                    type="button"
+                    aria-current={selected?.id === o.id ? "true" : undefined}
+                    onClick={() => void open(o.id)}
+                  >
+                    <span className="offer-title">{o.title ?? o.url ?? "Texto pegado"}</span>
+                    <span className="status">{STATUS[o.status]}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </fieldset>
+        )}
+      </div>
+      <section className="results" aria-live="polite">
+        {selected ? (
+          <OfferDetail key={`${selected.id}-${selected.status}`} offer={selected} onSaved={created} />
+        ) : (
+          <p className="empty">Pega un enlace o elige uno de tus anuncios.</p>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function PasteForm({ onCreated }: { onCreated: (offer: OfferOut) => void }) {
+  const [url, setUrl] = useState("");
+  const [text, setText] = useState("");
+  const [pasteText, setPasteText] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    setLoading(true);
+    setMessage(null);
+    const withText = pasteText && text.trim().length > 0;
+    try {
+      const resp = await fetch(withText ? "/api/offers/text" : "/api/offers/link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(withText ? { text, url: url.trim() || null } : { url: url.trim() }),
+      });
+      const body = await resp.json();
+      if (resp.ok) {
+        setText("");
+        setPasteText(false);
+        onCreated(body as OfferOut);
+      } else if (body.detail?.paste_text) {
+        setPasteText(true);
+        setMessage(body.detail.reason as string);
+      } else {
+        setMessage(
+          typeof body.detail === "string" ? body.detail : "Revisa el enlace o el texto pegado.",
+        );
+      }
+    } catch {
+      setMessage("No se ha podido conectar con la API. ¿Está arrancada con make api?");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} noValidate>
+      <fieldset>
+        <legend>Nuevo anuncio</legend>
+        <div className="field">
+          <label htmlFor="offer-url">Enlace del anuncio</label>
+          <input
+            id="offer-url"
+            type="url"
+            inputMode="url"
+            placeholder="https://…"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
+        </div>
+        {pasteText ? (
+          <div className="field">
+            <label htmlFor="offer-text">Texto del anuncio</label>
+            <textarea
+              id="offer-text"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              aria-describedby="offer-text-help"
+            />
+            <small id="offer-text-help" className="hint">
+              Selecciona todo el texto de la página del anuncio, cópialo y pégalo aquí.
+            </small>
+          </div>
+        ) : (
+          <button type="button" className="link-button" onClick={() => setPasteText(true)}>
+            O pega el texto del anuncio
+          </button>
+        )}
+        {message && <p className="failure">{message}</p>}
+        <div className="actions">
+          <button type="submit" disabled={loading || (!url.trim() && !text.trim())}>
+            {loading ? "Leyendo…" : "Analizar"}
+          </button>
+        </div>
+      </fieldset>
+    </form>
+  );
+}
+
+/** Confirmada: lo que el usuario dejó (también los campos que vació). Si no, lo propuesto. */
+function initialValue(field: FieldOut, confirmed: boolean): string {
+  return (confirmed ? field.confirmed : field.proposed) ?? "";
+}
+
+function OfferDetail({ offer, onSaved }: { offer: OfferOut; onSaved: (offer: OfferOut) => void }) {
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      offer.fields.map((f) => [f.name, initialValue(f, offer.status === "confirmada")]),
+    ),
+  );
+  const [operation, setOperation] = useState(offer.operation ?? "desconocida");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [failure, setFailure] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    const payload: Record<string, string | null> = {};
+    const found: Record<string, string> = {};
+    for (const field of offer.fields) {
+      const raw = values[field.name]?.trim() ?? "";
+      if (!raw) {
+        payload[field.name] = null;
+      } else if (field.kind === "number") {
+        const clean = spanishNumber(raw);
+        if (clean === null) found[field.name] = "Escribe solo el número";
+        payload[field.name] = clean;
+      } else {
+        payload[field.name] = raw;
+      }
+    }
+    setErrors(found);
+    if (Object.keys(found).length > 0) return;
+    setSaving(true);
+    setFailure(null);
+    try {
+      const resp = await fetch(`/api/offers/${offer.id}/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ operation, values: payload }),
+      });
+      const body = await resp.json();
+      if (resp.ok) onSaved(body as OfferOut);
+      else setFailure(typeof body.detail === "string" ? body.detail : "No se han podido guardar.");
+    } catch {
+      setFailure("No se ha podido conectar con la API.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <div className="offer-head">
+        <h2>{offer.title ?? "Anuncio pegado"}</h2>
+        {offer.url && (
+          <a href={offer.url} target="_blank" rel="noopener noreferrer nofollow">
+            {offer.url}
+          </a>
+        )}
+      </div>
+      {offer.status === "pendiente" ? (
+        <p className="empty">
+          Leyendo el anuncio. Puede tardar unos minutos; esta página se actualiza sola.
+        </p>
+      ) : (
+        <p className="empty">
+          {offer.status === "confirmada"
+            ? offer.located
+              ? `Datos confirmados. Ubicado en la sección censal ${offer.section_code ?? "—"}.`
+              : "Datos confirmados. No se ha podido ubicar: revisa la dirección y el municipio."
+            : "Revisa cada dato con la frase de la que sale. Corrige o completa lo que haga falta."}
+        </p>
+      )}
+      <form onSubmit={save} noValidate>
+        <fieldset>
+          <legend>Datos del anuncio</legend>
+          <div className="field">
+            <label htmlFor="offer-operation">Operación</label>
+            <select
+              id="offer-operation"
+              value={operation}
+              onChange={(e) => setOperation(e.target.value)}
+            >
+              <option value="venta">Venta</option>
+              <option value="alquiler">Alquiler</option>
+              <option value="desconocida">No lo dice</option>
+            </select>
+          </div>
+          <div className="confirm-grid">
+            {offer.fields.map((field) => (
+              <ConfirmField
+                key={field.name}
+                field={field}
+                value={values[field.name] ?? ""}
+                error={errors[field.name]}
+                onChange={(value) => setValues({ ...values, [field.name]: value })}
+              />
+            ))}
+          </div>
+          {failure && <p className="failure">{failure}</p>}
+          <div className="actions">
+            <button type="submit" disabled={saving}>
+              {saving ? "Guardando…" : "Confirmar datos"}
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    </>
+  );
+}
+
+function ConfirmField({
+  field,
+  value,
+  error,
+  onChange,
+}: {
+  field: FieldOut;
+  value: string;
+  error?: string;
+  onChange: (value: string) => void;
+}) {
+  const id = `c-${field.name}`;
+  const label = LISTING_LABELS[field.name] ?? field.name;
+  return (
+    <div className="field">
+      <label htmlFor={id}>
+        {label}
+        {field.origin && <span className="origin"> · {ORIGIN[field.origin]}</span>}
+      </label>
+      <input
+        id={id}
+        type="text"
+        inputMode={field.kind === "number" ? "decimal" : undefined}
+        value={value}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={`${id}-help`}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <div id={`${id}-help`}>
+        {error && <small className="error">{error}</small>}
+        {field.status === "verificado" && field.evidence && (
+          <p className="quote">«{field.evidence}»</p>
+        )}
+        {field.status === "rechazado" && (
+          <p className="quote rejected">Descartado: {field.reason}.</p>
+        )}
+        {field.status === "ausente" && <p className="quote">El anuncio no lo dice.</p>}
+      </div>
+    </div>
+  );
+}

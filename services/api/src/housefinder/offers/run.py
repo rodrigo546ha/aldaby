@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
+from uuid import UUID
 
 import httpx
 
@@ -17,6 +18,7 @@ from housefinder.offers.channels import boe_v
 from housefinder.offers.extract import extract_pending
 from housefinder.offers.ingest import IngestReport, ingest
 from housefinder.offers.locate import address_locator
+from housefinder.offers.pasted import extract_link
 
 ISSUES = "offers_boe_v"  # días del BOE ya leídos por este canal
 
@@ -61,3 +63,9 @@ def extract_boe_v(
     with connect(conninfo) as conn:
         locate = address_locator(conn, geocoder or (lambda address: geocode(client, address)))
         return extract_pending(conn, llm, boe_v.NAME, locate, limit).as_dict()
+
+
+def extract_pasted(conninfo: str, llm: LLMClient, offer_id: UUID) -> dict[str, Any]:
+    """Extrae una oferta pegada por el usuario (F4.1)."""
+    with connect(conninfo) as conn:
+        return extract_link(conn, llm, offer_id)

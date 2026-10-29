@@ -9,6 +9,7 @@ from pathlib import Path
 
 import httpx
 import pytest
+from conftest import add_section
 
 from housefinder.agent.extraction import (
     DocumentExtraction,
@@ -284,6 +285,7 @@ def test_lotes_extraidos_ubicados_y_pendientes_de_confirmar(migrated_database: s
         return Geocoded(-3.36, 40.51, "portal", address, "28005", None)
 
     llm = FakeLLMClient(lambda *a: EXTRACTION)
+    add_section(migrated_database, "2800597001", -3.36, 40.51)
     report = extract_boe_v(migrated_database, boe_client(), llm, geocoder=geocoder)
     assert report["lots"] == 2 and report["rejected_fields"] == 2
     assert geocoded == ["Carretera M-119 (Camarma-Valdeavero), n°21, Alcalá de Henares, Madrid"]

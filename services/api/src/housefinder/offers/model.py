@@ -48,6 +48,7 @@ class NormalizedOffer:
     deposit_required: Decimal | None = None
     address: str | None = None
     cadastral_ref: str | None = None
+    municipality: str | None = None  # para comprobar la geocodificación
     built_area_m2: Decimal | None = None
     lon: float | None = None  # si el canal ya trae el punto
     lat: float | None = None

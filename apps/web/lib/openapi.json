@@ -173,6 +173,209 @@
         }
       }
     },
+    "/offers/link": {
+      "post": {
+        "tags": [
+          "ofertas"
+        ],
+        "summary": "Post Link",
+        "operationId": "post_link_offers_link_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/offers/text": {
+      "post": {
+        "tags": [
+          "ofertas"
+        ],
+        "summary": "Post Text",
+        "operationId": "post_text_offers_text_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/offers": {
+      "get": {
+        "tags": [
+          "ofertas"
+        ],
+        "summary": "Get Offers",
+        "operationId": "get_offers_offers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OfferSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Get Offers Offers Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/offers/{offer_id}": {
+      "get": {
+        "tags": [
+          "ofertas"
+        ],
+        "summary": "Get Offer",
+        "operationId": "get_offer_offers__offer_id__get",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/offers/{offer_id}/confirm": {
+      "post": {
+        "tags": [
+          "ofertas"
+        ],
+        "summary": "Post Confirm",
+        "operationId": "post_confirm_offers__offer_id__confirm_post",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -450,6 +653,45 @@
         ],
         "title": "ComparisonOut"
       },
+      "ConfirmIn": {
+        "properties": {
+          "operation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "venta",
+                  "alquiler",
+                  "desconocida"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "values": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Values"
+          }
+        },
+        "type": "object",
+        "required": [
+          "values"
+        ],
+        "title": "ConfirmIn"
+      },
       "ExitRequest": {
         "properties": {
           "appreciation_rate": {
@@ -493,6 +735,104 @@
           "sale_cost_rate"
         ],
         "title": "ExitRequest"
+      },
+      "FieldOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "number",
+              "cadastral",
+              "text"
+            ],
+            "title": "Kind"
+          },
+          "proposed": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposed"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "verificado",
+                  "rechazado",
+                  "ausente"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "confirmed": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "extraido",
+                  "corregido",
+                  "usuario"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "proposed",
+          "evidence",
+          "status",
+          "reason",
+          "confirmed",
+          "origin"
+        ],
+        "title": "FieldOut"
       },
       "FigureOut": {
         "properties": {
@@ -755,6 +1095,21 @@
         ],
         "title": "InvestmentResponse"
       },
+      "LinkIn": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 8,
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "LinkIn"
+      },
       "LocationOut": {
         "properties": {
           "lon": {
@@ -821,6 +1176,137 @@
         ],
         "title": "LocationOut"
       },
+      "OfferOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pendiente",
+              "extraida",
+              "confirmada"
+            ],
+            "title": "Status"
+          },
+          "first_seen": {
+            "type": "string",
+            "title": "First Seen"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "enlace",
+              "texto"
+            ],
+            "title": "Source"
+          },
+          "images": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Images"
+          },
+          "operation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "property_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Type"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/FieldOut"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "located": {
+            "type": "boolean",
+            "title": "Located"
+          },
+          "section_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Code"
+          },
+          "municipality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Municipality"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "title",
+          "status",
+          "first_seen",
+          "source",
+          "images",
+          "operation",
+          "property_type",
+          "fields",
+          "located",
+          "section_code",
+          "municipality"
+        ],
+        "title": "OfferOut"
+      },
       "OfferRequest": {
         "properties": {
           "label": {
@@ -875,6 +1361,59 @@
           "initial_months"
         ],
         "title": "OfferRequest"
+      },
+      "OfferSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pendiente",
+              "extraida",
+              "confirmada"
+            ],
+            "title": "Status"
+          },
+          "first_seen": {
+            "type": "string",
+            "title": "First Seen"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "title",
+          "status",
+          "first_seen"
+        ],
+        "title": "OfferSummary"
       },
       "PropertyRequest": {
         "properties": {
@@ -1332,6 +1871,33 @@
           "attribution"
         ],
         "title": "TerritoryResponse"
+      },
+      "TextIn": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 60000,
+            "minLength": 20,
+            "title": "Text"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "TextIn"
       },
       "ValidationError": {
         "properties": {

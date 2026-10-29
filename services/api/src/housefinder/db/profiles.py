@@ -24,6 +24,15 @@ def create_organization(conn: psycopg.Connection, name: str, kind: str) -> UUID:
     return row[0]
 
 
+def get_or_create_organization(conn: psycopg.Connection, name: str, kind: str) -> UUID:
+    """La primera organización con ese nombre, o una nueva (organización local antes de G8)."""
+    conn.execute("SELECT pg_advisory_xact_lock(hashtext('organizations:' || %s))", (name,))
+    row = conn.execute(
+        "SELECT id FROM organizations WHERE name = %s ORDER BY created_at LIMIT 1", (name,)
+    ).fetchone()
+    return row[0] if row else create_organization(conn, name, kind)
+
+
 def insert_profile(
     conn: psycopg.Connection, profile_id: UUID, org_id: UUID, owner_id: str, sealed: SealedRow
 ) -> None:

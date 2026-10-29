@@ -86,3 +86,36 @@ export const LABELS: Record<string, string> = {
 export function label(key: string): string {
   return LABELS[key] ?? key;
 }
+
+/**
+ * Número escrito por una persona en España → texto para la API, sin floats.
+ * "189.500" y "1.290.109,45" llevan puntos de miles; "85,5" lleva coma decimal; "1290109.45" es
+ * como lo devuelve la API.
+ */
+export function spanishNumber(text: string): string | null {
+  const clean = text.trim().replace(/\s/g, "");
+  if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(clean)) return clean.replace(/\./g, "").replace(",", ".");
+  return amount(clean);
+}
+
+/** Campos de un anuncio pegado (F4.1), en el orden en que se confirman. */
+export const LISTING_LABELS: Record<string, string> = {
+  price: "Precio",
+  built_area_m2: "Superficie construida (m²)",
+  usable_area_m2: "Superficie útil (m²)",
+  rooms: "Habitaciones",
+  bathrooms: "Baños",
+  floor: "Planta",
+  condition: "Estado",
+  address: "Dirección",
+  municipality: "Municipio",
+  cadastral_ref: "Referencia catastral",
+  year_built: "Año de construcción",
+  community_fees: "Comunidad al mes (€)",
+};
+
+export const ORIGIN: Record<string, string> = {
+  extraido: "del anuncio",
+  corregido: "corregido por ti",
+  usuario: "añadido por ti",
+};

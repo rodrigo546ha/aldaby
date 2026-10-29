@@ -154,8 +154,13 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
 
 **Tareas**
 
-- [ ] F4.1 Enlace pegado por el usuario: descargar la página que el usuario aporta, extraer los datos
+- [x] F4.1 Enlace pegado por el usuario: descargar la página que el usuario aporta, extraer los datos
       con el agente (precio, superficie, planta, estado, fotos) y pedir confirmación al usuario.
+      *Hecho (ADR-0015):* una descarga a petición suya con `robots.txt` respetado, sin esquivar
+      bloqueos y con veto a la red interna; si no se puede, el usuario pega el texto. Extracción en
+      la cola (`extract_link`) con citas comprobadas y página `/ofertas` para confirmar o corregir
+      cada dato. De las fotos solo se guardan las URL `og:image`, sin descargarlas ni mostrarlas.
+      *Pendiente:* la consulta legal (F0.6) y la autenticación (G8; hoy, organización local).
 - [x] F4.2 Verificar la API de datos abiertos del BOE con un sumario real y guardarlo como fixture;
       ajustar `ingestion/boe.py` a su esquema (hecho con F2.6: `tests/fixtures/boe/`).
 - [ ] F4.3 Subastas del Portal de Subastas del BOE para la provincia de Madrid (revisar condiciones

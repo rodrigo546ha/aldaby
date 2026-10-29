@@ -76,6 +76,41 @@ Del documento, extrae cada inmueble o lote que se vende o subasta. Para cada cam
 No inventes lotes: si el documento no vende inmuebles, devuelve una lista vacía."""
 
 
+Operation = Literal["venta", "alquiler", "desconocida"]
+
+
+class ListingExtraction(BaseModel):
+    """Un anuncio de un portal o de una agencia: un solo inmueble (F4.1, ADR-0015)."""
+
+    operation: Operation = Field(description="Si el anuncio vende o alquila el inmueble")
+    operation_evidence: str | None = Field(description="Cita literal que indica la operación")
+    property_type: PropertyType
+    property_type_evidence: str | None = Field(description="Cita literal que indica el tipo")
+    price: Quoted = Field(description="Precio pedido en euros: de venta, o al mes si se alquila")
+    built_area_m2: Quoted = Field(description="Superficie construida en m²")
+    usable_area_m2: Quoted = Field(description="Superficie útil en m², solo si la da aparte")
+    rooms: Quoted = Field(description="Número de habitaciones o dormitorios")
+    bathrooms: Quoted = Field(description="Número de baños")
+    floor: Quoted = Field(description="Planta o piso (bajo, 1ª, ático…)")
+    condition: Quoted = Field(
+        description="Estado de conservación con las palabras del anuncio (a reformar, buen "
+                    "estado, obra nueva…)"
+    )
+    address: Quoted = Field(description="Calle y número del inmueble, si el anuncio los da")
+    municipality: Quoted
+    cadastral_ref: Quoted = Field(description="Referencia catastral de 14 o 20 caracteres")
+    year_built: Quoted = Field(description="Año de construcción")
+    community_fees: Quoted = Field(description="Gastos de comunidad al mes, en euros")
+
+
+LISTING_INSTRUCTIONS = """Eres un extractor de datos de anuncios de inmuebles en España.
+El documento es el texto de la página de un anuncio (un portal o una agencia). Extrae los datos del
+inmueble anunciado, no los de otros anuncios recomendados ni los de la agencia. Para cada campo:
+- copia en `evidence` el fragmento EXACTO del documento del que sale el valor, sin reescribirlo;
+- si el documento no da el dato, deja value y evidence a null; no lo deduzcas ni lo calcules;
+- los números van sin separador de miles y con punto decimal."""
+
+
 FieldKind = Literal["number", "cadastral", "text"]
 FIELD_KINDS: dict[str, FieldKind] = {
     "label": "text",
@@ -103,6 +138,22 @@ class CheckedField:
                 "reason": self.reason}
 
 
+LISTING_KINDS: dict[str, FieldKind] = {
+    "price": "number",
+    "built_area_m2": "number",
+    "usable_area_m2": "number",
+    "rooms": "number",
+    "bathrooms": "number",
+    "floor": "text",
+    "condition": "text",
+    "address": "text",
+    "municipality": "text",
+    "cadastral_ref": "cadastral",
+    "year_built": "number",
+    "community_fees": "number",
+}
+
+
 @dataclass(frozen=True)
 class CheckedLot:
     property_type: PropertyType | None  # None si su evidencia no está en el documento
@@ -126,6 +177,48 @@ class CheckedDocument:
     @property
     def rejected(self) -> int:
         return sum(1 for lot in self.lots for f in lot.fields.values() if f.status == "rechazado")
+
+
+@dataclass(frozen=True)
+class CheckedListing:
+    operation: Operation | None  # None si su evidencia no está en el documento
+    property_type: PropertyType | None
+    fields: dict[str, CheckedField]
+
+    def value(self, name: str) -> Decimal | str | None:
+        checked = self.fields[name]
+        return checked.value if checked.status == "verificado" else None
+
+    @property
+    def rejected(self) -> int:
+        return sum(1 for f in self.fields.values() if f.status == "rechazado")
+
+    def as_dict(self) -> dict[str, Any]:
+        return {"operation": self.operation, "property_type": self.property_type,
+                "fields": {name: f.as_dict() for name, f in self.fields.items()}}
+
+
+def extract_listing(llm: LLMClient, document: str) -> CheckedListing:
+    """Extrae los datos de un anuncio con el LLM y deja solo lo que la evidencia respalda."""
+    raw = llm.structured(instructions=LISTING_INSTRUCTIONS, document=document,
+                         output=ListingExtraction)
+    return check_listing(document, raw)
+
+
+def check_listing(document: str, raw: ListingExtraction) -> CheckedListing:
+    source = _normalize(document)
+    whole = (0, len(source))
+    fields = {name: check_field(source, getattr(raw, name), kind, whole)
+              for name, kind in LISTING_KINDS.items()}
+
+    def quoted(evidence: str | None) -> bool:
+        return bool(evidence) and _within(source, _normalize(evidence or ""), whole)
+
+    return CheckedListing(
+        operation=raw.operation if quoted(raw.operation_evidence) else None,
+        property_type=raw.property_type if quoted(raw.property_type_evidence) else None,
+        fields=fields,
+    )
 
 
 def extract(llm: LLMClient, document: str) -> CheckedDocument:

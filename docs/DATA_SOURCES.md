@@ -5,7 +5,7 @@ condiciones de reutilización y sin quedar registrada en la tabla `sources`.
 
 | Capa | Fuente | Acceso | Fase | Estado |
 | --- | --- | --- | --- | --- |
-| Oferta | Enlace pegado por el usuario | El usuario aporta la página | F4 | Pendiente |
+| Oferta | Enlace pegado por el usuario | Una descarga a petición del usuario, respetando `robots.txt` y los bloqueos; si no, texto pegado (ADR-0015) | F4 | Hecho; pendiente de la consulta legal (F0.6) |
 | Oferta | Portal de Subastas del BOE | Web pública; revisar condiciones | F4 | Pendiente |
 | Oferta | Sumario del BOE, sección V | API de datos abiertos del BOE; reutilización con cita y enlace (aviso legal del BOE) | F4 | Canal `boe_seccion_v`: anuncios guardados cada día, lotes por extraer; Portal de Subastas pendiente |
 | Normativa | Sumarios del BOE (secciones I y III) y del BOCM | API del BOE; RSS `sumarios.rss` y sumario XML de cada boletín del BOCM | F2.6 | Vigilancia diaria con tareas de revisión |

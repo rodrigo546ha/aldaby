@@ -49,3 +49,21 @@ def migrated_database(empty_database: str) -> str:
 
     migrate(empty_database)
     return empty_database
+
+
+def add_section(conninfo: str, code: str, lon: float, lat: float, size: float = 0.01) -> None:
+    """Sección censal sintética (cartografía 2025) alrededor de un punto, para que el
+    localizador de ofertas lo acepte como dentro de la zona cubierta."""
+    import json
+
+    import psycopg
+
+    from housefinder.db.sections import SectionRow, upsert_sections
+
+    half = size / 2
+    ring = [[lon - half, lat - half], [lon + half, lat - half], [lon + half, lat + half],
+            [lon - half, lat + half], [lon - half, lat - half]]
+    geometry = json.dumps({"type": "MultiPolygon", "coordinates": [[ring]]})
+    with psycopg.connect(conninfo) as conn:
+        upsert_sections(conn, [SectionRow(code, code[:5], geometry)], 2025, None)
+        conn.commit()

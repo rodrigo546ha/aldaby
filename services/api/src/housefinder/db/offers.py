@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -91,6 +91,11 @@ def link_offer(
         "UPDATE offers SET property_id = %s, location_source = %s WHERE id = %s",
         (property_id, location_source, offer_id),
     )
+
+
+def unlink_offer(conn: psycopg.Connection, offer_id: UUID) -> None:
+    conn.execute("UPDATE offers SET property_id = NULL, location_source = NULL WHERE id = %s",
+                 (offer_id,))
 
 
 def find_property_by_ref(conn: psycopg.Connection, cadastral_ref: str) -> UUID | None:
@@ -184,3 +189,82 @@ def mark_extracted(conn: psycopg.Connection, offer_id: UUID, extracted: dict[str
         "UPDATE offers SET extraction_status = 'extraida', extracted = %s WHERE id = %s",
         (Jsonb(extracted), offer_id),
     )
+
+
+# --- Ofertas privadas: enlaces pegados por el usuario (F4.1, ADR-0015) --------------------------
+
+
+@dataclass(frozen=True)
+class PrivateOffer:
+    id: UUID
+    url: str | None
+    title: str | None
+    extraction_status: str
+    extracted: dict[str, Any] | None
+    raw: dict[str, Any]
+    asking_price: Decimal | None
+    built_area_m2: Decimal | None
+    address: str | None
+    cadastral_ref: str | None
+    property_id: UUID | None
+    section_code: str | None
+    municipality: str | None
+    first_seen: datetime
+
+
+_PRIVATE = """
+    SELECT o.id, o.url, o.title, o.extraction_status, o.extracted, o.raw, o.asking_price,
+           o.built_area_m2, o.address, o.cadastral_ref, o.property_id, p.section_code,
+           p.municipality, o.first_seen
+    FROM offers o LEFT JOIN properties p ON p.id = o.property_id
+"""
+
+
+def get_private_offer(
+    conn: psycopg.Connection, offer_id: UUID, org_id: UUID
+) -> PrivateOffer | None:
+    row = conn.execute(_PRIVATE + " WHERE o.id = %s AND o.org_id = %s",
+                       (offer_id, org_id)).fetchone()
+    return PrivateOffer(*row) if row else None
+
+
+def list_private_offers(
+    conn: psycopg.Connection, org_id: UUID, limit: int = 50
+) -> list[PrivateOffer]:
+    rows = conn.execute(_PRIVATE + " WHERE o.org_id = %s ORDER BY o.first_seen DESC LIMIT %s",
+                        (org_id, limit)).fetchall()
+    return [PrivateOffer(*r) for r in rows]
+
+
+def offer_to_extract(
+    conn: psycopg.Connection, offer_id: UUID
+) -> tuple[str, dict[str, Any]] | None:
+    """Estado y lo recibido de una oferta, para el trabajo de extracción (sin organización)."""
+    row = conn.execute("SELECT extraction_status, raw FROM offers WHERE id = %s",
+                       (offer_id,)).fetchone()
+    return (row[0], row[1]) if row else None
+
+
+def confirm_offer(
+    conn: psycopg.Connection,
+    offer_id: UUID,
+    org_id: UUID,
+    *,
+    asking_price: Decimal | None,
+    built_area_m2: Decimal | None,
+    address: str | None,
+    cadastral_ref: str | None,
+    extracted: dict[str, Any],
+) -> bool:
+    row = conn.execute(
+        """
+        UPDATE offers SET extraction_status = 'confirmada', asking_price = %s,
+                          built_area_m2 = %s, address = %s, cadastral_ref = %s, extracted = %s
+        WHERE id = %s AND org_id = %s
+          AND extraction_status IN ('pendiente', 'extraida', 'confirmada')
+        RETURNING id
+        """,
+        (asking_price, built_area_m2, address, cadastral_ref, Jsonb(extracted), offer_id,
+         org_id),
+    ).fetchone()
+    return row is not None

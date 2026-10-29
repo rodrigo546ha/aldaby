@@ -5,12 +5,15 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from functools import lru_cache
 from typing import Annotated
+from uuid import UUID
 
 import httpx
 from fastapi import Depends, HTTPException
 
 from housefinder.db.connection import Connection, DatabaseUnavailable, connect
+from housefinder.db.profiles import get_or_create_organization
 from housefinder.geo.cartociudad import Geocoded, geocode
+from housefinder.offers.link import Resolver, link_client, system_resolve
 from housefinder.params.book import ParamBook, default_params_dir
 from housefinder.regulation.rules import RuleBook, default_rules_dir
 
@@ -44,3 +47,26 @@ def get_geocoder() -> Iterator[Callable[[str], Geocoded]]:
 
 DbDep = Annotated[Connection, Depends(get_db)]
 GeocoderDep = Annotated[Callable[[str], Geocoded], Depends(get_geocoder)]
+
+DEV_ORG = "Desarrollo local"
+
+
+def get_org(db: DbDep) -> UUID:
+    """Organización de quien llama. Hasta la autenticación (G8), una local de desarrollo."""
+    org_id = get_or_create_organization(db, DEV_ORG, "particular")
+    db.commit()
+    return org_id
+
+
+def get_link_client() -> Iterator[httpx.Client]:
+    with link_client() as client:
+        yield client
+
+
+def get_resolver() -> Resolver:
+    return system_resolve
+
+
+OrgDep = Annotated[UUID, Depends(get_org)]
+LinkClientDep = Annotated[httpx.Client, Depends(get_link_client)]
+ResolverDep = Annotated[Resolver, Depends(get_resolver)]

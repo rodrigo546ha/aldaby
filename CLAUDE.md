@@ -75,6 +75,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     profiles/             perfil del inversor: modelo que se redacta y almacén cifrado
     db/offers.py          ofertas, versiones de lo recibido e inmuebles (deduplicación)
     offers/               canales de oferta (interfaz Channel), ingesta, ubicación y deduplicación
+    offers/link.py        descarga única del enlace pegado: robots.txt, bloqueos y veto a la red interna (ADR-0015)
+    offers/pasted.py      enlace o texto pegado: oferta privada, extracción en la cola y confirmación
     agent/llm.py          cliente del LLM (modelo abierto en servidor propio, API compatible con OpenAI) y cliente falso (ADR-0014); solo agent/ llama al LLM
     agent/extraction.py   extracción con cita literal comprobada: ninguna cifra extraída es inventada
     watch/                vigilancia del BOE y del BOCM: filtros, lectura y tareas (F2.6)
@@ -84,7 +86,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     ingestion/bocm.py     sumarios del BOCM (RSS y XML de cada boletín)
     ingestion/ine_sections.py  cartografía de secciones del INE (API OGC Features, CC BY 4.0)
     ingestion/ine_adrh.py Atlas de renta del INE por sección; el año t va sobre el seccionado t+1
-    api/main.py           aplicación FastAPI; un router por dominio (simulate, territory)
+    api/main.py           aplicación FastAPI; un router por dominio (simulate, territory, offers)
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
   data/watch/             filtros de la vigilancia del BOE y del BOCM

@@ -114,3 +114,32 @@ table { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
 th { color: var(--muted); font-weight: 500; }
 @media (max-width: 560px) { table { display: block; overflow-x: auto; } }
+
+.topnav { max-width: 1200px; margin: 0 auto; padding: 16px 16px 0; display: flex; gap: 16px; }
+.topnav a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
+.topnav a:hover, .topnav a:focus-visible { color: var(--text); text-decoration: underline; }
+
+.offers { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 32px; align-items: start; }
+@media (max-width: 860px) { .offers { grid-template-columns: 1fr; } }
+.field textarea {
+  font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); color: var(--text); min-height: 160px; resize: vertical;
+}
+.link-button {
+  background: none; border: none; padding: 0; color: var(--accent); font-weight: 500;
+  text-decoration: underline; align-self: flex-start;
+}
+.offer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.offer-list button {
+  width: 100%; text-align: left; font-weight: 500; background: var(--surface); color: var(--text);
+  border: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px;
+}
+.offer-list button[aria-current="true"] { border-color: var(--accent); }
+.offer-title { overflow-wrap: anywhere; }
+.status { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+.offer-head h2 { margin: 0 0 4px; font-size: 1.15rem; overflow-wrap: anywhere; }
+.offer-head a { color: var(--muted); font-size: 0.85rem; overflow-wrap: anywhere; }
+.confirm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.quote { margin: 0; font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
+.quote.rejected { color: var(--warn-text); }
+.origin { font-size: 0.75rem; color: var(--muted); }

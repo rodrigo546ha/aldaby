@@ -55,6 +55,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/offers/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Link */
+        post: operations["post_link_offers_link_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/offers/text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Text */
+        post: operations["post_text_offers_text_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Offers */
+        get: operations["get_offers_offers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/offers/{offer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Offer */
+        get: operations["get_offer_offers__offer_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/offers/{offer_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Confirm */
+        post: operations["post_confirm_offers__offer_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -149,6 +234,15 @@ export interface components {
             /** Lowest Stressed Payment */
             lowest_stressed_payment: string;
         };
+        /** ConfirmIn */
+        ConfirmIn: {
+            /** Operation */
+            operation?: ("venta" | "alquiler" | "desconocida") | null;
+            /** Values */
+            values: {
+                [key: string]: string | null;
+            };
+        };
         /** ExitRequest */
         ExitRequest: {
             /** Appreciation Rate */
@@ -163,6 +257,28 @@ export interface components {
              * @default 10
              */
             horizon_years: number;
+        };
+        /** FieldOut */
+        FieldOut: {
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "number" | "cadastral" | "text";
+            /** Proposed */
+            proposed: string | null;
+            /** Evidence */
+            evidence: string | null;
+            /** Status */
+            status: ("verificado" | "rechazado" | "ausente") | null;
+            /** Reason */
+            reason: string;
+            /** Confirmed */
+            confirmed: string | null;
+            /** Origin */
+            origin: ("extraido" | "corregido" | "usuario") | null;
         };
         /** FigureOut */
         FigureOut: {
@@ -235,6 +351,11 @@ export interface components {
             /** Warnings */
             warnings: string[];
         };
+        /** LinkIn */
+        LinkIn: {
+            /** Url */
+            url: string;
+        };
         /** LocationOut */
         LocationOut: {
             /** Lon */
@@ -249,6 +370,44 @@ export interface components {
             match_type: string | null;
             /** Cadastral Ref */
             cadastral_ref: string | null;
+        };
+        /** OfferOut */
+        OfferOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Url */
+            url: string | null;
+            /** Title */
+            title: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pendiente" | "extraida" | "confirmada";
+            /** First Seen */
+            first_seen: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "enlace" | "texto";
+            /** Images */
+            images: string[];
+            /** Operation */
+            operation: string | null;
+            /** Property Type */
+            property_type: string | null;
+            /** Fields */
+            fields: components["schemas"]["FieldOut"][];
+            /** Located */
+            located: boolean;
+            /** Section Code */
+            section_code: string | null;
+            /** Municipality */
+            municipality: string | null;
         };
         /** OfferRequest */
         OfferRequest: {
@@ -271,6 +430,25 @@ export interface components {
              * @default 12
              */
             revision_months: number;
+        };
+        /** OfferSummary */
+        OfferSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Url */
+            url: string | null;
+            /** Title */
+            title: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pendiente" | "extraida" | "confirmada";
+            /** First Seen */
+            first_seen: string;
         };
         /** PropertyRequest */
         PropertyRequest: {
@@ -440,6 +618,13 @@ export interface components {
             /** Attribution */
             attribution: string[];
         };
+        /** TextIn */
+        TextIn: {
+            /** Text */
+            text: string;
+            /** Url */
+            url?: string | null;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -548,6 +733,158 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TerritoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_link_offers_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_text_offers_text_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TextIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_offers_offers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferSummary"][];
+                };
+            };
+        };
+    };
+    get_offer_offers__offer_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_confirm_offers__offer_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferOut"];
                 };
             };
             /** @description Validation Error */
