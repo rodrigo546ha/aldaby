@@ -367,7 +367,7 @@ manual de F0.
 - Ejecutor de migraciones (D5, ADR-0008) y `0002`: secciones con clave `(code, vintage)`,
   `org_id` (D10) y reproducibilidad de planes (D9). Cada pieza con ADR propio llega en su
   migración: `jobs` y `job_runs` (D7, ADR-0010), perfiles cifrados (D8, ADR-0011) y
-  `review_tasks` con la vigilancia normativa.
+  `review_tasks` con la vigilancia normativa. *Estado (2026-10-29):* hechas las migraciones 0002–0007.
 - `db/` con psycopg 3 (D6) y tests contra la base de Docker en CI (servicio `postgis`).
 - `jobs/`: worker, reintentos, programación y alerta de fallo (correo o log al principio).
 - Cargadores idempotentes: cartografía de secciones (F3.2), Atlas de renta (F3.3), padrón (F3.4),

@@ -23,6 +23,8 @@ ALLOWED_INTERNAL = {
     "territory": {"core", "db", "geo", "ingestion", "territory"},
     "jobs": {"core", "db", "ingestion", "jobs", "watch"},
     "watch": {"core", "db", "ingestion", "watch"},
+    "crypto": {"core", "crypto"},
+    "profiles": {"core", "crypto", "db", "profiles"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi"}
 # Solo db/ habla con la base de datos (ADR-0008).

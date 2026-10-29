@@ -36,6 +36,14 @@ tipadas (`SourceRef`), fecha y, si es una estimación, rango. Una cifra derivada
 todas sus entradas, y es `provisional` si alguna lo es. Cada regla legal aplicada queda en
 `plans.rule_ids`. Así cualquier plan se puede auditar y reproducir.
 
+## Datos personales
+
+El perfil del usuario y el contenido de sus planes (entradas, cifras y texto) se guardan con cifrado
+de sobre AES-256-GCM (ADR-0011): una clave de datos por registro, envuelta con una clave maestra
+(fichero local en desarrollo, AWS KMS en producción) y atada a su fila y su organización. En claro
+solo van los metadatos para filtrar y auditar. El modelo de perfil se redacta al mostrarse y un test
+comprueba que un flujo completo no deja ingresos ni deudas en los logs.
+
 ## Stack
 
 Next.js (web) · Python 3.11+ y FastAPI (motores y API) · PostgreSQL 16 + PostGIS · Claude en AWS

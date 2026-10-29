@@ -44,7 +44,10 @@ def test_una_seccion_tiene_una_fila_por_cartografia(migrated: str):
 
 def test_un_perfil_exige_organizacion(migrated: str):
     with psycopg.connect(migrated) as conn, pytest.raises(psycopg.errors.NotNullViolation):
-        conn.execute("INSERT INTO user_profiles (owner_id, data) VALUES ('u1', '{}')")
+        conn.execute(
+            "INSERT INTO user_profiles (owner_id, data_enc, dek_enc, key_id, enc_version) "
+            "VALUES ('u1', '\\x00', '\\x00', 'k1', 1)"
+        )
 
 
 def test_editar_una_migracion_aplicada_para_el_ejecutor(migrated: str, tmp_path: Path):

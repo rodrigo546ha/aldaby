@@ -33,6 +33,8 @@ de alquiler, gestión activa o pasiva, pruebas de estrés, escenarios normativos
    rellena "de memoria".
 5. **Datos personales con cuidado (RGPD).** Ingresos, deudas y documentos del usuario: cifrados,
    nunca en logs, nunca en fixtures del repositorio (usar `tests/fixtures/private/`, ignorada por git).
+   Se guardan con `profiles/store.py` (cifrado de sobre, ADR-0011); el modelo `UserProfile` nunca
+   se muestra en texto y sus errores no repiten los valores.
 6. **Dinero con `Decimal`**, nunca `float`. Redondeo con `money()`.
 
 ## Mapa del repositorio
@@ -68,6 +70,9 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/jobs.py            SQL de la cola de trabajos (ADR-0010)
     jobs/                 worker, reintentos, programaciones, alertas y tipos de trabajo
     db/review_tasks.py    tareas de revisión de la vigilancia normativa
+    db/profiles.py        organizaciones y perfiles (solo bytes cifrados)
+    crypto/               cifrado de sobre AES-256-GCM y claves maestras (ADR-0011)
+    profiles/             perfil del inversor: modelo que se redacta y almacén cifrado
     watch/                vigilancia del BOE y del BOCM: filtros, lectura y tareas (F2.6)
     geo/cartociudad.py    geocodificador de CartoCiudad (ADR-0009); solo geo/ e ingestion/ usan la red
     territory/            sección, renta, población y tendencias de una dirección como Figure
@@ -95,6 +100,7 @@ make migrate   # solo las migraciones pendientes (DATABASE_URL)
 make sections  # carga las secciones censales del INE (YEAR=2025 PROVINCE=28)
 make adrh      # carga el Atlas de renta del INE 2015–2024 (PROVINCE=28)
 make worker    # worker de la cola; encolar con `python -m housefinder.jobs enqueue …`
+                 # clave maestra local para cifrar perfiles: `python -m housefinder.crypto nueva-clave`
                  # tareas de revisión: `python -m housefinder.watch tareas`
 make test      # pytest de la API (los tests `db` se saltan si la base no está arrancada)
 make lint      # ruff
