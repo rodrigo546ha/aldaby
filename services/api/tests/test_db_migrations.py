@@ -12,9 +12,8 @@ psycopg = pytest.importorskip("psycopg")
 
 
 @pytest.fixture(scope="module")
-def migrated(empty_database: str) -> str:
-    migrate(empty_database)
-    return empty_database
+def migrated(migrated_database: str) -> str:
+    return migrated_database
 
 
 def test_aplica_todas_y_una_segunda_vez_ninguna(migrated: str):

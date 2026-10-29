@@ -60,7 +60,9 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     planning/simulate.py  simulación de punta a punta: el único camino de cálculo del plan (D4)
     planning/scenarios.py escenarios normativos: comparación con / sin reglas pendientes
     db/migrate.py         ejecutor de migraciones (ADR-0008); solo db/ importa psycopg
+    db/sections.py        fuentes (`sources`) y secciones censales; sección de un punto
     ingestion/boe.py      sumario diario del BOE (esquema por verificar, fase 4)
+    ingestion/ine_sections.py  cartografía de secciones del INE (API OGC Features, CC BY 4.0)
     api/main.py           aplicación FastAPI; un router por dominio (api/simulate.py)
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
@@ -77,6 +79,7 @@ docs/                     ROADMAP, ARCHITECTURE, DATA_SOURCES, ADRs y plantillas
 make setup     # entorno Python (.venv) y dependencias web
 make db        # PostgreSQL + PostGIS en Docker (127.0.0.1:5442) y migraciones pendientes
 make migrate   # solo las migraciones pendientes (DATABASE_URL)
+make sections  # carga las secciones censales del INE (YEAR=2025 PROVINCE=28)
 make test      # pytest de la API (los tests `db` se saltan si la base no está arrancada)
 make lint      # ruff
 make rules-check  # valida data/rules (catálogo de tipos, vigencias, revisor)

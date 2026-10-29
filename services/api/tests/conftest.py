@@ -40,3 +40,12 @@ def empty_database() -> Iterator[str]:
             yield make_conninfo(**params)
         finally:
             admin.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+
+
+@pytest.fixture(scope="session")
+def migrated_database(empty_database: str) -> str:
+    """La base temporal con todas las migraciones aplicadas, una vez por sesión."""
+    from housefinder.db.migrate import migrate
+
+    migrate(empty_database)
+    return empty_database

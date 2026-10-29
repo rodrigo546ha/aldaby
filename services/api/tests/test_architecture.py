@@ -18,10 +18,13 @@ ALLOWED_INTERNAL = {
     "planning": {"core", "engines", "regulation", "params", "planning"},
     "core": {"core"},
     "db": {"core", "db"},
+    "ingestion": {"core", "db", "ingestion"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi"}
 # Solo db/ habla con la base de datos (ADR-0008).
 DB_DRIVERS = {"psycopg", "psycopg_pool"}
+# Solo la ingesta descarga datos de la red.
+ALLOWED_EXTERNAL = {"ingestion": {"httpx"}}
 
 
 def _imports(path: Path) -> set[str]:
@@ -44,6 +47,7 @@ def test_dependencias_permitidas(module: str):
                 internal = rest.split(".")[0]
                 assert internal in ALLOWED_INTERNAL[module], f"{file.name} importa {name}"
             else:
-                assert top not in FORBIDDEN_EXTERNAL, f"{file.name} importa {name}"
+                allowed = ALLOWED_EXTERNAL.get(module, set())
+                assert top not in FORBIDDEN_EXTERNAL - allowed, f"{file.name} importa {name}"
                 if module != "db":
                     assert top not in DB_DRIVERS, f"{file.name} importa {name}"

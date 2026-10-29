@@ -1,4 +1,4 @@
-.PHONY: setup db migrate test lint rules-check api web openapi
+.PHONY: setup db migrate sections test lint rules-check api web openapi
 
 PYTHON ?= python3
 VENV := .venv/bin
@@ -18,6 +18,12 @@ db:
 
 migrate:
 	cd services/api && $(VENV)/python -m housefinder.db.migrate
+
+# Cartografía de secciones censales del INE (F3.2). Descarga ~50 MB por provincia.
+YEAR ?= 2025
+PROVINCE ?= 28
+sections:
+	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_sections --year $(YEAR) --province $(PROVINCE)
 
 test:
 	cd services/api && $(VENV)/python -m pytest -q

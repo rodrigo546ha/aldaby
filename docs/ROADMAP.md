@@ -121,13 +121,15 @@ una ley solo requiere añadir una regla en YAML.
 
 - [x] F3.1 Base de datos local con `make db` y migraciones con ejecutor propio (ADR-0008): `0001_init`,
       `0002` (secciones por cartografía, organizaciones, reproducibilidad del plan).
-- [ ] F3.2 Cargar la cartografía de secciones censales del INE para la Comunidad de Madrid.
+- [x] F3.2 Cargar la cartografía de secciones censales del INE para la Comunidad de Madrid
+      (`make sections`: 4.518 secciones de 2025, 179 municipios).
 - [ ] F3.3 Cargar el Atlas de Distribución de Renta de los Hogares (INE) por sección.
 - [ ] F3.4 Cargar el padrón (población, edad, nacionalidad) y su evolución.
 - [ ] F3.5 Indicadores de demanda: universidades y matrícula, hospitales y grandes empleadores,
       afiliación a la Seguridad Social por municipio.
 - [ ] F3.6 Geocodificación con CartoCiudad y asignación de sección censal a una dirección.
 - [ ] F3.7 Registro de cada carga en `sources` (url, licencia, fecha).
+      *Estado:* la cartografía de secciones ya se registra; falta en cada cargador nuevo.
 
 **Criterio de salida.** Dada una dirección de Madrid, la API devuelve su sección censal con renta,
 población y tendencias, cada valor con su fuente.
