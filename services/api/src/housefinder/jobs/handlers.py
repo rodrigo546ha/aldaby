@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
+
+import httpx
 
 from housefinder.ingestion import ine_adrh, ine_sections
 from housefinder.jobs.worker import Handler
+from housefinder.watch.run import watch_bocm, watch_boe
 
 
 def build_handlers(conninfo: str) -> dict[str, Handler]:
@@ -16,4 +20,12 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
         return ine_adrh.load(str(payload["province"]), int(payload.get("last_years", 10)),
                              conninfo)
 
-    return {"ine_sections": sections, "ine_adrh": adrh}
+    def boe(payload: dict[str, Any]) -> dict[str, Any]:
+        with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
+            return watch_boe(conninfo, client, date.today(), int(payload.get("days", 7)))
+
+    def bocm(payload: dict[str, Any]) -> dict[str, Any]:
+        with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
+            return watch_bocm(conninfo, client)
+
+    return {"ine_sections": sections, "ine_adrh": adrh, "watch_boe": boe, "watch_bocm": bocm}

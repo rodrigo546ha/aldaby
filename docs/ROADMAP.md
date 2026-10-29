@@ -102,8 +102,10 @@ sintético; falta un plan real de F0 (F0.3) para dar el criterio por cumplido.
 - [x] F2.4 Normativa de alquiler: zonas tensionadas (lista oficial), alquiler de temporada, por
       habitaciones y turístico (mayoría de 3/5 de la comunidad, registro autonómico).
 - [x] F2.5 Escenarios: reglas `pendiente_convalidacion` y comparación «con / sin» en el plan.
-- [ ] F2.6 Monitor del BOE y del BOCM: detectar disposiciones nuevas sobre vivienda y abrir una
-      tarea de revisión (la IA resume, una persona decide).
+- [x] F2.6 Monitor del BOE y del BOCM: detectar disposiciones nuevas sobre vivienda y abrir una
+      tarea de revisión (la IA resume, una persona decide). Trabajos `watch_boe` y `watch_bocm`,
+      filtros en `data/watch/vigilancia.yaml`, tareas en `review_tasks` y
+      `python -m housefinder.watch tareas`. El resumen de la IA llega con `LLMClient` (G5).
 - [x] F2.7 Conectar `TaxParams` del motor de cash flow con `RuleBook`, citando `rule_ids`.
 - [x] F2.7a Cuota incremental del IRPF (ADR-0007): escalas estatal y autonómica, mínimos,
       límite de intereses y reparación con arrastre a cuatro años, también en la TIR.
@@ -154,8 +156,8 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
 
 - [ ] F4.1 Enlace pegado por el usuario: descargar la página que el usuario aporta, extraer los datos
       con el agente (precio, superficie, planta, estado, fotos) y pedir confirmación al usuario.
-- [ ] F4.2 Verificar la API de datos abiertos del BOE con un sumario real y guardarlo como fixture;
-      ajustar `ingestion/boe.py` a su esquema.
+- [x] F4.2 Verificar la API de datos abiertos del BOE con un sumario real y guardarlo como fixture;
+      ajustar `ingestion/boe.py` a su esquema (hecho con F2.6: `tests/fixtures/boe/`).
 - [ ] F4.3 Subastas del Portal de Subastas del BOE para la provincia de Madrid (revisar condiciones
       de uso; si no hay vía de datos abiertos, ADR antes de implementar).
 - [ ] F4.4 Anuncios de la sección V del BOE: Seguridad Social, INVIED, Patrimonio del Estado.

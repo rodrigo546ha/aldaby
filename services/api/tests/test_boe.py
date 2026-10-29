@@ -2,7 +2,8 @@ from datetime import date
 
 from housefinder.ingestion.boe import property_sale_items
 
-# Estructura inventada para probar el filtro; sustituir por un sumario real en fase 4.
+# Estructura mínima para probar el filtro de subastas (F4). La estructura real del sumario
+# se prueba con tests/fixtures/boe/ en test_watch.py.
 PAYLOAD = {
     "data": {
         "sumario": {

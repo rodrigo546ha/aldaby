@@ -4,10 +4,11 @@ Objetivo de la fase 4: detectar cada día los anuncios de venta o subasta de
 inmuebles (sección V, sobre todo V-B: Seguridad Social, INVIED, Patrimonio del
 Estado, ayuntamientos...).
 
-PENDIENTE DE VERIFICAR en la fase 4: la URL y la estructura exacta de la API de
-datos abiertos del BOE. El recorrido del JSON es deliberadamente tolerante
-(busca cualquier objeto con "titulo") hasta fijar el esquema con un ejemplo real
-guardado en tests/fixtures/.
+Esquema comprobado con sumarios reales (tests/fixtures/boe/): `data.sumario.diario` (una
+o varias ediciones; la extraordinaria va aparte) → `seccion` → `departamento` → `epigrafe` →
+`item`. Cada nivel puede ser una lista o un objeto suelto, y con pocos elementos la API mete
+un nivel `texto` en medio. Por eso el recorrido busca los objetos con `identificador` y
+`titulo` y arrastra la sección y el departamento en los que aparecen.
 """
 
 from __future__ import annotations
@@ -35,31 +36,56 @@ class BoeItem:
     url_pdf: str | None
     url_html: str | None
     published_on: date
+    section: str = ""  # código de sección: '1', '3', '5B'…
+    department: str = ""
 
 
-def fetch_sumario(day: date, client: httpx.Client | None = None) -> dict[str, Any]:
+def fetch_sumario(day: date, client: httpx.Client | None = None) -> dict[str, Any] | None:
+    """Sumario del día, o None si ese día no hay BOE (domingos y festivos dan 404)."""
     c = client or httpx.Client(timeout=30, headers={"Accept": "application/json"})
-    resp = c.get(SUMARIO_URL.format(yyyymmdd=day.strftime("%Y%m%d")))
+    resp = c.get(SUMARIO_URL.format(yyyymmdd=day.strftime("%Y%m%d")),
+                 headers={"Accept": "application/json"})
+    if resp.status_code == 404:
+        return None
     resp.raise_for_status()
     return resp.json()
 
 
-def iter_items(payload: Any, day: date) -> Iterator[BoeItem]:
-    """Recorre el JSON y devuelve todo objeto con título (esquema por fijar)."""
-    if isinstance(payload, dict):
-        if "titulo" in payload and isinstance(payload["titulo"], str):
-            yield BoeItem(
-                identifier=str(payload.get("identificador", "")),
-                title=payload["titulo"],
-                url_pdf=_text(payload.get("url_pdf")),
-                url_html=_text(payload.get("url_html")),
-                published_on=day,
-            )
-        for value in payload.values():
-            yield from iter_items(value, day)
-    elif isinstance(payload, list):
+SKIP_KEYS = {"url_pdf", "url_html", "url_xml", "metadatos", "sumario_diario"}
+
+
+def iter_items(
+    payload: Any, day: date, section: str = "", department: str = "", key: str = ""
+) -> Iterator[BoeItem]:
+    """Todas las disposiciones del sumario, con su sección y departamento.
+
+    El contexto sale de la clave bajo la que aparece cada objeto: lo que cuelga de `seccion`
+    es una sección y lo de `departamento`, un departamento; los `texto` intermedios se cruzan.
+    """
+    if isinstance(payload, list):
         for value in payload:
-            yield from iter_items(value, day)
+            yield from iter_items(value, day, section, department, key)
+        return
+    if not isinstance(payload, dict):
+        return
+    if isinstance(payload.get("identificador"), str) and isinstance(payload.get("titulo"), str):
+        yield BoeItem(
+            identifier=payload["identificador"],
+            title=" ".join(payload["titulo"].split()),
+            url_pdf=_text(payload.get("url_pdf")),
+            url_html=_text(payload.get("url_html")),
+            published_on=day,
+            section=section,
+            department=department,
+        )
+        return
+    if key == "seccion":
+        section = str(payload.get("codigo", section))
+    elif key == "departamento":
+        department = str(payload.get("nombre", department))
+    for child_key, value in payload.items():
+        if child_key not in SKIP_KEYS:
+            yield from iter_items(value, day, section, department, child_key)
 
 
 def property_sale_items(payload: Any, day: date) -> list[BoeItem]:

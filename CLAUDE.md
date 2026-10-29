@@ -66,14 +66,18 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/connection.py      conexión para la API y los trabajos (DATABASE_URL)
     db/jobs.py            SQL de la cola de trabajos (ADR-0010)
     jobs/                 worker, reintentos, programaciones, alertas y tipos de trabajo
+    db/review_tasks.py    tareas de revisión de la vigilancia normativa
+    watch/                vigilancia del BOE y del BOCM: filtros, lectura y tareas (F2.6)
     geo/cartociudad.py    geocodificador de CartoCiudad (ADR-0009); solo geo/ e ingestion/ usan la red
     territory/            sección, renta, población y tendencias de una dirección como Figure
-    ingestion/boe.py      sumario diario del BOE (esquema por verificar, fase 4)
+    ingestion/boe.py      sumario diario del BOE (esquema comprobado con sumarios reales)
+    ingestion/bocm.py     sumarios del BOCM (RSS y XML de cada boletín)
     ingestion/ine_sections.py  cartografía de secciones del INE (API OGC Features, CC BY 4.0)
     ingestion/ine_adrh.py Atlas de renta del INE por sección; el año t va sobre el seccionado t+1
     api/main.py           aplicación FastAPI; un router por dominio (simulate, territory)
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
+  data/watch/             filtros de la vigilancia del BOE y del BOCM
   tests/                  pytest; un test por regla de negocio
   tests/fixtures/planes/  prueba de oro: planes de F0 anonimizados (los reales, en private/)
 db/migrations/            SQL de PostgreSQL + PostGIS (NNNN_nombre.sql; no se editan una vez aplicadas)
@@ -90,6 +94,7 @@ make migrate   # solo las migraciones pendientes (DATABASE_URL)
 make sections  # carga las secciones censales del INE (YEAR=2025 PROVINCE=28)
 make adrh      # carga el Atlas de renta del INE 2015–2024 (PROVINCE=28)
 make worker    # worker de la cola; encolar con `python -m housefinder.jobs enqueue …`
+                 # tareas de revisión: `python -m housefinder.watch tareas`
 make test      # pytest de la API (los tests `db` se saltan si la base no está arrancada)
 make lint      # ruff
 make rules-check  # valida data/rules (catálogo de tipos, vigencias, revisor)

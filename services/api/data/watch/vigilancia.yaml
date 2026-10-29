@@ -1,0 +1,83 @@
+# Vigilancia del BOE y del BOCM (F2.6): qué publicaciones abren una tarea de revisión.
+# No son normativa sino filtros: se ajustan con los falsos positivos y negativos de cada semana.
+# Los patrones son expresiones regulares sobre el título, sin tildes ni mayúsculas.
+
+sources:
+  boe:
+    sections: ["1", "3"]  # I. Disposiciones generales; III. Otras disposiciones
+  bocm:
+    sections: ["I. COMUNIDAD DE MADRID", "III. ADMINISTRACIÓN LOCAL AYUNTAMIENTOS"]
+    exclude_parts: ["B) Autoridades y Personal", "D) Anuncios"]
+
+topics:
+  vivienda:
+    - "vivienda"
+    - "arrendamiento"
+    - "alquiler"
+    - "mercado residencial tensionado"
+    - "uso turistico"
+  fiscalidad:
+    - "impuesto sobre la renta de las personas fisicas"
+    - "\\birpf\\b"
+    - "transmisiones patrimoniales"
+    - "actos juridicos documentados"
+    - "impuesto sobre el valor anadido"
+    - "haciendas locales"
+    - "incremento de valor de los terrenos"
+    - "bienes inmuebles"
+    - "tributos cedidos"
+    - "ordenanza fiscal"
+  hipotecas:
+    - "credito inmobiliario"
+    - "prestamos? hipotecari"
+    - "tipos de interes oficiales de referencia"
+    - "aranceles? de los (notarios|registradores)"
+  decreto-ley:
+    - "real decreto-ley"
+    - "convalidacion"
+    - "derogacion del real decreto-ley"
+
+exclude:
+  - "\\bnombra"
+  - "\\bcese\\b"
+  - "libre designacion"
+  - "provision de (un |varios )?puestos?"
+  - "proceso selectivo"
+  - "oposicion"
+  - "en el recurso interpuesto contra"  # recursos ante la DG de Seguridad Jurídica
+  - "informe de fiscalizacion"
+  - "se publica el convenio"
+  - "subvenci"
+  - "ley foral"
+
+# Siempre abren tarea si están en una sección vigilada, aunque caigan en una exclusión.
+always:
+  - "mercado residencial tensionado"
+  - "real decreto-ley"
+
+# Departamentos del BOE que no afectan a Madrid: leyes y normas de otras comunidades.
+exclude_departments:
+  - "^comunidad (autonoma|foral) de (?!madrid)"
+  - "^comunitat"
+  - "^principado de"
+  - "^region de (?!madrid)"
+  - "^illes balears"
+  - "^ciudad (autonoma )?de (ceuta|melilla)"
+
+# Disposiciones que se siguen por su nombre, en cualquier sección. Cada regla pendiente de
+# convalidación debe aparecer aquí (lo comprueba un test).
+tracked:
+  - pattern: "real decreto-ley 29/2026"
+    rules:
+      - irpf-reduccion-alquiler-rdl-29-2026
+      - alquiler-habitual-rdl-29-2026
+      - alquiler-temporada-rdl-29-2026
+      - alquiler-habitaciones-rdl-29-2026
+      - plusvalia-coeficientes-maximos-rdl-29-2026
+    note: "Pendiente de convalidación. Si se convalida, sus reglas pasan a vigente; si se deroga, a derogada."
+  - pattern: "real decreto-ley 28/2026"
+    rules: []
+    note: "No cargado: medidas sobre la estabilidad de los contratos de alquiler de vivienda habitual. Revisar si cambia el régimen del alquiler."
+  - pattern: "tipos de interes oficiales de referencia del mercado hipotecario"
+    rules: []
+    note: "Euríbor oficial del mes (Banco de España): añadir el dato a data/params/euribor.yaml si ancla una ronda nueva (ADR-0006)."

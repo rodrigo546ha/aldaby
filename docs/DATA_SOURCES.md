@@ -7,7 +7,8 @@ condiciones de reutilización y sin quedar registrada en la tabla `sources`.
 | --- | --- | --- | --- | --- |
 | Oferta | Enlace pegado por el usuario | El usuario aporta la página | F4 | Pendiente |
 | Oferta | Portal de Subastas del BOE | Web pública; revisar condiciones | F4 | Pendiente |
-| Oferta | Sumario del BOE, sección V | API de datos abiertos del BOE (verificar) | F4 | Esqueleto |
+| Oferta | Sumario del BOE, sección V | API de datos abiertos del BOE (esquema comprobado con sumarios reales) | F4 | Lectura y vigilancia hechas; subastas pendientes |
+| Normativa | Sumarios del BOE (secciones I y III) y del BOCM | API del BOE; RSS `sumarios.rss` y sumario XML de cada boletín del BOCM | F2.6 | Vigilancia diaria con tareas de revisión |
 | Oferta | Servicers: Solvia, Servihabitat, Aliseda, Altamira, Hipoges | Web pública; buscar acuerdo | F4 | Pendiente |
 | Geografía | Secciones censales (INE), CartoCiudad (IGN), Catastro | Secciones: API OGC Features del INE, CC BY 4.0 con cita. CartoCiudad: geocodificador `find`, gratuito citando «CC BY 4.0 www.scne.es/productos.html#CartoCiudad» (ADR-0009). Catastro: servicios públicos | F3 | Secciones 2016–2025 de Madrid cargadas; geocodificación en uso con caché; Catastro pendiente |
 | Demografía | Atlas de renta y padrón (INE), afiliación (Seguridad Social) | ADRH: API Tempus del INE, CC BY 4.0 con cita | F3 | ADRH 2015–2024 de Madrid cargado (renta y demografía); padrón y afiliación pendientes |

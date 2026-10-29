@@ -11,3 +11,4 @@ dist/
 *.egg-info/
 services/api/tests/fixtures/private/
 *.tsbuildinfo
+.DS_Store

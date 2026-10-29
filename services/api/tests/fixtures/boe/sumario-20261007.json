@@ -1,0 +1,316 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20261007"
+   },
+   "diario": [
+    {
+     "numero": "249",
+     "sumario_diario": {
+      "identificador": "BOE-S-2026-249",
+      "url_pdf": {
+       "szBytes": "399469",
+       "szKBytes": "390",
+       "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-S-2026-249.pdf"
+      }
+     },
+     "seccion": [
+      {
+       "codigo": "1",
+       "nombre": "I. Disposiciones generales",
+       "departamento": [
+        {
+         "codigo": "7723",
+         "nombre": "JEFATURA DEL ESTADO",
+         "epigrafe": [
+          {
+           "nombre": "Medidas urgentes",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-20822",
+             "control": "2026/15497",
+             "titulo": "Real Decreto-ley 28/2026, de 6 de octubre, por el que se adoptan medidas urgentes para reforzar la estabilidad de los contratos de arrendamiento de vivienda habitual.",
+             "url_pdf": {
+              "szBytes": "251796",
+              "szKBytes": "246",
+              "pagina_inicial": "131840",
+              "pagina_final": "131849",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20822.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20822",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20822"
+            },
+            {
+             "identificador": "BOE-A-2026-20823",
+             "control": "2026/15498",
+             "titulo": "Real Decreto-ley 29/2026, de 6 de octubre, por el que se adoptan medidas urgentes para la protección de la función social de la vivienda y la ampliación de la oferta de vivienda asequible.",
+             "url_pdf": {
+              "szBytes": "828546",
+              "szKBytes": "809",
+              "pagina_inicial": "131850",
+              "pagina_final": "131948",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20823.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20823",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20823"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "codigo": "9585",
+         "nombre": "MINISTERIO DE LA PRESIDENCIA, JUSTICIA Y RELACIONES CON LAS CORTES",
+         "epigrafe": [
+          {
+           "nombre": "Notarías y Registro de la propiedad",
+           "item": {
+            "identificador": "BOE-A-2026-20824",
+            "control": "2026/15319",
+            "titulo": "Instrucción de 29 de septiembre de 2026, de la Dirección General de Seguridad Jurídica y Fe Pública, en relación con la Instrucción de 11 de septiembre de 2000, de la Dirección General de los Registros y del Notariado, sobre la forma de acreditar ante Notario y Registrador la constitución de las garantías a que se refiere el artículo 20.1 de la Ley de Ordenación de la Edificación.",
+            "url_pdf": {
+             "szBytes": "203207",
+             "szKBytes": "198",
+             "pagina_inicial": "131949",
+             "pagina_final": "131951",
+             "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20824.pdf"
+            },
+            "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20824",
+            "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20824"
+           }
+          }
+         ]
+        },
+        {
+         "codigo": "4335",
+         "nombre": "MINISTERIO DE SANIDAD",
+         "epigrafe": [
+          {
+           "nombre": "Medicamentos",
+           "item": {
+            "identificador": "BOE-A-2026-20825",
+            "control": "2026/15321",
+            "titulo": "Orden SND/1053/2026, de 1 de octubre, por la que se procede a la actualización en 2026 del sistema de precios de referencia de medicamentos en el Sistema Nacional de Salud.",
+            "url_pdf": {
+             "szBytes": "9924479",
+             "szKBytes": "9692",
+             "pagina_inicial": "131952",
+             "pagina_final": "132731",
+             "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20825.pdf"
+            },
+            "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20825",
+            "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20825"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "3",
+       "nombre": "III. Otras disposiciones",
+       "departamento": [
+        {
+         "codigo": "1220",
+         "nombre": "CORTES GENERALES",
+         "epigrafe": [
+          {
+           "nombre": "Becas",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-20882",
+             "control": "2026/15270",
+             "titulo": "Acuerdo de 29 de septiembre de 2026, de la Mesa del Congreso de los Diputados, por el que se conceden becas para la formación práctica en documentación, biblioteconomía y archivística, convocadas por Acuerdo de 14 de abril de 2026.",
+             "url_pdf": {
+              "szBytes": "213882",
+              "szKBytes": "209",
+              "pagina_inicial": "132868",
+              "pagina_final": "132871",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20882.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20882",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20882"
+            },
+            {
+             "identificador": "BOE-A-2026-20883",
+             "control": "2026/15271",
+             "titulo": "Acuerdo de 29 de septiembre de 2026, de la Mesa del Senado, por el que se convocan becas de formación archivística, documental y bibliotecaria, relacionada con la actividad oficial del Senado, para el año 2027.",
+             "url_pdf": {
+              "szBytes": "361497",
+              "szKBytes": "353",
+              "pagina_inicial": "132872",
+              "pagina_final": "132886",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20883.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20883",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20883"
+            },
+            {
+             "identificador": "BOE-A-2026-20884",
+             "control": "2026/15272",
+             "titulo": "Acuerdo de 29 de septiembre de 2026, de la Mesa del Senado, por el que se convocan becas de formación jurídico-política relacionada con la actividad oficial del Senado, para el año 2027.",
+             "url_pdf": {
+              "szBytes": "329749",
+              "szKBytes": "322",
+              "pagina_inicial": "132887",
+              "pagina_final": "132898",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20884.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20884",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20884"
+            },
+            {
+             "identificador": "BOE-A-2026-20885",
+             "control": "2026/15396",
+             "titulo": "Acuerdo de 29 de septiembre de 2026, de la Mesa del Senado, por el que se convocan becas de formación sobre comunicación institucional interna y externa relacionada con la actividad oficial del Senado, para el año 2027.",
+             "url_pdf": {
+              "szBytes": "311699",
+              "szKBytes": "304",
+              "pagina_inicial": "132899",
+              "pagina_final": "132913",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20885.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20885",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20885"
+            }
+           ]
+          },
+          {
+           "nombre": "Fiscalizaciones",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-20886",
+             "control": "2026/14970",
+             "titulo": "Resolución de 9 de junio de 2026, aprobada por la Comisión Mixta para las Relaciones con el Tribunal de Cuentas, en relación con el Informe de fiscalización del sector público local, ejercicio 2023.",
+             "url_pdf": {
+              "szBytes": "31692473",
+              "szKBytes": "30950",
+              "pagina_inicial": "132914",
+              "pagina_final": "133212",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20886.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20886",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20886"
+            },
+            {
+             "identificador": "BOE-A-2026-20887",
+             "control": "2026/14971",
+             "titulo": "Resolución de 9 de junio de 2026, aprobada por la Comisión Mixta para las Relaciones con el Tribunal de Cuentas, en relación con el Informe de fiscalización sobre la rendición de las cuentas consolidadas de las entidades locales de los ejercicios 2022 y 2023.",
+             "url_pdf": {
+              "szBytes": "14828440",
+              "szKBytes": "14481",
+              "pagina_inicial": "133213",
+              "pagina_final": "133307",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20887.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20887",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20887"
+            },
+            {
+             "identificador": "BOE-A-2026-20888",
+             "control": "2026/14972",
+             "titulo": "Resolución de 9 de junio de 2026, aprobada por la Comisión Mixta para las Relaciones con el Tribunal de Cuentas, en relación con el Informe de fiscalización sobre las medidas adoptadas por las entidades locales para lograr una movilidad sostenible en el transporte público colectivo, ejercicios 2023 y 2024.",
+             "url_pdf": {
+              "szBytes": "2612698",
+              "szKBytes": "2551",
+              "pagina_inicial": "133308",
+              "pagina_final": "133436",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20888.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20888",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20888"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "codigo": "9562",
+         "nombre": "MINISTERIO DE ASUNTOS EXTERIORES, UNIÓN EUROPEA Y COOPERACIÓN",
+         "epigrafe": [
+          {
+           "nombre": "Convenios",
+           "item": [
+            {
+             "identificador": "BOE-A-2026-20889",
+             "control": "2026/15170",
+             "titulo": "Resolución de 29 de septiembre de 2026, de la Secretaría General Técnica, por la que se publica el Convenio entre la Embajada de España en Argelia y Cepsa Algerie Succursale, para la celebración de la Fiesta Nacional de España.",
+             "url_pdf": {
+              "szBytes": "222573",
+              "szKBytes": "217",
+              "pagina_inicial": "133437",
+              "pagina_final": "133441",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20889.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20889",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20889"
+            },
+            {
+             "identificador": "BOE-A-2026-20890",
+             "control": "2026/15171",
+             "titulo": "Resolución de 29 de septiembre de 2026, de la Secretaría General Técnica, por la que se publica el Convenio entre la Embajada de España en Argelia y Repsol Exploración Argelia, SA, para la celebración de la Fiesta Nacional de España.",
+             "url_pdf": {
+              "szBytes": "221535",
+              "szKBytes": "216",
+              "pagina_inicial": "133442",
+              "pagina_final": "133446",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20890.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20890",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20890"
+            },
+            {
+             "identificador": "BOE-A-2026-20891",
+             "control": "2026/15172",
+             "titulo": "Resolución de 29 de septiembre de 2026, de la Secretaría General Técnica, por la que se publica el Convenio entre la Embajada de España en Bangladesh y Bls Solutions, PVT, Limited, para la celebración de la Fiesta Nacional de España.",
+             "url_pdf": {
+              "szBytes": "221638",
+              "szKBytes": "216",
+              "pagina_inicial": "133447",
+              "pagina_final": "133451",
+              "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-A-2026-20891.pdf"
+             },
+             "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-20891",
+             "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-20891"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "5B",
+       "nombre": "V. Anuncios. - B. Otros anuncios oficiales",
+       "departamento": [
+        {
+         "codigo": "9585",
+         "nombre": "MINISTERIO DE LA PRESIDENCIA, JUSTICIA Y RELACIONES CON LAS CORTES",
+         "item": {
+          "identificador": "BOE-B-2026-32555",
+          "titulo": "Anuncio de la Subsecretaría (División de Derechos de Gracia y otros Derechos), sobre solicitud de sucesión como Marqués de Constantina.",
+          "url_pdf": {
+           "szBytes": "201398",
+           "szKBytes": "197",
+           "pagina_inicial": "52888",
+           "pagina_final": "52888",
+           "texto": "https://www.boe.es/boe/dias/2026/10/07/pdfs/BOE-B-2026-32555.pdf"
+          },
+          "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-32555",
+          "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-32555"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
