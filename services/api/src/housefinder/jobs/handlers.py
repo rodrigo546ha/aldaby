@@ -10,7 +10,7 @@ import httpx
 
 from housefinder.ingestion import ine_adrh, ine_sections
 from housefinder.jobs.worker import Handler
-from housefinder.offers.run import extract_boe_v, extract_pasted, run_boe_v
+from housefinder.offers.run import extract_boe_v, extract_pasted, run_boe_auctions, run_boe_v
 from housefinder.watch.run import watch_bocm, watch_boe
 
 
@@ -40,6 +40,10 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
             return extract_boe_v(conninfo, client, llm_from_env(), int(payload.get("limit", 20)))
 
+    def offers_boe_auctions(payload: dict[str, Any]) -> dict[str, Any]:
+        with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
+            return run_boe_auctions(conninfo, client, date.today(), int(payload.get("days", 7)))
+
     def extract_link(payload: dict[str, Any]) -> dict[str, Any]:
         from housefinder.agent.llm import llm_from_env
 
@@ -47,4 +51,4 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
 
     return {"ine_sections": sections, "ine_adrh": adrh, "watch_boe": boe, "watch_bocm": bocm,
             "offers_boe_v": offers_boe_v, "extract_offers": extract_offers,
-            "extract_link": extract_link}
+            "extract_link": extract_link, "offers_boe_auctions": offers_boe_auctions}

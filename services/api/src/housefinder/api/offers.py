@@ -14,8 +14,14 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from housefinder.agent.extraction import LISTING_KINDS
-from housefinder.db.offers import PrivateOffer, get_private_offer, list_private_offers
+from housefinder.db.offers import (
+    PrivateOffer,
+    get_private_offer,
+    list_auction_notices,
+    list_private_offers,
+)
 from housefinder.geo import cartociudad, catastro
+from housefinder.offers.channels import boe_subastas
 from housefinder.offers.link import LinkRefused
 from housefinder.offers.locate import offer_locator
 from housefinder.offers.pasted import ConfirmationError, confirm, submit_link, submit_text
@@ -25,6 +31,7 @@ from .deps import DbDep, GeocoderDep, LinkClientDep, OrgDep, ParcelFinderDep, Re
 router = APIRouter(prefix="/offers", tags=["ofertas"])
 
 ExtractionStatus = Literal["pendiente", "extraida", "confirmada"]
+BOE_ATTRIBUTION = "Fuente: Agencia Estatal Boletín Oficial del Estado (www.boe.es)"
 LOCATION_ATTRIBUTION = {"catastro": catastro.ATTRIBUTION, "cartociudad": cartociudad.ATTRIBUTION}
 
 
@@ -94,6 +101,27 @@ def post_text(body: TextIn, db: DbDep, org: OrgDep) -> OfferOut:
 @router.get("")
 def get_offers(db: DbDep, org: OrgDep) -> list[OfferSummary]:
     return [_summary(o) for o in list_private_offers(db, org)]
+
+
+class AuctionNoticeOut(BaseModel):
+    portal_id: str
+    portal_url: str | None  # se abre en el navegador del usuario; HouseFinder no lo lee
+    title: str | None
+    published_on: str | None
+    court: str | None
+    kind: str | None
+    boe_url: str | None
+    attribution: str
+
+
+@router.get("/auctions")
+def get_auctions(db: DbDep) -> list[AuctionNoticeOut]:
+    """Avisos de subastas judiciales de juzgados de Madrid publicados en el BOE (ADR-0017)."""
+    return [AuctionNoticeOut(
+        portal_id=n.portal_id, portal_url=n.portal_url, title=n.title,
+        published_on=n.published_on.isoformat() if n.published_on else None,
+        court=n.court, kind=n.kind, boe_url=n.boe_url, attribution=BOE_ATTRIBUTION,
+    ) for n in list_auction_notices(db, boe_subastas.NAME)]
 
 
 @router.get("/{offer_id}")

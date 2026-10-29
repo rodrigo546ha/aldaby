@@ -15,13 +15,14 @@ from housefinder.db.review_tasks import mark_issue_read, read_issues
 from housefinder.db.sections import SourceRecord, upsert_source
 from housefinder.geo.cartociudad import Geocoded, geocode
 from housefinder.geo.catastro import Parcel, find_parcel
-from housefinder.offers.channels import boe_v
+from housefinder.offers.channels import boe_subastas, boe_v
 from housefinder.offers.extract import extract_pending
 from housefinder.offers.ingest import IngestReport, ingest
 from housefinder.offers.locate import offer_locator
 from housefinder.offers.pasted import extract_link
 
 ISSUES = "offers_boe_v"  # días del BOE ya leídos por este canal
+AUCTION_ISSUES = "offers_boe_subastas"
 
 
 def run_boe_v(
@@ -53,6 +54,33 @@ def run_boe_v(
             for key, value in report.as_dict().items():
                 setattr(total, key, getattr(total, key) + value)
     return total.as_dict()
+
+
+def run_boe_auctions(conninfo: str, client: httpx.Client, today: date,
+                     days: int = 7) -> dict[str, Any]:
+    """Avisos de subastas judiciales de Madrid de los días del BOE aún no leídos (ADR-0017)."""
+    seats = boe_subastas.load_court_seats()
+    total = IngestReport()
+    unparsed: list[str] = []
+    with connect(conninfo) as conn:
+        upsert_source(conn, SourceRecord(boe_subastas.SOURCE_ID, boe_subastas.SOURCE_NAME,
+                                         boe_v.LICENSE_URL, boe_v.LICENSE, datetime.now(UTC)))
+        conn.commit()
+        done = read_issues(conn, AUCTION_ISSUES)
+        for offset in range(days):
+            day = today - timedelta(days=offset)
+            if day.isoformat() in done:
+                continue
+            channel = boe_subastas.BoeAuctions([day], seats)
+            report = ingest(conn, channel, channel.fetch(client), lambda offer: None)
+            unparsed += channel.unparsed
+            if day in channel.days_found or day < today:
+                mark_issue_read(conn, AUCTION_ISSUES, day.isoformat(), report.items,
+                                report.offers_new)
+                conn.commit()
+            for key, value in report.as_dict().items():
+                setattr(total, key, getattr(total, key) + value)
+    return {**total.as_dict(), "unparsed": unparsed, "court_seats_verified": seats.verified}
 
 
 def extract_boe_v(

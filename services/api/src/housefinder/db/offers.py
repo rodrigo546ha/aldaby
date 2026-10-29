@@ -270,3 +270,32 @@ def confirm_offer(
          org_id),
     ).fetchone()
     return row is not None
+
+
+# --- Avisos de subastas judiciales del BOE (F4.3, ADR-0017) --------------------------------------
+
+
+@dataclass(frozen=True)
+class AuctionNoticeRow:
+    portal_id: str
+    portal_url: str | None
+    title: str | None
+    published_on: date | None
+    court: str | None
+    kind: str | None
+    boe_url: str | None
+
+
+def list_auction_notices(
+    conn: psycopg.Connection, channel: str, limit: int = 50
+) -> list[AuctionNoticeRow]:
+    rows = conn.execute(
+        """
+        SELECT external_id, url, title, published_on, raw->'aviso'->>'court',
+               raw->'aviso'->>'kind', raw->>'boe'
+        FROM offers WHERE channel = %s AND org_id IS NULL
+        ORDER BY published_on DESC NULLS LAST, external_id DESC LIMIT %s
+        """,
+        (channel, limit),
+    ).fetchall()
+    return [AuctionNoticeRow(*r) for r in rows]

@@ -1,0 +1,37 @@
+# Avisos de subastas judiciales del BOE, sección IV (F4.3, ADR-0017).
+# El título de cada aviso en el sumario es la localidad del juzgado. Se guardan los de las sedes de
+# los partidos judiciales de la Comunidad de Madrid (ES-13).
+#
+# La lista NO está verificada: está escrita a mano. La Comunidad de Madrid dice que la región tiene
+# 21 partidos judiciales (https://www.comunidad.madrid/node/51323), y aquí hay 21, pero el texto
+# consolidado de la Ley 38/1988 de Demarcación y de Planta Judicial (BOE-A-1988-29622) omite sus
+# anexos y remite a la web del Ministerio de Justicia. Rodrigo: comparar con la relación oficial y
+# poner verified: true.
+territory: ES-13
+section: "4"  # IV. Administración de Justicia
+verified: false
+source: >-
+  Ley 38/1988, de 28 de diciembre, de Demarcación y de Planta Judicial, anexo (partidos
+  judiciales); relación por comprobar en la web del Ministerio de Justicia
+court_seats:
+  - Alcalá de Henares
+  - Alcobendas
+  - Alcorcón
+  - Aranjuez
+  - Arganda del Rey
+  - Collado Villalba
+  - Colmenar Viejo
+  - Coslada
+  - Fuenlabrada
+  - Getafe
+  - Leganés
+  - Madrid
+  - Majadahonda
+  - Móstoles
+  - Navalcarnero
+  - Parla
+  - Pozuelo de Alarcón
+  - San Lorenzo de El Escorial
+  - Torrejón de Ardoz
+  - Torrelaguna
+  - Valdemoro

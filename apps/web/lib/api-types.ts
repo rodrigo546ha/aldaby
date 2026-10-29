@@ -106,6 +106,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/offers/auctions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Auctions
+         * @description Avisos de subastas judiciales de juzgados de Madrid publicados en el BOE (ADR-0017).
+         */
+        get: operations["get_auctions_offers_auctions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/offers/{offer_id}": {
         parameters: {
             query?: never;
@@ -187,6 +207,25 @@ export interface components {
             years: components["schemas"]["FigureOut"];
             /** Binding Constraint */
             binding_constraint: string;
+        };
+        /** AuctionNoticeOut */
+        AuctionNoticeOut: {
+            /** Portal Id */
+            portal_id: string;
+            /** Portal Url */
+            portal_url: string | null;
+            /** Title */
+            title: string | null;
+            /** Published On */
+            published_on: string | null;
+            /** Court */
+            court: string | null;
+            /** Kind */
+            kind: string | null;
+            /** Boe Url */
+            boe_url: string | null;
+            /** Attribution */
+            attribution: string;
         };
         /** BuyerRequest */
         BuyerRequest: {
@@ -832,6 +871,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OfferSummary"][];
+                };
+            };
+        };
+    };
+    get_auctions_offers_auctions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuctionNoticeOut"][];
                 };
             };
         };

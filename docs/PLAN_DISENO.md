@@ -517,6 +517,7 @@ Qué revisaría al crecer:
 | 0014 | Modelo de código abierto en un servidor propio | G5 |
 | 0015 | Enlace pegado por el usuario | G5 |
 | 0016 | Ubicación de ofertas por referencia catastral | G5 |
+| 0017 | Subastas judiciales por los avisos del BOE | G5 |
 | — | Librería de modelos estadísticos | G6 |
 | — | Motor de PDF | G7 |
 | — | Autenticación y despliegue | G8 |

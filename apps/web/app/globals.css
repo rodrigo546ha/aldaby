@@ -143,3 +143,10 @@ th { color: var(--muted); font-weight: 500; }
 .quote { margin: 0; font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
 .quote.rejected { color: var(--warn-text); }
 .origin { font-size: 0.75rem; color: var(--muted); }
+.notice { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.notice-actions { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.85rem; }
+.notice-actions a { color: var(--accent); }
+.notice-actions .link-button {
+  width: auto; border: none; background: none; padding: 0; color: var(--accent);
+  font-weight: 500; display: inline;
+}

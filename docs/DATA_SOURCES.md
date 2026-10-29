@@ -7,7 +7,8 @@ condiciones de reutilización y sin quedar registrada en la tabla `sources`.
 | --- | --- | --- | --- | --- |
 | Oferta | Enlace pegado por el usuario | Una descarga a petición del usuario, respetando `robots.txt` y los bloqueos; si no, texto pegado (ADR-0015) | F4 | Hecho; pendiente de la consulta legal (F0.6) |
 | Ubicación | Servicio de coordenadas del Catastro (`Consulta_CPMRC`, WCF/JSON) | Consulta por referencia catastral, datos no protegidos, sin registro; cita «Fuente: Dirección General del Catastro» (ADR-0016) | F4 | En uso para ubicar ofertas; condiciones por verificar |
-| Oferta | Portal de Subastas del BOE | Web pública; revisar condiciones | F4 | Pendiente |
+| Oferta | Portal de Subastas del BOE | Web pública; `robots.txt` prohíbe el acceso automático: no se lee (ADR-0017) | F4 | Consulta de reutilización a la AEBOE por enviar |
+| Oferta | Sumario del BOE, sección IV (avisos de subastas judiciales) | API de datos abiertos del BOE; reutilización con cita y enlace | F4 | Canal `boe_subastas_judiciales`: avisos de juzgados de Madrid con enlace al Portal |
 | Oferta | Sumario del BOE, sección V | API de datos abiertos del BOE; reutilización con cita y enlace (aviso legal del BOE) | F4 | Canal `boe_seccion_v`: anuncios guardados cada día, lotes por extraer; Portal de Subastas pendiente |
 | Normativa | Sumarios del BOE (secciones I y III) y del BOCM | API del BOE; RSS `sumarios.rss` y sumario XML de cada boletín del BOCM | F2.6 | Vigilancia diaria con tareas de revisión |
 | Oferta | Servicers: Solvia, Servihabitat, Aliseda, Altamira, Hipoges | Web pública; buscar acuerdo | F4 | Pendiente |

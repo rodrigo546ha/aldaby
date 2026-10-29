@@ -8,6 +8,7 @@ import { LISTING_LABELS, ORIGIN, spanishNumber } from "../lib/format";
 type OfferOut = components["schemas"]["OfferOut"];
 type OfferSummary = components["schemas"]["OfferSummary"];
 type FieldOut = components["schemas"]["FieldOut"];
+type AuctionNotice = components["schemas"]["AuctionNoticeOut"];
 
 const STATUS: Record<string, string> = {
   pendiente: "Extrayendo",
@@ -15,16 +16,22 @@ const STATUS: Record<string, string> = {
   confirmada: "Confirmada",
 };
 const POLL_MS = 5000;
+const NOTICES_SHOWN = 10;
 
 export function Offers() {
   const [offers, setOffers] = useState<OfferSummary[]>([]);
   const [selected, setSelected] = useState<OfferOut | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  const [auctions, setAuctions] = useState<AuctionNotice[]>([]);
+  // Subasta del BOE cuyo texto va a pegar el usuario: su enlace acompaña al texto.
+  const [pasteFor, setPasteFor] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
       const resp = await fetch("/api/offers");
       if (resp.ok) setOffers((await resp.json()) as OfferSummary[]);
+      const notices = await fetch("/api/offers/auctions");
+      if (notices.ok) setAuctions((await notices.json()) as AuctionNotice[]);
     } catch {
       setFailure("No se ha podido conectar con la API. ¿Está arrancada con make api?");
     }
@@ -48,13 +55,19 @@ export function Offers() {
 
   function created(offer: OfferOut) {
     setSelected(offer);
+    setPasteFor(null);
     void refresh();
   }
 
   return (
     <div className="offers">
       <div className="results">
-        <PasteForm onCreated={created} />
+        <PasteForm
+          key={pasteFor ?? "nuevo"}
+          initialUrl={pasteFor ?? ""}
+          startWithText={pasteFor !== null}
+          onCreated={created}
+        />
         {failure && <p className="failure">{failure}</p>}
         {offers.length > 0 && (
           <fieldset>
@@ -75,6 +88,7 @@ export function Offers() {
             </ul>
           </fieldset>
         )}
+        {auctions.length > 0 && <Auctions notices={auctions} onPaste={setPasteFor} />}
       </div>
       <section className="results" aria-live="polite">
         {selected ? (
@@ -87,10 +101,79 @@ export function Offers() {
   );
 }
 
-function PasteForm({ onCreated }: { onCreated: (offer: OfferOut) => void }) {
-  const [url, setUrl] = useState("");
+function Auctions({
+  notices,
+  onPaste,
+}: {
+  notices: AuctionNotice[];
+  onPaste: (url: string) => void;
+}) {
+  const [all, setAll] = useState(false);
+  const shown = all ? notices : notices.slice(0, NOTICES_SHOWN);
+  return (
+    <fieldset>
+      <legend>Subastas judiciales en Madrid</legend>
+      <p className="hint">
+        Avisos del BOE. Abre la subasta en el Portal, copia el texto del lote y pégalo aquí para
+        analizarlo. {notices[0].attribution}.
+      </p>
+      <ul className="offer-list">
+        {shown.map((n) => (
+          <li key={n.portal_id} className="notice">
+            <span className="offer-title">{n.court ?? n.title ?? n.portal_id}</span>
+            <span className="status">
+              {n.published_on ? formatDate(n.published_on) : ""} · {n.kind ?? "subasta judicial"}
+            </span>
+            <span className="notice-actions">
+              {n.portal_url && (
+                <a href={n.portal_url} target="_blank" rel="noopener noreferrer nofollow">
+                  Abrir {n.portal_id}
+                </a>
+              )}
+              {n.boe_url && (
+                <a href={n.boe_url} target="_blank" rel="noopener noreferrer">
+                  Aviso en el BOE
+                </a>
+              )}
+              <button
+                type="button"
+                className="link-button"
+                aria-label={`Pegar el texto de la subasta ${n.portal_id}`}
+                onClick={() => onPaste(n.portal_url ?? "")}
+              >
+                Pegar su texto
+              </button>
+            </span>
+          </li>
+        ))}
+      </ul>
+      {!all && notices.length > NOTICES_SHOWN && (
+        <button type="button" className="link-button" onClick={() => setAll(true)}>
+          Ver las {notices.length}
+        </button>
+      )}
+    </fieldset>
+  );
+}
+
+const dateFormat = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short" });
+
+function formatDate(iso: string): string {
+  return dateFormat.format(new Date(`${iso}T00:00:00`));
+}
+
+function PasteForm({
+  onCreated,
+  initialUrl = "",
+  startWithText = false,
+}: {
+  onCreated: (offer: OfferOut) => void;
+  initialUrl?: string;
+  startWithText?: boolean;
+}) {
+  const [url, setUrl] = useState(initialUrl);
   const [text, setText] = useState("");
-  const [pasteText, setPasteText] = useState(false);
+  const [pasteText, setPasteText] = useState(startWithText);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -145,6 +228,7 @@ function PasteForm({ onCreated }: { onCreated: (offer: OfferOut) => void }) {
             <label htmlFor="offer-text">Texto del anuncio</label>
             <textarea
               id="offer-text"
+              autoFocus={startWithText}
               value={text}
               onChange={(e) => setText(e.target.value)}
               aria-describedby="offer-text-help"

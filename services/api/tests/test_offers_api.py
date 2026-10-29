@@ -1,6 +1,7 @@
 """API del enlace pegado (F4.1) contra la base temporal, sin red: la descarga va contra un sitio
 simulado y la extracción, con un LLM falso a través del trabajo `extract_link`."""
 
+from datetime import date
 from pathlib import Path
 from uuid import uuid4
 
@@ -153,3 +154,21 @@ def test_oferta_de_otra_organizacion_o_inexistente(client, migrated_database: st
     assert http.post(f"/offers/{foreign.offer_id}/confirm",
                      json={"values": {"price": "1"}}).status_code == 404
     assert http.get(f"/offers/{uuid4()}").status_code == 404
+
+
+def test_avisos_de_subastas_de_madrid(client, migrated_database: str):
+    from test_boe_auctions import boe_client
+
+    from housefinder.offers.run import run_boe_auctions
+
+    http, _ = client
+    with psycopg.connect(migrated_database, autocommit=True) as conn:
+        conn.execute("DELETE FROM watch_issues WHERE source = 'offers_boe_subastas'")
+    run_boe_auctions(migrated_database, boe_client([]), date(2026, 10, 28), days=2)
+    notices = {n["portal_id"]: n for n in http.get("/offers/auctions").json()}
+    notice = notices["SUB-JA-2026-267866"]
+    assert notice["portal_url"] == "https://subastas.boe.es/ds.php?id=SUB-JA-2026-267866"
+    assert notice["court"] == "Sección Civil TI Madrid. Plz.n 31"
+    assert notice["published_on"] == "2026-10-27"
+    assert notice["boe_url"].endswith("BOE-B-2026-35002")
+    assert notice["attribution"].startswith("Fuente: Agencia Estatal")

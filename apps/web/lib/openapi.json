@@ -280,6 +280,32 @@
         }
       }
     },
+    "/offers/auctions": {
+      "get": {
+        "tags": [
+          "ofertas"
+        ],
+        "summary": "Get Auctions",
+        "description": "Avisos de subastas judiciales de juzgados de Madrid publicados en el BOE (ADR-0017).",
+        "operationId": "get_auctions_offers_auctions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuctionNoticeOut"
+                  },
+                  "type": "array",
+                  "title": "Response Get Auctions Offers Auctions Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/offers/{offer_id}": {
       "get": {
         "tags": [
@@ -511,6 +537,96 @@
           "binding_constraint"
         ],
         "title": "AffordabilityResponse"
+      },
+      "AuctionNoticeOut": {
+        "properties": {
+          "portal_id": {
+            "type": "string",
+            "title": "Portal Id"
+          },
+          "portal_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Portal Url"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "published_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published On"
+          },
+          "court": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Court"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "boe_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boe Url"
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "portal_id",
+          "portal_url",
+          "title",
+          "published_on",
+          "court",
+          "kind",
+          "boe_url",
+          "attribution"
+        ],
+        "title": "AuctionNoticeOut"
       },
       "BuyerRequest": {
         "properties": {

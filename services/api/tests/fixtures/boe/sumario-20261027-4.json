@@ -1,0 +1,78 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20261027"
+   },
+   "diario": [
+    {
+     "numero": "266",
+     "seccion": [
+      {
+       "codigo": "4",
+       "nombre": "IV. Administración de Justicia",
+       "departamento": [
+        {
+         "codigo": "9602",
+         "nombre": "TRIBUNALES DE INSTANCIA. SECCIÓN CIVIL Y DE INSTRUCCIÓN",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-34976",
+           "titulo": "ALCAÑIZ",
+           "url_pdf": {
+            "szBytes": "198514",
+            "szKBytes": "194",
+            "pagina_inicial": "56697",
+            "pagina_final": "56697",
+            "texto": "https://www.boe.es/boe/dias/2026/10/27/pdfs/BOE-B-2026-34976.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-34976",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-34976"
+          }
+         ]
+        },
+        {
+         "codigo": "9603",
+         "nombre": "TRIBUNALES DE INSTANCIA. SECCIÓN CIVIL",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-35002",
+           "titulo": "MADRID",
+           "url_pdf": {
+            "szBytes": "198057",
+            "szKBytes": "193",
+            "pagina_inicial": "56723",
+            "pagina_final": "56723",
+            "texto": "https://www.boe.es/boe/dias/2026/10/27/pdfs/BOE-B-2026-35002.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35002",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-35002"
+          },
+          {
+           "identificador": "BOE-B-2026-35003",
+           "titulo": "MADRID",
+           "url_pdf": {
+            "szBytes": "197967",
+            "szKBytes": "193",
+            "pagina_inicial": "56724",
+            "pagina_final": "56724",
+            "texto": "https://www.boe.es/boe/dias/2026/10/27/pdfs/BOE-B-2026-35003.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35003",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-35003"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
