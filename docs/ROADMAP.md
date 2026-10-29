@@ -132,12 +132,17 @@ una ley solo requiere añadir una regla en YAML.
       además el padrón continuo.
 - [ ] F3.5 Indicadores de demanda: universidades y matrícula, hospitales y grandes empleadores,
       afiliación a la Seguridad Social por municipio.
-- [ ] F3.6 Geocodificación con CartoCiudad y asignación de sección censal a una dirección.
+- [x] F3.6 Geocodificación con CartoCiudad y asignación de sección censal a una dirección
+      (ADR-0009): `GET /territory?address=…` o `?lon=…&lat=…`, con caché y tendencia a 5 años solo
+      si la sección conserva el polígono (92 % de las secciones de 2025).
 - [ ] F3.7 Registro de cada carga en `sources` (url, licencia, fecha).
-      *Estado:* la cartografía de secciones ya se registra; falta en cada cargador nuevo.
+      *Estado:* se registran la cartografía, el Atlas de renta y el geocodificador; falta en
+      cada cargador nuevo.
 
 **Criterio de salida.** Dada una dirección de Madrid, la API devuelve su sección censal con renta,
 población y tendencias, cada valor con su fuente.
+*Estado:* cumplido con `GET /territory` (renta, población y demografía 2015–2024, cada cifra con su
+fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
 
 ---
 

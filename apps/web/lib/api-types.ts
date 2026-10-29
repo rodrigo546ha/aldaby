@@ -38,6 +38,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/territory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Territory */
+        get: operations["get_territory_territory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -218,6 +235,21 @@ export interface components {
             /** Warnings */
             warnings: string[];
         };
+        /** LocationOut */
+        LocationOut: {
+            /** Lon */
+            lon: number;
+            /** Lat */
+            lat: number;
+            /** Query */
+            query: string | null;
+            /** Matched */
+            matched: string | null;
+            /** Match Type */
+            match_type: string | null;
+            /** Cadastral Ref */
+            cadastral_ref: string | null;
+        };
         /** OfferRequest */
         OfferRequest: {
             /** Label */
@@ -373,6 +405,15 @@ export interface components {
             /** New Rules */
             new_rules: components["schemas"]["SourceOut"][];
         };
+        /** SectionOut */
+        SectionOut: {
+            /** Code */
+            code: string;
+            /** Municipality */
+            municipality: string;
+            /** Vintage */
+            vintage: number;
+        };
         /** SourceOut */
         SourceOut: {
             /** Kind */
@@ -381,6 +422,23 @@ export interface components {
             id: string;
             /** Provisional */
             provisional: boolean;
+        };
+        /** TerritoryResponse */
+        TerritoryResponse: {
+            location: components["schemas"]["LocationOut"];
+            section: components["schemas"]["SectionOut"];
+            /** Figures */
+            figures: {
+                [key: string]: components["schemas"]["FigureOut"];
+            };
+            /** Series */
+            series: {
+                [key: string]: components["schemas"]["FigureOut"][];
+            };
+            /** Notes */
+            notes: string[];
+            /** Attribution */
+            attribution: string[];
         };
         /** ValidationError */
         ValidationError: {
@@ -457,6 +515,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InvestmentResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_territory_territory_get: {
+        parameters: {
+            query?: {
+                address?: string | null;
+                lon?: number | null;
+                lat?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TerritoryResponse"];
                 };
             };
             /** @description Validation Error */

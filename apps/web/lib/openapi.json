@@ -87,6 +87,92 @@
         }
       }
     },
+    "/territory": {
+      "get": {
+        "tags": [
+          "territorio"
+        ],
+        "summary": "Get Territory",
+        "operationId": "get_territory_territory_get",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Address"
+            }
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 180,
+                  "minimum": -180
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lon"
+            }
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 90,
+                  "minimum": -90
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lat"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerritoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -669,6 +755,72 @@
         ],
         "title": "InvestmentResponse"
       },
+      "LocationOut": {
+        "properties": {
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Query"
+          },
+          "matched": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched"
+          },
+          "match_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Type"
+          },
+          "cadastral_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cadastral Ref"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lon",
+          "lat",
+          "query",
+          "matched",
+          "match_type",
+          "cadastral_ref"
+        ],
+        "title": "LocationOut"
+      },
       "OfferRequest": {
         "properties": {
           "label": {
@@ -1084,6 +1236,29 @@
         ],
         "title": "ScenarioOut"
       },
+      "SectionOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "municipality": {
+            "type": "string",
+            "title": "Municipality"
+          },
+          "vintage": {
+            "type": "integer",
+            "title": "Vintage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "municipality",
+          "vintage"
+        ],
+        "title": "SectionOut"
+      },
       "SourceOut": {
         "properties": {
           "kind": {
@@ -1106,6 +1281,57 @@
           "provisional"
         ],
         "title": "SourceOut"
+      },
+      "TerritoryResponse": {
+        "properties": {
+          "location": {
+            "$ref": "#/components/schemas/LocationOut"
+          },
+          "section": {
+            "$ref": "#/components/schemas/SectionOut"
+          },
+          "figures": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "object",
+            "title": "Figures"
+          },
+          "series": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/FigureOut"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Series"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "attribution": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Attribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "section",
+          "figures",
+          "series",
+          "notes",
+          "attribution"
+        ],
+        "title": "TerritoryResponse"
       },
       "ValidationError": {
         "properties": {

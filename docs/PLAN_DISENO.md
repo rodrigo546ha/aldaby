@@ -213,7 +213,7 @@ ORM acaban en SQL igualmente. Funciones de repositorio pequeñas por dominio, ti
 contra la base de Docker. Compromiso: más SQL escrito a mano; a cambio, ninguna magia entre la
 consulta y la cifra.
 
-### D7 · Cola de trabajos en PostgreSQL (G4) — ADR-0009
+### D7 · Cola de trabajos en PostgreSQL (G4) — ADR-0010
 
 - **Celery + Redis:** potente, pero otra pieza que operar.
 - **AWS EventBridge + Lambda:** ata el diseño a AWS antes de F7.
@@ -222,7 +222,7 @@ consulta y la cifra.
   en una tabla. Revisar si se superan decenas de miles de trabajos al día o hace falta paralelismo
   entre máquinas.
 
-### D8 · Datos personales cifrados de verdad (G4) — ADR-0010
+### D8 · Datos personales cifrados de verdad (G4) — ADR-0011
 
 `user_profiles` pasa a `data_enc BYTEA` + `key_id`, con cifrado de sobre: una clave de datos por
 perfil, cifrada con una clave maestra (fichero local en desarrollo, AWS KMS en F7). Solo van en
@@ -248,7 +248,7 @@ La web importa tipos generados desde el OpenAPI de FastAPI (`openapi-typescript`
 viajan como texto (ya lo hace `Figure.to_dict`). Un componente `<FigureView>` muestra valor,
 rango, fórmula, fuentes y el aviso `PROVISIONAL`. La web nunca calcula, solo formatea.
 
-### D12 · El agente no escribe cifras: escribe referencias (G7) — ADR-0011
+### D12 · El agente no escribe cifras: escribe referencias (G7) — ADR-0012
 
 El texto del agente usa marcadores `{{fig:cashflow.monthly_after_tax}}` y el render los sustituye
 por la `Figure`. La evaluación de F6.9 se convierte en una comprobación mecánica: el texto en bruto
@@ -366,7 +366,7 @@ manual de F0.
 
 - Ejecutor de migraciones (D5, ADR-0008) y `0002`: secciones con clave `(code, vintage)`,
   `org_id` (D10) y reproducibilidad de planes (D9). Cada pieza con ADR propio llega en su
-  migración: `jobs` y `job_runs` (D7, ADR-0009), perfiles cifrados (D8, ADR-0010) y
+  migración: `jobs` y `job_runs` (D7, ADR-0010), perfiles cifrados (D8, ADR-0011) y
   `review_tasks` con la vigilancia normativa.
 - `db/` con psycopg 3 (D6) y tests contra la base de Docker en CI (servicio `postgis`).
 - `jobs/`: worker, reintentos, programación y alerta de fallo (correo o log al principio).
@@ -509,9 +509,10 @@ Qué revisaría al crecer:
 | 0006 | Trayectoria esperada del Euríbor a un año | G1 |
 | 0007 | El IRPF del alquiler es la cuota incremental | G2 |
 | 0008 | Migraciones con ejecutor propio | G4 |
-| 0009 | Cola de trabajos en PostgreSQL | G4 |
-| 0010 | Cifrado de datos personales y separación por cliente | G4 |
-| 0011 | El agente escribe referencias a cifras, no cifras | G7 |
+| 0009 | Geocodificación con CartoCiudad y caché | G4 |
+| 0010 | Cola de trabajos en PostgreSQL | G4 |
+| 0011 | Cifrado de datos personales y separación por cliente | G4 |
+| 0012 | El agente escribe referencias a cifras, no cifras | G7 |
 | — | Librería de modelos estadísticos | G6 |
 | — | Motor de PDF | G7 |
 | — | Autenticación y despliegue | G8 |

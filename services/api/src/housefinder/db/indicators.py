@@ -84,3 +84,33 @@ def indicators_for(
         """,
         (code, vintage),
     ).fetchall()
+
+
+def indicator_history(
+    conn: psycopg.Connection, code: str, vintages: Iterable[int]
+) -> list[IndicatorRow]:
+    """Valores de una sección en las cartografías indicadas (cada año, con su seccionado)."""
+    rows = conn.execute(
+        """
+        SELECT section_code, section_vintage, indicator, year, value, unit
+        FROM section_indicators
+        WHERE section_code = %s AND section_vintage = ANY(%s)
+        ORDER BY indicator, year
+        """,
+        (code, list(vintages)),
+    ).fetchall()
+    return [IndicatorRow(*r) for r in rows]
+
+
+def indicator_sources(
+    conn: psycopg.Connection, code: str, vintages: Iterable[int]
+) -> dict[tuple[str, int], str]:
+    """Fuente de cada (indicador, año) de una sección."""
+    rows = conn.execute(
+        """
+        SELECT indicator, year, source_id FROM section_indicators
+        WHERE section_code = %s AND section_vintage = ANY(%s)
+        """,
+        (code, list(vintages)),
+    ).fetchall()
+    return {(i, int(y)): s for i, y, s in rows}

@@ -9,7 +9,7 @@ condiciones de reutilización y sin quedar registrada en la tabla `sources`.
 | Oferta | Portal de Subastas del BOE | Web pública; revisar condiciones | F4 | Pendiente |
 | Oferta | Sumario del BOE, sección V | API de datos abiertos del BOE (verificar) | F4 | Esqueleto |
 | Oferta | Servicers: Solvia, Servihabitat, Aliseda, Altamira, Hipoges | Web pública; buscar acuerdo | F4 | Pendiente |
-| Geografía | Secciones censales (INE), CartoCiudad (IGN), Catastro | Secciones: API OGC Features del INE, CC BY 4.0 con cita (aviso legal del INE); resto, servicios públicos | F3 | Secciones cargadas (2016–2025, Madrid); resto pendiente |
+| Geografía | Secciones censales (INE), CartoCiudad (IGN), Catastro | Secciones: API OGC Features del INE, CC BY 4.0 con cita. CartoCiudad: geocodificador `find`, gratuito citando «CC BY 4.0 www.scne.es/productos.html#CartoCiudad» (ADR-0009). Catastro: servicios públicos | F3 | Secciones 2016–2025 de Madrid cargadas; geocodificación en uso con caché; Catastro pendiente |
 | Demografía | Atlas de renta y padrón (INE), afiliación (Seguridad Social) | ADRH: API Tempus del INE, CC BY 4.0 con cita | F3 | ADRH 2015–2024 de Madrid cargado (renta y demografía); padrón y afiliación pendientes |
 | Precios | Notariado, valor tasado (Ministerio), IPV (INE) | Público; revisar reutilización | F5 | Pendiente |
 | Alquiler | Sistema Estatal de Referencia, IPVA (INE) | Público; acceso a revisar | F5 | Pendiente |

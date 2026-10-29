@@ -13,7 +13,7 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from housefinder.core.figures import Figure, SourceRef
+from housefinder.core.figures import SourceRef
 from housefinder.engines import mortgage
 from housefinder.engines.rates import MortgageTerms
 from housefinder.params.bank import bank_criteria
@@ -32,6 +32,7 @@ from housefinder.planning.simulate import (
 from housefinder.regulation.kinds import RentalFacts
 
 from .deps import ParamBookDep, RuleBookDep
+from .figures import FigureOut, SourceOut, figure_out
 
 router = APIRouter(prefix="/simulate", tags=["simuladores"])
 
@@ -42,31 +43,6 @@ ALLOW_UNVERIFIED = True
 PENDING_SCENARIO = "normativa-pendiente"
 
 Rate = Field(ge=0, le=1)
-
-
-# --- Respuesta común ---------------------------------------------------------------------
-
-
-class SourceOut(BaseModel):
-    kind: str
-    id: str
-    provisional: bool
-
-
-class FigureOut(BaseModel):
-    key: str
-    value: str
-    unit: str
-    formula: str
-    sources: list[SourceOut]
-    provisional: bool
-    as_of: str | None
-    low: str | None
-    high: str | None
-
-
-def _out(figure: Figure) -> FigureOut:
-    return FigureOut.model_validate(figure.to_dict())
 
 
 # --- Capacidad de compra -----------------------------------------------------------------
@@ -117,10 +93,10 @@ def simulate_affordability(
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return AffordabilityResponse(
-        max_price=_out(result.max_price),
-        max_loan=_out(result.max_loan),
-        max_payment=_out(result.max_payment),
-        years=_out(result.years),
+        max_price=figure_out(result.max_price),
+        max_loan=figure_out(result.max_loan),
+        max_payment=figure_out(result.max_payment),
+        years=figure_out(result.years),
         binding_constraint=result.binding_constraint,
     )
 
@@ -288,7 +264,7 @@ def simulate_investment(
 
     comparison = sim.comparison
     return InvestmentResponse(
-        figures={f.key: _out(f) for f in sim.figures()},
+        figures={f.key: figure_out(f) for f in sim.figures()},
         within_budget=sim.within_budget,
         binding_constraint=sim.affordability.binding_constraint,
         term_feasible=sim.term.feasible,
@@ -303,8 +279,8 @@ def simulate_investment(
         pending_scenario=ScenarioOut(
             name=scenario.name,
             changes=[
-                ScenarioChangeOut(key=c.key, base=_out(c.base), scenario=_out(c.scenario),
-                                  delta=_out(c.delta))
+                ScenarioChangeOut(key=c.key, base=figure_out(c.base),
+                                  scenario=figure_out(c.scenario), delta=figure_out(c.delta))
                 for c in scenario.changed
             ],
             new_rules=[SourceOut(**r.to_dict()) for r in scenario.new_rules],

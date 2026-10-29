@@ -62,10 +62,14 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/migrate.py         ejecutor de migraciones (ADR-0008); solo db/ importa psycopg
     db/sections.py        fuentes (`sources`) y secciones censales; sección de un punto
     db/indicators.py      indicadores por sección y cartografía (renta, demografía)
+    db/geocache.py        caché de geocodificación (sin datos del usuario)
+    db/connection.py      conexión para la API y los trabajos (DATABASE_URL)
+    geo/cartociudad.py    geocodificador de CartoCiudad (ADR-0009); solo geo/ e ingestion/ usan la red
+    territory/            sección, renta, población y tendencias de una dirección como Figure
     ingestion/boe.py      sumario diario del BOE (esquema por verificar, fase 4)
     ingestion/ine_sections.py  cartografía de secciones del INE (API OGC Features, CC BY 4.0)
     ingestion/ine_adrh.py Atlas de renta del INE por sección; el año t va sobre el seccionado t+1
-    api/main.py           aplicación FastAPI; un router por dominio (api/simulate.py)
+    api/main.py           aplicación FastAPI; un router por dominio (simulate, territory)
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
   tests/                  pytest; un test por regla de negocio

@@ -108,3 +108,38 @@ def load_sections(
         upsert_source(conn, source)
         upsert_sections(conn, rows, vintage, source.id)
         return count_sections(conn, vintage, prefix)
+
+
+def latest_vintage(conn: psycopg.Connection) -> int | None:
+    row = conn.execute("SELECT max(vintage) FROM census_sections").fetchone()
+    return int(row[0]) if row and row[0] is not None else None
+
+
+def section_source(conn: psycopg.Connection, code: str, vintage: int) -> str | None:
+    row = conn.execute(
+        "SELECT source_id FROM census_sections WHERE code = %s AND vintage = %s",
+        (code, vintage),
+    ).fetchone()
+    return row[0] if row else None
+
+
+def stable_vintages(
+    conn: psycopg.Connection, code: str, vintage: int, tolerance: float
+) -> set[int]:
+    """Cartografías en las que la sección tiene el mismo código y (casi) el mismo polígono.
+
+    «Casi»: el área de la diferencia simétrica no pasa de `tolerance` (tanto por uno) del área
+    de la sección en `vintage`. Incluye la propia `vintage`.
+    """
+    rows = conn.execute(
+        """
+        SELECT o.vintage FROM census_sections c
+        JOIN census_sections o ON o.code = c.code
+        WHERE c.code = %s AND c.vintage = %s
+          AND (o.vintage = c.vintage OR
+               ST_Area(ST_SymDifference(c.geom, o.geom)::geography)
+               <= %s * ST_Area(c.geom::geography))
+        """,
+        (code, vintage, tolerance),
+    ).fetchall()
+    return {int(r[0]) for r in rows}
