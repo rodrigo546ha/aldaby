@@ -162,7 +162,9 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
 - [ ] F4.5 Servicers (Solvia, Servihabitat, Aliseda, Altamira, Hipoges): revisar términos de uso de
       cada web, ADR por servicer y contacto comercial para acuerdo.
 - [ ] F4.6 Normalización y deduplicación por referencia catastral y geolocalización.
-- [ ] F4.7 Trabajos programados con reintentos y alertas de fallo.
+- [x] F4.7 Trabajos programados con reintentos y alertas de fallo (ADR-0010): cola en PostgreSQL con
+      `SKIP LOCKED`, esperas de 1 minuto a 1 hora, programaciones por intervalo, alertas en el log
+      `housefinder.alertas`; `make worker`. Primeros tipos: `ine_sections` e `ine_adrh`.
 
 **Criterio de salida.** Cada día entran ofertas nuevas de al menos dos canales, sin duplicados, con
 sección censal asignada.

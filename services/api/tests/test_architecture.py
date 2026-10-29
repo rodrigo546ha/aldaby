@@ -21,6 +21,7 @@ ALLOWED_INTERNAL = {
     "ingestion": {"core", "db", "ingestion"},
     "geo": {"core", "geo"},
     "territory": {"core", "db", "geo", "ingestion", "territory"},
+    "jobs": {"core", "db", "ingestion", "jobs"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi"}
 # Solo db/ habla con la base de datos (ADR-0008).

@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections adrh test lint rules-check api web openapi
+.PHONY: setup db migrate sections adrh worker test lint rules-check api web openapi
 
 PYTHON ?= python3
 VENV := .venv/bin
@@ -29,6 +29,10 @@ sections:
 # adelante: cada año t va sobre el seccionado de t+1.
 adrh:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_adrh --province $(PROVINCE)
+
+# Worker de la cola de trabajos (ADR-0010). Encolar: python -m housefinder.jobs enqueue …
+worker:
+	cd services/api && $(VENV)/python -m housefinder.jobs worker
 
 test:
 	cd services/api && $(VENV)/python -m pytest -q

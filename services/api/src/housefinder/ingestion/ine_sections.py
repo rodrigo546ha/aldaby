@@ -133,20 +133,35 @@ def source_record(year: int, province: str, rows: list[SectionRow]) -> SourceRec
     )
 
 
+USER_AGENT = "HouseFinder/0.1 (datos abiertos)"
+
+
+def load(
+    year: int, province: str, conninfo: str, client: httpx.Client | None = None
+) -> dict[str, Any]:
+    """Descarga y carga una cartografía. Idempotente: se puede repetir como trabajo."""
+    from housefinder.db.sections import load_sections
+
+    if client is None:
+        with httpx.Client(headers={"User-Agent": USER_AGENT}) as own:
+            rows = list(fetch_sections(own, year, province))
+    else:
+        rows = list(fetch_sections(client, year, province))
+    source = source_record(year, province, rows)
+    total = load_sections(conninfo, source, rows, year, province)
+    return {"source": source.id, "loaded": len(rows), "in_database": total}
+
+
 def main() -> int:
     from housefinder.db.migrate import database_url
-    from housefinder.db.sections import load_sections
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--province", required=True, help="código INE de 2 cifras (28)")
     args = parser.parse_args()
-
-    with httpx.Client(headers={"User-Agent": "HouseFinder/0.1 (datos abiertos)"}) as client:
-        rows = list(fetch_sections(client, args.year, args.province))
-    source = source_record(args.year, args.province, rows)
-    total = load_sections(database_url(), source, rows, args.year, args.province)
-    print(f"{len(rows)} secciones cargadas ({source.id}); en la base: {total}")
+    summary = load(args.year, args.province, database_url())
+    print(f"{summary['loaded']} secciones cargadas ({summary['source']}); "
+          f"en la base: {summary['in_database']}")
     return 0
 
 

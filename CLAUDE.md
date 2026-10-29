@@ -64,6 +64,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/indicators.py      indicadores por sección y cartografía (renta, demografía)
     db/geocache.py        caché de geocodificación (sin datos del usuario)
     db/connection.py      conexión para la API y los trabajos (DATABASE_URL)
+    db/jobs.py            SQL de la cola de trabajos (ADR-0010)
+    jobs/                 worker, reintentos, programaciones, alertas y tipos de trabajo
     geo/cartociudad.py    geocodificador de CartoCiudad (ADR-0009); solo geo/ e ingestion/ usan la red
     territory/            sección, renta, población y tendencias de una dirección como Figure
     ingestion/boe.py      sumario diario del BOE (esquema por verificar, fase 4)
@@ -87,6 +89,7 @@ make db        # PostgreSQL + PostGIS en Docker (127.0.0.1:5442) y migraciones p
 make migrate   # solo las migraciones pendientes (DATABASE_URL)
 make sections  # carga las secciones censales del INE (YEAR=2025 PROVINCE=28)
 make adrh      # carga el Atlas de renta del INE 2015–2024 (PROVINCE=28)
+make worker    # worker de la cola; encolar con `python -m housefinder.jobs enqueue …`
 make test      # pytest de la API (los tests `db` se saltan si la base no está arrancada)
 make lint      # ruff
 make rules-check  # valida data/rules (catálogo de tipos, vigencias, revisor)

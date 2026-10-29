@@ -29,7 +29,7 @@ import httpx
 
 from housefinder.db.indicators import IndicatorRow
 from housefinder.db.sections import SourceRecord
-from housefinder.ingestion.ine_sections import CODE, LICENSE, LICENSE_URL
+from housefinder.ingestion.ine_sections import CODE, LICENSE, LICENSE_URL, USER_AGENT
 
 TEMPUS = "https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/{table}"
 TABLE_PAGE = "https://www.ine.es/jaxiT3/Tabla.htm?t={table}"
@@ -167,28 +167,61 @@ def missing_by_year(missing: list[IndicatorRow]) -> Iterator[tuple[int, int]]:
     yield from sorted(per_year.items())
 
 
-def main() -> int:
+class MissingSections(LookupError):
+    """Hay valores cuya sección no está en la cartografía t+1: falta cargar esa cartografía."""
+
+
+def load(
+    province: str, last_years: int, conninfo: str, client: httpx.Client | None = None
+) -> dict[str, Any]:
+    """Descarga y carga las tablas del ADRH de una provincia. Idempotente.
+
+    Si algún valor no encuentra su sección, carga el resto y lanza `MissingSections` para que
+    el trabajo falle, se reintente y avise: casi siempre falta la cartografía del año nuevo.
+    """
     from housefinder.db.indicators import load_indicators
+
+    tables = PROVINCE_TABLES.get(province)
+    if tables is None:
+        raise LookupError(f"Sin tablas del ADRH registradas para la provincia {province}")
+    summary: list[dict[str, Any]] = []
+    missing: dict[int, int] = {}
+    with httpx.Client(headers={"User-Agent": USER_AGENT}) as own:
+        http = client or own
+        for name, table in tables.items():
+            parsed = parse_table(fetch_table(http, table, last_years), province)
+            report = load_indicators(conninfo, source_record(table, name, parsed), parsed.rows)
+            table_missing = dict(missing_by_year(report.without_section))
+            for year, count in table_missing.items():
+                missing[year] = max(missing.get(year, 0), count)
+            summary.append({
+                "table": table, "name": name, "years": list(parsed.years),
+                "loaded": report.loaded, "empty": parsed.empty_values,
+                "skipped_levels": parsed.skipped_levels, "missing_by_year": table_missing,
+            })
+    if missing:
+        detail = ", ".join(f"{year}: {n} secciones sin cartografía {year + 1}"
+                           for year, n in sorted(missing.items()))
+        raise MissingSections(f"Faltan cartografías ({detail}); el resto está cargado")
+    return {"tables": summary}
+
+
+def main() -> int:
     from housefinder.db.migrate import database_url
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--province", required=True, help="código INE de 2 cifras (28)")
     parser.add_argument("--last-years", type=int, default=10)
     args = parser.parse_args()
-    tables = PROVINCE_TABLES.get(args.province)
-    if tables is None:
-        raise SystemExit(f"Sin tablas del ADRH registradas para la provincia {args.province}")
-
-    with httpx.Client(headers={"User-Agent": "HouseFinder/0.1 (datos abiertos)"}) as client:
-        for name, table in tables.items():
-            parsed = parse_table(fetch_table(client, table, args.last_years), args.province)
-            report = load_indicators(database_url(), source_record(table, name, parsed),
-                                     parsed.rows)
-            print(f"Tabla {table} ({name}): años {parsed.years}, {report.loaded} valores "
-                  f"cargados, {parsed.empty_values} sin dato, {parsed.skipped_levels} series "
-                  "de municipio o distrito no cargadas")
-            for year, sections in missing_by_year(report.without_section):
-                print(f"  {year}: {sections} secciones sin polígono en la cartografía {year + 1}")
+    try:
+        result = load(args.province, args.last_years, database_url())
+    except MissingSections as exc:
+        print(f"Aviso: {exc}")
+        return 1
+    for t in result["tables"]:
+        print(f"Tabla {t['table']} ({t['name']}): años {tuple(t['years'])}, {t['loaded']} "
+              f"valores cargados, {t['empty']} sin dato, {t['skipped_levels']} series de "
+              "municipio o distrito no cargadas")
     return 0
 
 

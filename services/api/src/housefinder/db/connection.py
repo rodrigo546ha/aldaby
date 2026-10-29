@@ -16,12 +16,15 @@ class DatabaseUnavailable(RuntimeError):
 
 
 @contextmanager
-def connect() -> Iterator[psycopg.Connection]:
-    url = os.environ.get("DATABASE_URL")
+def connect(
+    conninfo: str | None = None, autocommit: bool = False
+) -> Iterator[psycopg.Connection]:
+    """Conexión a `conninfo` o, si no se da, a `DATABASE_URL`."""
+    url = conninfo or os.environ.get("DATABASE_URL")
     if not url:
         raise DatabaseUnavailable("Falta DATABASE_URL")
     try:
-        conn = psycopg.connect(url, connect_timeout=5)
+        conn = psycopg.connect(url, connect_timeout=5, autocommit=autocommit)
     except psycopg.OperationalError as exc:
         raise DatabaseUnavailable("La base de datos no responde") from exc
     with conn:
