@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections test lint rules-check api web openapi
+.PHONY: setup db migrate sections adrh test lint rules-check api web openapi
 
 PYTHON ?= python3
 VENV := .venv/bin
@@ -24,6 +24,11 @@ YEAR ?= 2025
 PROVINCE ?= 28
 sections:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_sections --year $(YEAR) --province $(PROVINCE)
+
+# Atlas de renta del INE por sección, 2015–2024 (F3.3). Necesita las cartografías de 2016 en
+# adelante: cada año t va sobre el seccionado de t+1.
+adrh:
+	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_adrh --province $(PROVINCE)
 
 test:
 	cd services/api && $(VENV)/python -m pytest -q

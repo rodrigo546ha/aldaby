@@ -123,8 +123,13 @@ una ley solo requiere añadir una regla en YAML.
       `0002` (secciones por cartografía, organizaciones, reproducibilidad del plan).
 - [x] F3.2 Cargar la cartografía de secciones censales del INE para la Comunidad de Madrid
       (`make sections`: 4.518 secciones de 2025, 179 municipios).
-- [ ] F3.3 Cargar el Atlas de Distribución de Renta de los Hogares (INE) por sección.
+- [x] F3.3 Cargar el Atlas de Distribución de Renta de los Hogares (INE) por sección
+      (`make adrh`: renta y demografía 2015–2024 de Madrid, cada año sobre su seccionado t+1;
+      cartografías 2016–2025 cargadas).
 - [ ] F3.4 Cargar el padrón (población, edad, nacionalidad) y su evolución.
+      *Estado:* los indicadores demográficos del ADRH ya dan población, edad media, menores,
+      mayores y % de población española por sección de 2015 a 2024; falta decidir si hace falta
+      además el padrón continuo.
 - [ ] F3.5 Indicadores de demanda: universidades y matrícula, hospitales y grandes empleadores,
       afiliación a la Seguridad Social por municipio.
 - [ ] F3.6 Geocodificación con CartoCiudad y asignación de sección censal a una dirección.

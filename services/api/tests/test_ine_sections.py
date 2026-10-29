@@ -144,7 +144,7 @@ def test_carga_idempotente_y_seccion_de_un_punto(conn):
     for _ in range(2):  # repetir la carga no duplica
         upsert_source(conn, source)
         upsert_sections(conn, rows, 2025, source.id)
-    assert count_sections(conn, 2025, "28") == 2
+    assert count_sections(conn, 2025, "2807901") == 2
     hit = section_at(conn, -3.705, 40.415, 2025)
     assert hit is not None and hit.code == "2807901001"
     assert section_at(conn, -3.695, 40.415, 2025).code == "2807901002"

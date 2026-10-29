@@ -1,6 +1,6 @@
 # F3.3 · Atlas de Distribución de Renta de los Hogares (ADRH) por sección censal
 
-**Fecha:** 2026-10-29 · **Estado:** investigación; nada descargado todavía.
+**Fecha:** 2026-10-29 · **Estado:** decidida la opción B y cargada (ver el final).
 
 ## Qué publica el INE para la provincia de Madrid
 
@@ -61,3 +61,26 @@ Por la API Tempus (JSON con el código de sección), o por el CSV de cada tabla.
 | C | A + los diez años de las dos tablas, cruzando con 2025 solo las secciones cuyo polígono no cambió | B, pero las cartografías solo se usan para comparar y no se guardan todas |
 
 La tabla 37727 (Gini) añade ~2 MB por año si se quiere.
+
+## Decisión y carga (2026-10-29)
+
+Rodrigo eligió la opción B. Cargadas las cartografías de 2016 a 2024 (`make sections`) y las tablas
+31097 y 31105 para 2015–2024 (`make adrh`): 265.070 valores de renta y 309.449 de demografía.
+
+**La regla t+1 queda confirmada con los datos:** con el seccionado de t+1, ningún valor se queda sin
+sección. Con el del mismo año t faltarían secciones en casi todos los años (85 en 2017, 80 en 2022,
+45 en 2024).
+
+| Año | Secciones con dato | Mapa t+1 | Mapa t | No estarían en el mapa t |
+| --- | --- | --- | --- | --- |
+| 2015 | 4.331 | 4.341 | — | — |
+| 2017 | 4.404 | 4.414 | 4.344 | 85 |
+| 2020 | 4.417 | 4.417 | 4.417 | 0 |
+| 2022 | 4.479 | 4.479 | 4.432 | 80 |
+| 2024 | 4.518 | 4.518 | 4.480 | 45 |
+
+Población de la provincia en viviendas familiares: 6,37 M (2015) → 7,00 M (2024).
+
+**Pendiente para las tendencias:** una sección con el mismo código en dos cartografías puede haberse
+redibujado. Antes de mostrar la evolución de una sección hay que comprobar que su polígono no ha
+cambiado (o agregar al distrito o al municipio).
