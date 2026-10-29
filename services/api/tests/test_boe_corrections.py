@@ -2,7 +2,11 @@
 - BOE-B-2026-35167 corrige la cuarta subasta de la TGSS de Salamanca (pág. 55514 del 20/10);
 - BOE-B-2026-35104 corrige una subasta de Hacienda en Valencia (pág. 52908 del 7/10), cuyo
   título no dice que sean inmuebles;
-- BOE-B-2026-35103 corrige los plazos de una subasta de material del Ejército (sin página)."""
+- BOE-B-2026-35103 corrige los plazos de una subasta de material del Ejército (sin página);
+- BOE-B-2026-34907 excluye una finca rústica de la subasta de Hacienda en Aragón («BOE nº 251»,
+  sin página, con cuatro subastas de Hacienda ese día);
+- BOE-B-2026-33407 anula el lote 17 de la subasta de Hacienda en Asturias.
+Medición: docs/research/f4-filtro-seccion-v.md."""
 
 from datetime import date
 from pathlib import Path
@@ -27,6 +31,8 @@ def text_of(ident: str) -> str:
     ("BOE-B-2026-35167", date(2026, 10, 20), 260, 55514),
     ("BOE-B-2026-35104", date(2026, 10, 7), 249, 52908),
     ("BOE-B-2026-35103", date(2026, 10, 21), 261, None),
+    ("BOE-B-2026-34907", date(2026, 10, 9), 251, None),
+    ("BOE-B-2026-33407", date(2026, 10, 2), 244, None),
 ])
 def test_cita_del_anuncio_corregido(ident, published_on, number, page):
     citation = parse_citation(text_of(ident), CORRECTION_DAY)
@@ -41,6 +47,8 @@ def test_una_fecha_posterior_no_es_la_cita():
 def test_titulos_de_correcciones_de_ventas():
     assert is_sale_correction("Anuncio de corrección de errores en la Resolución … subasta pública")
     assert is_sale_correction("rectificación del anuncio de licitación de subasta patrimonial")
+    assert is_sale_correction("se acuerda la anulación de la venta por subasta pública del lote 17")
+    assert is_sale_correction("se acuerda la exclusión de una finca rústica de la subasta pública")
     assert not is_sale_correction("Anuncio de corrección de errores del concurso de traslados")
     assert not is_sale_correction("Resolución por la que se convoca subasta de un inmueble")
 
@@ -64,7 +72,7 @@ def test_por_pagina_por_departamento_y_por_expediente():
     by_number = resolve(correction, "", no_page, two)
     assert (by_number.original.identifier, by_number.method) == ("B", "expediente")
     unknown = resolve(item("C", title="Corrección"), "", no_page, two)
-    assert unknown.original is None and unknown.method.startswith("2 anuncios")
+    assert unknown.original is None and unknown.method.startswith("2 subastas")
 
 
 # --- Canal -------------------------------------------------------------------------------------
@@ -91,20 +99,31 @@ def boe_client(seen: list[str] | None = None) -> httpx.Client:
 def test_el_canal_guarda_la_correccion_y_el_anuncio_corregido():
     channel = BoeSectionV([CORRECTION_DAY])
     items = list(channel.fetch(boe_client()))
-    assert [i.external_id for i in items] == ["BOE-B-2026-34188", "BOE-B-2026-35167"]
-    original, correction = items
+    assert [i.external_id for i in items] == ["BOE-B-2026-32556", "BOE-B-2026-35104",
+                                              "BOE-B-2026-34188", "BOE-B-2026-35167"]
+    original, correction = items[2:]
     assert original.published_on == date(2026, 10, 20)
     assert correction.raw["corrige"]["boe"] == "BOE-B-2026-34188"
     assert channel.parse(correction)[0].extraction_status == "no_aplica"  # sin lotes nuevos
     assert channel.parse(original)[0].extraction_status == "pendiente"
     logs = {log.correction: log for log in channel.corrections}
     assert logs["BOE-B-2026-35167"].method == "pagina" and logs["BOE-B-2026-35167"].kept
-    # Valencia: resuelta por página, pero el título del original no dice que sean inmuebles.
+    # Valencia: el original vende «bienes patrimoniales» del Estado: entra por el filtro ampliado.
     assert (logs["BOE-B-2026-35104"].original, logs["BOE-B-2026-35104"].kept) == (
-        "BOE-B-2026-32556", False)
+        "BOE-B-2026-32556", True)
     # Ejército: resuelta por departamento; es material, no inmuebles.
     assert (logs["BOE-B-2026-35103"].original, logs["BOE-B-2026-35103"].method,
             logs["BOE-B-2026-35103"].kept) == ("BOE-B-2026-34258", "departamento", False)
+
+
+def test_exclusion_de_una_finca_resuelta_por_el_titulo():
+    # Ese día hay cuatro subastas de Hacienda; solo la de «Aragón-Zaragoza» comparte palabras
+    # propias con el título de la exclusión.
+    channel = BoeSectionV([date(2026, 10, 26)])
+    items = list(channel.fetch(boe_client()))
+    assert [i.external_id for i in items] == ["BOE-B-2026-32775", "BOE-B-2026-34907"]
+    log = channel.corrections[0]
+    assert (log.original, log.method, log.kept) == ("BOE-B-2026-32775", "titulo", True)
 
 
 # --- Contra la base -----------------------------------------------------------------------------
@@ -128,8 +147,9 @@ def test_correccion_enlazada_con_su_anuncio(migrated_database: str):
                      "extraction_status = 'pendiente', corrects_id = NULL")
     report = run_boe_v(migrated_database, boe_client(), CORRECTION_DAY, days=1,
                        geocoder=lambda address: None, parcels=lambda ref: None)
-    assert report["corrections_linked"] == 1
-    assert {c["correction"] for c in report["corrections"] if c["kept"]} == {"BOE-B-2026-35167"}
+    assert report["corrections_linked"] == 2  # Salamanca y Valencia
+    assert {c["correction"] for c in report["corrections"] if c["kept"]} == {
+        "BOE-B-2026-35167", "BOE-B-2026-35104"}
     with psycopg.connect(migrated_database) as conn:
         original = conn.execute("SELECT id, extraction_status FROM offers "
                                 "WHERE external_id = 'BOE-B-2026-34188'").fetchone()

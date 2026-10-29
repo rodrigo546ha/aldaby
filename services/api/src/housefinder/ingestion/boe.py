@@ -23,8 +23,14 @@ import httpx
 
 SUMARIO_URL = "https://www.boe.es/datosabiertos/api/boe/sumario/{yyyymmdd}"
 
+# Venta o subasta y un bien inmueble, en cualquier orden («exclusión de una finca de la subasta»).
+# «Bienes patrimoniales»: las subastas del Patrimonio del Estado, casi siempre inmuebles
+# (docs/research/f4-filtro-seccion-v.md).
+_SALE = r"subasta|enajenaci[oó]n|venta"
+_PROPERTY = (r"inmuebles?|viviendas?|fincas?|locale?s?|pisos?|solar(?:es)?|parcelas?|terrenos?|"
+             r"edificios?|naves?|garajes?|trasteros?|bienes patrimoniales")
 KEYWORDS = re.compile(
-    r"\b(subasta|enajenaci[oó]n|venta)\b.*\b(inmueble|vivienda|finca|local|piso)s?\b",
+    rf"\b(?:{_SALE})\b.*\b(?:{_PROPERTY})\b|\b(?:{_PROPERTY})\b.*\b(?:{_SALE})\b",
     re.IGNORECASE,
 )
 

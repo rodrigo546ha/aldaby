@@ -1,0 +1,46 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20261026"
+   },
+   "diario": [
+    {
+     "numero": "265",
+     "seccion": [
+      {
+       "codigo": "5B",
+       "nombre": "V. Anuncios. - B. Otros anuncios oficiales",
+       "departamento": [
+        {
+         "codigo": "5140",
+         "nombre": "MINISTERIO DE HACIENDA",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-34907",
+           "titulo": "Anuncio de la Delegación Especial de Economía y Hacienda en Aragón-zaragoza por la que se acuerda la exclusión de una finca rústica de la subasta pública convocada para el 5 de noviembre de 2026.",
+           "url_pdf": {
+            "szBytes": "204598",
+            "szKBytes": "200",
+            "pagina_inicial": "56613",
+            "pagina_final": "56613",
+            "texto": "https://www.boe.es/boe/dias/2026/10/26/pdfs/BOE-B-2026-34907.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-34907",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-34907"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

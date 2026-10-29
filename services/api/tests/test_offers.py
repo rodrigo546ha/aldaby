@@ -37,6 +37,15 @@ def test_solo_ventas_o_subastas_de_inmuebles_en_la_seccion_v():
     assert is_property_sale("5B", "Resolución … por la que se anuncia subasta pública de "
                                   "inmuebles")
     assert not is_property_sale("3", "Subasta pública de inmuebles")
+    # Filtro ampliado (docs/research/f4-filtro-seccion-v.md): «bienes patrimoniales» y en
+    # cualquier orden; la venta de otras cosas sigue fuera.
+    assert is_property_sale("5B", "… convoca subasta pública al alza … de bienes patrimoniales "
+                                  "propiedad de la Administración General del Estado")
+    assert is_property_sale("5B", "… exclusión de una finca rústica de la subasta pública …")
+    assert not is_property_sale("5B", "… subasta pública de cuatro aeronaves en situación de "
+                                      "presunción legal de abandono.")
+    assert not is_property_sale("5B", "… enajenación por Subasta Pública de diverso material de "
+                                      "chatarra.")
     assert not is_property_sale("5A", "Anuncio de licitación del servicio de limpieza")
 
 

@@ -1,0 +1,123 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20261009"
+   },
+   "diario": [
+    {
+     "numero": "251",
+     "seccion": [
+      {
+       "codigo": "5A",
+       "nombre": "V. Anuncios. - A. Contratación del Sector Público",
+       "departamento": [
+        {
+         "codigo": "5140",
+         "nombre": "MINISTERIO DE HACIENDA",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-32759",
+           "titulo": "Anuncio de formalización de contratos de: Delegación Especial de la Agencia Tributaria en Madrid. Objeto: Suministro en régimen de arrendamiento y mantenimiento integral de tres equipos de protección cardiovascular para determinados edificios de la Delegación Especial de la Agencia Estatal De Administración Tributaria de Madrid. Expediente: 26B20062100.",
+           "url_pdf": {
+            "szBytes": "215832",
+            "szKBytes": "211",
+            "pagina_inicial": "53366",
+            "pagina_final": "53367",
+            "texto": "https://www.boe.es/boe/dias/2026/10/09/pdfs/BOE-B-2026-32759.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-32759",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-32759"
+          },
+          {
+           "identificador": "BOE-B-2026-32760",
+           "titulo": "Anuncio de formalización de contratos de: Delegación Especial de la Agencia Estatal de Administración Tributaria en Cataluña. Objeto: Suministro e instalación de luminarias en la primera y segunda planta de la Delegación Especial de la Agencia Estatal de Administración Tributaria en Cataluña. Expediente: 26A90019400.",
+           "url_pdf": {
+            "szBytes": "216217",
+            "szKBytes": "211",
+            "pagina_inicial": "53368",
+            "pagina_final": "53369",
+            "texto": "https://www.boe.es/boe/dias/2026/10/09/pdfs/BOE-B-2026-32760.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-32760",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-32760"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "codigo": "5B",
+       "nombre": "V. Anuncios. - B. Otros anuncios oficiales",
+       "departamento": [
+        {
+         "codigo": "5140",
+         "nombre": "MINISTERIO DE HACIENDA",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-32775",
+           "titulo": "Resolución de la Delegación Especial de Economía y Hacienda en Aragón-Zaragoza de fecha 2 de octubre de 2026, por la que se convoca subasta pública al alza de bienes inmuebles de la Administración General del Estado.",
+           "url_pdf": {
+            "szBytes": "403877",
+            "szKBytes": "394",
+            "pagina_inicial": "53404",
+            "pagina_final": "53438",
+            "texto": "https://www.boe.es/boe/dias/2026/10/09/pdfs/BOE-B-2026-32775.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-32775",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-32775"
+          },
+          {
+           "identificador": "BOE-B-2026-32776",
+           "titulo": "Resolución de la Delegación de Economía y Hacienda en Granada, por la que se convoca subasta pública el día 25 de noviembre de 2026, para la enajenación de diversos inmuebles.",
+           "url_pdf": {
+            "szBytes": "217905",
+            "szKBytes": "213",
+            "pagina_inicial": "53439",
+            "pagina_final": "53441",
+            "texto": "https://www.boe.es/boe/dias/2026/10/09/pdfs/BOE-B-2026-32776.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-32776",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-32776"
+          },
+          {
+           "identificador": "BOE-B-2026-32777",
+           "titulo": "Resolución de la Delegación de Economía y Hacienda de Lugo por la que se acuerda la enajenación en subasta pública de fincas patrimoniales en la provincia de Lugo mediante el procedimiento de presentación de ofertas en sobre cerrado con pujas al alza.",
+           "url_pdf": {
+            "szBytes": "368736",
+            "szKBytes": "360",
+            "pagina_inicial": "53442",
+            "pagina_final": "53455",
+            "texto": "https://www.boe.es/boe/dias/2026/10/09/pdfs/BOE-B-2026-32777.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-32777",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-32777"
+          },
+          {
+           "identificador": "BOE-B-2026-32778",
+           "titulo": "Anuncio de la Delegación de Economía y Hacienda en Ciudad Real por el que se convoca subasta pública de varios inmuebles procedentes del expediente abintestato de Dª. Carmen Carrasco Carrasco situados en la provincia de Ciudad Real.",
+           "url_pdf": {
+            "szBytes": "236757",
+            "szKBytes": "231",
+            "pagina_inicial": "53456",
+            "pagina_final": "53461",
+            "texto": "https://www.boe.es/boe/dias/2026/10/09/pdfs/BOE-B-2026-32778.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-32778",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-32778"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
