@@ -38,7 +38,8 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
         from housefinder.agent.llm import llm_from_env
 
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
-            return extract_boe_v(conninfo, client, llm_from_env(), int(payload.get("limit", 20)))
+            return extract_boe_v(conninfo, client, llm_from_env(), int(payload.get("limit", 20)),
+                                 only=payload.get("ids"))
 
     def offers_boe_auctions(payload: dict[str, Any]) -> dict[str, Any]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:

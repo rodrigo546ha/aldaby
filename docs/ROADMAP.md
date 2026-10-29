@@ -178,7 +178,9 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       deduplica; cada cita tiene que estar en el tramo de su lote (ADR-0014). Las correcciones no
       crean lotes: se enlazan con el anuncio que corrigen por la página o, sin página, por el
       departamento y el número de expediente (`offers/corrections.py`, columna `corrects_id`).
-      Las anulaciones, exclusiones y suspensiones de lotes se tratan igual. El filtro de títulos
+      Las anulaciones, exclusiones y suspensiones de lotes se tratan igual. Página `/anuncios`:
+      cada anuncio con su texto, sus lotes (cada dato con su cita, sin confirmar) y sus
+      correcciones; `extract_offers` acepta `ids` para extraer anuncios concretos. El filtro de títulos
       acepta el bien antes o después de la venta y «bienes patrimoniales»
       (`docs/research/f4-filtro-seccion-v.md`). Volumen: `docs/research/f4-volumen-boe.md`.
 - [ ] F4.5 Servicers (Solvia, Servihabitat, Aliseda, Altamira, Hipoges): revisar términos de uso de

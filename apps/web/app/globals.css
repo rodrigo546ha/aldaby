@@ -150,3 +150,17 @@ th { color: var(--muted); font-weight: 500; }
   width: auto; border: none; background: none; padding: 0; color: var(--accent);
   font-weight: 500; display: inline;
 }
+
+.lot-fields { display: grid; grid-template-columns: minmax(120px, max-content) 1fr; gap: 6px 12px; margin: 4px 0; }
+.lot-fields dt { color: var(--muted); font-size: 0.85rem; }
+.lot-fields dd { margin: 0; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+@media (max-width: 560px) { .lot-fields { grid-template-columns: 1fr; } .lot-fields dd { margin-bottom: 6px; } }
+.warnings details { margin-top: 6px; color: inherit; }
+.offer-list.stacked button { flex-direction: column; align-items: flex-start; gap: 4px; }
+.offer-list.stacked .status { white-space: normal; }
+.offer-list.stacked .offer-title {
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+@media (min-width: 861px) {
+  .detail-pane { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; }
+}

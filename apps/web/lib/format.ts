@@ -119,3 +119,35 @@ export const ORIGIN: Record<string, string> = {
   corregido: "corregido por ti",
   usuario: "añadido por ti",
 };
+
+/** Campos de un lote de un anuncio del BOE (F4.4). */
+export const LOT_LABELS: Record<string, string> = {
+  label: "Lote",
+  address: "Dirección",
+  municipality: "Municipio",
+  province: "Provincia",
+  floor: "Planta",
+  cadastral_ref: "Referencia catastral",
+  built_area_m2: "Superficie (m²)",
+  price: "Tipo de licitación",
+  deposit: "Garantía",
+};
+
+export const PROPERTY_TYPE: Record<string, string> = {
+  vivienda: "Vivienda",
+  local: "Local",
+  oficina: "Oficina",
+  garaje: "Garaje",
+  trastero: "Trastero",
+  edificio: "Edificio",
+  suelo: "Suelo",
+  rustica: "Finca rústica",
+  otro: "Otro",
+};
+
+export const ANNOUNCEMENT_STATUS: Record<string, string> = {
+  pendiente: "Sin extraer",
+  extraida: "Extraído, sin confirmar",
+  confirmada: "Confirmado",
+  no_aplica: "Sin lotes",
+};

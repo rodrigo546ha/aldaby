@@ -89,7 +89,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     ingestion/bocm.py     sumarios del BOCM (RSS y XML de cada boletín)
     ingestion/ine_sections.py  cartografía de secciones del INE (API OGC Features, CC BY 4.0)
     ingestion/ine_adrh.py Atlas de renta del INE por sección; el año t va sobre el seccionado t+1
-    api/main.py           aplicación FastAPI; un router por dominio (simulate, territory, offers)
+    api/main.py           aplicación FastAPI; un router por dominio (simulate, territory, offers, boe)
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
   data/watch/             filtros de la vigilancia del BOE y del BOCM

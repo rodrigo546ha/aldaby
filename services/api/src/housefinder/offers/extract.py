@@ -42,10 +42,11 @@ class ExtractionReport:
 
 
 def extract_pending(
-    conn: Connection, llm: LLMClient, channel: str, locate: Locator, limit: int = 20
+    conn: Connection, llm: LLMClient, channel: str, locate: Locator, limit: int = 20,
+    only: list[str] | None = None,
 ) -> ExtractionReport:
     report = ExtractionReport()
-    for announcement in pending_announcements(conn, channel, limit):
+    for announcement in pending_announcements(conn, channel, limit, only):
         document = announcement_text(announcement)
         try:
             checked = extract(llm, document)

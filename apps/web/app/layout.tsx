@@ -15,6 +15,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <nav className="topnav" aria-label="Secciones">
           <Link href="/">Simulador</Link>
           <Link href="/ofertas">Ofertas</Link>
+          <Link href="/anuncios">Anuncios del BOE</Link>
         </nav>
         {children}
       </body>

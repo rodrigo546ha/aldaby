@@ -171,15 +171,17 @@ class PendingAnnouncement:
 
 
 def pending_announcements(
-    conn: psycopg.Connection, channel: str, limit: int
+    conn: psycopg.Connection, channel: str, limit: int, only: list[str] | None = None
 ) -> list[PendingAnnouncement]:
+    """Anuncios pendientes de extraer; con `only`, solo esos identificadores."""
     rows = conn.execute(
         """
         SELECT id, external_id, title, url, published_on, raw, source_id FROM offers
         WHERE channel = %s AND kind = 'anuncio' AND extraction_status = 'pendiente'
+          AND (%s::text[] IS NULL OR external_id = ANY(%s::text[]))
         ORDER BY published_on, external_id LIMIT %s
         """,
-        (channel, limit),
+        (channel, only, only, limit),
     ).fetchall()
     return [PendingAnnouncement(*r) for r in rows]
 
@@ -348,3 +350,94 @@ def corrections_of(conn: psycopg.Connection, offer_id: UUID) -> list[CorrectionR
         (offer_id,),
     ).fetchall()
     return [CorrectionRow(*r) for r in rows]
+
+
+# --- Anuncios del BOE para la web (F4.4) --------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class AnnouncementSummary:
+    id: UUID
+    external_id: str
+    title: str | None
+    published_on: date | None
+    extraction_status: str
+    lots: int
+    located_lots: int
+    corrections: int
+
+
+def list_announcements(
+    conn: psycopg.Connection, channel: str, limit: int = 100
+) -> list[AnnouncementSummary]:
+    """Anuncios del canal sin las correcciones, que van dentro del anuncio que corrigen."""
+    rows = conn.execute(
+        """
+        SELECT a.id, a.external_id, a.title, a.published_on, a.extraction_status,
+               (SELECT count(*) FROM offers l WHERE l.parent_id = a.id),
+               (SELECT count(*) FROM offers l WHERE l.parent_id = a.id
+                                               AND l.property_id IS NOT NULL),
+               (SELECT count(*) FROM offers c WHERE c.corrects_id = a.id)
+        FROM offers a
+        WHERE a.channel = %s AND a.kind = 'anuncio' AND a.org_id IS NULL
+          AND NOT (a.raw ? 'corrige')
+        ORDER BY a.published_on DESC NULLS LAST, a.external_id DESC LIMIT %s
+        """,
+        (channel, limit),
+    ).fetchall()
+    return [AnnouncementSummary(*r) for r in rows]
+
+
+@dataclass(frozen=True)
+class AnnouncementDetail:
+    id: UUID
+    external_id: str
+    title: str | None
+    url: str | None
+    published_on: date | None
+    extraction_status: str
+    paragraphs: list[str]
+    corrects: str | None  # BOE-B-… del anuncio que corrige, si es una corrección
+
+
+def get_announcement(
+    conn: psycopg.Connection, channel: str, external_id: str
+) -> AnnouncementDetail | None:
+    row = conn.execute(
+        """
+        SELECT a.id, a.external_id, a.title, a.url, a.published_on, a.extraction_status,
+               a.raw->'texto', o.external_id
+        FROM offers a LEFT JOIN offers o ON o.id = a.corrects_id
+        WHERE a.channel = %s AND a.external_id = %s AND a.kind = 'anuncio'
+          AND a.org_id IS NULL
+        """,
+        (channel, external_id),
+    ).fetchone()
+    if row is None:
+        return None
+    return AnnouncementDetail(*row[:6], list(row[6] or []), row[7])
+
+
+@dataclass(frozen=True)
+class LotRow:
+    id: UUID
+    external_id: str
+    title: str | None
+    extraction_status: str
+    extracted: dict[str, Any] | None
+    location_source: str | None
+    section_code: str | None
+    municipality: str | None
+
+
+def lots_of(conn: psycopg.Connection, announcement_id: UUID) -> list[LotRow]:
+    rows = conn.execute(
+        """
+        SELECT l.id, l.external_id, l.title, l.extraction_status, l.extracted,
+               l.location_source, p.section_code, p.municipality
+        FROM offers l LEFT JOIN properties p ON p.id = l.property_id
+        WHERE l.parent_id = %s ORDER BY l.external_id
+        """,
+        (announcement_id,),
+    ).fetchall()
+    return [LotRow(*r) for r in rows]

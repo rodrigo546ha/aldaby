@@ -100,12 +100,14 @@ def extract_boe_v(
     limit: int = 20,
     geocoder: Callable[[str], Geocoded] | None = None,
     parcels: Callable[[str], Parcel] | None = None,
+    only: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Extrae los lotes de hasta `limit` anuncios pendientes del BOE (ADR-0013)."""
+    """Extrae los lotes de hasta `limit` anuncios pendientes del BOE (ADR-0013); con `only`,
+    solo esos (BOE-B-…)."""
     with connect(conninfo) as conn:
         locate = offer_locator(conn, geocoder or (lambda address: geocode(client, address)),
                                parcels or (lambda ref: find_parcel(client, ref)))
-        return extract_pending(conn, llm, boe_v.NAME, locate, limit).as_dict()
+        return extract_pending(conn, llm, boe_v.NAME, locate, limit, only).as_dict()
 
 
 def extract_pasted(conninfo: str, llm: LLMClient, offer_id: UUID) -> dict[str, Any]:

@@ -160,6 +160,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/boe/announcements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Announcements */
+        get: operations["get_announcements_boe_announcements_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/boe/announcements/{boe_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Announcement Detail */
+        get: operations["get_announcement_detail_boe_announcements__boe_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -207,6 +241,52 @@ export interface components {
             years: components["schemas"]["FigureOut"];
             /** Binding Constraint */
             binding_constraint: string;
+        };
+        /** AnnouncementDetailOut */
+        AnnouncementDetailOut: {
+            /** Boe Id */
+            boe_id: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string | null;
+            /** Published On */
+            published_on: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "no_aplica" | "pendiente" | "extraida" | "confirmada";
+            /** Corrects */
+            corrects: string | null;
+            /** Paragraphs */
+            paragraphs: string[];
+            /** Lots */
+            lots: components["schemas"]["LotOut"][];
+            /** Corrections */
+            corrections: components["schemas"]["CorrectionOut"][];
+            /** Attribution */
+            attribution: string;
+        };
+        /** AnnouncementOut */
+        AnnouncementOut: {
+            /** Boe Id */
+            boe_id: string;
+            /** Title */
+            title: string | null;
+            /** Published On */
+            published_on: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "no_aplica" | "pendiente" | "extraida" | "confirmada";
+            /** Lots */
+            lots: number;
+            /** Located Lots */
+            located_lots: number;
+            /** Corrections */
+            corrections: number;
         };
         /** AuctionNoticeOut */
         AuctionNoticeOut: {
@@ -281,6 +361,19 @@ export interface components {
             values: {
                 [key: string]: string | null;
             };
+        };
+        /** CorrectionOut */
+        CorrectionOut: {
+            /** Boe Id */
+            boe_id: string;
+            /** Url */
+            url: string | null;
+            /** Published On */
+            published_on: string | null;
+            /** Title */
+            title: string | null;
+            /** Paragraphs */
+            paragraphs: string[];
         };
         /** ExitRequest */
         ExitRequest: {
@@ -409,6 +502,51 @@ export interface components {
             match_type: string | null;
             /** Cadastral Ref */
             cadastral_ref: string | null;
+        };
+        /** LotFieldOut */
+        LotFieldOut: {
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "number" | "cadastral" | "text";
+            /** Value */
+            value: string | null;
+            /** Evidence */
+            evidence: string | null;
+            /** Status */
+            status: ("verificado" | "rechazado" | "ausente") | null;
+            /** Reason */
+            reason: string;
+        };
+        /** LotOut */
+        LotOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "no_aplica" | "pendiente" | "extraida" | "confirmada";
+            /** Property Type */
+            property_type: string | null;
+            /** Fields */
+            fields: components["schemas"]["LotFieldOut"][];
+            /** Located */
+            located: boolean;
+            /** Section Code */
+            section_code: string | null;
+            /** Municipality */
+            municipality: string | null;
+            /** Location Attribution */
+            location_attribution: string | null;
         };
         /** OfferOut */
         OfferOut: {
@@ -948,6 +1086,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OfferOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_announcements_boe_announcements_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementOut"][];
+                };
+            };
+        };
+    };
+    get_announcement_detail_boe_announcements__boe_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                boe_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementDetailOut"];
                 };
             };
             /** @description Validation Error */

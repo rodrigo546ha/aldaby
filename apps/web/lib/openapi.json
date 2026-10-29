@@ -402,6 +402,73 @@
         }
       }
     },
+    "/boe/announcements": {
+      "get": {
+        "tags": [
+          "anuncios del BOE"
+        ],
+        "summary": "Get Announcements",
+        "operationId": "get_announcements_boe_announcements_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AnnouncementOut"
+                  },
+                  "type": "array",
+                  "title": "Response Get Announcements Boe Announcements Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boe/announcements/{boe_id}": {
+      "get": {
+        "tags": [
+          "anuncios del BOE"
+        ],
+        "summary": "Get Announcement Detail",
+        "operationId": "get_announcement_detail_boe_announcements__boe_id__get",
+        "parameters": [
+          {
+            "name": "boe_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Boe Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnouncementDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -537,6 +604,170 @@
           "binding_constraint"
         ],
         "title": "AffordabilityResponse"
+      },
+      "AnnouncementDetailOut": {
+        "properties": {
+          "boe_id": {
+            "type": "string",
+            "title": "Boe Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "published_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published On"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "no_aplica",
+              "pendiente",
+              "extraida",
+              "confirmada"
+            ],
+            "title": "Status"
+          },
+          "corrects": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrects"
+          },
+          "paragraphs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Paragraphs"
+          },
+          "lots": {
+            "items": {
+              "$ref": "#/components/schemas/LotOut"
+            },
+            "type": "array",
+            "title": "Lots"
+          },
+          "corrections": {
+            "items": {
+              "$ref": "#/components/schemas/CorrectionOut"
+            },
+            "type": "array",
+            "title": "Corrections"
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "boe_id",
+          "title",
+          "url",
+          "published_on",
+          "status",
+          "corrects",
+          "paragraphs",
+          "lots",
+          "corrections",
+          "attribution"
+        ],
+        "title": "AnnouncementDetailOut"
+      },
+      "AnnouncementOut": {
+        "properties": {
+          "boe_id": {
+            "type": "string",
+            "title": "Boe Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "published_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published On"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "no_aplica",
+              "pendiente",
+              "extraida",
+              "confirmada"
+            ],
+            "title": "Status"
+          },
+          "lots": {
+            "type": "integer",
+            "title": "Lots"
+          },
+          "located_lots": {
+            "type": "integer",
+            "title": "Located Lots"
+          },
+          "corrections": {
+            "type": "integer",
+            "title": "Corrections"
+          }
+        },
+        "type": "object",
+        "required": [
+          "boe_id",
+          "title",
+          "published_on",
+          "status",
+          "lots",
+          "located_lots",
+          "corrections"
+        ],
+        "title": "AnnouncementOut"
       },
       "AuctionNoticeOut": {
         "properties": {
@@ -807,6 +1038,63 @@
           "values"
         ],
         "title": "ConfirmIn"
+      },
+      "CorrectionOut": {
+        "properties": {
+          "boe_id": {
+            "type": "string",
+            "title": "Boe Id"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "published_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published On"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "paragraphs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Paragraphs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "boe_id",
+          "url",
+          "published_on",
+          "title",
+          "paragraphs"
+        ],
+        "title": "CorrectionOut"
       },
       "ExitRequest": {
         "properties": {
@@ -1291,6 +1579,173 @@
           "cadastral_ref"
         ],
         "title": "LocationOut"
+      },
+      "LotFieldOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "number",
+              "cadastral",
+              "text"
+            ],
+            "title": "Kind"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "verificado",
+                  "rechazado",
+                  "ausente"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "value",
+          "evidence",
+          "status",
+          "reason"
+        ],
+        "title": "LotFieldOut"
+      },
+      "LotOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "no_aplica",
+              "pendiente",
+              "extraida",
+              "confirmada"
+            ],
+            "title": "Status"
+          },
+          "property_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Type"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/LotFieldOut"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "located": {
+            "type": "boolean",
+            "title": "Located"
+          },
+          "section_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Code"
+          },
+          "municipality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Municipality"
+          },
+          "location_attribution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Attribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "property_type",
+          "fields",
+          "located",
+          "section_code",
+          "municipality",
+          "location_attribution"
+        ],
+        "title": "LotOut"
       },
       "OfferOut": {
         "properties": {

@@ -145,6 +145,8 @@ def test_correccion_enlazada_con_su_anuncio(migrated_database: str):
                      "'BOE-B-2026-35167', 'anuncio', '{}', 'x', 'pendiente', '2026-10-27') "
                      "ON CONFLICT (channel, external_id) DO UPDATE SET "
                      "extraction_status = 'pendiente', corrects_id = NULL")
+        conn.execute("UPDATE offers SET corrects_id = NULL "
+                     "WHERE external_id = 'BOE-B-2026-35104'")  # otros tests ya la enlazan
     report = run_boe_v(migrated_database, boe_client(), CORRECTION_DAY, days=1,
                        geocoder=lambda address: None, parcels=lambda ref: None)
     assert report["corrections_linked"] == 2  # Salamanca y Valencia
