@@ -39,12 +39,29 @@ parcelas de la TGSS), sin razonamiento:
   Falta la superficie y el tipo sale como `edificio` en lugar de `suelo`.
 - **Lote 2: el modelo copió los datos del lote 1.** La comprobación de evidencia los da por buenos
   porque las citas sí están en el documento. La evidencia garantiza que una cifra está en la fuente,
-  no que sea del lote al que se asigna. La confirmación del usuario es hoy la única barrera;
-  conviene añadir una comprobación de que cada cita cae dentro del tramo de su lote.
+  no que sea del lote al que se asigna.
 - Con el razonamiento del modelo activado fue peor: 344 s y 3.914 tokens de salida, más campos
   rechazados (referencia catastral, superficie, garantía), el mismo lote 2 copiado y la planta `0`
   dada por buena porque el carácter «0» está en la cita. Un texto muy corto pasa la comprobación de
   texto con demasiada facilidad. En desarrollo: `LLM_REASONING_EFFORT=none`.
+
+## Comprobación endurecida (2026-10-29)
+Dos comprobaciones nuevas en `agent/extraction.py`, además de las de ADR-0013:
+- **Tramo del lote.** Con varios lotes, cada cita tiene que estar en el tramo de su lote: desde la
+  cita de su etiqueta («Lote 2: Urbana») hasta la etiqueta del lote siguiente; el último llega
+  hasta el final del documento. Un lote sin etiqueta verificada, o en la misma posición que otro, no
+  tiene tramo y se rechaza entero. Con un solo lote, vale todo el documento.
+- **Palabras enteras.** Un texto tiene que estar en la cita como palabras enteras: «0» ya no pasa
+  por estar dentro de «28-30».
+
+Repetida la prueba con `qwen3:8b`: el modelo devuelve la misma copia y ahora se rechazan la
+referencia catastral, el tipo de licitación y la garantía del lote 2 («la cita no está en el tramo
+de su lote»). Su dirección y su municipio se quedan, porque son correctos y también están escritos
+en el tramo del lote 2. El lote 1 no cambia.
+
+Límites: el último lote incluye las condiciones comunes que van detrás, y un documento que nombra
+los lotes en un índice antes de describirlos tendrá tramos equivocados; en los dos casos el error
+es rechazar datos buenos, no aceptar datos de otro lote.
 
 ## Opciones consideradas
 - **Seguir con Claude en Bedrock:** mejor calidad de extracción, pero requiere una cuenta de AWS

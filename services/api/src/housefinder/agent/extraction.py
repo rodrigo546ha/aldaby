@@ -2,15 +2,20 @@
 
 El LLM devuelve cada campo con una cita literal del documento. Después, sin LLM:
 1. la cita tiene que estar en el documento (espacios normalizados);
-2. el valor tiene que salir de la cita: un importe o una superficie es uno de los números de la
-   cita; una referencia catastral está en la cita con su formato; un texto está contenido en ella.
-Lo que no pasa se descarta con su motivo. Ninguna cifra que quede es inventada: está en la fuente.
+2. si hay varios lotes, la cita tiene que estar en el tramo de su lote: desde su etiqueta («Lote 2»)
+   hasta la etiqueta del lote siguiente (ADR-0014);
+3. el valor tiene que salir de la cita: un importe o una superficie es uno de los números de la
+   cita; una referencia catastral está en la cita con su formato; un texto está en ella como
+   palabras enteras.
+Lo que no pasa se descarta con su motivo. Ninguna cifra que quede es inventada: está en la fuente,
+en la parte que habla de ese lote.
 """
 
 from __future__ import annotations
 
 import re
 import unicodedata
+from collections import Counter
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Any, Literal
@@ -24,6 +29,9 @@ PropertyType = Literal[
 ]
 NUMBER_IN_TEXT = re.compile(r"\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?")
 CADASTRAL_REF = re.compile(r"^(?:[0-9A-Z]{14}|[0-9A-Z]{20})$")
+NO_SPAN = "no se sabe qué tramo del documento es de este lote"
+
+Span = tuple[int, int]  # [inicio, fin) en el documento normalizado
 
 
 class Quoted(BaseModel):
@@ -129,11 +137,15 @@ def extract(llm: LLMClient, document: str) -> CheckedDocument:
 def check_document(document: str, raw: DocumentExtraction) -> CheckedDocument:
     source = _normalize(document)
     lots = []
-    for lot in raw.lots:
-        fields = {name: check_field(source, getattr(lot, name), kind)
+    for lot, span in zip(raw.lots, lot_spans(source, raw.lots), strict=True):
+        if span is None:
+            fields = {name: _without_span(getattr(lot, name)) for name in FIELD_KINDS}
+            lots.append(CheckedLot(None, fields))
+            continue
+        fields = {name: check_field(source, getattr(lot, name), kind, span)
                   for name, kind in FIELD_KINDS.items()}
-        type_ok = bool(lot.property_type_evidence) and _normalize(
-            lot.property_type_evidence or "") in source
+        type_ok = bool(lot.property_type_evidence) and _within(
+            source, _normalize(lot.property_type_evidence or ""), span)
         lots.append(CheckedLot(lot.property_type if type_ok else None, fields))
     return CheckedDocument(
         is_correction=raw.is_correction,
@@ -142,8 +154,40 @@ def check_document(document: str, raw: DocumentExtraction) -> CheckedDocument:
     )
 
 
-def check_field(source: str, quoted: Quoted, kind: FieldKind) -> CheckedField:
-    """Comprueba un campo contra el documento (`source`, normalizado o no)."""
+def lot_spans(source: str, lots: list[LotExtraction]) -> list[Span | None]:
+    """Tramo del documento (normalizado) de cada lote, o None si no se puede saber.
+
+    Con un solo lote, todo el documento. Con varios, cada lote empieza donde está la cita de su
+    etiqueta y acaba donde empieza el siguiente; el último llega hasta el final, incluidas las
+    condiciones comunes. Un lote sin etiqueta verificada, o con la misma posición que otro, no
+    tiene tramo.
+    """
+    whole = (0, len(source))
+    if len(lots) == 1:
+        return [whole]
+    anchors: list[int | None] = []
+    for lot in lots:
+        label = check_field(source, lot.label, "text", whole)
+        position = source.find(_normalize(lot.label.evidence or ""))
+        anchors.append(position if label.status == "verificado" and position >= 0 else None)
+    taken = Counter(a for a in anchors if a is not None)
+    starts = sorted(taken)
+    spans: list[Span | None] = []
+    for anchor in anchors:
+        if anchor is None or taken[anchor] > 1:
+            spans.append(None)
+            continue
+        spans.append((anchor, next((s for s in starts if s > anchor), len(source))))
+    return spans
+
+
+def check_field(
+    source: str, quoted: Quoted, kind: FieldKind, span: Span | None = None
+) -> CheckedField:
+    """Comprueba un campo contra el documento (`source`, normalizado o no).
+
+    `span` limita dónde puede estar la cita (posiciones en el documento normalizado).
+    """
     source = _normalize(source)
     if quoted.value is None or not quoted.value.strip():
         return CheckedField(None, None, "ausente")
@@ -152,6 +196,9 @@ def check_field(source: str, quoted: Quoted, kind: FieldKind) -> CheckedField:
     evidence = _normalize(quoted.evidence)
     if evidence not in source:
         return CheckedField(None, quoted.evidence, "rechazado", "la cita no está en el documento")
+    if span is not None and not _within(source, evidence, span):
+        return CheckedField(None, quoted.evidence, "rechazado",
+                            "la cita no está en el tramo de su lote")
     if kind == "number":
         value = _plain_number(quoted.value)
         if value is None:
@@ -167,9 +214,21 @@ def check_field(source: str, quoted: Quoted, kind: FieldKind) -> CheckedField:
                                 "la referencia catastral no está en la cita o no es válida")
         return CheckedField(ref, quoted.evidence, "verificado")
     value_text = _normalize(quoted.value)
-    if _fold(value_text) not in _fold(evidence):
+    if not re.search(rf"(?<!\w){re.escape(_fold(value_text))}(?!\w)", _fold(evidence)):
         return CheckedField(None, quoted.evidence, "rechazado", "el texto no está en la cita")
     return CheckedField(value_text, quoted.evidence, "verificado")
+
+
+def _without_span(quoted: Quoted) -> CheckedField:
+    if quoted.value is None or not quoted.value.strip():
+        return CheckedField(None, None, "ausente")
+    return CheckedField(None, quoted.evidence, "rechazado", NO_SPAN)
+
+
+def _within(source: str, evidence: str, span: Span) -> bool:
+    """La cita aparece entera dentro del tramo (alguna de sus apariciones)."""
+    start, end = span
+    return bool(evidence) and source.find(evidence, start, end) >= 0
 
 
 def _normalize(text: str) -> str:

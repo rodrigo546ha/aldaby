@@ -116,6 +116,65 @@ def test_las_citas_toleran_espacios_y_guiones_distintos():
         "verificado")
 
 
+def test_un_texto_corto_tiene_que_ser_palabra_entera_de_la_cita():
+    # qwen3:8b dio la planta «0» con una cita en la que el 0 solo está dentro de otros números.
+    source = "en la calle Agustín de Foxá, 28-30, planta baja; 2.050 m2"
+    assert check_field(source, q("0", "Foxá, 28-30, planta baja"), "text").status == "rechazado"
+    assert check_field(source, q("baja", "Foxá, 28-30, planta baja"), "text").status == (
+        "verificado")
+    assert check_field(source, q("30, planta", "28-30, planta baja"), "text").status == (
+        "verificado")
+
+
+# --- Cada cita, en el tramo de su lote (ADR-0014) ----------------------------------------------
+# qwen3:8b devolvió el lote 2 con la referencia catastral, el precio y la garantía del lote 1: las
+# citas están en el documento, pero en el tramo del lote 1.
+
+COPIED_LOT_2 = lot(
+    label=q("Lote 2", "Lote 2: Urbana"),
+    # La dirección es la misma en los dos lotes y también está escrita en el tramo del lote 2.
+    address=q("Carretera M-119 (Camarma-Valdeavero), n°21",
+              "situado en la Carretera M-119 (Camarma-Valdeavero), n°21, de Alcalá de Henares"),
+    cadastral_ref=LOT_1.cadastral_ref,
+    price=LOT_1.price,
+    deposit=LOT_1.deposit,
+)
+
+
+def test_una_cita_de_otro_lote_se_rechaza():
+    raw = DocumentExtraction(is_correction=False, corrected_reference=NONE,
+                             lots=[LOT_1, COPIED_LOT_2])
+    first, second = check_document(TEXT, raw).lots
+    assert first.value("price") == Decimal("25802189")  # el lote 1 no cambia
+    assert second.value("address") == "Carretera M-119 (Camarma-Valdeavero), n°21"
+    for name in ("cadastral_ref", "price", "deposit"):
+        assert second.value(name) is None
+        assert second.fields[name].reason == "la cita no está en el tramo de su lote"
+
+
+def test_sin_etiqueta_no_hay_tramo_y_el_lote_se_rechaza():
+    unlabeled = lot(price=q("6778639", "El tipo de licitación es 6.778.639 €"))
+    raw = DocumentExtraction(is_correction=False, corrected_reference=NONE,
+                             lots=[LOT_1, unlabeled])
+    second = check_document(TEXT, raw).lots[1]
+    assert second.value("price") is None
+    assert second.fields["price"].reason == "no se sabe qué tramo del documento es de este lote"
+    assert second.property_type is None
+
+
+def test_dos_lotes_con_la_misma_etiqueta_se_rechazan_los_dos():
+    twin = lot(label=q("Lote 1", "Lote 1: Urbana"),
+               price=q("25802189", "El tipo de licitación es 25.802.189 €"))
+    raw = DocumentExtraction(is_correction=False, corrected_reference=NONE, lots=[LOT_1, twin])
+    assert all(checked.value("price") is None for checked in check_document(TEXT, raw).lots)
+
+
+def test_un_solo_lote_usa_todo_el_documento():
+    single = lot(price=q("6778639", "El tipo de licitación es 6.778.639 €"))
+    raw = DocumentExtraction(is_correction=False, corrected_reference=NONE, lots=[single])
+    assert check_document(TEXT, raw).lots[0].value("price") == Decimal("6778639")
+
+
 def test_el_documento_va_como_dato():
     llm = FakeLLMClient(lambda instructions, document, output: EXTRACTION)
     extract(llm, TEXT)

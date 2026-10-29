@@ -31,6 +31,8 @@ que vea el usuario la genera un LLM.
   2. el valor sale de la cita: un importe o una superficie tiene que ser uno de los números de la cita;
      una referencia catastral tiene que estar en la cita y tener el formato del Catastro; un texto
      (dirección, municipio) tiene que estar contenido en la cita.
+  3. ADR-0014 añade: con varios lotes, la cita tiene que estar en el tramo de su lote, y un texto
+     tiene que estar en la cita como palabras enteras.
 
   Lo que no pasa la comprobación se descarta con su motivo. Así ninguna cifra extraída es inventada:
   todas están escritas en la fuente.

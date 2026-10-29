@@ -163,8 +163,8 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
 - [ ] F4.4 Anuncios de la sección V del BOE: Seguridad Social, INVIED, Patrimonio del Estado.
       *Estado:* el canal `boe_seccion_v` guarda cada día los anuncios enteros y el trabajo
       `extract_offers` extrae sus lotes con evidencia comprobada (ADR-0013), los ubica y los
-      deduplica. Falta enlazar las correcciones de errores con su anuncio y comprobar que cada
-      cita cae en el tramo de su lote (ADR-0014: el modelo pequeño copió el lote 1 en el lote 2).
+      deduplica; cada cita tiene que estar en el tramo de su lote (ADR-0014). Falta enlazar las
+      correcciones de errores con su anuncio.
       Volumen: `docs/research/f4-volumen-boe.md`.
 - [ ] F4.5 Servicers (Solvia, Servihabitat, Aliseda, Altamira, Hipoges): revisar términos de uso de
       cada web, ADR por servicer y contacto comercial para acuerdo.
