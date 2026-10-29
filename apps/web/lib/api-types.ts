@@ -404,6 +404,10 @@ export interface components {
             fields: components["schemas"]["FieldOut"][];
             /** Located */
             located: boolean;
+            /** Location Source */
+            location_source: string | null;
+            /** Attribution */
+            attribution: string | null;
             /** Section Code */
             section_code: string | null;
             /** Municipality */

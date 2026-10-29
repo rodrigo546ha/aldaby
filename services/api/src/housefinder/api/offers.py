@@ -15,15 +15,17 @@ from pydantic import BaseModel, Field
 
 from housefinder.agent.extraction import LISTING_KINDS
 from housefinder.db.offers import PrivateOffer, get_private_offer, list_private_offers
+from housefinder.geo import cartociudad, catastro
 from housefinder.offers.link import LinkRefused
-from housefinder.offers.locate import address_locator
+from housefinder.offers.locate import offer_locator
 from housefinder.offers.pasted import ConfirmationError, confirm, submit_link, submit_text
 
-from .deps import DbDep, GeocoderDep, LinkClientDep, OrgDep, ResolverDep
+from .deps import DbDep, GeocoderDep, LinkClientDep, OrgDep, ParcelFinderDep, ResolverDep
 
 router = APIRouter(prefix="/offers", tags=["ofertas"])
 
 ExtractionStatus = Literal["pendiente", "extraida", "confirmada"]
+LOCATION_ATTRIBUTION = {"catastro": catastro.ATTRIBUTION, "cartociudad": cartociudad.ATTRIBUTION}
 
 
 class LinkIn(BaseModel):
@@ -66,6 +68,8 @@ class OfferOut(OfferSummary):
     property_type: str | None
     fields: list[FieldOut]
     located: bool
+    location_source: str | None  # 'catastro' o 'cartociudad'
+    attribution: str | None  # cita de la fuente de la ubicación
     section_code: str | None
     municipality: str | None
 
@@ -99,10 +103,10 @@ def get_offer(offer_id: UUID, db: DbDep, org: OrgDep) -> OfferOut:
 
 @router.post("/{offer_id}/confirm")
 def post_confirm(offer_id: UUID, body: ConfirmIn, db: DbDep, org: OrgDep,
-                 geocoder: GeocoderDep) -> OfferOut:
+                 geocoder: GeocoderDep, parcels: ParcelFinderDep) -> OfferOut:
     try:
         done = confirm(db, org, offer_id, body.values, body.operation,
-                       address_locator(db, geocoder))
+                       offer_locator(db, geocoder, parcels))
     except ConfirmationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     if not done:
@@ -145,6 +149,8 @@ def _detail(db: DbDep, org: UUID, offer_id: UUID) -> OfferOut:
         property_type=listing.get("property_type"),
         fields=fields,
         located=offer.property_id is not None,
+        location_source=offer.location_source,
+        attribution=LOCATION_ATTRIBUTION.get(offer.location_source or ""),
         section_code=offer.section_code,
         municipality=offer.municipality,
     )

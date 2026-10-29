@@ -235,7 +235,7 @@ def geocoder_at(lon: float, lat: float):
 @pytest.mark.db
 def test_enlace_pegado_extraido_y_confirmado(migrated_database: str, org):
     from housefinder.db.offers import get_private_offer, list_private_offers
-    from housefinder.offers.locate import address_locator
+    from housefinder.offers.locate import offer_locator
     from housefinder.offers.pasted import ConfirmationError, confirm, extract_link, submit_link
 
     client, _ = site({URL: html()})
@@ -269,7 +269,7 @@ def test_enlace_pegado_extraido_y_confirmado(migrated_database: str, org):
         assert get_private_offer(conn, submitted.offer_id, other) is None
         add_section(migrated_database, "2806597001", -3.7322, 40.3057)
         geocode = geocoder_at(-3.7322, 40.3057)
-        locate = address_locator(conn, geocode)
+        locate = offer_locator(conn, geocode)
         assert not confirm(conn, other, submitted.offer_id, {"price": "1"}, "venta", locate)
 
         with pytest.raises(ConfirmationError):
@@ -338,7 +338,7 @@ def test_mismo_municipio(expected, matched, same):
 @pytest.mark.db
 def test_un_punto_fuera_de_la_zona_o_de_otro_municipio_no_ubica(migrated_database: str):
     from housefinder.geo.cartociudad import Geocoded
-    from housefinder.offers.locate import address_locator
+    from housefinder.offers.locate import offer_locator
     from housefinder.offers.model import NormalizedOffer
 
     add_section(migrated_database, "2800597002", -3.3640, 40.4820)
@@ -355,7 +355,7 @@ def test_un_punto_fuera_de_la_zona_o_de_otro_municipio_no_ubica(migrated_databas
                                municipality=municipality)
 
     with psycopg.connect(migrated_database) as conn:
-        locate = address_locator(conn, geocoder)
+        locate = offer_locator(conn, geocoder)
         # El punto de Murcia no cae en ninguna sección cargada.
         assert locate(offer(f"Carretera M-119 21 {uuid4()}", None)) is None
         # Dentro de la zona, pero la localidad encontrada no es el municipio de la oferta.

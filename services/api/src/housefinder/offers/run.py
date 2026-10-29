@@ -14,10 +14,11 @@ from housefinder.db.connection import connect
 from housefinder.db.review_tasks import mark_issue_read, read_issues
 from housefinder.db.sections import SourceRecord, upsert_source
 from housefinder.geo.cartociudad import Geocoded, geocode
+from housefinder.geo.catastro import Parcel, find_parcel
 from housefinder.offers.channels import boe_v
 from housefinder.offers.extract import extract_pending
 from housefinder.offers.ingest import IngestReport, ingest
-from housefinder.offers.locate import address_locator
+from housefinder.offers.locate import offer_locator
 from housefinder.offers.pasted import extract_link
 
 ISSUES = "offers_boe_v"  # días del BOE ya leídos por este canal
@@ -29,6 +30,7 @@ def run_boe_v(
     today: date,
     days: int = 7,
     geocoder: Callable[[str], Geocoded] | None = None,
+    parcels: Callable[[str], Parcel] | None = None,
 ) -> dict[str, Any]:
     """Lee los días del BOE de los últimos `days` que este canal no ha leído aún."""
     total = IngestReport()
@@ -37,7 +39,8 @@ def run_boe_v(
                                          boe_v.LICENSE, datetime.now(UTC)))
         conn.commit()
         done = read_issues(conn, ISSUES)
-        locate = address_locator(conn, geocoder or (lambda address: geocode(client, address)))
+        locate = offer_locator(conn, geocoder or (lambda address: geocode(client, address)),
+                               parcels or (lambda ref: find_parcel(client, ref)))
         for offset in range(days):
             day = today - timedelta(days=offset)
             if day.isoformat() in done:
@@ -58,10 +61,12 @@ def extract_boe_v(
     llm: LLMClient,
     limit: int = 20,
     geocoder: Callable[[str], Geocoded] | None = None,
+    parcels: Callable[[str], Parcel] | None = None,
 ) -> dict[str, Any]:
     """Extrae los lotes de hasta `limit` anuncios pendientes del BOE (ADR-0013)."""
     with connect(conninfo) as conn:
-        locate = address_locator(conn, geocoder or (lambda address: geocode(client, address)))
+        locate = offer_locator(conn, geocoder or (lambda address: geocode(client, address)),
+                               parcels or (lambda ref: find_parcel(client, ref)))
         return extract_pending(conn, llm, boe_v.NAME, locate, limit).as_dict()
 
 

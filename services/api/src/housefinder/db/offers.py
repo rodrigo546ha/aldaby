@@ -207,6 +207,7 @@ class PrivateOffer:
     address: str | None
     cadastral_ref: str | None
     property_id: UUID | None
+    location_source: str | None
     section_code: str | None
     municipality: str | None
     first_seen: datetime
@@ -214,7 +215,8 @@ class PrivateOffer:
 
 _PRIVATE = """
     SELECT o.id, o.url, o.title, o.extraction_status, o.extracted, o.raw, o.asking_price,
-           o.built_area_m2, o.address, o.cadastral_ref, o.property_id, p.section_code,
+           o.built_area_m2, o.address, o.cadastral_ref, o.property_id, o.location_source,
+           p.section_code,
            p.municipality, o.first_seen
     FROM offers o LEFT JOIN properties p ON p.id = o.property_id
 """

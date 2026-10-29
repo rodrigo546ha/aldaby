@@ -239,7 +239,8 @@ function OfferDetail({ offer, onSaved }: { offer: OfferOut; onSaved: (offer: Off
         <p className="empty">
           {offer.status === "confirmada"
             ? offer.located
-              ? `Datos confirmados. Ubicado en la sección censal ${offer.section_code ?? "—"}.`
+              ? `Datos confirmados. Ubicado en la sección censal ${offer.section_code ?? "—"}` +
+                (offer.attribution ? ` (${offer.attribution}).` : ".")
               : "Datos confirmados. No se ha podido ubicar: revisa la dirección y el municipio."
             : "Revisa cada dato con la frase de la que sale. Corrige o completa lo que haga falta."}
         </p>

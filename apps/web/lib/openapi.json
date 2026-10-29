@@ -1266,6 +1266,28 @@
             "type": "boolean",
             "title": "Located"
           },
+          "location_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Source"
+          },
+          "attribution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attribution"
+          },
           "section_code": {
             "anyOf": [
               {
@@ -1302,6 +1324,8 @@
           "property_type",
           "fields",
           "located",
+          "location_source",
+          "attribution",
           "section_code",
           "municipality"
         ],

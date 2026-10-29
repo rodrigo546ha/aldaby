@@ -516,6 +516,7 @@ Qué revisaría al crecer:
 | 0013 | Cliente del LLM propio y extracción con evidencia comprobada | G5 |
 | 0014 | Modelo de código abierto en un servidor propio | G5 |
 | 0015 | Enlace pegado por el usuario | G5 |
+| 0016 | Ubicación de ofertas por referencia catastral | G5 |
 | — | Librería de modelos estadísticos | G6 |
 | — | Motor de PDF | G7 |
 | — | Autenticación y despliegue | G8 |

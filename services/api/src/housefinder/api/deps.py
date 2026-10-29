@@ -13,6 +13,7 @@ from fastapi import Depends, HTTPException
 from housefinder.db.connection import Connection, DatabaseUnavailable, connect
 from housefinder.db.profiles import get_or_create_organization
 from housefinder.geo.cartociudad import Geocoded, geocode
+from housefinder.geo.catastro import Parcel, find_parcel
 from housefinder.offers.link import Resolver, link_client, system_resolve
 from housefinder.params.book import ParamBook, default_params_dir
 from housefinder.regulation.rules import RuleBook, default_rules_dir
@@ -58,6 +59,11 @@ def get_org(db: DbDep) -> UUID:
     return org_id
 
 
+def get_parcel_finder() -> Iterator[Callable[[str], Parcel]]:
+    with httpx.Client(headers={"User-Agent": "HouseFinder/0.1 (datos abiertos)"}) as client:
+        yield lambda ref: find_parcel(client, ref)
+
+
 def get_link_client() -> Iterator[httpx.Client]:
     with link_client() as client:
         yield client
@@ -68,5 +74,6 @@ def get_resolver() -> Resolver:
 
 
 OrgDep = Annotated[UUID, Depends(get_org)]
+ParcelFinderDep = Annotated[Callable[[str], Parcel], Depends(get_parcel_finder)]
 LinkClientDep = Annotated[httpx.Client, Depends(get_link_client)]
 ResolverDep = Annotated[Resolver, Depends(get_resolver)]

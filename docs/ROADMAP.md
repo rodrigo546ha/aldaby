@@ -175,7 +175,9 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       cada web, ADR por servicer y contacto comercial para acuerdo.
 - [x] F4.6 Normalización y deduplicación por referencia catastral y geolocalización: interfaz
       `Channel`, lo recibido siempre guardado con sus versiones, inmueble por referencia catastral o
-      a menos de 30 m con superficie a ±5 %, y sección censal asignada.
+      a menos de 30 m con superficie a ±5 %, y sección censal asignada. Ubicación por referencia
+      catastral (Catastro, ADR-0016) y, si no, por dirección; el punto tiene que caer en la zona
+      cargada y en el municipio de la oferta.
 - [x] F4.7 Trabajos programados con reintentos y alertas de fallo (ADR-0010): cola en PostgreSQL con
       `SKIP LOCKED`, esperas de 1 minuto a 1 hora, programaciones por intervalo, alertas en el log
       `housefinder.alertas`; `make worker`. Primeros tipos: `ine_sections` e `ine_adrh`.

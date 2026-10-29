@@ -22,6 +22,7 @@ from housefinder.db.sections import (
     stable_vintages,
     upsert_source,
 )
+from housefinder.geo import catastro
 from housefinder.geo.cartociudad import (
     ATTRIBUTION,
     FIND_URL,
@@ -31,6 +32,7 @@ from housefinder.geo.cartociudad import (
     Geocoded,
     normalize,
 )
+from housefinder.geo.catastro import Parcel
 from housefinder.ingestion.ine_sections import LICENSE as INE_LICENSE
 from housefinder.territory.figures import STABILITY_TOLERANCE, Context, territory_figures
 
@@ -83,6 +85,30 @@ def locate_address(
     else:
         from_cache = True
     return Location(cached.lon, cached.lat, address, cached.matched, cached.match_type,
+                    cached.cadastral_ref, from_cache)
+
+
+def locate_parcel(
+    conn: Connection, cadastral_ref: str, finder: Callable[[str], Parcel]
+) -> Location:
+    """Centroide de la parcela de una referencia catastral (ADR-0016), con la misma caché."""
+    ref = catastro.parcel_ref(cadastral_ref)
+    query = f"rc:{ref}"
+    cached = get_cached(conn, query, CACHE_MAX_AGE)
+    if cached is None:
+        found = finder(ref)
+        cached = CachedGeocode(found.lon, found.lat, "parcela", found.address, None,
+                               found.parcel_ref)
+        upsert_source(conn, SourceRecord(catastro.SOURCE_ID, catastro.SOURCE_NAME,
+                                         catastro.CPMRC_URL, catastro.ATTRIBUTION,
+                                         datetime.now(UTC),
+                                         f"Condiciones: {catastro.LICENSE_URL} (por verificar)"))
+        put_cached(conn, query, cached, catastro.SOURCE_ID)
+        conn.commit()
+        from_cache = False
+    else:
+        from_cache = True
+    return Location(cached.lon, cached.lat, cadastral_ref, cached.matched, cached.match_type,
                     cached.cadastral_ref, from_cache)
 
 

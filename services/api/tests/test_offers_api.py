@@ -11,9 +11,16 @@ from fastapi.testclient import TestClient
 
 from housefinder.agent.extraction import ListingExtraction, Quoted
 from housefinder.agent.llm import FakeLLMClient
-from housefinder.api.deps import get_db, get_geocoder, get_link_client, get_resolver
+from housefinder.api.deps import (
+    get_db,
+    get_geocoder,
+    get_link_client,
+    get_parcel_finder,
+    get_resolver,
+)
 from housefinder.api.main import app
 from housefinder.geo.cartociudad import Geocoded
+from housefinder.geo.catastro import ParcelNotFound
 
 pytestmark = pytest.mark.db
 psycopg = pytest.importorskip("psycopg")
@@ -49,6 +56,9 @@ def client(migrated_database: str):
         with httpx.Client(transport=httpx.MockTransport(handler)) as http:
             yield http
 
+    def no_parcels(ref: str):
+        raise ParcelNotFound("sin red en los tests")
+
     def geocoder(address: str) -> Geocoded:
         return Geocoded(-3.7322, 40.3057, "portal", address, "28901", None)
 
@@ -56,6 +66,7 @@ def client(migrated_database: str):
     app.dependency_overrides[get_link_client] = link_client
     app.dependency_overrides[get_resolver] = lambda: (lambda host, port: ["93.184.216.34"])
     app.dependency_overrides[get_geocoder] = lambda: geocoder
+    app.dependency_overrides[get_parcel_finder] = lambda: no_parcels
     try:
         yield TestClient(app), pages
     finally:
@@ -108,6 +119,8 @@ def test_enlace_pegado_de_punta_a_punta(client, migrated_database: str):
     offer = confirmed.json()
     fields = {f["name"]: f for f in offer["fields"]}
     assert offer["status"] == "confirmada" and offer["located"]
+    assert offer["location_source"] == "cartociudad"
+    assert offer["attribution"].startswith("CC BY 4.0")
     assert fields["price"]["origin"] == "extraido"
     assert fields["community_fees"] == {**fields["community_fees"], "confirmed": "65",
                                         "origin": "usuario"}
