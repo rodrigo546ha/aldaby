@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -140,6 +141,9 @@ class BuyerRequest(BaseModel):
     marginal_rate: Decimal | None = Field(
         default=None, ge=0, le=1, description="Supuesto si no se conoce la base"
     )
+    savings_base: Decimal = Field(
+        default=Decimal(0), ge=0, description="Base del ahorro del año de la venta, sin ella"
+    )
 
 
 class PropertyRequest(BaseModel):
@@ -147,7 +151,7 @@ class PropertyRequest(BaseModel):
     territory: str = Field(pattern=r"^ES-\d{2}-\d{5}$", description="Municipio (ES-13-28079)")
     construction_value: Decimal = Field(ge=0, description="Base de la amortización fiscal")
     other_purchase_cost_rate: Decimal = Field(
-        ge=0, le=Decimal("0.3"), description="Notaría, registro, gestoría y tasación"
+        ge=0, le=Decimal("0.3"), description="Gestoría, tasación y copias"
     )
     community_fees_monthly: Decimal = Field(ge=0)
     insurance_annual: Decimal = Field(ge=0)
@@ -155,6 +159,12 @@ class PropertyRequest(BaseModel):
     new_build: bool = False
     cadastral_value: Decimal | None = Field(default=None, ge=0)
     ibi_annual: Decimal | None = Field(default=None, ge=0)
+    cadastral_land_value: Decimal | None = Field(
+        default=None, ge=0, description="Valor catastral del suelo, para la plusvalía"
+    )
+    deed_agreement: Literal["ley", "comprador", "vendedor"] = Field(
+        default="ley", description="Quién paga la escritura de compra; «ley»: Código Civil"
+    )
 
 
 class OfferRequest(BaseModel):
@@ -184,8 +194,9 @@ class RentalRequest(BaseModel):
 
 class ExitRequest(BaseModel):
     appreciation_rate: Decimal = Field(ge=Decimal("-0.2"), le=Decimal("0.2"))
-    sale_cost_rate: Decimal = Field(ge=0, le=Decimal("0.2"))
-    capital_gains_tax_rate: Decimal = Rate
+    sale_cost_rate: Decimal = Field(
+        ge=0, le=Decimal("0.2"), description="Agencia y otros gastos de venta de mercado"
+    )
     horizon_years: int = Field(default=10, ge=1, le=40)
 
 

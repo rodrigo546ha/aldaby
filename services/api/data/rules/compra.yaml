@@ -1,0 +1,92 @@
+# Gastos y tributos estatales de la compra (F2.3, tanda 4). Ver README.md y
+# docs/normativa/verificacion-tanda-4.md.
+# SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Valores copiados del texto consolidado del BOE (consultado el 2026-10-29).
+
+# --- IVA ------------------------------------------------------------------------------------
+
+# Ley 37/1992, art. 91.Uno.1.7.º: 10 % en las entregas de viviendas (primera entrega; las
+# segundas entregas están exentas y pagan ITP). El RDL 29/2026 no cambia este número.
+# Desde 2013: antes hubo un 4 % temporal (RDL 9/2011, prorrogado hasta el 31/12/2012), no modelado.
+- id: iva-vivienda-nueva-2013
+  kind: iva_vivienda_nueva
+  territory: ES
+  effective_from: 2013-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.10}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1992-28740#a91
+  notes: "No incluye el 4 % de las VPO de régimen especial (art. 91.Dos.1.6.º)."
+
+# Ley 37/1992, art. 90.Uno: 21 % desde el 01/09/2012 (RDL 20/2012). Se aplica a los honorarios
+# de notarios y registradores.
+- id: iva-tipo-general-2012
+  kind: iva_tipo_general
+  territory: ES
+  effective_from: 2012-09-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.21}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1992-28740#a90
+
+# --- Aranceles ------------------------------------------------------------------------------
+
+# RD 1426/1989, anexo I, número 2.1 (documentos de cuantía), redacción del RD 1612/2011, con la
+# rebaja del 5 %. Tramos «por el exceso» en tanto por uno (4,5 por mil = 0.0045). No incluye
+# folios de matriz (número 7), copias (número 4) ni suplidos.
+- id: arancel-notarial-documentos-cuantia
+  kind: arancel_notarial
+  territory: ES
+  effective_from: 2011-11-18
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    base_fee: 90.151816
+    bands:
+      - {from: 6010.12, rate: 0.0045}
+      - {from: 30050.61, rate: 0.0015}
+      - {from: 60101.21, rate: 0.001}
+      - {from: 150253.03, rate: 0.0005}
+      - {from: 601012.10, rate: 0.0003}
+    max_base: 6010121.04
+    rebate: 0.05
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1989-28111#ani
+
+# RD 1427/1989, anexo I, número 2.1 (inscripciones), redacción del RD 1612/2011: mínimo
+# 24,040484 €, máximo 2.181,673939 € y rebaja del 5 %. No incluye el asiento de presentación
+# (número 1), notas ni certificaciones.
+- id: arancel-registral-inscripciones
+  kind: arancel_registral
+  territory: ES
+  effective_from: 2011-11-18
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    base_fee: 24.040484
+    bands:
+      - {from: 6010.12, rate: 0.00175}
+      - {from: 30050.61, rate: 0.00125}
+      - {from: 60101.21, rate: 0.00075}
+      - {from: 150253.03, rate: 0.0003}
+      - {from: 601012.10, rate: 0.0002}
+    min_fee: 24.040484
+    max_fee: 2181.673939
+    rebate: 0.05
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1989-28112#numero2
+  notes: "Orden supuesto: límites mínimo y máximo y después la rebaja del 5 % (por verificar)."
+
+# Código Civil, art. 1455: salvo pacto, la escritura la paga el vendedor y la primera copia y
+# lo posterior a la venta (inscripción), el comprador.
+- id: cc-gastos-compraventa
+  kind: pagador_escritura_compraventa
+  territory: ES
+  effective_from: 1889-08-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {deed: vendedor, first_copy: comprador}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1889-4763#art1455

@@ -72,3 +72,25 @@
   params: {first: 2575.85, second: 2897.83, third: 4400, fourth_and_more: 4950, under_3_extra: 3005.16}
   source_url: https://www.boe.es/buscar/act.php?id=BOCM-m-2010-90068#a2-3
   notes: "Decreto Legislativo 1/2010 de la Comunidad de Madrid, art. 2 bis, redacción de la Ley 13/2023."
+
+# AJD de la escritura de compra de vivienda sujeta a IVA: DL 1/2010, art. 32 (redacción de la
+# Ley 6/2013, desde el 01/01/2014), adquirente persona física: 0,4 % hasta 120.000 €, 0,5 %
+# hasta 180.000 € y 0,75 % por encima, sobre TODO el valor; art. 37: el salto entre bandas no
+# puede subir la cuota más que la base. Persona jurídica: art. 36, 0,75 %.
+# No incluye el 0,2 % de las viviendas de protección pública de hasta 90 m² (art. 32.1.a).
+- id: madrid-ajd-compra-vivienda-2014
+  kind: ajd_compra_vivienda
+  territory: ES-13
+  effective_from: 2014-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: 120000, rate: 0.004}
+      - {up_to: 180000, rate: 0.005}
+      - {up_to: null, rate: 0.0075}
+    cap_jumps: true
+    legal_person_rate: 0.0075
+  source_url: https://www.boe.es/buscar/act.php?id=BOCM-m-2010-90068#a32
+  notes: "Art. 33 (hipoteca) no aplica al comprador: desde el RDL 17/2018 el sujeto pasivo es el prestamista."

@@ -121,8 +121,12 @@ def test_normativa_pendiente_aplicable():
     # En noviembre de 2026 ya rigen (pendientes) los cambios de la LAU del RDL 29/2026…
     noviembre = book.pending(MADRID, date(2026, 11, 15), allow_unverified=True)
     assert {r.id for r in noviembre} == lau
-    # …y desde el 1 de diciembre, también la nueva reducción del IRPF.
+    # …y desde el 1 de diciembre, también la nueva reducción del IRPF y los coeficientes
+    # máximos de la plusvalía.
     enero = book.pending(MADRID, date(2027, 1, 15), allow_unverified=True)
-    assert {r.id for r in enero} == lau | {"irpf-reduccion-alquiler-rdl-29-2026"}
+    assert {r.id for r in enero} == lau | {
+        "irpf-reduccion-alquiler-rdl-29-2026",
+        "plusvalia-coeficientes-maximos-rdl-29-2026",
+    }
     # Antes del RDL 29/2026 no hay nada pendiente.
     assert book.pending(MADRID, date(2026, 9, 1), allow_unverified=True) == []

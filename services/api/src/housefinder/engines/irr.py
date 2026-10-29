@@ -7,10 +7,13 @@ además, la venta neta.
 
 Supuestos explícitos:
 - Renta y gastos constantes en euros corrientes; solo se revaloriza el precio.
-- La venta resta gastos de venta, el capital pendiente del préstamo y un impuesto sobre la
-  ganancia = venta − gastos − (precio + gastos de compra + reforma − amortizaciones
-  fiscales acumuladas). El tipo llega como parámetro con sus fuentes; la forma exacta de
-  la base y de la escala del impuesto es normativa y se revisa en F2.
+- La venta resta gastos de venta, el capital pendiente del préstamo y el impuesto sobre la
+  ganancia (Ley del IRPF, art. 35) = venta − gastos y tributos de la venta − (precio +
+  gastos de compra + reforma − amortizaciones fiscales acumuladas).
+- El impuesto es la cuota incremental de la base del ahorro (como el ADR-0007 para el
+  alquiler) o, si no se conoce, la ganancia por un tipo dado como supuesto.
+- Los gastos de venta que dependen del precio de venta y de la normativa (plusvalía
+  municipal, escritura) llegan ya calculados en `extra_sale_costs`.
 """
 
 from __future__ import annotations
@@ -28,6 +31,7 @@ from housefinder.engines.cashflow import (
     TaxParams,
     compute_cashflow,
 )
+from housefinder.engines.irpf import IncomeTaxProfile, incremental_tax
 from housefinder.engines.mortgage import AmortizationRow, amortization_schedule
 
 LOW_RATE = Decimal("-0.99")
@@ -72,6 +76,12 @@ class IrrResult:
     no_irr_reason: str
     sale_price: Figure
     net_sale_proceeds: Figure  # venta − gastos − préstamo pendiente − impuesto
+    capital_gains_tax: Figure
+
+
+def projected_sale_price(price: Decimal, appreciation_rate: Decimal, years: int) -> Decimal:
+    """Precio de venta con revalorización anual compuesta."""
+    return money(price * (1 + appreciation_rate) ** years)
 
 
 def investment_irr(
@@ -82,21 +92,28 @@ def investment_irr(
     loan_years: int,
     appreciation_rate: Decimal,
     sale_cost_rate: Decimal,
-    capital_gains_tax_rate: Decimal,
+    capital_gains_tax_rate: Decimal | None = None,
     horizon_years: int = 10,
     rate_sources: tuple[SourceRef, ...] = (),
     appreciation_sources: tuple[SourceRef, ...] = (),
     sale_sources: tuple[SourceRef, ...] = (),
+    gains_tax_profile: IncomeTaxProfile | None = None,
+    extra_sale_costs: tuple[Figure, ...] = (),
 ) -> IrrResult:
     """TIR a `horizon_years` años.
 
     `investment.loan` se amortiza a `annual_rate` y `loan_years`; la cuota y los intereses
     de `investment` se ignoran y se toman del cuadro año a año.
     `appreciation_rate`: revalorización anual del precio (escenario de F5).
-    `sale_cost_rate` y `capital_gains_tax_rate`: tanto por uno; llegan con `sale_sources`.
+    `sale_cost_rate`: gastos de venta sobre el precio (agencia…), con `sale_sources`.
+    Impuesto: `gains_tax_profile` (base del ahorro sin la venta y escalas) o
+    `capital_gains_tax_rate` (supuesto), uno de los dos.
+    `extra_sale_costs`: gastos y tributos de la venta ya calculados; restan de la ganancia.
     """
     if horizon_years <= 0:
         raise ValueError("El horizonte debe ser positivo")
+    if (capital_gains_tax_rate is None) == (gains_tax_profile is None):
+        raise ValueError("Indica el tipo de la ganancia o el perfil del ahorro, uno de los dos")
 
     rows = _schedule(investment, annual_rate, loan_years)
     acquisition = investment.price + investment.purchase_costs + investment.renovation
@@ -107,16 +124,34 @@ def investment_irr(
             year_result.annual_operating_cashflow.value - year_result.annual_tax.value
         )
 
-    sale_price = money(investment.price * (1 + appreciation_rate) ** horizon_years)
-    sale_costs = money(sale_price * sale_cost_rate)
+    sale_price = projected_sale_price(investment.price, appreciation_rate, horizon_years)
+    sale_costs = money(sale_price * sale_cost_rate) + sum(
+        (f.value for f in extra_sale_costs), Decimal(0)
+    )
     depreciated = investment.construction_value * tax.depreciation_rate * horizon_years
     gain = sale_price - sale_costs - (acquisition - depreciated)
-    gains_tax = money(max(gain, Decimal(0)) * capital_gains_tax_rate)
+    if gains_tax_profile is not None:
+        gains_tax = max(incremental_tax(gain, gains_tax_profile), Decimal(0))
+        gains_formula = (
+            "cuota del ahorro con la ganancia − sin ella; ganancia = venta − gastos y "
+            "tributos de la venta − (precio + gastos de compra + reforma − amortizaciones)"
+        )
+        gains_sources = gains_tax_profile.sources
+    elif capital_gains_tax_rate is not None:
+        gains_tax = money(max(gain, Decimal(0)) * capital_gains_tax_rate)
+        gains_formula = (
+            "máx(0, ganancia) × tipo; ganancia = venta − gastos y tributos de la venta − "
+            "(precio + gastos de compra + reforma − amortizaciones)"
+        )
+        gains_sources = ()
+    else:  # comprobado arriba; se deja explícito
+        raise ValueError("Falta el tipo de la ganancia o el perfil del ahorro")
     months = horizon_years * 12
     pending_loan = rows[months - 1].balance if months <= len(rows) else Decimal(0)
     net_sale = money(sale_price - sale_costs - pending_loan - gains_tax)
     flows[-1] += net_sale
 
+    extra_sources = combine_sources(*(f.sources for f in extra_sale_costs))
     sources = combine_sources(
         investment.sources,
         rent.sources,
@@ -124,6 +159,8 @@ def investment_irr(
         rate_sources,
         appreciation_sources,
         sale_sources,
+        gains_sources,
+        extra_sources,
     )
     sale_sources_all = combine_sources(investment.sources, appreciation_sources)
     value, reason = _solve_irr(flows)
@@ -150,8 +187,17 @@ def investment_irr(
             "irr.net_sale_proceeds",
             net_sale,
             "EUR",
-            "venta − gastos de venta − préstamo pendiente − impuesto sobre la ganancia",
+            "venta − gastos y tributos de la venta − préstamo pendiente − impuesto sobre "
+            "la ganancia",
             sources,
+        ),
+        capital_gains_tax=Figure(
+            "irr.capital_gains_tax",
+            gains_tax,
+            "EUR",
+            gains_formula,
+            combine_sources(investment.sources, appreciation_sources, sale_sources,
+                            gains_sources, extra_sources, tax.sources),
         ),
     )
 

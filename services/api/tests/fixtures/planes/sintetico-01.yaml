@@ -5,7 +5,11 @@
 # - cuota francesa: P·r·(1+r)^n / ((1+r)^n − 1), r = tipo / 12, n = años × 12;
 # - intereses del primer año: 12 × cuota − (P − saldo tras 12 meses);
 # - IRPF incremental: escalas estatal y de Madrid tramo a tramo; con base 25.000 € el
-#   rendimiento cae en los tramos del 15 % y del 12,8 % (27,8 % en total).
+#   rendimiento cae en los tramos del 15 % y del 12,8 % (27,8 % en total);
+# - aranceles tramo a tramo con la rebaja del 5 % y el 21 % de IVA; la escritura de compra la
+#   paga el vendedor (Código Civil, art. 1455) y la de venta, el usuario como vendedor;
+# - plusvalía: suelo 40.000 € × coeficiente a 10 años 0,12 × 29 % (el incremento real, mayor);
+# - ganancia: escala del ahorro estatal + autonómica, con el mínimo absorbido por la base general.
 # Reglas y parámetros: los del repositorio a 2026-10-28 (sin verificar: PROVISIONAL).
 description: "Piso usado en Madrid capital, 200.000 €, primer alquiler, comprador de 40 años"
 request:
@@ -20,11 +24,12 @@ request:
     price: 200000
     territory: ES-13-28079
     construction_value: 80000
-    other_purchase_cost_rate: 0.02
+    other_purchase_cost_rate: 0.005
     community_fees_monthly: 60
     insurance_annual: 250
     renovation: 10000
     cadastral_value: 100000
+    cadastral_land_value: 40000
   financing:
     annual_rate: 0.03
     rate_shock: 0.02
@@ -39,12 +44,12 @@ request:
   exit:
     appreciation_rate: 0.02
     sale_cost_rate: 0.03
-    capital_gains_tax_rate: 0.21
 expected:
-  affordability.max_price: 236842.11      # 90.000 / (1 − 0,70 + 0,06 + 0,02)
+  affordability.max_price: 245834.47      # 90.000 / (1 − 0,70 + 0,0661)
   affordability.max_payment: 1400.00      # 4.000 × 0,35
   purchase_costs.transfer_tax: 12000.00   # 200.000 × 6 %
-  purchase_costs.total: 16000.00
+  purchase_costs.registry: 214.05         # 186,2125 × 0,95 = 176,90; + 21 % IVA
+  purchase_costs.total: 13214.05          # + 1.000 de gestoría, tasación y copias
   financing.loan: 140000.00               # 200.000 × 0,70
   mortgage.monthly_payment: 663.90        # 663,8958
   mortgage.stressed_payment: 818.43       # 818,4261 al 5 %
@@ -52,7 +57,11 @@ expected:
   cashflow.annual_operating: 1479.25      # 11.400 − 1.954 − 12 × 663,8958
   cashflow.annual_tax: 402.85             # 1.449,11 × 27,8 %
   cashflow.monthly_after_tax: 89.70
-  cashflow.cash_invested: 86000.00
+  cashflow.cash_invested: 83214.05
+  cashflow.cash_on_cash: 0.0129           # 1.076,40 / 83.214,05
   term.recommended_years: 28              # primer plazo con cash flow ≥ 0 al 5 %
   term.stressed_monthly_payment: 775.00
   irr.sale_price: 243798.88               # 200.000 × 1,02^10
+  sale_costs.notary: 437.20               # 380,3347 × 0,95 = 361,32; + 21 % IVA
+  sale_costs.municipal_gains_tax: 1392.00 # 40.000 × 0,12 × 29 %
+  irr.capital_gains_tax: 7322.74          # ganancia 35.441,66: 2 × (570 + 29.441,66 × 10,5 %)

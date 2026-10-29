@@ -1,7 +1,7 @@
 # Inventario de reglas para un plan de Madrid (F2.2)
 
-**Fecha:** 2026-10-28 · **Estado:** tanda 1 (1.1, 2.1, 2.2, 2.7) y tanda 2 (2.3–2.6) cargadas sin verificar; ver
-`docs/normativa/verificacion-tanda-1.md` y `verificacion-tanda-2.md`.
+**Fecha:** 2026-10-29 · **Estado:** tanda 1 (1.1, 2.1, 2.2, 2.7), tanda 2 (2.3–2.6) y tanda 4 (1.2–1.6,
+3.1, 3.3) cargadas sin verificar; ver `docs/normativa/verificacion-tanda-1.md`, `-2.md` y `-4.md`.
 
 Qué reglas legales necesita el motor para calcular un plan de inversión en Madrid
 (`ES-13`, municipio de Madrid `ES-13-28079`). **Aquí no hay valores**: cada regla se carga en
@@ -17,10 +17,10 @@ BOE o el BOCM, y anotar la URL exacta en `source_url`.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1.1 | ITP de vivienda usada | `impuesto_compra_segunda_mano` | ES-13 | gastos de compra → capacidad de compra, dinero aportado | Texto refundido de tributos cedidos de la Comunidad de Madrid; Texto refundido de la Ley del ITP y AJD | ✔ |
 | 1.2 | IVA de vivienda nueva | `iva_vivienda_nueva` | ES | gastos de compra | Ley 37/1992 del IVA | ✔ |
-| 1.3 | AJD de la compra de vivienda nueva | por definir | ES-13 | gastos de compra | DL 1/2010 de la Comunidad de Madrid, art. 32 | pendiente: el tipo depende del valor y se aplica al total |
-| 1.4 | Quién paga los gastos de la hipoteca (notaría, registro, AJD de la escritura de préstamo, gestoría) | por definir | ES | gastos de compra: qué parte paga el comprador | Ley 5/2019 de contratos de crédito inmobiliario; TR de la Ley del ITP y AJD | pendiente |
-| 1.5 | Arancel notarial de la compraventa | por definir | ES | gastos de compra | Real Decreto 1426/1989 (aranceles de los notarios) | pendiente |
-| 1.6 | Arancel registral de la compraventa | por definir | ES | gastos de compra | Real Decreto 1427/1989 (aranceles de los registradores) | pendiente |
+| 1.3 | AJD de la compra de vivienda nueva | `ajd_compra_vivienda` | ES-13 | gastos de compra | DL 1/2010 de la Comunidad de Madrid, arts. 32 y 37 | ✔ |
+| 1.4 | Quién paga los gastos de la hipoteca (notaría, registro, AJD de la escritura de préstamo, gestoría) | sin regla de cálculo | ES | gastos de compra: qué parte paga el comprador | Ley 5/2019, art. 14.1.e; TR de la Ley del ITP y AJD, art. 29 | ✔ resuelto: el comprador solo paga la tasación y sus copias (precios de mercado) |
+| 1.5 | Arancel notarial de la compraventa y quién lo paga | `arancel_notarial`, `pagador_escritura_compraventa` | ES | gastos de compra y de venta | RD 1426/1989, anexo I, número 2; Código Civil, art. 1455 | ✔ |
+| 1.6 | Arancel registral de la compraventa (con el IVA de los aranceles, `iva_tipo_general`) | `arancel_registral` | ES | gastos de compra | RD 1427/1989, anexo I, número 2 | ✔ |
 
 Para 1.1 y 1.3 hay que comprobar si existen tipos reducidos o bonificaciones según el
 comprador o el inmueble, y si alguno aplica a un inversor. Para 1.5 y 1.6, la escala depende del
@@ -45,9 +45,9 @@ Decidido calcular la **cuota incremental** del IRPF (ADR-0007): las filas 2.3 a 
 
 | # | Regla | `kind` | Territorio | Alimenta | Fuente candidata | Esquema |
 | --- | --- | --- | --- | --- | --- | --- |
-| 3.1 | Escala de la base del ahorro (ganancia patrimonial) | `escala_irpf_ahorro_estatal`, `escala_irpf_ahorro_autonomica` | ES, ES-13 | `capital_gains_tax_rate` de `investment_irr` | Ley 35/2006 del IRPF | ✔ |
-| 3.2 | Cálculo de la ganancia: valor de adquisición, mejoras, amortizaciones | por definir | ES | fórmula de la ganancia en `engines/irr.py` (hoy, aproximada) | Ley 35/2006 del IRPF (arts. 33–35) | pendiente |
-| 3.3 | Impuesto sobre el incremento de valor de los terrenos (plusvalía municipal) | por definir | ES-13-28079 | gastos de venta | Real Decreto Legislativo 2/2004 (Haciendas Locales); ordenanza fiscal de Madrid | pendiente |
+| 3.1 | Escala de la base del ahorro (ganancia patrimonial) | `escala_irpf_ahorro_estatal`, `escala_irpf_ahorro_autonomica` | ES (las dos, art. 76) | cuota incremental de la ganancia en `investment_irr` | Ley 35/2006 del IRPF, arts. 66 y 76 | ✔ |
+| 3.2 | Cálculo de la ganancia: valor de adquisición, mejoras, amortizaciones | sin regla de cálculo | ES | fórmula de la ganancia en `engines/irr.py` | Ley 35/2006 del IRPF, art. 35 (leído: la fórmula del motor coincide) | pendiente: amortización mínima (art. 40 del Reglamento) y reforma como mejora |
+| 3.3 | Impuesto sobre el incremento de valor de los terrenos (plusvalía municipal) | `coeficientes_plusvalia`, `tipo_plusvalia` | ES, ES-13-28079 | gastos de venta | TRLRHL, arts. 104.5 y 107; ordenanza fiscal de Madrid, arts. 10 y 17 | ✔ |
 
 ## 4. Fuera de F2.2
 
@@ -55,8 +55,10 @@ Decidido calcular la **cuota incremental** del IRPF (ADR-0007): las filas 2.3 a 
   (ver `verificacion-tanda-3.md`): zona tensionada (ninguna en la Comunidad de Madrid), y régimen y
   requisitos de los alquileres de vivienda habitual, temporada, habitaciones y turístico, con la LAU
   anterior como base y el RDL 29/2026 como escenario.
-- **RDL 29/2026, pendiente de revisar para las cifras:** art. 1 (límite a compras por debajo del 70 %
-  del valor para ciertas entidades), y arts. 7, 8 y 10 (IVA, Haciendas Locales, plusvalía municipal).
+- **RDL 29/2026, revisado:** art. 10 (coeficientes máximos de la plusvalía) cargado como pendiente;
+  arts. 7 y 8 (IVA de alquileres amueblados de hasta 30 noches y obras de renovación; recargos del IBI
+  a viviendas vacías o turísticas) anotados en `verificacion-tanda-4.md`, sin efecto en el plan de un
+  alquiler de larga duración. Art. 1 (compras por debajo del 70 % del valor), anotado en la tanda 3.
 - **No son reglas legales:** tasación, gestoría, comisiones de agencia, seguros y comunidad.
   Son precios de mercado: van como parámetros o supuestos con su fuente, no en `data/rules/`.
 

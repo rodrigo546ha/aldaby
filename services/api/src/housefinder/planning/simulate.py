@@ -3,15 +3,17 @@
 Un solo camino de cálculo (D4): el endpoint del simulador, el plan completo y el agente
 llaman a `simulate`. Compone, en este orden:
 
-1. Capacidad de compra con los criterios bancarios del `ParamBook` y la tasa de gastos de
-   compra (impuesto de la normativa + otros gastos como supuesto).
-2. Gastos de compra del inmueble: impuesto resuelto por el `RuleBook`; notaría, registro,
-   gestoría y tasación como tasa supuesta (PROVISIONAL hasta cargar sus reglas, F2.3).
+1. Gastos de compra que fija la normativa (impuesto, AJD, notaría si la paga el comprador,
+   registro) y los demás (gestoría, tasación, copias) como tasa supuesta del usuario.
+2. Capacidad de compra con los criterios bancarios del `ParamBook` y la tasa de gastos de
+   compra del inmueble simulado.
 3. Hipoteca a tipo fijo: cuota y cuota en estrés.
 4. Cash flow del primer año con los intereses reales del cuadro y la fiscalidad resuelta:
    cuota incremental si se conoce la base del usuario (ADR-0007), tipo marginal si no.
-5. Plazo recomendado en estrés y TIR al horizonte.
-6. Si hay ofertas alternativas, comparación con la trayectoria del Euríbor (ADR-0006).
+5. Plazo recomendado en estrés.
+6. TIR al horizonte con la venta: escritura (si la paga el vendedor), plusvalía municipal y
+   cuota incremental del ahorro, con la normativa conocida hoy para la fecha de la venta.
+7. Si hay ofertas alternativas, comparación con la trayectoria del Euríbor (ADR-0006).
 
 Las incoherencias del plan (precio por encima del máximo, falta de ahorro…) no paran el
 cálculo: salen como avisos, porque el usuario puede querer ver el plan igualmente.
@@ -23,9 +25,14 @@ from dataclasses import dataclass, field, replace
 from datetime import date
 from decimal import Decimal
 
-from housefinder.core.figures import Figure, SourceRef, combine_sources, money
+from housefinder.core.figures import Figure, SourceRef, combine_sources, money, ratio
 from housefinder.engines.cashflow import CashflowResult, InvestmentInputs, RentalAssumptions
-from housefinder.engines.irr import IrrResult, investment_irr, yearly_cashflows
+from housefinder.engines.irr import (
+    IrrResult,
+    investment_irr,
+    projected_sale_price,
+    yearly_cashflows,
+)
 from housefinder.engines.mortgage import (
     AffordabilityResult,
     BuyerFinances,
@@ -37,19 +44,23 @@ from housefinder.engines.mortgage import (
     stressed_payment,
 )
 from housefinder.engines.rates import MortgageTerms
+from housefinder.engines.taxes import municipal_gains_tax
 from housefinder.engines.term import TermRecommendation, recommended_term
 from housefinder.params.bank import bank_criteria
 from housefinder.params.book import ParamBook
 from housefinder.params.euribor import euribor_12m_path
 from housefinder.regulation.kinds import RentalFacts
-from housefinder.regulation.resolvers import (
-    ibi_annual,
-    income_tax_profile,
-    purchase_tax,
-    purchase_tax_rate,
-    tax_params,
-)
+from housefinder.regulation.resolvers import ibi_annual, income_tax_profile, tax_params
 from housefinder.regulation.rules import RuleBook
+from housefinder.regulation.transactions import (
+    DeedAgreement,
+    PurchaseCosts,
+    buyer_pays_deed,
+    municipal_gains_params,
+    notary_fee,
+    purchase_costs,
+    savings_tax_profile,
+)
 
 # Los criterios bancarios aún no dependen de la ubicación: ámbito nacional.
 BANK_TERRITORY = "ES"
@@ -58,13 +69,14 @@ BUYER = SourceRef("user_input", "comprador")
 PROPERTY = SourceRef("user_input", "inmueble")
 FINANCING = SourceRef("user_input", "financiacion")
 RENT = SourceRef("user_input", "alquiler")
-# Notaría, registro, gestoría y tasación: sin reglas cargadas todavía (inventario, fila 1.4).
-OTHER_PURCHASE_COSTS = SourceRef("assumption", "otros-gastos-de-compra", provisional=True)
+# Precios de mercado, no normativa: los fija el usuario (inventario, sección 4).
+OTHER_PURCHASE_COSTS = SourceRef("assumption", "gestoria-tasacion-y-copias")
+SALE_COSTS = SourceRef("assumption", "gastos-de-venta")
 MARGINAL_RATE = SourceRef("assumption", "tipo-marginal")
 APPRECIATION = SourceRef("assumption", "revalorizacion")
-# Gastos de venta e impuesto sobre la ganancia: la escala del ahorro y la plusvalía municipal
-# no están cargadas (inventario, filas 3.x).
-SALE = SourceRef("assumption", "venta", provisional=True)
+# La venta se calcula con las reglas conocidas hoy para su fecha y la situación personal de hoy.
+RULES_AT_SALE = SourceRef("assumption", "normativa-conocida-hoy-en-la-venta")
+PERSONAL_AT_SALE = SourceRef("assumption", "situacion-personal-constante-hasta-la-venta")
 
 
 @dataclass(frozen=True)
@@ -77,6 +89,7 @@ class BuyerInput:
     taxable_base: Decimal | None = None  # base liquidable general sin el alquiler
     descendant_ages: tuple[int, ...] = ()  # descendientes con derecho a mínimo, en orden
     marginal_rate: Decimal | None = None  # supuesto, si no se conoce la base
+    savings_base: Decimal = Decimal(0)  # base del ahorro del año de la venta, sin la venta
 
     def __post_init__(self) -> None:
         if (self.taxable_base is None) == (self.marginal_rate is None):
@@ -88,17 +101,19 @@ class PropertyInput:
     price: Decimal
     territory: str  # municipio con código INE (ES-13-28079)
     construction_value: Decimal  # base de la amortización fiscal
-    other_purchase_cost_rate: Decimal  # notaría, registro, gestoría y tasación sobre el precio
+    other_purchase_cost_rate: Decimal  # gestoría, tasación y copias sobre el precio
     community_fees_monthly: Decimal
     insurance_annual: Decimal  # hogar + impago
     renovation: Decimal = Decimal(0)
     new_build: bool = False
-    cadastral_value: Decimal | None = None  # para resolver el IBI con la normativa
+    cadastral_value: Decimal | None = None  # valor catastral total (IBI y plusvalía)
     ibi_annual: Decimal | None = None  # si el usuario conoce el recibo
+    cadastral_land_value: Decimal | None = None  # valor catastral del suelo (plusvalía)
+    deed_agreement: DeedAgreement = "ley"  # quién paga la escritura de compra
 
     def __post_init__(self) -> None:
-        if (self.cadastral_value is None) == (self.ibi_annual is None):
-            raise ValueError("Indica el valor catastral o el IBI anual, uno de los dos")
+        if self.cadastral_value is None and self.ibi_annual is None:
+            raise ValueError("Indica el valor catastral o el IBI anual")
 
 
 @dataclass(frozen=True)
@@ -123,8 +138,7 @@ class RentalInput:
 @dataclass(frozen=True)
 class ExitInput:
     appreciation_rate: Decimal
-    sale_cost_rate: Decimal
-    capital_gains_tax_rate: Decimal
+    sale_cost_rate: Decimal  # agencia y otros gastos de venta de mercado, sobre el precio
     horizon_years: int = 10
 
 
@@ -142,7 +156,7 @@ class SimulationInput:
 class InvestmentSimulation:
     affordability: AffordabilityResult
     within_budget: bool  # precio ≤ precio máximo
-    transfer_tax: Figure
+    regulated_costs: PurchaseCosts
     other_purchase_costs: Figure
     purchase_costs: Figure
     loan: Figure
@@ -152,6 +166,8 @@ class InvestmentSimulation:
     ibi_annual: Figure
     cashflow: CashflowResult  # primer año
     term: TermRecommendation
+    sale_notary: Figure | None  # escritura de venta, si la paga el vendedor
+    municipal_gains: Figure | None  # None si faltan los valores catastrales
     irr: IrrResult
     comparison: MortgageComparison | None
     warnings: tuple[str, ...] = field(default_factory=tuple)
@@ -161,14 +177,16 @@ class InvestmentSimulation:
         a, c, t = self.affordability, self.cashflow, self.term
         result = [
             a.max_price, a.max_loan, a.max_payment, a.years,
-            self.transfer_tax, self.other_purchase_costs, self.purchase_costs,
+            *self.regulated_costs.figures(), self.other_purchase_costs, self.purchase_costs,
             self.loan, self.loan_years, self.monthly_payment, self.stressed_payment,
             self.ibi_annual,
             c.gross_yield, c.annual_operating_cashflow, c.annual_tax,
             c.monthly_cashflow_after_tax, c.cash_invested, c.cash_on_cash,
             t.years, t.stressed_monthly_payment, t.stressed_monthly_cashflow,
-            self.irr.sale_price, self.irr.net_sale_proceeds,
+            self.irr.sale_price,
         ]
+        result += [f for f in (self.sale_notary, self.municipal_gains) if f is not None]
+        result += [self.irr.capital_gains_tax, self.irr.net_sale_proceeds]
         if self.irr.irr is not None:
             result.append(self.irr.irr)
         if self.comparison is not None:
@@ -195,9 +213,26 @@ def simulate(
     on = inp.purchase_date
     criteria = bank_criteria(params, BANK_TERRITORY, on)
 
-    # 1. Capacidad de compra.
-    tax_rate = purchase_tax_rate(rules, prop.territory, on, prop.new_build, include_pending,
-                                 allow_unverified)
+    # 1. Gastos de compra.
+    regulated = purchase_costs(rules, prop.price, prop.territory, on, prop.new_build,
+                               prop.deed_agreement, (PROPERTY,), include_pending,
+                               allow_unverified)
+    other_costs = Figure(
+        "purchase_costs.other",
+        money(prop.price * prop.other_purchase_cost_rate),
+        "EUR",
+        "precio × tasa de gestoría, tasación y copias",
+        (PROPERTY, OTHER_PURCHASE_COSTS),
+    )
+    purchase_total = Figure(
+        "purchase_costs.total",
+        regulated.total.value + other_costs.value,
+        "EUR",
+        "gastos que fija la normativa + gestoría, tasación y copias",
+        combine_sources(regulated.total.sources, other_costs.sources),
+    )
+
+    # 2. Capacidad de compra, con la tasa de gastos del inmueble simulado.
     aff = affordability(
         BuyerFinances(
             net_monthly_income=buyer.net_monthly_income,
@@ -207,30 +242,12 @@ def simulate(
             sources=(BUYER,),
         ),
         annual_rate=fin.annual_rate,
-        purchase_cost_rate=tax_rate.value + prop.other_purchase_cost_rate,
+        purchase_cost_rate=ratio(purchase_total.value / prop.price),
         criteria=criteria,
         rate_sources=(FINANCING,),
-        purchase_cost_sources=combine_sources(tax_rate.sources, (OTHER_PURCHASE_COSTS,)),
+        purchase_cost_sources=purchase_total.sources,
     )
     max_years = int(aff.years.value)
-
-    # 2. Gastos de compra.
-    transfer_tax = purchase_tax(rules, prop.price, prop.territory, on, prop.new_build,
-                                (PROPERTY,), include_pending, allow_unverified)
-    other_costs = Figure(
-        "purchase_costs.other",
-        money(prop.price * prop.other_purchase_cost_rate),
-        "EUR",
-        "precio × tasa de notaría, registro, gestoría y tasación",
-        (PROPERTY, OTHER_PURCHASE_COSTS),
-    )
-    purchase_costs = Figure(
-        "purchase_costs.total",
-        transfer_tax.value + other_costs.value,
-        "EUR",
-        "impuesto de compra + otros gastos de compra",
-        combine_sources(transfer_tax.sources, other_costs.sources),
-    )
 
     # 3. Hipoteca.
     if fin.loan is None:
@@ -287,7 +304,7 @@ def simulate(
     )
     investment = InvestmentInputs(
         price=prop.price,
-        purchase_costs=purchase_costs.value,
+        purchase_costs=purchase_total.value,
         renovation=prop.renovation,
         loan=loan.value,
         monthly_mortgage_payment=payment.value,
@@ -297,39 +314,58 @@ def simulate(
             else Decimal(0)
         ),
         construction_value=prop.construction_value,
-        sources=combine_sources((PROPERTY,), purchase_costs.sources, loan_sources),
+        sources=combine_sources((PROPERTY,), purchase_total.sources, loan_sources),
     )
     cashflow = yearly_cashflows(investment, rent, tax, fin.annual_rate, years, 1)[0]
 
-    # 5. Plazo recomendado y TIR.
+    # 5. Plazo recomendado.
     term = recommended_term(investment, rent, tax, fin.annual_rate, fin.rate_shock, max_years,
                             rate_sources=(FINANCING,), max_years_sources=aff.years.sources)
+
+    # 6. Venta y TIR.
     exit_ = inp.exit
+    sale_date = _years_later(on, exit_.horizon_years)
+    sale_price = projected_sale_price(prop.price, exit_.appreciation_rate,
+                                      exit_.horizon_years)
+    sale_value_sources = (PROPERTY, APPRECIATION, RULES_AT_SALE)
+    buyer_pays, _ = buyer_pays_deed(rules, sale_date, "ley", allow_unverified)
+    sale_notary = (
+        None
+        if buyer_pays
+        else notary_fee(rules, sale_price, sale_date, "sale_costs.notary", sale_value_sources,
+                        include_pending, allow_unverified)
+    )
+    municipal = _municipal_gains(rules, prop, sale_date, exit_.horizon_years, sale_price,
+                                 include_pending, allow_unverified)
+    gains_profile = savings_tax_profile(
+        rules, buyer.residence, sale_date, buyer.savings_base, buyer.taxable_base, buyer.age,
+        buyer.descendant_ages, (BUYER, RULES_AT_SALE, PERSONAL_AT_SALE), allow_unverified,
+    )
     irr = investment_irr(
         investment, rent, tax, fin.annual_rate, years,
         appreciation_rate=exit_.appreciation_rate,
         sale_cost_rate=exit_.sale_cost_rate,
-        capital_gains_tax_rate=exit_.capital_gains_tax_rate,
         horizon_years=exit_.horizon_years,
         rate_sources=(FINANCING,),
         appreciation_sources=(APPRECIATION,),
-        sale_sources=(SALE,),
+        sale_sources=(SALE_COSTS,),
+        gains_tax_profile=gains_profile,
+        extra_sale_costs=tuple(f for f in (sale_notary, municipal) if f is not None),
     )
 
-    # 6. Comparación de ofertas.
+    # 7. Comparación de ofertas.
     comparison = None
     if fin.alternatives:
         path = euribor_12m_path(params, on).rate_path(on)
         comparison = compare_mortgages(loan.value, years, fin.alternatives, path,
                                        fin.rate_shock, loan.sources)
 
-    within_budget = prop.price <= aff.max_price.value
     sim = InvestmentSimulation(
         affordability=aff,
-        within_budget=within_budget,
-        transfer_tax=transfer_tax,
+        within_budget=prop.price <= aff.max_price.value,
+        regulated_costs=regulated,
         other_purchase_costs=other_costs,
-        purchase_costs=purchase_costs,
+        purchase_costs=purchase_total,
         loan=loan,
         loan_years=loan_years,
         monthly_payment=payment,
@@ -337,10 +373,47 @@ def simulate(
         ibi_annual=ibi,
         cashflow=cashflow,
         term=term,
+        sale_notary=sale_notary,
+        municipal_gains=municipal,
         irr=irr,
         comparison=comparison,
     )
     return replace(sim, warnings=_warnings(sim, inp, criteria.max_ltv, max_years))
+
+
+def _years_later(day: date, years: int) -> date:
+    try:
+        return day.replace(year=day.year + years)
+    except ValueError:  # 29 de febrero
+        return day.replace(year=day.year + years, day=28)
+
+
+def _municipal_gains(
+    rules: RuleBook,
+    prop: PropertyInput,
+    sale_date: date,
+    holding_years: int,
+    sale_price: Decimal,
+    include_pending: bool,
+    allow_unverified: bool,
+) -> Figure | None:
+    """Plusvalía municipal de la venta; None si faltan los valores catastrales."""
+    if prop.cadastral_land_value is None or not prop.cadastral_value:
+        return None
+    resolved = municipal_gains_params(
+        rules, prop.territory, sale_date, holding_years, 0, prop.cadastral_land_value,
+        prop.cadastral_land_value / prop.cadastral_value,
+        (PROPERTY, APPRECIATION, RULES_AT_SALE), include_pending, allow_unverified,
+    )
+    tax, method = municipal_gains_tax(resolved.params, prop.price, sale_price)
+    return Figure(
+        "sale_costs.municipal_gains_tax",
+        tax,
+        "EUR",
+        f"plusvalía municipal: {method}; tipo {resolved.params.rate}, coeficiente "
+        f"{resolved.params.coefficient} a {holding_years} años (valor del suelo de hoy)",
+        resolved.sources,
+    )
 
 
 def _ibi(rules: RuleBook, prop: PropertyInput, on: date, allow_unverified: bool) -> Figure:
@@ -382,6 +455,11 @@ def _warnings(
         result.append(
             f"Ningún plazo hasta {max_years} años mantiene el cash flow positivo con el tipo "
             f"de estrés (+{fin.rate_shock})."
+        )
+    if sim.municipal_gains is None:
+        result.append(
+            "Falta el valor catastral del suelo o el total: la venta no incluye la plusvalía "
+            "municipal, así que la TIR sale más alta de lo que será."
         )
     if sim.irr.irr is None:
         result.append(f"Sin TIR: {sim.irr.no_irr_reason}.")

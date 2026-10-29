@@ -49,10 +49,9 @@ def purchase_tax(
     include_pending: bool = False,
     allow_unverified: bool = False,
 ) -> Figure:
-    """Impuesto de la compra: ITP para vivienda usada.
+    """Impuesto de la compra de vivienda usada (ITP).
 
-    Vivienda nueva (IVA y AJD) aún no está cargada: el AJD de Madrid necesita un esquema
-    propio (inventario, fila 1.3).
+    La vivienda nueva paga IVA y AJD: ver `regulation.transactions.purchase_costs`.
     """
     rate = purchase_tax_rate(book, territory, on, new_build, include_pending, allow_unverified)
     return Figure(
@@ -74,7 +73,7 @@ def purchase_tax_rate(
 ) -> Figure:
     """Tipo del impuesto de compra sobre el precio, para la capacidad de compra."""
     if new_build:
-        raise LookupError("El impuesto de compra de vivienda nueva (IVA y AJD) aún no está cargado")
+        raise LookupError("La vivienda nueva no paga ITP sino IVA y AJD (purchase_costs)")
     rule = _rule(book, "impuesto_compra_segunda_mano", territory, on, include_pending,
                  allow_unverified)
     return Figure(

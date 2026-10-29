@@ -187,6 +187,81 @@ class RentalRegime(RuleParams):
     requirements: tuple[Requirement, ...] = ()
 
 
+
+class FeeBand(RuleParams):
+    from_amount: Amount = Field(alias="from")  # valor por encima del cual se aplica `rate`
+    rate: Fraction  # sobre el exceso (4,5 por mil = 0.0045)
+
+
+class FeeScale(RuleParams):
+    """Arancel por tramos de valor (notarios, registradores).
+
+    Hasta el primer `from`, una cantidad fija; después, cada tipo sobre el exceso de su tramo.
+    El total se limita a [`min_fee`, `max_fee`] y luego se aplica la rebaja `rebate`.
+    Por encima de `max_base` el arancel no fija la cantidad (pacto libre).
+    """
+
+    base_fee: Amount  # cantidad fija por el primer tramo
+    bands: tuple[FeeBand, ...] = Field(min_length=1)
+    min_fee: Amount | None = None
+    max_fee: Amount | None = None
+    max_base: Amount | None = None
+    rebate: Fraction = Decimal(0)
+
+    @model_validator(mode="after")
+    def _ordered(self) -> FeeScale:
+        starts = [b.from_amount for b in self.bands]
+        if any(a >= b for a, b in zip(starts, starts[1:], strict=False)):
+            raise ValueError("los inicios de tramo deben ser estrictamente crecientes")
+        if self.min_fee is not None and self.max_fee is not None and self.min_fee > self.max_fee:
+            raise ValueError("min_fee no puede superar max_fee")
+        return self
+
+
+class RateBand(RuleParams):
+    up_to: Amount | None  # valor máximo de la banda, incluido; None = sin límite
+    rate: Fraction
+
+
+class BandedRate(RuleParams):
+    """Tipo único que depende de la banda de valor y se aplica a TODA la base.
+
+    `cap_jumps`: si al pasar de banda la cuota sube más que la base, se reduce el exceso
+    (DL 1/2010 de Madrid, art. 37). `legal_person_rate`: tipo cuando el adquirente no es
+    persona física, si la norma lo distingue.
+    """
+
+    bands: tuple[RateBand, ...] = Field(min_length=1)
+    cap_jumps: bool = False
+    legal_person_rate: Fraction | None = None
+
+    @model_validator(mode="after")
+    def _ordered(self) -> BandedRate:
+        limits = [b.up_to for b in self.bands]
+        if limits[-1] is not None or any(lim is None for lim in limits[:-1]):
+            raise ValueError("solo la última banda puede no tener límite, y debe no tenerlo")
+        bounded = [lim for lim in limits if lim is not None]
+        if any(a >= b for a, b in zip(bounded, bounded[1:], strict=False)):
+            raise ValueError("los límites de banda deben ser estrictamente crecientes")
+        return self
+
+
+class GainsCoefficients(RuleParams):
+    """Coeficientes de la plusvalía municipal por periodo de generación (TRLRHL, art. 107.4).
+
+    `by_years[0]` es el de menos de un año (se prorratea por meses completos), `by_years[n]`
+    el de n años y el último, el de 20 años o más.
+    """
+
+    by_years: tuple[Fraction, ...] = Field(min_length=21, max_length=21)
+
+
+class DeedPayer(RuleParams):
+    """Quién paga, salvo pacto, el otorgamiento de la escritura de compraventa."""
+
+    deed: Literal["vendedor", "comprador"]
+    first_copy: Literal["vendedor", "comprador"]
+
 RENTAL_TYPES = ("habitual", "temporada", "habitaciones", "turistico")
 
 
@@ -196,13 +271,20 @@ class KindSpec:
     description: str
 
 
-# AJD de vivienda nueva: pendiente. En Madrid el tipo depende del valor y se aplica al total
-# (art. 32 del DL 1/2010), una forma que no es ni tasa única ni escala por tramos.
 KINDS: dict[str, KindSpec] = {
     "impuesto_compra_segunda_mano": KindSpec(
         RateParams, "Impuesto de compra de vivienda usada (ITP) sobre el precio"
     ),
     "iva_vivienda_nueva": KindSpec(RateParams, "IVA de la compra de vivienda nueva"),
+    "iva_tipo_general": KindSpec(RateParams, "Tipo general del IVA (honorarios, servicios)"),
+    "ajd_compra_vivienda": KindSpec(
+        BandedRate, "AJD de la escritura de compra de vivienda sujeta a IVA"
+    ),
+    "arancel_notarial": KindSpec(FeeScale, "Arancel notarial de los documentos de cuantía"),
+    "arancel_registral": KindSpec(FeeScale, "Arancel registral de las inscripciones"),
+    "pagador_escritura_compraventa": KindSpec(
+        DeedPayer, "Quién paga la escritura de compraventa y su primera copia, salvo pacto"
+    ),
     "reduccion_irpf_alquiler": KindSpec(
         ReductionCases, "Reducción del rendimiento neto positivo del alquiler de vivienda"
     ),
@@ -239,6 +321,12 @@ KINDS: dict[str, KindSpec] = {
     "regimen_alquiler_habitaciones": KindSpec(RentalRegime, "Alquiler por habitaciones"),
     "regimen_alquiler_turistico": KindSpec(RentalRegime, "Alquiler de uso turístico"),
     "tipo_ibi": KindSpec(RateParams, "Tipo del IBI sobre el valor catastral"),
+    # Los coeficientes máximos son estatales; un municipio que fije otros menores carga una
+    # regla propia del mismo tipo, que gana por ser más específica.
+    "coeficientes_plusvalia": KindSpec(
+        GainsCoefficients, "Coeficientes de la plusvalía municipal por años de tenencia"
+    ),
+    "tipo_plusvalia": KindSpec(RateParams, "Tipo de gravamen de la plusvalía municipal"),
 }
 
 

@@ -49,10 +49,13 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     engines/irpf.py       escalas, mínimos y cuota incremental del IRPF (ADR-0007)
     engines/term.py       plazo recomendado con cash flow en estrés
     engines/irr.py        TIR de la inversión con revalorización y venta
+    engines/taxes.py      formas de cálculo de aranceles, AJD por bandas y plusvalía municipal
     regulation/rules.py   motor de normativa versionada (RuleBook)
     regulation/kinds.py   catálogo de tipos de regla y esquema de sus parámetros
     regulation/resolvers.py  de reglas a entradas de los motores (TaxParams, ITP, IBI, IRPF)
                           y regulación del alquiler (zona tensionada, régimen por tipo)
+    regulation/transactions.py  gastos y tributos de compra y venta (ITP, IVA, AJD, notaría,
+                          registro, escala del ahorro, plusvalía)
     params/               parámetros con fecha (ParamBook): criterios bancarios, Euríbor (ADR-0006)
     planning/simulate.py  simulación de punta a punta: el único camino de cálculo del plan (D4)
     planning/scenarios.py escenarios normativos: comparación con / sin reglas pendientes

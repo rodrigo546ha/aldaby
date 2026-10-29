@@ -97,6 +97,8 @@ sintético; falta un plan real de F0 (F0.3) para dar el criterio por cumplido.
       nueva), gastos de notaría y registro, IBI orientativo, reducción del rendimiento del alquiler,
       amortización fiscal, mínimos de IRPF relevantes.
 - [ ] F2.3 Cargar cada regla desde la fuente oficial con `verified: true` tras revisión.
+      *Estado:* cargadas sin verificar las tandas 1 a 4 (`docs/normativa/verificacion-tanda-*.md`);
+      falta la revisión de Rodrigo y las filas pendientes del inventario (2.8, 3.2, ascendientes).
 - [x] F2.4 Normativa de alquiler: zonas tensionadas (lista oficial), alquiler de temporada, por
       habitaciones y turístico (mayoría de 3/5 de la comunidad, registro autonómico).
 - [x] F2.5 Escenarios: reglas `pendiente_convalidacion` y comparación «con / sin» en el plan.

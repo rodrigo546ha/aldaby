@@ -9,7 +9,7 @@ import { FigureView } from "./FigureView";
 type InvestmentRequest = components["schemas"]["InvestmentRequest"];
 type InvestmentResponse = components["schemas"]["InvestmentResponse"];
 
-type Kind = "eur" | "pct" | "int" | "text" | "date" | "bool" | "contract";
+type Kind = "eur" | "pct" | "int" | "text" | "date" | "bool" | "contract" | "deed";
 type Field = { id: string; label: string; kind: Kind; hint?: string; optional?: boolean };
 type Section = { title: string; fields: Field[] };
 
@@ -31,6 +31,13 @@ const SECTIONS: Section[] = [
       },
       { id: "marginal_rate", label: "Tipo marginal (supuesto)", kind: "pct", optional: true },
       { id: "descendant_ages", label: "Edad de tus hijos", kind: "text", optional: true, hint: "Separadas por comas" },
+      {
+        id: "savings_base",
+        label: "Otras ganancias del ahorro el año de la venta",
+        kind: "eur",
+        optional: true,
+        hint: "Intereses, dividendos… Si no lo sabes, déjalo vacío (0)",
+      },
     ],
   },
   {
@@ -49,7 +56,20 @@ const SECTIONS: Section[] = [
         hint: "Para calcular el IBI. Si tienes el recibo, deja este campo y rellena el IBI",
       },
       { id: "ibi_annual", label: "IBI al año (recibo)", kind: "eur", optional: true },
-      { id: "other_purchase_cost_rate", label: "Notaría, registro, gestoría y tasación", kind: "pct", hint: "% del precio" },
+      {
+        id: "cadastral_land_value",
+        label: "Valor catastral del suelo",
+        kind: "eur",
+        optional: true,
+        hint: "Viene en el recibo del IBI. Sin él no se calcula la plusvalía municipal",
+      },
+      { id: "deed_agreement", label: "Quién paga la escritura de compra", kind: "deed" },
+      {
+        id: "other_purchase_cost_rate",
+        label: "Gestoría, tasación y copias",
+        kind: "pct",
+        hint: "% del precio. Impuestos, notaría y registro se calculan con la normativa",
+      },
       { id: "community_fees_monthly", label: "Comunidad al mes", kind: "eur" },
       { id: "insurance_annual", label: "Seguros al año", kind: "eur", hint: "Hogar e impago" },
     ],
@@ -82,8 +102,12 @@ const SECTIONS: Section[] = [
     title: "Venta",
     fields: [
       { id: "appreciation_rate", label: "Revalorización anual (supuesto)", kind: "pct" },
-      { id: "sale_cost_rate", label: "Gastos de venta", kind: "pct", hint: "% del precio de venta" },
-      { id: "capital_gains_tax_rate", label: "Impuesto sobre la ganancia (supuesto)", kind: "pct" },
+      {
+        id: "sale_cost_rate",
+        label: "Agencia y otros gastos de venta",
+        kind: "pct",
+        hint: "% del precio de venta. Escritura, plusvalía e IRPF se calculan con la normativa",
+      },
       { id: "horizon_years", label: "Años hasta la venta", kind: "int" },
     ],
   },
@@ -95,6 +119,7 @@ const EMPTY: Record<string, string> = {
   residence: "ES-13",
   territory: "ES-13-28079",
   contract: "primer-alquiler",
+  deed_agreement: "ley",
   horizon_years: "10",
 };
 
@@ -110,7 +135,8 @@ const EXAMPLE: Record<string, string> = {
   renovation: "10000",
   construction_value: "80000",
   cadastral_value: "100000",
-  other_purchase_cost_rate: "2",
+  cadastral_land_value: "40000",
+  other_purchase_cost_rate: "0,5",
   community_fees_monthly: "60",
   insurance_annual: "250",
   annual_rate: "3",
@@ -124,7 +150,6 @@ const EXAMPLE: Record<string, string> = {
   large_holder: "false",
   appreciation_rate: "2",
   sale_cost_rate: "3",
-  capital_gains_tax_rate: "21",
 };
 
 function parse(field: Field, raw: string | undefined): { value?: unknown; error?: string } {
@@ -172,11 +197,12 @@ function buildRequest(state: Record<string, string>):
     purchase_date: v.purchase_date ?? null,
     buyer: pick(
       "net_monthly_income", "existing_monthly_debt", "available_savings", "age", "residence",
-      "taxable_base", "marginal_rate", "descendant_ages",
+      "taxable_base", "marginal_rate", "descendant_ages", "savings_base",
     ),
     property: pick(
       "price", "territory", "renovation", "construction_value", "cadastral_value", "ibi_annual",
-      "other_purchase_cost_rate", "community_fees_monthly", "insurance_annual",
+      "cadastral_land_value", "deed_agreement", "other_purchase_cost_rate",
+      "community_fees_monthly", "insurance_annual",
     ),
     financing: pick("annual_rate", "rate_shock", "loan", "years"),
     rental: {
@@ -185,7 +211,7 @@ function buildRequest(state: Record<string, string>):
       situation: pick("contract", "large_holder", "young_tenant", "below_reference_index",
         "recent_rehabilitation"),
     },
-    exit: pick("appreciation_rate", "sale_cost_rate", "capital_gains_tax_rate", "horizon_years"),
+    exit: pick("appreciation_rate", "sale_cost_rate", "horizon_years"),
   } as unknown as InvestmentRequest;
   return { request };
 }
@@ -197,7 +223,11 @@ const GROUPS: { title: string; keys: string[] }[] = [
   },
   {
     title: "Compra",
-    keys: ["purchase_costs.transfer_tax", "purchase_costs.other", "purchase_costs.total", "cashflow.cash_invested"],
+    keys: [
+      "purchase_costs.transfer_tax", "purchase_costs.vat", "purchase_costs.stamp_duty",
+      "purchase_costs.notary", "purchase_costs.registry", "purchase_costs.other",
+      "purchase_costs.total", "cashflow.cash_invested",
+    ],
   },
   {
     title: "Hipoteca",
@@ -214,7 +244,13 @@ const GROUPS: { title: string; keys: string[] }[] = [
     title: "Plazo recomendado en estrés",
     keys: ["term.recommended_years", "term.stressed_monthly_payment", "term.stressed_monthly_cashflow"],
   },
-  { title: "Venta", keys: ["irr.sale_price", "irr.net_sale_proceeds", "irr.rate"] },
+  {
+    title: "Venta",
+    keys: [
+      "irr.sale_price", "sale_costs.notary", "sale_costs.municipal_gains_tax",
+      "irr.capital_gains_tax", "irr.net_sale_proceeds", "irr.rate",
+    ],
+  },
 ];
 
 const HEADLINE = ["cashflow.monthly_after_tax", "cashflow.cash_on_cash", "irr.rate", "term.recommended_years"];
@@ -329,7 +365,13 @@ function FieldInput({
         {field.kind === "eur" && <span className="unit"> (€)</span>}
         {field.kind === "pct" && <span className="unit"> (%)</span>}
       </label>
-      {field.kind === "contract" ? (
+      {field.kind === "deed" ? (
+        <select id={id} value={value} onChange={(e) => onChange(e.target.value)}>
+          <option value="ley">Lo que dice la ley: el vendedor</option>
+          <option value="comprador">Pacto: la pago yo</option>
+          <option value="vendedor">Pacto: el vendedor</option>
+        </select>
+      ) : field.kind === "contract" ? (
         <select id={id} value={value} onChange={(e) => onChange(e.target.value)}>
           <option value="primer-alquiler">Primer alquiler de la vivienda</option>
           <option value="nuevo-contrato">Nuevo contrato (ya estuvo alquilada)</option>

@@ -53,11 +53,12 @@ def caso(**changes) -> SimulationInput:
             price=D(200000),
             territory="ES-13-28079",
             construction_value=D(80000),
-            other_purchase_cost_rate=D("0.02"),
+            other_purchase_cost_rate=D("0.005"),
             community_fees_monthly=D(60),
             insurance_annual=D(250),
             renovation=D(10000),
             cadastral_value=D(100000),
+            cadastral_land_value=D(40000),
         ),
         financing=FinancingInput(annual_rate=D("0.03"), rate_shock=D("0.02"), years=25),
         rental=RentalInput(
@@ -71,7 +72,6 @@ def caso(**changes) -> SimulationInput:
         exit=ExitInput(
             appreciation_rate=D("0.02"),
             sale_cost_rate=D("0.03"),
-            capital_gains_tax_rate=D("0.21"),
         ),
         purchase_date=date(2026, 10, 28),
     )
@@ -84,11 +84,14 @@ def by_key(sim) -> dict[str, Decimal]:
 
 def test_caso_sintetico_calculado_a_mano(rules, params):
     v = by_key(simulate(caso(), rules, params, allow_unverified=True))
-    # Gastos de compra: ITP de Madrid 6 % + 2 % de otros gastos.
+    # Gastos de compra: ITP de Madrid 6 %, registro 176,90 + IVA (la escritura la paga el
+    # vendedor) y 0,5 % de gestoría, tasación y copias.
     assert v["purchase_costs.transfer_tax"] == D("12000.00")
-    assert v["purchase_costs.total"] == D("16000.00")
-    # Capacidad: manda el ahorro, 90.000 / (1 − 0,70 + 0,08) = 236.842,11.
-    assert v["affordability.max_price"] == D("236842.11")
+    assert v["purchase_costs.registry"] == D("214.05")
+    assert "purchase_costs.notary" not in v
+    assert v["purchase_costs.total"] == D("13214.05")
+    # Capacidad: manda el ahorro, 90.000 / (1 − 0,70 + 0,0661) = 245.834,47.
+    assert v["affordability.max_price"] == D("245834.47")
     # Préstamo = 70 % del precio; cuota a 3 % y 25 años = 663,8958; a 5 %, 818,4261.
     assert v["financing.loan"] == D("140000.00")
     assert v["mortgage.monthly_payment"] == D("663.90")
@@ -100,12 +103,16 @@ def test_caso_sintetico_calculado_a_mano(rules, params):
     # Rendimiento reducido 1.449,11 (reducción general 50 %) × (15 % + 12,8 %) = 402,85.
     assert abs(v["cashflow.annual_tax"] - D("402.85")) < 1
     assert abs(v["cashflow.monthly_after_tax"] - D("89.70")) < 1
-    assert v["cashflow.cash_invested"] == D("86000.00")
+    assert v["cashflow.cash_invested"] == D("83214.05")
     # Con +2 puntos, el plazo más corto con cash flow ≥ 0 es 28 años (775,00 €/mes).
     assert v["term.recommended_years"] == D(28)
     assert abs(v["term.stressed_monthly_payment"] - D("775.00")) < 1
-    # Venta a 10 años: 200.000 × 1,02^10.
+    # Venta a 10 años: 200.000 × 1,02^10; escritura 361,32 + IVA; plusvalía 40.000 × 0,12 ×
+    # 29 %; ganancia 35.441,66 por la escala del ahorro estatal + autonómica.
     assert v["irr.sale_price"] == D("243798.88")
+    assert v["sale_costs.notary"] == D("437.20")
+    assert v["sale_costs.municipal_gains_tax"] == D("1392.00")
+    assert v["irr.capital_gains_tax"] == D("7322.74")
 
 
 def test_cada_cifra_tiene_clave_unica_y_fuentes(rules, params):
@@ -117,7 +124,7 @@ def test_cada_cifra_tiene_clave_unica_y_fuentes(rules, params):
 
 def test_reglas_sin_verificar_dan_cifras_provisionales_y_aviso(rules, params):
     sim = simulate(caso(), rules, params, allow_unverified=True)
-    assert sim.transfer_tax.provisional
+    assert sim.regulated_costs.tax.provisional
     assert any("PROVISIONALES" in w and "madrid-itp-inmuebles-2014" in w for w in sim.warnings)
 
 
@@ -170,10 +177,25 @@ def test_comparacion_de_ofertas_con_el_euribor(rules, params):
     assert "mortgage_comparison.variable.expected_total_interest" in keys
 
 
-def test_vivienda_nueva_aun_no_cargada(rules, params):
+def test_vivienda_nueva_paga_iva_y_ajd(rules, params):
     prop = replace(caso().property, new_build=True)
-    with pytest.raises(LookupError, match="vivienda nueva"):
-        simulate(caso(property=prop), rules, params, allow_unverified=True)
+    v = by_key(simulate(caso(property=prop), rules, params, allow_unverified=True))
+    assert v["purchase_costs.vat"] == D("20000.00")  # 10 %
+    assert v["purchase_costs.stamp_duty"] == D("1500.00")  # 0,75 % (más de 180.000 €)
+    assert "purchase_costs.transfer_tax" not in v
+
+
+def test_escritura_pagada_por_el_comprador(rules, params):
+    prop = replace(caso().property, deed_agreement="comprador")
+    v = by_key(simulate(caso(property=prop), rules, params, allow_unverified=True))
+    assert v["purchase_costs.notary"] == D("412.02")  # 340,51 + 21 % IVA
+
+
+def test_sin_suelo_catastral_no_hay_plusvalia_y_se_avisa(rules, params):
+    prop = replace(caso().property, cadastral_land_value=None)
+    sim = simulate(caso(property=prop), rules, params, allow_unverified=True)
+    assert sim.municipal_gains is None
+    assert any("plusvalía" in w for w in sim.warnings)
 
 
 def test_escenario_con_reglas_pendientes(rules, params):
@@ -188,3 +210,7 @@ def test_escenario_con_reglas_pendientes(rules, params):
     )
     assert "irpf-reduccion-alquiler-rdl-29-2026" in {r.id for r in comp.new_rules}
     assert "cashflow.annual_tax" in {c.key for c in comp.changed}
+    # La venta (2036) usa los coeficientes máximos del RDL: a 10 años, 0,22 en vez de 0,12.
+    assert "plusvalia-coeficientes-maximos-rdl-29-2026" in {r.id for r in comp.new_rules}
+    plusvalia = next(c for c in comp.changed if c.key == "sale_costs.municipal_gains_tax")
+    assert plusvalia.scenario.value == D("2552.00")  # 40.000 × 0,22 × 29 %

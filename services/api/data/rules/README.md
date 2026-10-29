@@ -42,9 +42,13 @@ añade su esquema al catálogo.
 
 | `kind` | `params` |
 | --- | --- |
-| `impuesto_compra_segunda_mano`, `iva_vivienda_nueva`, `amortizacion_inmueble_alquiler`, `tipo_ibi` | `rate` en tanto por uno |
+| `impuesto_compra_segunda_mano`, `iva_vivienda_nueva`, `iva_tipo_general`, `amortizacion_inmueble_alquiler`, `tipo_ibi`, `tipo_plusvalia` | `rate` en tanto por uno |
 | `reduccion_irpf_alquiler` | `cases`: lista de `{condition, reduction, when}`, sin condiciones repetidas; `when` son los hechos del contrato que exige el caso (ver abajo) |
-| `escala_irpf_general_estatal`, `escala_irpf_general_autonomica`, `escala_irpf_ahorro_estatal`, `escala_irpf_ahorro_autonomica` | `brackets`: lista de `{from, rate}`; el primero desde 0, crecientes. La estatal va en `ES`; la autonómica, en `ES-<ccaa>` |
+| `escala_irpf_general_estatal`, `escala_irpf_general_autonomica`, `escala_irpf_ahorro_estatal`, `escala_irpf_ahorro_autonomica` | `brackets`: lista de `{from, rate}`; el primero desde 0, crecientes. La estatal va en `ES`; la autonómica general, en `ES-<ccaa>`. La autonómica del ahorro la fija la ley estatal (art. 76) y va en `ES` |
+| `arancel_notarial`, `arancel_registral` | `base_fee` (fijo hasta el primer tramo), `bands`: lista de `{from, rate}` con el tipo sobre el exceso, `min_fee`, `max_fee`, `max_base` (por encima, pacto libre) y `rebate` (rebaja final) |
+| `ajd_compra_vivienda` | `bands`: lista de `{up_to, rate}` (la última con `up_to: null`); el tipo de la banda se aplica a todo el valor. `cap_jumps`: el salto de banda no sube la cuota más que la base. `legal_person_rate` opcional |
+| `pagador_escritura_compraventa` | `deed` y `first_copy`: `vendedor` o `comprador` (salvo pacto) |
+| `coeficientes_plusvalia` | `by_years`: 21 coeficientes (menos de 1 año, 1… 19, 20 o más). Los máximos van en `ES`; un municipio con coeficientes propios los carga en su territorio y se aplica el menor |
 | `minimo_contribuyente` | `general`, `over_65_extra`, `over_75_extra` en euros |
 | `minimo_descendientes` | `first`, `second`, `third`, `fourth_and_more`, `under_3_extra` en euros |
 | `limite_intereses_reparacion` | `carryforward_years`: años a los que se arrastra el exceso |

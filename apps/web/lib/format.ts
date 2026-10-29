@@ -54,7 +54,12 @@ export const LABELS: Record<string, string> = {
   "affordability.max_payment": "Cuota máxima",
   "affordability.years": "Plazo máximo",
   "purchase_costs.transfer_tax": "Impuesto de compra (ITP)",
-  "purchase_costs.other": "Notaría, registro, gestoría y tasación",
+  "purchase_costs.vat": "IVA",
+  "purchase_costs.stamp_duty": "Actos jurídicos documentados (AJD)",
+  "purchase_costs.notary": "Notaría (escritura)",
+  "purchase_costs.registry": "Registro de la propiedad",
+  "purchase_costs.regulated": "Gastos que fija la normativa",
+  "purchase_costs.other": "Gestoría, tasación y copias",
   "purchase_costs.total": "Gastos de compra",
   "financing.loan": "Préstamo",
   "financing.years": "Plazo",
@@ -73,6 +78,9 @@ export const LABELS: Record<string, string> = {
   "irr.rate": "TIR",
   "irr.sale_price": "Precio de venta",
   "irr.net_sale_proceeds": "Venta neta",
+  "irr.capital_gains_tax": "IRPF de la ganancia",
+  "sale_costs.notary": "Notaría de la venta",
+  "sale_costs.municipal_gains_tax": "Plusvalía municipal",
 };
 
 export function label(key: string): string {

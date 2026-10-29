@@ -1,0 +1,85 @@
+# Tributos de la venta (F2.3, tanda 4). Ver README.md y docs/normativa/verificacion-tanda-4.md.
+# SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+
+# --- IRPF: base del ahorro (ganancia patrimonial) ------------------------------------------
+
+# Ley del IRPF, arts. 66.1 (estatal) y 76 (autonómica), redacción de la Ley 7/2024, con efectos
+# desde el 01/01/2025. La escala autonómica del ahorro la fija la ley estatal para todas las
+# comunidades de régimen común: por eso va en ES y la heredan.
+- id: irpf-escala-ahorro-estatal-2025
+  kind: escala_irpf_ahorro_estatal
+  territory: ES
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.095}
+      - {from: 6000, rate: 0.105}
+      - {from: 50000, rate: 0.115}
+      - {from: 200000, rate: 0.135}
+      - {from: 300000, rate: 0.15}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a66
+
+- id: irpf-escala-ahorro-autonomica-2025
+  kind: escala_irpf_ahorro_autonomica
+  territory: ES
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.095}
+      - {from: 6000, rate: 0.105}
+      - {from: 50000, rate: 0.115}
+      - {from: 200000, rate: 0.135}
+      - {from: 300000, rate: 0.15}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a76
+
+# --- Plusvalía municipal (IIVTNU) ------------------------------------------------------------
+
+# Coeficientes MÁXIMOS del TRLRHL, art. 107.4: <1 año, 1, 2… 19 años y 20 o más. Vigentes los
+# del RDL 8/2023 desde el 01/01/2024. Los RDL 9/2024 y 16/2025 los cambiaron y el Congreso los
+# derogó (estuvieron en vigor unas semanas, del 25/12/2024 al 22/01/2025 y del 01/01/2026 al
+# 27/01/2026): esos periodos no se modelan.
+- id: plusvalia-coeficientes-maximos-2024
+  kind: coeficientes_plusvalia
+  territory: ES
+  effective_from: 2024-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    by_years: [0.15, 0.15, 0.14, 0.14, 0.16, 0.18, 0.19, 0.20, 0.19, 0.15, 0.12,
+               0.10, 0.09, 0.09, 0.09, 0.09, 0.10, 0.13, 0.17, 0.23, 0.40]
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2004-4214#a107
+
+# RDL 29/2026, art. 10: nuevos coeficientes máximos con efectos desde el 01/12/2026.
+# PENDIENTE DE CONVALIDACIÓN: solo en escenarios.
+- id: plusvalia-coeficientes-maximos-rdl-29-2026
+  kind: coeficientes_plusvalia
+  territory: ES
+  effective_from: 2026-12-01
+  effective_to: null
+  status: pendiente_convalidacion
+  verified: false
+  params:
+    by_years: [0.17, 0.16, 0.16, 0.17, 0.17, 0.19, 0.21, 0.23, 0.24, 0.25, 0.22,
+               0.18, 0.14, 0.12, 0.11, 0.11, 0.11, 0.11, 0.13, 0.20, 0.30]
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2026-20823#a1-2
+
+# Madrid capital: ordenanza fiscal del IIVTNU, art. 17 (tipo del 29 %). Su art. 10 aplica los
+# coeficientes máximos legales vigentes, así que no hay regla municipal de coeficientes.
+# Bonificaciones (art. 18): solo transmisiones por causa de muerte; no aplican a una venta.
+- id: madrid-capital-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-13-28079
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.29}
+  source_url: https://www.madrid.es/FWProjects/contribuyente/contenidos/06InformacionDocumentacion/01OrdenanzasFiscales/03Publicaciones/OOFF.Libro2026.pdf
+  notes: "Fecha de inicio = libro de ordenanzas de 2026 consultado; el 29 % puede venir de antes (por verificar)."

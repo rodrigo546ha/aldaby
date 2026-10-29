@@ -124,7 +124,15 @@ def test_inversion_sin_base_ni_tipo_marginal_es_422():
     assert "base liquidable" in resp.json()["detail"]
 
 
-def test_inversion_vivienda_nueva_aun_no_disponible():
+def test_inversion_vivienda_nueva_con_iva_y_ajd():
     resp = client.post("/simulate/investment", json=peticion(property__new_build=True))
+    assert resp.status_code == 200
+    figures = resp.json()["figures"]
+    assert {"purchase_costs.vat", "purchase_costs.stamp_duty"} <= figures.keys()
+
+
+def test_inversion_sin_reglas_del_territorio_es_503():
+    # Barcelona: no hay ITP cargado.
+    resp = client.post("/simulate/investment", json=peticion(property__territory="ES-09-08019"))
     assert resp.status_code == 503
-    assert "vivienda nueva" in resp.json()["detail"]
+    assert "impuesto_compra_segunda_mano" in resp.json()["detail"]

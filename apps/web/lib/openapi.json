@@ -313,6 +313,20 @@
             ],
             "title": "Marginal Rate",
             "description": "Supuesto si no se conoce la base"
+          },
+          "savings_base": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Savings Base",
+            "description": "Base del ahorro del año de la venta, sin ella",
+            "default": "0"
           }
         },
         "type": "object",
@@ -376,20 +390,8 @@
                 "type": "string"
               }
             ],
-            "title": "Sale Cost Rate"
-          },
-          "capital_gains_tax_rate": {
-            "anyOf": [
-              {
-                "type": "number",
-                "maximum": 1.0,
-                "minimum": 0.0
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "title": "Capital Gains Tax Rate"
+            "title": "Sale Cost Rate",
+            "description": "Agencia y otros gastos de venta de mercado"
           },
           "horizon_years": {
             "type": "integer",
@@ -402,8 +404,7 @@
         "type": "object",
         "required": [
           "appreciation_rate",
-          "sale_cost_rate",
-          "capital_gains_tax_rate"
+          "sale_cost_rate"
         ],
         "title": "ExitRequest"
       },
@@ -768,7 +769,7 @@
               }
             ],
             "title": "Other Purchase Cost Rate",
-            "description": "Notaría, registro, gestoría y tasación"
+            "description": "Gestoría, tasación y copias"
           },
           "community_fees_monthly": {
             "anyOf": [
@@ -841,6 +842,33 @@
               }
             ],
             "title": "Ibi Annual"
+          },
+          "cadastral_land_value": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cadastral Land Value",
+            "description": "Valor catastral del suelo, para la plusvalía"
+          },
+          "deed_agreement": {
+            "type": "string",
+            "enum": [
+              "ley",
+              "comprador",
+              "vendedor"
+            ],
+            "title": "Deed Agreement",
+            "description": "Quién paga la escritura de compra; «ley»: Código Civil",
+            "default": "ley"
           }
         },
         "type": "object",

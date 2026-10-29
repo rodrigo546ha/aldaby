@@ -116,6 +116,12 @@ export interface components {
              * @description Supuesto si no se conoce la base
              */
             marginal_rate?: number | string | null;
+            /**
+             * Savings Base
+             * @description Base del ahorro del año de la venta, sin ella
+             * @default 0
+             */
+            savings_base: number | string;
         };
         /** ComparisonOut */
         ComparisonOut: {
@@ -130,10 +136,11 @@ export interface components {
         ExitRequest: {
             /** Appreciation Rate */
             appreciation_rate: number | string;
-            /** Sale Cost Rate */
+            /**
+             * Sale Cost Rate
+             * @description Agencia y otros gastos de venta de mercado
+             */
             sale_cost_rate: number | string;
-            /** Capital Gains Tax Rate */
-            capital_gains_tax_rate: number | string;
             /**
              * Horizon Years
              * @default 10
@@ -249,7 +256,7 @@ export interface components {
             construction_value: number | string;
             /**
              * Other Purchase Cost Rate
-             * @description Notaría, registro, gestoría y tasación
+             * @description Gestoría, tasación y copias
              */
             other_purchase_cost_rate: number | string;
             /** Community Fees Monthly */
@@ -270,6 +277,18 @@ export interface components {
             cadastral_value?: number | string | null;
             /** Ibi Annual */
             ibi_annual?: number | string | null;
+            /**
+             * Cadastral Land Value
+             * @description Valor catastral del suelo, para la plusvalía
+             */
+            cadastral_land_value?: number | string | null;
+            /**
+             * Deed Agreement
+             * @description Quién paga la escritura de compra; «ley»: Código Civil
+             * @default ley
+             * @enum {string}
+             */
+            deed_agreement: "ley" | "comprador" | "vendedor";
         };
         /**
          * RentalFacts
