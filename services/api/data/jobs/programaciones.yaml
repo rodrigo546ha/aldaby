@@ -1,0 +1,40 @@
+# Trabajos periódicos de la cola (ADR-0010). `make schedules` aplica este fichero a la tabla
+# job_schedules: crea o cambia cada programación y desactiva las que ya no están aquí.
+#
+# - at: primera hora, en hora de Madrid. Después se repite cada `every_hours`. El intervalo es
+#   fijo: con el cambio de hora la ejecución se mueve una hora hasta volver a aplicar el fichero.
+# - requires_env: no se programa si falta alguna de estas variables (se avisa).
+# - El BOE publica sobre las 7:30; a las 9:00 el sumario ya está. Los trabajos leen los días que
+#   faltan (`days`), así que un día sin worker se recupera al siguiente.
+timezone: Europe/Madrid
+schedules:
+  - name: oferta-boe-seccion-v
+    kind: offers_boe_v
+    at: "09:00"
+    every_hours: 24
+    payload: {days: 7}
+
+  - name: oferta-boe-subastas-judiciales
+    kind: offers_boe_auctions
+    at: "09:15"
+    every_hours: 24
+    payload: {days: 7}
+
+  - name: oferta-extraccion-boe
+    kind: extract_offers
+    at: "10:00"
+    every_hours: 24
+    payload: {limit: 20}
+    requires_env: [LLM_PROVIDER, LLM_BASE_URL, LLM_MODEL_ID]
+
+  - name: vigilancia-boe
+    kind: watch_boe
+    at: "09:30"
+    every_hours: 24
+    payload: {days: 7}
+
+  - name: vigilancia-bocm
+    kind: watch_bocm
+    at: "09:45"
+    every_hours: 24
+    payload: {}

@@ -1,4 +1,8 @@
-.PHONY: setup db migrate sections adrh worker test lint rules-check api web openapi
+.PHONY: setup db migrate sections adrh worker schedules test lint rules-check api web openapi
+
+# Configuración local (copia de .env.example, fuera de git): LLM, base de datos, claves…
+-include .env
+export $(shell sed -n 's/^\([A-Z_][A-Z0-9_]*\)=.*/\1/p' .env 2>/dev/null)
 
 PYTHON ?= python3
 VENV := .venv/bin
@@ -33,6 +37,10 @@ adrh:
 # Worker de la cola de trabajos (ADR-0010). Encolar: python -m housefinder.jobs enqueue …
 worker:
 	cd services/api && $(VENV)/python -m housefinder.jobs worker
+
+# Programaciones diarias de data/jobs/programaciones.yaml (ADR-0010). Hace falta un worker en marcha.
+schedules:
+	cd services/api && $(VENV)/python -m housefinder.jobs programar
 
 test:
 	cd services/api && $(VENV)/python -m pytest -q

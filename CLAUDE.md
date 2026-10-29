@@ -93,6 +93,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
   data/watch/             filtros de la vigilancia del BOE y del BOCM
+  data/jobs/              programaciones diarias de la cola (ADR-0010)
   data/offers/            sedes de partidos judiciales para los avisos de subastas (sin verificar)
   tests/                  pytest; un test por regla de negocio
   tests/fixtures/planes/  prueba de oro: planes de F0 anonimizados (los reales, en private/)
@@ -110,6 +111,7 @@ make migrate   # solo las migraciones pendientes (DATABASE_URL)
 make sections  # carga las secciones censales del INE (YEAR=2025 PROVINCE=28)
 make adrh      # carga el Atlas de renta del INE 2015–2024 (PROVINCE=28)
 make worker    # worker de la cola; encolar con `python -m housefinder.jobs enqueue …`
+make schedules # aplica data/jobs/programaciones.yaml (trabajos diarios; el Makefile lee .env)
                  # clave maestra local para cifrar perfiles: `python -m housefinder.crypto nueva-clave`
                  # tareas de revisión: `python -m housefinder.watch tareas`
 make test      # pytest de la API (los tests `db` se saltan si la base no está arrancada)

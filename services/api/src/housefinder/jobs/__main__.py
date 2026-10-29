@@ -3,6 +3,7 @@
     python -m housefinder.jobs worker [--once] [--poll 5]
     python -m housefinder.jobs enqueue KIND [--payload JSON] [--dedupe-key CLAVE]
     python -m housefinder.jobs schedule NOMBRE KIND --every SEGUNDOS [--payload JSON]
+    python -m housefinder.jobs programar [--fichero data/jobs/programaciones.yaml]
     python -m housefinder.jobs status
 """
 
@@ -11,10 +12,14 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
+from datetime import UTC, datetime
+from pathlib import Path
 
 from housefinder.db.connection import connect
 from housefinder.db.jobs import enqueue, upsert_schedule
 from housefinder.db.migrate import database_url
+from housefinder.jobs import schedules
 from housefinder.jobs.handlers import build_handlers
 from housefinder.jobs.worker import Worker
 
@@ -34,6 +39,8 @@ def main() -> int:
     s.add_argument("kind")
     s.add_argument("--every", type=int, required=True, help="segundos entre ejecuciones")
     s.add_argument("--payload", default="{}")
+    p = sub.add_parser("programar", help="aplica data/jobs/programaciones.yaml")
+    p.add_argument("--fichero", type=Path)
     sub.add_parser("status", help="trabajos por estado y últimos fallos")
     args = parser.parse_args()
 
@@ -57,6 +64,15 @@ def main() -> int:
             job_id = enqueue(conn, args.kind, json.loads(args.payload),
                              dedupe_key=args.dedupe_key)
             print(f"Encolado el trabajo {job_id}" if job_id else "Ya había una copia viva")
+        elif args.command == "programar":
+            report = schedules.sync(conn, schedules.load(args.fichero), set(handlers),
+                                    os.environ, datetime.now(UTC))
+            for name in report.programmed:
+                print(f"Programada: {name}")
+            for name, reason in report.skipped.items():
+                print(f"Sin programar: {name} ({reason})")
+            for name in report.disabled:
+                print(f"Desactivada (ya no está en el fichero): {name}")
         elif args.command == "schedule":
             if args.kind not in handlers:
                 parser.error(f"Tipo desconocido: {args.kind}")

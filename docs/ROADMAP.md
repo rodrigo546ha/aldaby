@@ -191,6 +191,9 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
 - [x] F4.7 Trabajos programados con reintentos y alertas de fallo (ADR-0010): cola en PostgreSQL con
       `SKIP LOCKED`, esperas de 1 minuto a 1 hora, programaciones por intervalo, alertas en el log
       `housefinder.alertas`; `make worker`. Primeros tipos: `ine_sections` e `ine_adrh`.
+      Programaciones diarias en `data/jobs/programaciones.yaml` (`make schedules`): sección V y
+      avisos de subastas del BOE, vigilancia del BOE y del BOCM y, si el LLM está configurado,
+      la extracción de lotes. *Pendiente:* un worker siempre en marcha (despliegue, F7).
 
 **Criterio de salida.** Cada día entran ofertas nuevas de al menos dos canales, sin duplicados, con
 sección censal asignada.

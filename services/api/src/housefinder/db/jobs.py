@@ -165,6 +165,18 @@ def upsert_schedule(
     )
 
 
+def disable_schedules_except(conn: psycopg.Connection, names: list[str]) -> list[str]:
+    """Desactiva las programaciones activas que no están en `names`; devuelve cuáles."""
+    rows = conn.execute(
+        """
+        UPDATE job_schedules SET enabled = false
+        WHERE enabled AND NOT (name = ANY(%s)) RETURNING name
+        """,
+        (names,),
+    ).fetchall()
+    return sorted(r[0] for r in rows)
+
+
 def enqueue_due(conn: psycopg.Connection) -> list[str]:
     """Encola un trabajo por cada programación vencida y mueve su próxima hora.
 

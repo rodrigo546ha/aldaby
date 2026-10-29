@@ -23,7 +23,10 @@ existen como comandos que se lanzan a mano.
 - **Cada intento** queda en `job_runs`: inicio, fin, si salió bien, resultado (JSON) o error.
 - **Programación:** tabla `job_schedules` con un nombre, el trabajo que crea y un intervalo en
   segundos. El worker encola los vencidos y mueve `next_run_at`. Sin expresiones cron mientras basten
-  los intervalos (diario, anual).
+  los intervalos (diario, anual). Las programaciones se declaran en
+  `data/jobs/programaciones.yaml` con su primera hora en hora de Madrid; `make schedules` las aplica
+  y desactiva las que ya no están (2026-10-29). El intervalo es fijo: con el cambio de hora la
+  ejecución se desplaza una hora hasta volver a aplicar el fichero.
 - **No duplicar:** `dedupe_key` opcional, único entre los trabajos `pendiente` o `en_curso`. Una
   programación usa su nombre como clave, así que no se acumulan copias si el worker estuvo parado.
 - **Alertas:** al principio, un registro de nivel ERROR en el logger `housefinder.alertas` con el
