@@ -8,11 +8,13 @@ from typing import Any
 
 import httpx
 
+from housefinder.agent.llm import LLMClient
 from housefinder.db.connection import connect
 from housefinder.db.review_tasks import mark_issue_read, read_issues
 from housefinder.db.sections import SourceRecord, upsert_source
 from housefinder.geo.cartociudad import Geocoded, geocode
 from housefinder.offers.channels import boe_v
+from housefinder.offers.extract import extract_pending
 from housefinder.offers.ingest import IngestReport, ingest
 from housefinder.offers.locate import address_locator
 
@@ -46,3 +48,16 @@ def run_boe_v(
             for key, value in report.as_dict().items():
                 setattr(total, key, getattr(total, key) + value)
     return total.as_dict()
+
+
+def extract_boe_v(
+    conninfo: str,
+    client: httpx.Client,
+    llm: LLMClient,
+    limit: int = 20,
+    geocoder: Callable[[str], Geocoded] | None = None,
+) -> dict[str, Any]:
+    """Extrae los lotes de hasta `limit` anuncios pendientes del BOE (ADR-0013)."""
+    with connect(conninfo) as conn:
+        locate = address_locator(conn, geocoder or (lambda address: geocode(client, address)))
+        return extract_pending(conn, llm, boe_v.NAME, locate, limit).as_dict()

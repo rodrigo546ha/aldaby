@@ -1,0 +1,204 @@
+"""Extracción de inmuebles de un texto libre, con evidencia comprobada (ADR-0013).
+
+El LLM devuelve cada campo con una cita literal del documento. Después, sin LLM:
+1. la cita tiene que estar en el documento (espacios normalizados);
+2. el valor tiene que salir de la cita: un importe o una superficie es uno de los números de la
+   cita; una referencia catastral está en la cita con su formato; un texto está contenido en ella.
+Lo que no pasa se descarta con su motivo. Ninguna cifra que quede es inventada: está en la fuente.
+"""
+
+from __future__ import annotations
+
+import re
+import unicodedata
+from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
+
+from housefinder.agent.llm import LLMClient
+
+PropertyType = Literal[
+    "vivienda", "local", "oficina", "garaje", "trastero", "edificio", "suelo", "rustica", "otro"
+]
+NUMBER_IN_TEXT = re.compile(r"\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?")
+CADASTRAL_REF = re.compile(r"^(?:[0-9A-Z]{14}|[0-9A-Z]{20})$")
+
+
+class Quoted(BaseModel):
+    value: str | None = Field(
+        description="Valor del campo, o null si el documento no lo dice. Números sin separador "
+                    "de miles y con punto decimal (1290109.45)."
+    )
+    evidence: str | None = Field(
+        description="Cita literal y exacta del documento de la que sale el valor (una frase o "
+                    "un fragmento, copiado sin cambiar nada). null si no hay valor."
+    )
+
+
+class LotExtraction(BaseModel):
+    label: Quoted = Field(description="Nombre del lote tal como aparece (Lote 1, 1., etc.)")
+    property_type: PropertyType
+    property_type_evidence: str | None = Field(description="Cita literal que indica el tipo")
+    address: Quoted = Field(description="Dirección del inmueble (no la de una oficina o registro)")
+    municipality: Quoted
+    province: Quoted
+    cadastral_ref: Quoted = Field(description="Referencia catastral de 14 o 20 caracteres")
+    built_area_m2: Quoted = Field(description="Superficie en m²")
+    floor: Quoted = Field(description="Planta o piso")
+    price: Quoted = Field(description="Precio de venta o tipo de licitación (euros)")
+    deposit: Quoted = Field(description="Garantía o fianza para pujar (euros)")
+
+
+class DocumentExtraction(BaseModel):
+    is_correction: bool = Field(description="True si el documento corrige otro anuncio")
+    corrected_reference: Quoted = Field(
+        description="Identificador o fecha del anuncio que se corrige, si lo es"
+    )
+    lots: list[LotExtraction] = Field(description="Un elemento por inmueble o lote en venta")
+
+
+INSTRUCTIONS = """Eres un extractor de datos de anuncios de venta de inmuebles en España.
+Del documento, extrae cada inmueble o lote que se vende o subasta. Para cada campo:
+- copia en `evidence` el fragmento EXACTO del documento del que sale el valor, sin reescribirlo;
+- si el documento no da el dato, deja value y evidence a null; no lo deduzcas ni lo calcules;
+- la dirección es la del inmueble, nunca la de la oficina, el registro o el lugar de la subasta;
+- los números van sin separador de miles y con punto decimal.
+No inventes lotes: si el documento no vende inmuebles, devuelve una lista vacía."""
+
+
+FieldKind = Literal["number", "cadastral", "text"]
+FIELD_KINDS: dict[str, FieldKind] = {
+    "label": "text",
+    "address": "text",
+    "municipality": "text",
+    "province": "text",
+    "floor": "text",
+    "cadastral_ref": "cadastral",
+    "built_area_m2": "number",
+    "price": "number",
+    "deposit": "number",
+}
+
+
+@dataclass(frozen=True)
+class CheckedField:
+    value: Decimal | str | None
+    evidence: str | None
+    status: Literal["verificado", "rechazado", "ausente"]
+    reason: str = ""
+
+    def as_dict(self) -> dict[str, Any]:
+        value = str(self.value) if self.value is not None else None
+        return {"value": value, "evidence": self.evidence, "status": self.status,
+                "reason": self.reason}
+
+
+@dataclass(frozen=True)
+class CheckedLot:
+    property_type: PropertyType | None  # None si su evidencia no está en el documento
+    fields: dict[str, CheckedField]
+
+    def value(self, name: str) -> Decimal | str | None:
+        checked = self.fields[name]
+        return checked.value if checked.status == "verificado" else None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {"property_type": self.property_type,
+                **{name: f.as_dict() for name, f in self.fields.items()}}
+
+
+@dataclass(frozen=True)
+class CheckedDocument:
+    is_correction: bool
+    corrected_reference: CheckedField
+    lots: list[CheckedLot]
+
+    @property
+    def rejected(self) -> int:
+        return sum(1 for lot in self.lots for f in lot.fields.values() if f.status == "rechazado")
+
+
+def extract(llm: LLMClient, document: str) -> CheckedDocument:
+    """Extrae los lotes con el LLM y deja solo lo que la evidencia respalda."""
+    raw = llm.structured(instructions=INSTRUCTIONS, document=document, output=DocumentExtraction)
+    return check_document(document, raw)
+
+
+def check_document(document: str, raw: DocumentExtraction) -> CheckedDocument:
+    source = _normalize(document)
+    lots = []
+    for lot in raw.lots:
+        fields = {name: check_field(source, getattr(lot, name), kind)
+                  for name, kind in FIELD_KINDS.items()}
+        type_ok = bool(lot.property_type_evidence) and _normalize(
+            lot.property_type_evidence or "") in source
+        lots.append(CheckedLot(lot.property_type if type_ok else None, fields))
+    return CheckedDocument(
+        is_correction=raw.is_correction,
+        corrected_reference=check_field(source, raw.corrected_reference, "text"),
+        lots=lots,
+    )
+
+
+def check_field(source: str, quoted: Quoted, kind: FieldKind) -> CheckedField:
+    """Comprueba un campo contra el documento (`source`, normalizado o no)."""
+    source = _normalize(source)
+    if quoted.value is None or not quoted.value.strip():
+        return CheckedField(None, None, "ausente")
+    if not quoted.evidence:
+        return CheckedField(None, None, "rechazado", "sin cita")
+    evidence = _normalize(quoted.evidence)
+    if evidence not in source:
+        return CheckedField(None, quoted.evidence, "rechazado", "la cita no está en el documento")
+    if kind == "number":
+        value = _plain_number(quoted.value)
+        if value is None:
+            return CheckedField(None, quoted.evidence, "rechazado", "valor no numérico")
+        if value not in _numbers(evidence):
+            return CheckedField(None, quoted.evidence, "rechazado",
+                                "el número no aparece en la cita")
+        return CheckedField(value, quoted.evidence, "verificado")
+    if kind == "cadastral":
+        ref = re.sub(r"\s", "", quoted.value).upper()
+        if not CADASTRAL_REF.match(ref) or ref not in re.sub(r"\s", "", evidence).upper():
+            return CheckedField(None, quoted.evidence, "rechazado",
+                                "la referencia catastral no está en la cita o no es válida")
+        return CheckedField(ref, quoted.evidence, "verificado")
+    value_text = _normalize(quoted.value)
+    if _fold(value_text) not in _fold(evidence):
+        return CheckedField(None, quoted.evidence, "rechazado", "el texto no está en la cita")
+    return CheckedField(value_text, quoted.evidence, "verificado")
+
+
+def _normalize(text: str) -> str:
+    """Espacios simples y comillas y guiones unificados, para comparar citas."""
+    text = unicodedata.normalize("NFC", text)
+    text = text.translate(str.maketrans({" ": " ", "–": "-", "—": "-",
+                                         "−": "-", "“": '"', "”": '"',
+                                         "«": '"', "»": '"', "’": "'"}))
+    return " ".join(text.split())
+
+
+def _fold(text: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", text.casefold())
+    return "".join(c for c in decomposed if not unicodedata.combining(c))
+
+
+def _numbers(text: str) -> set[Decimal]:
+    """Números escritos a la española en un texto: 1.290.109,45 → 1290109.45."""
+    found = set()
+    for token in NUMBER_IN_TEXT.findall(text):
+        try:
+            found.add(Decimal(token.replace(".", "").replace(",", ".")))
+        except InvalidOperation:
+            continue
+    return found
+
+
+def _plain_number(value: str) -> Decimal | None:
+    try:
+        return Decimal(value.strip())
+    except InvalidOperation:
+        return None

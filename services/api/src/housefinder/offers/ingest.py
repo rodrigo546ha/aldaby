@@ -86,7 +86,18 @@ def _ingest_offer(
         report.offers_unchanged += 1
     if offer.extraction_status == "pendiente":
         report.pending_extraction += 1
-    if offer_property(conn, result.offer_id) is not None or not offer.locatable:
+    locate_and_link(conn, result.offer_id, offer, locate, report)
+
+
+def locate_and_link(
+    conn: Connection,
+    offer_id: UUID,
+    offer: NormalizedOffer,
+    locate: Locator,
+    report: IngestReport,
+) -> None:
+    """Ubica la oferta y la enlaza con su inmueble (existente o nuevo, con su sección)."""
+    if offer_property(conn, offer_id) is not None or not offer.locatable:
         return
     point = (Point(offer.lon, offer.lat, "canal")
              if offer.lon is not None and offer.lat is not None else locate(offer))
@@ -106,7 +117,7 @@ def _ingest_offer(
         report.properties_new += 1
     else:
         report.properties_matched += 1
-    link_offer(conn, result.offer_id, property_id, point.source)
+    link_offer(conn, offer_id, property_id, point.source)
 
 
 def _match_property(conn: Connection, offer: NormalizedOffer, point: Point) -> UUID | None:

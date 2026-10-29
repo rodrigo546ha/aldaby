@@ -21,18 +21,19 @@ ALLOWED_INTERNAL = {
     "ingestion": {"core", "db", "ingestion"},
     "geo": {"core", "geo"},
     "territory": {"core", "db", "geo", "ingestion", "territory"},
-    "jobs": {"core", "db", "ingestion", "jobs", "offers", "watch"},
+    "jobs": {"agent", "core", "db", "ingestion", "jobs", "offers", "watch"},
     "watch": {"core", "db", "ingestion", "watch"},
     "crypto": {"core", "crypto"},
     "profiles": {"core", "crypto", "db", "profiles"},
-    "offers": {"core", "db", "geo", "ingestion", "offers", "territory"},
+    "offers": {"agent", "core", "db", "geo", "ingestion", "offers", "territory"},
+    "agent": {"agent", "core"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi"}
 # Solo db/ habla con la base de datos (ADR-0008).
 DB_DRIVERS = {"psycopg", "psycopg_pool"}
 # Solo la ingesta descarga datos de la red.
 ALLOWED_EXTERNAL = {"ingestion": {"httpx"}, "geo": {"httpx"}, "jobs": {"httpx"},
-                    "watch": {"httpx"}, "offers": {"httpx"}}
+                    "watch": {"httpx"}, "offers": {"httpx"}, "agent": {"anthropic"}}
 
 
 def _imports(path: Path) -> set[str]:

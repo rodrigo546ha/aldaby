@@ -513,6 +513,7 @@ Qué revisaría al crecer:
 | 0010 | Cola de trabajos en PostgreSQL | G4 |
 | 0011 | Cifrado de datos personales y separación por cliente | G4 |
 | 0012 | El agente escribe referencias a cifras, no cifras | G7 |
+| 0013 | Cliente del LLM propio y extracción con evidencia comprobada | G5 |
 | — | Librería de modelos estadísticos | G6 |
 | — | Motor de PDF | G7 |
 | — | Autenticación y despliegue | G8 |

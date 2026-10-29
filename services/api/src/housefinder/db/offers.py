@@ -33,6 +33,7 @@ class OfferRow:
     source_id: str | None
     org_id: UUID | None = None
     parent_id: UUID | None = None
+    extracted: dict[str, Any] | None = None  # campos extraídos con su evidencia
 
 
 @dataclass(frozen=True)
@@ -51,8 +52,8 @@ def upsert_offer(
         INSERT INTO offers (channel, external_id, kind, title, url, published_on, description,
                             asking_price, auction_min_bid, deposit_required, address,
                             cadastral_ref, built_area_m2, extraction_status, source_id, org_id,
-                            parent_id, raw, raw_sha256)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            parent_id, extracted, raw, raw_sha256)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (channel, external_id) DO UPDATE SET
             last_seen = now(),
             title = EXCLUDED.title, url = EXCLUDED.url, description = EXCLUDED.description,
@@ -62,8 +63,8 @@ def upsert_offer(
         (offer.channel, offer.external_id, offer.kind, offer.title, offer.url,
          offer.published_on, offer.description, offer.asking_price, offer.auction_min_bid,
          offer.deposit_required, offer.address, offer.cadastral_ref, offer.built_area_m2,
-         offer.extraction_status, offer.source_id, offer.org_id, offer.parent_id, Jsonb(raw),
-         raw_sha256),
+         offer.extraction_status, offer.source_id, offer.org_id, offer.parent_id,
+         Jsonb(offer.extracted) if offer.extracted is not None else None, Jsonb(raw), raw_sha256),
     ).fetchone()
     if row is None:
         raise RuntimeError("La inserción de la oferta no devolvió fila")
@@ -151,3 +152,35 @@ def create_property(
     if row is None:
         raise RuntimeError("La inserción del inmueble no devolvió fila")
     return row[0]
+
+
+@dataclass(frozen=True)
+class PendingAnnouncement:
+    id: UUID
+    external_id: str
+    title: str | None
+    url: str | None
+    published_on: date | None
+    raw: dict[str, Any]
+    source_id: str | None
+
+
+def pending_announcements(
+    conn: psycopg.Connection, channel: str, limit: int
+) -> list[PendingAnnouncement]:
+    rows = conn.execute(
+        """
+        SELECT id, external_id, title, url, published_on, raw, source_id FROM offers
+        WHERE channel = %s AND kind = 'anuncio' AND extraction_status = 'pendiente'
+        ORDER BY published_on, external_id LIMIT %s
+        """,
+        (channel, limit),
+    ).fetchall()
+    return [PendingAnnouncement(*r) for r in rows]
+
+
+def mark_extracted(conn: psycopg.Connection, offer_id: UUID, extracted: dict[str, Any]) -> None:
+    conn.execute(
+        "UPDATE offers SET extraction_status = 'extraida', extracted = %s WHERE id = %s",
+        (Jsonb(extracted), offer_id),
+    )

@@ -166,9 +166,11 @@ def test_canal_boe_seccion_v_de_punta_a_punta(database):
         return httpx.Response(404)
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
+    with psycopg.connect(database, autocommit=True) as conn:  # otros tests leen el mismo día
+        conn.execute("DELETE FROM watch_issues WHERE source = 'offers_boe_v'")
     report = run_boe_v(database, client, date(2026, 10, 29), days=2)
-    assert report["items"] == 1 and report["offers_new"] == 1
-    assert report["pending_extraction"] == 1
+    assert report["items"] == 1
+    assert report["offers_new"] + report["offers_unchanged"] == 1
     # Solo se descarga el anuncio que es una venta de inmuebles, no los otros dos del sumario.
     assert sum("xml.php" in r for r in requests) == 1
     before = len(requests)
@@ -180,5 +182,5 @@ def test_canal_boe_seccion_v_de_punta_a_punta(database):
             "SELECT o.kind, o.extraction_status, o.source_id, s.license FROM offers o "
             "JOIN sources s ON s.id = o.source_id WHERE o.external_id = 'BOE-B-2026-35273'"
         ).fetchone()
-    assert row[:3] == ("anuncio", "pendiente", "boe-seccion-v")
+    assert row[0] == "anuncio" and row[2] == "boe-seccion-v"
     assert "citar la fuente" in row[3]

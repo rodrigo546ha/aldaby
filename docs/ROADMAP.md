@@ -161,9 +161,10 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
 - [ ] F4.3 Subastas del Portal de Subastas del BOE para la provincia de Madrid (revisar condiciones
       de uso; si no hay vía de datos abiertos, ADR antes de implementar).
 - [ ] F4.4 Anuncios de la sección V del BOE: Seguridad Social, INVIED, Patrimonio del Estado.
-      *Estado:* el canal `boe_seccion_v` guarda cada día los anuncios de venta o subasta de inmuebles
-      enteros, con la extracción pendiente; faltan los lotes (con el LLM y su evidencia, F6.1) y
-      enlazar las correcciones de errores con su anuncio. Volumen: `docs/research/f4-volumen-boe.md`.
+      *Estado:* el canal `boe_seccion_v` guarda cada día los anuncios enteros y el trabajo
+      `extract_offers` extrae sus lotes con evidencia comprobada (ADR-0013), los ubica y los
+      deduplica. Falta enlazar las correcciones de errores con su anuncio y la prueba con Bedrock real.
+      Volumen: `docs/research/f4-volumen-boe.md`.
 - [ ] F4.5 Servicers (Solvia, Servihabitat, Aliseda, Altamira, Hipoges): revisar términos de uso de
       cada web, ADR por servicer y contacto comercial para acuerdo.
 - [x] F4.6 Normalización y deduplicación por referencia catastral y geolocalización: interfaz
@@ -204,7 +205,9 @@ umbral fijado en F0, y cada estimación con su rango.
 
 **Tareas**
 
-- [ ] F6.1 Interfaz propia para el LLM (Claude en AWS Bedrock), intercambiable por configuración.
+- [x] F6.1 Interfaz propia para el LLM (Claude en AWS Bedrock), intercambiable por configuración
+      (ADR-0013, adelantada a G5): `agent/llm.py` con Bedrock y cliente falso. *Pendiente:* probarlo
+      contra Bedrock con la cuenta de AWS de HouseFinder.
 - [ ] F6.2 Perfilado conversacional que produce un perfil estructurado y validado.
 - [ ] F6.3 Lectura de documentos del usuario (nómina, extracto, declaración) con confirmación manual.
 - [ ] F6.4 Herramientas del agente: llama a los motores, nunca calcula.
