@@ -1,6 +1,7 @@
 # ADR-0013: Cliente del LLM propio y extracción con evidencia comprobada
 
-**Estado:** Aceptada (F6.1 adelantada a G5) · **Fecha:** 2026-10-29 · **Decide:** Rodrigo
+**Estado:** Aceptada (F6.1 adelantada a G5); el proveedor (Bedrock) lo sustituye ADR-0014 ·
+**Fecha:** 2026-10-29 · **Decide:** Rodrigo
 
 ## Contexto
 Dos canales de oferta traen texto libre que hay que convertir en datos: los anuncios de la sección V

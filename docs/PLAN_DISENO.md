@@ -75,7 +75,7 @@ las tareas; aquí se decide **cómo** se construyen y **en qué orden**.
 ### Restricciones
 
 Un desarrollador en tardes y fines de semana; beta a mediados de enero de 2027 (≈ 11 semanas);
-stack fijado (Next.js, FastAPI, PostgreSQL + PostGIS, Claude en Bedrock, AWS en F7); sin proveedores
+stack fijado (Next.js, FastAPI, PostgreSQL + PostGIS, modelo abierto en servidor propio (ADR-0014), AWS en F7); sin proveedores
 comerciales de datos (ADR-0002); normativa como datos (ADR-0003).
 
 ---
@@ -91,7 +91,7 @@ comerciales de datos (ADR-0002); normativa como datos (ADR-0003).
 │ services/api  (FastAPI)                                                                     │
 │                                                                                             │
 │  api/ ──▶ agent/ ──(herramientas)──▶ planning/ ──▶ engines/     (puros, sin E/S, sin LLM)    │
-│            │  LLMClient (Bedrock)        │    └──▶ regulation/  (RuleBook + resolutores)     │
+│            │  LLMClient (servidor propio)│    └──▶ regulation/  (RuleBook + resolutores)     │
 │            │                             │    └──▶ params/      (criterios bancarios, tipos) │
 │            │                             │    └──▶ valuation/   (renta y precio con rango)   │
 │            │                             └──▶ territory/        (sección censal, indicadores)│
@@ -385,7 +385,7 @@ manual de F0.
 
 - Interfaz `Channel`: `fetch → raw → parse → NormalizedOffer`; el `raw` se guarda siempre.
 - **F6.1 se adelanta aquí:** el enlace pegado (F4.1) necesita el LLM para extraer precio,
-  superficie, planta y estado. `agent/llm.py` con `LLMClient` (protocolo), implementación Bedrock y
+  superficie, planta y estado. `agent/llm.py` con `LLMClient` (protocolo), implementación para un servidor propio (ADR-0014) y
   una falsa para tests. La extracción devuelve cada campo con confianza y **siempre** pasa por
   confirmación del usuario antes de usarse en un cálculo.
 - BOE: fijar el esquema con un sumario real guardado como fixture (F4.2), sección V (F4.4),
@@ -514,6 +514,7 @@ Qué revisaría al crecer:
 | 0011 | Cifrado de datos personales y separación por cliente | G4 |
 | 0012 | El agente escribe referencias a cifras, no cifras | G7 |
 | 0013 | Cliente del LLM propio y extracción con evidencia comprobada | G5 |
+| 0014 | Modelo de código abierto en un servidor propio | G5 |
 | — | Librería de modelos estadísticos | G6 |
 | — | Motor de PDF | G7 |
 | — | Autenticación y despliegue | G8 |

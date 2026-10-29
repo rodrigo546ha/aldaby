@@ -13,7 +13,7 @@ from decimal import Decimal
 from typing import Any
 
 from housefinder.agent.extraction import CheckedDocument, CheckedLot, extract
-from housefinder.agent.llm import LLMClient, LLMOutputError, LLMRefusal
+from housefinder.agent.llm import LLMClient, LLMOutputError
 from housefinder.db.connection import Connection
 from housefinder.db.offers import (
     OfferRow,
@@ -49,7 +49,7 @@ def extract_pending(
         document = announcement_text(announcement)
         try:
             checked = extract(llm, document)
-        except (LLMRefusal, LLMOutputError):
+        except LLMOutputError:
             report.failed += 1
             continue
         report.announcements += 1

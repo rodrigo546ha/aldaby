@@ -75,7 +75,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     profiles/             perfil del inversor: modelo que se redacta y almacén cifrado
     db/offers.py          ofertas, versiones de lo recibido e inmuebles (deduplicación)
     offers/               canales de oferta (interfaz Channel), ingesta, ubicación y deduplicación
-    agent/llm.py          cliente del LLM (Claude en Bedrock) y cliente falso (ADR-0013); solo agent/ llama al LLM
+    agent/llm.py          cliente del LLM (modelo abierto en servidor propio, API compatible con OpenAI) y cliente falso (ADR-0014); solo agent/ llama al LLM
     agent/extraction.py   extracción con cita literal comprobada: ninguna cifra extraída es inventada
     watch/                vigilancia del BOE y del BOCM: filtros, lectura y tareas (F2.6)
     geo/cartociudad.py    geocodificador de CartoCiudad (ADR-0009); solo geo/ e ingestion/ usan la red

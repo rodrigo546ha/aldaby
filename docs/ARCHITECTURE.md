@@ -46,5 +46,5 @@ comprueba que un flujo completo no deja ingresos ni deudas en los logs.
 
 ## Stack
 
-Next.js (web) · Python 3.11+ y FastAPI (motores y API) · PostgreSQL 16 + PostGIS · Claude en AWS
-Bedrock detrás de una interfaz propia · AWS para el despliegue (F7).
+Next.js (web) · Python 3.11+ y FastAPI (motores y API) · PostgreSQL 16 + PostGIS · modelo de pesos
+abiertos en un servidor propio, detrás de una interfaz propia (ADR-0014) · AWS para el despliegue (F7).

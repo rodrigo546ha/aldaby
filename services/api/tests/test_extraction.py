@@ -2,10 +2,10 @@
 parcelas de la TGSS en Alcalá de Henares) y un LLM falso: el LLM solo propone; los valores que
 quedan son los que están escritos en la fuente."""
 
+import json
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
-from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -18,7 +18,12 @@ from housefinder.agent.extraction import (
     check_field,
     extract,
 )
-from housefinder.agent.llm import BedrockLLMClient, FakeLLMClient, LLMOutputError, LLMRefusal
+from housefinder.agent.llm import (
+    FakeLLMClient,
+    LLMOutputError,
+    OpenAICompatibleLLMClient,
+    llm_from_env,
+)
 from housefinder.offers.channels.boe_v import parse_announcement
 
 FIXTURES = Path(__file__).parent / "fixtures" / "boe"
@@ -117,42 +122,69 @@ def test_el_documento_va_como_dato():
     assert llm.calls[0] == TEXT  # el cliente falso recibe el documento tal cual
 
 
-# --- Cliente de Bedrock contra un doble del SDK (sin red) --------------------------------------
+# --- Cliente del servidor propio contra un transporte simulado (sin red) ----------------------
 
 
-class StubSDK:
-    def __init__(self, response):
-        self.kwargs = None
-        self.beta = SimpleNamespace(messages=SimpleNamespace(parse=self.parse))
-        self.response = response
+def server(reply: dict | None = None, status: int = 200):
+    seen: list[httpx.Request] = []
 
-    def parse(self, **kwargs):
-        self.kwargs = kwargs
-        return self.response
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(status, json=reply or {})
+
+    return httpx.Client(transport=httpx.MockTransport(handler)), seen
 
 
-def test_bedrock_pide_salida_estructurada_y_cachea_las_instrucciones():
-    stub = StubSDK(SimpleNamespace(stop_reason="end_turn", parsed_output=EXTRACTION))
-    client = BedrockLLMClient("anthropic.claude-opus-5-5", "eu-west-1", client=stub)
+def completion(content: str, finish_reason: str = "stop") -> dict:
+    return {"choices": [{"message": {"role": "assistant", "content": content},
+                         "finish_reason": finish_reason}]}
+
+
+def test_servidor_propio_pide_json_schema_con_el_documento_como_dato():
+    http, seen = server(completion(EXTRACTION.model_dump_json()))
+    client = OpenAICompatibleLLMClient("http://llm.test/v1/", "qwen3:8b", api_key="k",
+                                       reasoning_effort="none", client=http)
     assert client.structured(instructions="x", document="doc",
-                             output=DocumentExtraction) is EXTRACTION
-    assert stub.kwargs["model"] == "anthropic.claude-opus-5-5"
-    assert stub.kwargs["output_format"] is DocumentExtraction
-    assert stub.kwargs["cache_control"] == {"type": "ephemeral"}
-    assert "<documento>" in stub.kwargs["messages"][0]["content"]
-    assert "temperature" not in stub.kwargs and "tool_choice" not in stub.kwargs
+                             output=DocumentExtraction) == EXTRACTION
+    request = seen[0]
+    body = json.loads(request.content)
+    assert str(request.url) == "http://llm.test/v1/chat/completions"
+    assert request.headers["authorization"] == "Bearer k"
+    assert body["model"] == "qwen3:8b" and body["temperature"] == 0
+    assert body["reasoning_effort"] == "none"
+    assert body["messages"][0] == {"role": "system", "content": "x"}
+    assert "<documento>\ndoc\n</documento>" in body["messages"][1]["content"]
+    schema = body["response_format"]["json_schema"]
+    assert schema["name"] == "DocumentExtraction"
+    assert schema["schema"] == DocumentExtraction.model_json_schema()
 
 
-def test_bedrock_negativa_y_respuesta_cortada():
-    refusal = SimpleNamespace(stop_reason="refusal", parsed_output=None,
-                              stop_details=SimpleNamespace(category="cyber"))
-    with pytest.raises(LLMRefusal, match="cyber"):
-        BedrockLLMClient("m", "r", client=StubSDK(refusal)).structured(
-            instructions="x", document="d", output=DocumentExtraction)
-    cut = SimpleNamespace(stop_reason="max_tokens", parsed_output=None)
+@pytest.mark.parametrize("reply, status", [
+    (completion("{}", finish_reason="length"), 200),   # cortada por longitud
+    (completion('{"lots": "no"}'), 200),               # no valida con el esquema
+    (completion("no es json"), 200),
+    ({"error": "modelo no cargado"}, 500),
+    ({"choices": []}, 200),
+])
+def test_servidor_propio_respuestas_malas(reply, status):
+    http, _ = server(reply, status)
     with pytest.raises(LLMOutputError):
-        BedrockLLMClient("m", "r", client=StubSDK(cut)).structured(
+        OpenAICompatibleLLMClient("http://llm.test/v1", "m", client=http).structured(
             instructions="x", document="d", output=DocumentExtraction)
+
+
+def test_configuracion_sin_valores_por_defecto(monkeypatch):
+    for name in ("LLM_PROVIDER", "LLM_BASE_URL", "LLM_MODEL_ID", "LLM_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+    with pytest.raises(ValueError, match="LLM_PROVIDER"):
+        llm_from_env()
+    monkeypatch.setenv("LLM_PROVIDER", "openai_compatible")
+    with pytest.raises(ValueError, match="LLM_BASE_URL"):
+        llm_from_env()
+    monkeypatch.setenv("LLM_BASE_URL", "http://llm.test/v1")
+    monkeypatch.setenv("LLM_MODEL_ID", "qwen3:8b")
+    client = llm_from_env()
+    assert isinstance(client, OpenAICompatibleLLMClient) and client.model == "qwen3:8b"
 
 
 # --- De punta a punta contra la base -----------------------------------------------------------
@@ -181,7 +213,7 @@ def test_lotes_extraidos_ubicados_y_pendientes_de_confirmar(migrated_database: s
         conn.execute("UPDATE offers SET extraction_status = 'pendiente' "
                      "WHERE external_id = 'BOE-B-2026-35273'")
     run_boe_v(migrated_database, boe_client(), date(2026, 10, 28), days=1)
-    failing = FakeLLMClient(lambda *a: (_ for _ in ()).throw(LLMRefusal("prueba")))
+    failing = FakeLLMClient(lambda *a: (_ for _ in ()).throw(LLMOutputError("prueba")))
     assert extract_boe_v(migrated_database, boe_client(), failing)["failed"] >= 1
 
     geocoded: list[str] = []

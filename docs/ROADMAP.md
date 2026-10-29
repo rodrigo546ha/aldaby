@@ -163,7 +163,8 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
 - [ ] F4.4 Anuncios de la sección V del BOE: Seguridad Social, INVIED, Patrimonio del Estado.
       *Estado:* el canal `boe_seccion_v` guarda cada día los anuncios enteros y el trabajo
       `extract_offers` extrae sus lotes con evidencia comprobada (ADR-0013), los ubica y los
-      deduplica. Falta enlazar las correcciones de errores con su anuncio y la prueba con Bedrock real.
+      deduplica. Falta enlazar las correcciones de errores con su anuncio y comprobar que cada
+      cita cae en el tramo de su lote (ADR-0014: el modelo pequeño copió el lote 1 en el lote 2).
       Volumen: `docs/research/f4-volumen-boe.md`.
 - [ ] F4.5 Servicers (Solvia, Servihabitat, Aliseda, Altamira, Hipoges): revisar términos de uso de
       cada web, ADR por servicer y contacto comercial para acuerdo.
@@ -205,9 +206,10 @@ umbral fijado en F0, y cada estimación con su rango.
 
 **Tareas**
 
-- [x] F6.1 Interfaz propia para el LLM (Claude en AWS Bedrock), intercambiable por configuración
-      (ADR-0013, adelantada a G5): `agent/llm.py` con Bedrock y cliente falso. *Pendiente:* probarlo
-      contra Bedrock con la cuenta de AWS de HouseFinder.
+- [x] F6.1 Interfaz propia para el LLM, intercambiable por configuración (ADR-0013, adelantada a G5):
+      `agent/llm.py` con un servidor propio de modelos abiertos por la API compatible con OpenAI
+      (ADR-0014) y cliente falso. Probado con `qwen3:8b` en Ollama local. *Pendiente:* elegir
+      servidor virtual y modelo con una prueba sobre anuncios reales.
 - [ ] F6.2 Perfilado conversacional que produce un perfil estructurado y validado.
 - [ ] F6.3 Lectura de documentos del usuario (nómina, extracto, declaración) con confirmación manual.
 - [ ] F6.4 Herramientas del agente: llama a los motores, nunca calcula.

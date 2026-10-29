@@ -33,7 +33,7 @@ FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "op
 DB_DRIVERS = {"psycopg", "psycopg_pool"}
 # Solo la ingesta descarga datos de la red.
 ALLOWED_EXTERNAL = {"ingestion": {"httpx"}, "geo": {"httpx"}, "jobs": {"httpx"},
-                    "watch": {"httpx"}, "offers": {"httpx"}, "agent": {"anthropic"}}
+                    "watch": {"httpx"}, "offers": {"httpx"}, "agent": {"httpx"}}
 
 
 def _imports(path: Path) -> set[str]:
