@@ -9,6 +9,7 @@ import httpx
 
 from housefinder.ingestion import ine_adrh, ine_sections
 from housefinder.jobs.worker import Handler
+from housefinder.offers.run import run_boe_v
 from housefinder.watch.run import watch_bocm, watch_boe
 
 
@@ -28,4 +29,9 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
             return watch_bocm(conninfo, client)
 
-    return {"ine_sections": sections, "ine_adrh": adrh, "watch_boe": boe, "watch_bocm": bocm}
+    def offers_boe_v(payload: dict[str, Any]) -> dict[str, Any]:
+        with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
+            return run_boe_v(conninfo, client, date.today(), int(payload.get("days", 7)))
+
+    return {"ine_sections": sections, "ine_adrh": adrh, "watch_boe": boe, "watch_bocm": bocm,
+            "offers_boe_v": offers_boe_v}

@@ -1,0 +1,96 @@
+{
+ "status": {
+  "code": "200",
+  "text": "ok"
+ },
+ "data": {
+  "sumario": {
+   "metadatos": {
+    "publicacion": "BOE",
+    "fecha_publicacion": "20261028"
+   },
+   "diario": [
+    {
+     "numero": "268",
+     "sumario_diario": {
+      "identificador": "BOE-S-2026-268",
+      "url_pdf": {
+       "szBytes": "141490",
+       "szKBytes": "138",
+       "texto": "https://www.boe.es/boe/dias/2026/10/28/pdfs/BOE-S-2026-268.pdf"
+      }
+     },
+     "seccion": []
+    },
+    {
+     "numero": "267",
+     "sumario_diario": {
+      "identificador": "BOE-S-2026-267",
+      "url_pdf": {
+       "szBytes": "390885",
+       "szKBytes": "382",
+       "texto": "https://www.boe.es/boe/dias/2026/10/28/pdfs/BOE-S-2026-267.pdf"
+      }
+     },
+     "seccion": [
+      {
+       "codigo": "5B",
+       "nombre": "V. Anuncios. - B. Otros anuncios oficiales",
+       "departamento": [
+        {
+         "codigo": "9579",
+         "nombre": "MINISTERIO DE INCLUSIÓN, SEGURIDAD SOCIAL Y MIGRACIONES",
+         "item": [
+          {
+           "identificador": "BOE-B-2026-35273",
+           "titulo": "Resolución de la Dirección Provincial de la Tesorería General de la Seguridad Social de Madrid por la que se anuncia subasta pública mediante procedimiento abierto de inmuebles, propiedad de la Tesorería General de la Seguridad Social, ubicados en la carretera M-119 (Camarma-Valdeavero), nº 21, de Alcalá de Henares (Madrid).",
+           "url_pdf": {
+            "szBytes": "217867",
+            "szKBytes": "213",
+            "pagina_inicial": "57214",
+            "pagina_final": "57216",
+            "texto": "https://www.boe.es/boe/dias/2026/10/28/pdfs/BOE-B-2026-35273.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35273",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-35273"
+          },
+          {
+           "identificador": "BOE-B-2026-35274",
+           "titulo": "Corrección de errores de la Resolución, de 7 de octubre de 2022, de la Dirección General del Sistema de Acogida de Protección Internacional y Temporal, por la que se autoriza la prestación de servicios del Sistema de Acogida de Protección Internacional y Temporal, mediante acción concertada, a la entidad FUNDACIÓN LA MERCED MIGRACIONES.",
+           "url_pdf": {
+            "szBytes": "204401",
+            "szKBytes": "200",
+            "pagina_inicial": "57217",
+            "pagina_final": "57217",
+            "texto": "https://www.boe.es/boe/dias/2026/10/28/pdfs/BOE-B-2026-35274.pdf"
+           },
+           "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35274",
+           "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-35274"
+          }
+         ]
+        },
+        {
+         "codigo": "9562",
+         "nombre": "MINISTERIO DE ASUNTOS EXTERIORES, UNIÓN EUROPEA Y COOPERACIÓN",
+         "item": {
+          "identificador": "BOE-B-2026-35248",
+          "titulo": "Extracto de la Resolución de la Dirección General de Casa África por la que se convoca, mediante tramitación anticipada, el concurso fotográfico «Objetivo África» para 2027.",
+          "url_pdf": {
+           "szBytes": "217089",
+           "szKBytes": "212",
+           "pagina_inicial": "57178",
+           "pagina_final": "57180",
+           "texto": "https://www.boe.es/boe/dias/2026/10/28/pdfs/BOE-B-2026-35248.pdf"
+          },
+          "url_html": "https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35248",
+          "url_xml": "https://www.boe.es/diario_boe/xml.php?id=BOE-B-2026-35248"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

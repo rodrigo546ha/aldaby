@@ -161,9 +161,14 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
 - [ ] F4.3 Subastas del Portal de Subastas del BOE para la provincia de Madrid (revisar condiciones
       de uso; si no hay vía de datos abiertos, ADR antes de implementar).
 - [ ] F4.4 Anuncios de la sección V del BOE: Seguridad Social, INVIED, Patrimonio del Estado.
+      *Estado:* el canal `boe_seccion_v` guarda cada día los anuncios de venta o subasta de inmuebles
+      enteros, con la extracción pendiente; faltan los lotes (con el LLM y su evidencia, F6.1) y
+      enlazar las correcciones de errores con su anuncio. Volumen: `docs/research/f4-volumen-boe.md`.
 - [ ] F4.5 Servicers (Solvia, Servihabitat, Aliseda, Altamira, Hipoges): revisar términos de uso de
       cada web, ADR por servicer y contacto comercial para acuerdo.
-- [ ] F4.6 Normalización y deduplicación por referencia catastral y geolocalización.
+- [x] F4.6 Normalización y deduplicación por referencia catastral y geolocalización: interfaz
+      `Channel`, lo recibido siempre guardado con sus versiones, inmueble por referencia catastral o
+      a menos de 30 m con superficie a ±5 %, y sección censal asignada.
 - [x] F4.7 Trabajos programados con reintentos y alertas de fallo (ADR-0010): cola en PostgreSQL con
       `SKIP LOCKED`, esperas de 1 minuto a 1 hora, programaciones por intervalo, alertas en el log
       `housefinder.alertas`; `make worker`. Primeros tipos: `ine_sections` e `ine_adrh`.

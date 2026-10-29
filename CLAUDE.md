@@ -73,6 +73,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/profiles.py        organizaciones y perfiles (solo bytes cifrados)
     crypto/               cifrado de sobre AES-256-GCM y claves maestras (ADR-0011)
     profiles/             perfil del inversor: modelo que se redacta y almacén cifrado
+    db/offers.py          ofertas, versiones de lo recibido e inmuebles (deduplicación)
+    offers/               canales de oferta (interfaz Channel), ingesta, ubicación y deduplicación
     watch/                vigilancia del BOE y del BOCM: filtros, lectura y tareas (F2.6)
     geo/cartociudad.py    geocodificador de CartoCiudad (ADR-0009); solo geo/ e ingestion/ usan la red
     territory/            sección, renta, población y tendencias de una dirección como Figure

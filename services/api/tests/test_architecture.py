@@ -21,17 +21,18 @@ ALLOWED_INTERNAL = {
     "ingestion": {"core", "db", "ingestion"},
     "geo": {"core", "geo"},
     "territory": {"core", "db", "geo", "ingestion", "territory"},
-    "jobs": {"core", "db", "ingestion", "jobs", "watch"},
+    "jobs": {"core", "db", "ingestion", "jobs", "offers", "watch"},
     "watch": {"core", "db", "ingestion", "watch"},
     "crypto": {"core", "crypto"},
     "profiles": {"core", "crypto", "db", "profiles"},
+    "offers": {"core", "db", "geo", "ingestion", "offers", "territory"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi"}
 # Solo db/ habla con la base de datos (ADR-0008).
 DB_DRIVERS = {"psycopg", "psycopg_pool"}
 # Solo la ingesta descarga datos de la red.
 ALLOWED_EXTERNAL = {"ingestion": {"httpx"}, "geo": {"httpx"}, "jobs": {"httpx"},
-                    "watch": {"httpx"}}
+                    "watch": {"httpx"}, "offers": {"httpx"}}
 
 
 def _imports(path: Path) -> set[str]:
@@ -47,7 +48,7 @@ def _imports(path: Path) -> set[str]:
 
 @pytest.mark.parametrize("module", sorted(ALLOWED_INTERNAL))
 def test_dependencias_permitidas(module: str):
-    for file in sorted((PACKAGE / module).glob("*.py")):
+    for file in sorted((PACKAGE / module).rglob("*.py")):
         for name in _imports(file):
             top, _, rest = name.partition(".")
             if top == "housefinder":
