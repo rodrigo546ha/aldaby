@@ -1,3 +1,5 @@
+# Base de datos local. El esquema lo aplica `make db` con el ejecutor de migraciones (ADR-0008).
+name: housefinder
 services:
   db:
     image: postgis/postgis:16-3.4
@@ -6,9 +8,13 @@ services:
       POSTGRES_PASSWORD: housefinder
       POSTGRES_DB: housefinder
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${HOUSEFINDER_DB_PORT:-5442}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ../db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U housefinder -d housefinder"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
 volumes:
   pgdata:

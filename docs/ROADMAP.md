@@ -119,7 +119,8 @@ una ley solo requiere añadir una regla en YAML.
 
 **Tareas**
 
-- [ ] F3.1 Base de datos local con `make db` y migración `0001_init.sql`.
+- [x] F3.1 Base de datos local con `make db` y migraciones con ejecutor propio (ADR-0008): `0001_init`,
+      `0002` (secciones por cartografía, organizaciones, reproducibilidad del plan).
 - [ ] F3.2 Cargar la cartografía de secciones censales del INE para la Comunidad de Madrid.
 - [ ] F3.3 Cargar el Atlas de Distribución de Renta de los Hogares (INE) por sección.
 - [ ] F3.4 Cargar el padrón (población, edad, nacionalidad) y su evolución.

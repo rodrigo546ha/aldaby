@@ -3,6 +3,21 @@ on: [push, pull_request]
 jobs:
   api:
     runs-on: ubuntu-latest
+    services:
+      postgis:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: housefinder
+          POSTGRES_PASSWORD: housefinder
+          POSTGRES_DB: housefinder
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U housefinder"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      DATABASE_URL: postgresql://housefinder:housefinder@127.0.0.1:5432/housefinder
+      HOUSEFINDER_REQUIRE_DB: "1"
     defaults:
       run:
         working-directory: services/api
@@ -14,4 +29,5 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check src tests
       - run: python -m housefinder.regulation.check
+      - run: python -m housefinder.db.migrate
       - run: python -m pytest -q

@@ -1,14 +1,23 @@
-.PHONY: setup db test lint rules-check api web openapi
+.PHONY: setup db migrate test lint rules-check api web openapi
 
 PYTHON ?= python3
 VENV := .venv/bin
+HOUSEFINDER_DB_PORT ?= 5442
+DATABASE_URL ?= postgresql://housefinder:housefinder@127.0.0.1:$(HOUSEFINDER_DB_PORT)/housefinder
+export HOUSEFINDER_DB_PORT DATABASE_URL
 
 setup:
 	cd services/api && $(PYTHON) -m venv .venv && $(VENV)/pip install -e ".[dev]"
 	cd apps/web && npm install
 
+# Arranca PostgreSQL + PostGIS y aplica las migraciones pendientes, también sobre un volumen
+# que ya existe (ADR-0008).
 db:
-	docker compose -f infra/docker-compose.yml up -d
+	docker compose -f infra/docker-compose.yml up -d --wait
+	$(MAKE) migrate
+
+migrate:
+	cd services/api && $(VENV)/python -m housefinder.db.migrate
 
 test:
 	cd services/api && $(VENV)/python -m pytest -q

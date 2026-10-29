@@ -59,13 +59,14 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     params/               parámetros con fecha (ParamBook): criterios bancarios, Euríbor (ADR-0006)
     planning/simulate.py  simulación de punta a punta: el único camino de cálculo del plan (D4)
     planning/scenarios.py escenarios normativos: comparación con / sin reglas pendientes
+    db/migrate.py         ejecutor de migraciones (ADR-0008); solo db/ importa psycopg
     ingestion/boe.py      sumario diario del BOE (esquema por verificar, fase 4)
     api/main.py           aplicación FastAPI; un router por dominio (api/simulate.py)
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
   tests/                  pytest; un test por regla de negocio
   tests/fixtures/planes/  prueba de oro: planes de F0 anonimizados (los reales, en private/)
-db/migrations/            SQL de PostgreSQL + PostGIS
+db/migrations/            SQL de PostgreSQL + PostGIS (NNNN_nombre.sql; no se editan una vez aplicadas)
 infra/docker-compose.yml  base de datos local
 docs/                     ROADMAP, ARCHITECTURE, DATA_SOURCES, ADRs y plantillas
 ```
@@ -74,8 +75,9 @@ docs/                     ROADMAP, ARCHITECTURE, DATA_SOURCES, ADRs y plantillas
 
 ```bash
 make setup     # entorno Python (.venv) y dependencias web
-make db        # PostgreSQL + PostGIS en Docker (aplica db/migrations al crear)
-make test      # pytest de la API
+make db        # PostgreSQL + PostGIS en Docker (127.0.0.1:5442) y migraciones pendientes
+make migrate   # solo las migraciones pendientes (DATABASE_URL)
+make test      # pytest de la API (los tests `db` se saltan si la base no está arrancada)
 make lint      # ruff
 make rules-check  # valida data/rules (catálogo de tipos, vigencias, revisor)
 make api       # API en http://localhost:8000 (docs en /docs)
