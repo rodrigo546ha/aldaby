@@ -1,4 +1,4 @@
-.PHONY: setup db test lint rules-check api web
+.PHONY: setup db test lint rules-check api web openapi
 
 PYTHON ?= python3
 VENV := .venv/bin
@@ -24,3 +24,8 @@ api:
 
 web:
 	cd apps/web && npm run dev
+
+# Tipos de la web generados desde el OpenAPI de la API (D11), sin arrancar el servidor.
+openapi:
+	cd services/api && $(VENV)/python -c "import json; from housefinder.api.main import app; print(json.dumps(app.openapi(), ensure_ascii=False, indent=2))" > ../../apps/web/lib/openapi.json
+	cd apps/web && npx openapi-typescript lib/openapi.json -o lib/api-types.ts

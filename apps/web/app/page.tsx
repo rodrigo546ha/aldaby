@@ -1,10 +1,16 @@
-// Fase 1: esta página llamará a POST /simulate/affordability de la API.
+import { Simulator } from "../components/Simulator";
+
 export default function Home() {
   return (
-    <main style={{ maxWidth: 720, margin: "64px auto", fontFamily: "system-ui" }}>
-      <h1>HouseFinder</h1>
-      <p>La inversión inmobiliaria que encaja contigo.</p>
-      <p>Próximamente: simulador de capacidad de compra.</p>
+    <main>
+      <header className="intro">
+        <h1>Tu plan de inversión</h1>
+        <p>
+          La rentabilidad con tu hipoteca, tu IRPF y tu ahorro. Cada cifra dice cómo se calcula
+          y de qué norma o dato sale.
+        </p>
+      </header>
+      <Simulator />
     </main>
   );
 }

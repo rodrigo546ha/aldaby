@@ -1,0 +1,1124 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "HouseFinder API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/simulate/affordability": {
+      "post": {
+        "tags": [
+          "simuladores"
+        ],
+        "summary": "Simulate Affordability",
+        "operationId": "simulate_affordability_simulate_affordability_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AffordabilityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AffordabilityResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/simulate/investment": {
+      "post": {
+        "tags": [
+          "simuladores"
+        ],
+        "summary": "Simulate Investment",
+        "operationId": "simulate_investment_simulate_investment_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvestmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AffordabilityRequest": {
+        "properties": {
+          "net_monthly_income": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Net Monthly Income"
+          },
+          "existing_monthly_debt": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Existing Monthly Debt",
+            "default": "0"
+          },
+          "available_savings": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Available Savings"
+          },
+          "age": {
+            "type": "integer",
+            "maximum": 90.0,
+            "minimum": 18.0,
+            "title": "Age"
+          },
+          "annual_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0.2,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Annual Rate"
+          },
+          "purchase_cost_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0.3,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Purchase Cost Rate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "net_monthly_income",
+          "available_savings",
+          "age",
+          "annual_rate",
+          "purchase_cost_rate"
+        ],
+        "title": "AffordabilityRequest"
+      },
+      "AffordabilityResponse": {
+        "properties": {
+          "max_price": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "max_loan": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "max_payment": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "years": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "binding_constraint": {
+            "type": "string",
+            "title": "Binding Constraint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "max_price",
+          "max_loan",
+          "max_payment",
+          "years",
+          "binding_constraint"
+        ],
+        "title": "AffordabilityResponse"
+      },
+      "BuyerRequest": {
+        "properties": {
+          "net_monthly_income": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Net Monthly Income"
+          },
+          "existing_monthly_debt": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Existing Monthly Debt",
+            "default": "0"
+          },
+          "available_savings": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Available Savings"
+          },
+          "age": {
+            "type": "integer",
+            "maximum": 90.0,
+            "minimum": 18.0,
+            "title": "Age"
+          },
+          "residence": {
+            "type": "string",
+            "pattern": "^ES-\\d{2}$",
+            "title": "Residence",
+            "description": "Comunidad de residencia (ES-13)"
+          },
+          "taxable_base": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxable Base",
+            "description": "Base liquidable general sin el alquiler"
+          },
+          "descendant_ages": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Descendant Ages"
+          },
+          "marginal_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Marginal Rate",
+            "description": "Supuesto si no se conoce la base"
+          }
+        },
+        "type": "object",
+        "required": [
+          "net_monthly_income",
+          "available_savings",
+          "age",
+          "residence"
+        ],
+        "title": "BuyerRequest"
+      },
+      "ComparisonOut": {
+        "properties": {
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Labels"
+          },
+          "cheapest_expected": {
+            "type": "string",
+            "title": "Cheapest Expected"
+          },
+          "lowest_stressed_payment": {
+            "type": "string",
+            "title": "Lowest Stressed Payment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "labels",
+          "cheapest_expected",
+          "lowest_stressed_payment"
+        ],
+        "title": "ComparisonOut"
+      },
+      "ExitRequest": {
+        "properties": {
+          "appreciation_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0.2,
+                "minimum": -0.2
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Appreciation Rate"
+          },
+          "sale_cost_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0.2,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Sale Cost Rate"
+          },
+          "capital_gains_tax_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Capital Gains Tax Rate"
+          },
+          "horizon_years": {
+            "type": "integer",
+            "maximum": 40.0,
+            "minimum": 1.0,
+            "title": "Horizon Years",
+            "default": 10
+          }
+        },
+        "type": "object",
+        "required": [
+          "appreciation_rate",
+          "sale_cost_rate",
+          "capital_gains_tax_rate"
+        ],
+        "title": "ExitRequest"
+      },
+      "FigureOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "formula": {
+            "type": "string",
+            "title": "Formula"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceOut"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "low": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low"
+          },
+          "high": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "value",
+          "unit",
+          "formula",
+          "sources",
+          "provisional",
+          "as_of",
+          "low",
+          "high"
+        ],
+        "title": "FigureOut"
+      },
+      "FinancingRequest": {
+        "properties": {
+          "annual_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0.2,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Annual Rate"
+          },
+          "rate_shock": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0.1,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Rate Shock"
+          },
+          "loan": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Loan"
+          },
+          "years": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 50.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Years"
+          },
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/OfferRequest"
+            },
+            "type": "array",
+            "title": "Alternatives"
+          }
+        },
+        "type": "object",
+        "required": [
+          "annual_rate",
+          "rate_shock"
+        ],
+        "title": "FinancingRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InvestmentRequest": {
+        "properties": {
+          "buyer": {
+            "$ref": "#/components/schemas/BuyerRequest"
+          },
+          "property": {
+            "$ref": "#/components/schemas/PropertyRequest"
+          },
+          "financing": {
+            "$ref": "#/components/schemas/FinancingRequest"
+          },
+          "rental": {
+            "$ref": "#/components/schemas/RentalRequest"
+          },
+          "exit": {
+            "$ref": "#/components/schemas/ExitRequest"
+          },
+          "purchase_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purchase Date",
+            "description": "Por defecto, hoy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "buyer",
+          "property",
+          "financing",
+          "rental",
+          "exit"
+        ],
+        "title": "InvestmentRequest"
+      },
+      "InvestmentResponse": {
+        "properties": {
+          "figures": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "object",
+            "title": "Figures"
+          },
+          "within_budget": {
+            "type": "boolean",
+            "title": "Within Budget"
+          },
+          "binding_constraint": {
+            "type": "string",
+            "title": "Binding Constraint"
+          },
+          "term_feasible": {
+            "type": "boolean",
+            "title": "Term Feasible"
+          },
+          "no_irr_reason": {
+            "type": "string",
+            "title": "No Irr Reason"
+          },
+          "comparison": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComparisonOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pending_scenario": {
+            "$ref": "#/components/schemas/ScenarioOut"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "figures",
+          "within_budget",
+          "binding_constraint",
+          "term_feasible",
+          "no_irr_reason",
+          "comparison",
+          "pending_scenario",
+          "warnings"
+        ],
+        "title": "InvestmentResponse"
+      },
+      "OfferRequest": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$",
+            "title": "Label"
+          },
+          "initial_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0.2,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Initial Rate"
+          },
+          "initial_months": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Initial Months",
+            "description": "Meses a tipo inicial; ≥ plazo = fija"
+          },
+          "spread": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0.1,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Spread",
+            "default": "0"
+          },
+          "revision_months": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Revision Months",
+            "default": 12
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "initial_rate",
+          "initial_months"
+        ],
+        "title": "OfferRequest"
+      },
+      "PropertyRequest": {
+        "properties": {
+          "price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Price"
+          },
+          "territory": {
+            "type": "string",
+            "pattern": "^ES-\\d{2}-\\d{5}$",
+            "title": "Territory",
+            "description": "Municipio (ES-13-28079)"
+          },
+          "construction_value": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Construction Value",
+            "description": "Base de la amortización fiscal"
+          },
+          "other_purchase_cost_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0.3,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Other Purchase Cost Rate",
+            "description": "Notaría, registro, gestoría y tasación"
+          },
+          "community_fees_monthly": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Community Fees Monthly"
+          },
+          "insurance_annual": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Insurance Annual"
+          },
+          "renovation": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Renovation",
+            "default": "0"
+          },
+          "new_build": {
+            "type": "boolean",
+            "title": "New Build",
+            "default": false
+          },
+          "cadastral_value": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cadastral Value"
+          },
+          "ibi_annual": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ibi Annual"
+          }
+        },
+        "type": "object",
+        "required": [
+          "price",
+          "territory",
+          "construction_value",
+          "other_purchase_cost_rate",
+          "community_fees_monthly",
+          "insurance_annual"
+        ],
+        "title": "PropertyRequest"
+      },
+      "RentalFacts": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "enum": [
+              "primer-alquiler",
+              "nuevo-contrato",
+              "prorroga-tacita"
+            ],
+            "title": "Contract"
+          },
+          "large_holder": {
+            "type": "boolean",
+            "title": "Large Holder"
+          },
+          "rent_change": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "rebaja-mas-5",
+                  "no-superior",
+                  "subida-hasta-5",
+                  "subida-5-a-10",
+                  "subida-10-a-15",
+                  "subida-15-a-20",
+                  "subida-mas-de-20"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rent Change"
+          },
+          "below_reference_index": {
+            "type": "boolean",
+            "title": "Below Reference Index",
+            "default": false
+          },
+          "stressed_zone": {
+            "type": "boolean",
+            "title": "Stressed Zone",
+            "default": false
+          },
+          "young_tenant": {
+            "type": "boolean",
+            "title": "Young Tenant",
+            "default": false
+          },
+          "public_or_social_tenant": {
+            "type": "boolean",
+            "title": "Public Or Social Tenant",
+            "default": false
+          },
+          "recent_rehabilitation": {
+            "type": "boolean",
+            "title": "Recent Rehabilitation",
+            "default": false
+          },
+          "same_tenant_after_term": {
+            "type": "boolean",
+            "title": "Same Tenant After Term",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "contract",
+          "large_holder"
+        ],
+        "title": "RentalFacts",
+        "description": "Situación de un contrato de alquiler de vivienda, en el vocabulario de las reglas.\n\nLos hechos que no se conocen valen False: solo desbloquean reducciones mayores, así que\nsuponerlos falsos nunca da una reducción que no se pueda justificar. `large_holder` es\nobligatorio porque suponerlo falso sí podría darla."
+      },
+      "RentalRequest": {
+        "properties": {
+          "monthly_rent": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Monthly Rent"
+          },
+          "vacancy_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Vacancy Rate"
+          },
+          "management_fee_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Management Fee Rate"
+          },
+          "maintenance_reserve_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Maintenance Reserve Rate"
+          },
+          "situation": {
+            "$ref": "#/components/schemas/RentalFacts"
+          },
+          "contract_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Contract Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "monthly_rent",
+          "vacancy_rate",
+          "management_fee_rate",
+          "maintenance_reserve_rate",
+          "situation",
+          "contract_date"
+        ],
+        "title": "RentalRequest"
+      },
+      "ScenarioChangeOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "base": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "scenario": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "delta": {
+            "$ref": "#/components/schemas/FigureOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "base",
+          "scenario",
+          "delta"
+        ],
+        "title": "ScenarioChangeOut"
+      },
+      "ScenarioOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioChangeOut"
+            },
+            "type": "array",
+            "title": "Changes"
+          },
+          "new_rules": {
+            "items": {
+              "$ref": "#/components/schemas/SourceOut"
+            },
+            "type": "array",
+            "title": "New Rules"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "changes",
+          "new_rules"
+        ],
+        "title": "ScenarioOut"
+      },
+      "SourceOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "id",
+          "provisional"
+        ],
+        "title": "SourceOut"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

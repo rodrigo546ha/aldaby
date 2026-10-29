@@ -54,17 +54,35 @@ def purchase_tax(
     Vivienda nueva (IVA y AJD) aún no está cargada: el AJD de Madrid necesita un esquema
     propio (inventario, fila 1.3).
     """
+    rate = purchase_tax_rate(book, territory, on, new_build, include_pending, allow_unverified)
+    return Figure(
+        "purchase_costs.transfer_tax",
+        money(price * rate.value),
+        "EUR",
+        f"precio × tipo del ITP ({rate.value})",
+        combine_sources(price_sources, rate.sources),
+    )
+
+
+def purchase_tax_rate(
+    book: RuleBook,
+    territory: str,
+    on: date,
+    new_build: bool,
+    include_pending: bool = False,
+    allow_unverified: bool = False,
+) -> Figure:
+    """Tipo del impuesto de compra sobre el precio, para la capacidad de compra."""
     if new_build:
         raise LookupError("El impuesto de compra de vivienda nueva (IVA y AJD) aún no está cargado")
     rule = _rule(book, "impuesto_compra_segunda_mano", territory, on, include_pending,
                  allow_unverified)
-    rate = _rate(rule)
     return Figure(
-        "purchase_costs.transfer_tax",
-        money(price * rate),
-        "EUR",
-        f"precio × tipo del ITP ({rate})",
-        combine_sources(price_sources, (rule.ref,)),
+        "purchase_costs.transfer_tax_rate",
+        _rate(rule),
+        "ratio",
+        "tipo del ITP de la regla vigente",
+        (rule.ref,),
     )
 
 

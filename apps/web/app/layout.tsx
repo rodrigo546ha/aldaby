@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import "./globals.css";
+
 export const metadata = {
   title: "HouseFinder",
   description: "La inversión inmobiliaria que encaja contigo",

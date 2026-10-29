@@ -75,10 +75,12 @@ y al menos 3 profesionales se comprometen al piloto. Si no se cumple: revisar pr
       como datos con fecha, no como predicción propia.
 - [x] F1.8 Plazo recomendado: el mínimo que mantiene el cash flow positivo en el escenario de estrés.
 - [x] F1.9 TIR a 10 años con escenarios de revalorización (que llegarán de F5) como parámetro.
-- [ ] F1.10 Endpoint `POST /simulate/investment` y página web del simulador de capacidad.
+- [x] F1.10 Endpoint `POST /simulate/investment` y página web del simulador de capacidad.
 
 **Criterio de salida.** Todos los cálculos con test de valor conocido, cifras como `Figure`, y un
 plan manual de F0 reproducido por el motor con diferencias menores de 1 €.
+*Estado:* el arnés de la prueba de oro está listo (`tests/test_golden_plans.py`) y pasa con un plan
+sintético; falta un plan real de F0 (F0.3) para dar el criterio por cumplido.
 
 ---
 
