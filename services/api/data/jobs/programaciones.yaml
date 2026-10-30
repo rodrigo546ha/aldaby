@@ -38,3 +38,17 @@ schedules:
     at: "09:45"
     every_hours: 24
     payload: {}
+
+  # Referencias de precio (ADR-0018): el INE publica el IPV cada trimestre y el valor tasado es
+  # anual. Mirar cada 30 días es barato; la carga sustituye la serie entera.
+  - name: referencias-ipv
+    kind: ine_ipv
+    at: "11:00"
+    every_hours: 720
+    payload: {region: "13"}
+
+  - name: referencias-valor-tasado
+    kind: valor_tasado
+    at: "11:15"
+    every_hours: 720
+    payload: {}

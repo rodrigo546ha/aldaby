@@ -210,9 +210,13 @@ sección censal asignada.
 
 **Tareas**
 
-- [ ] F5.1 Recopilar referencias de precio: Portal Estadístico del Notariado, valor tasado del
+- [x] F5.1 Recopilar referencias de precio: Portal Estadístico del Notariado, valor tasado del
       Ministerio, IPV del INE (revisar términos de reutilización).
-- [ ] F5.2 Referencias de alquiler: Sistema Estatal de Referencia del Precio del Alquiler e IPVA.
+- [x] F5.2 Referencias de alquiler: Sistema Estatal de Referencia del Precio del Alquiler e IPVA.
+      *Hecho (ADR-0018):* SERPAVI 2011–2024 por sección (`make serpavi`), valor tasado municipal
+      (`make valor-tasado`) e IPV del INE (`make ipv`). El Notariado prohíbe el uso comercial: fuera.
+      El IPVA del INE es un índice, no niveles de renta: no hace falta por ahora.
+      No hay precio de venta público por sección: el precio se estimará desde la renta.
 - [ ] F5.3 Modelo base de renta por sección, superficie y características, con intervalo P25–P75.
 - [ ] F5.4 Modelo base de precio y margen de negociación respecto al precio pedido.
 - [ ] F5.5 Escenarios de revalorización (conservador, base, optimista) a partir de factores

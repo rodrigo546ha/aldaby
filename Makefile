@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections adrh serpavi worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi
+.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi
 
 # Configuración local (copia de .env.example, fuera de git): LLM, base de datos, claves…
 -include .env
@@ -26,6 +26,7 @@ migrate:
 # Cartografía de secciones censales del INE (F3.2). Descarga ~50 MB por provincia.
 YEAR ?= 2025
 PROVINCE ?= 28
+REGION ?= 13
 sections:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_sections --year $(YEAR) --province $(PROVINCE)
 
@@ -37,6 +38,13 @@ adrh:
 # Referencias de alquiler del SERPAVI 2011–2024 (ADR-0018); el Excel se guarda en ~/.cache/housefinder
 serpavi:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.serpavi --province $(PROVINCE)
+
+# Valor tasado por municipio (Comunidad de Madrid) e IPV del INE por comunidad (ADR-0018)
+valor-tasado:
+	cd services/api && $(VENV)/python -m housefinder.ingestion.valor_tasado
+
+ipv:
+	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_ipv --region $(REGION)
 
 # Worker de la cola de trabajos (ADR-0010). Encolar: python -m housefinder.jobs enqueue …
 worker:
