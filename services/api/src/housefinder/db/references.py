@@ -23,10 +23,11 @@ class ReferenceRow:
     stat: str
     value: Decimal
     unit: str
+    month: int = 0  # 1–12 en datos mensuales
 
 
 COLUMNS = ("source_id", "level", "code", "vintage", "year", "quarter", "measure", "typology",
-           "stat", "value", "unit")
+           "stat", "value", "unit", "month")
 
 
 def replace_references(
@@ -45,7 +46,7 @@ def replace_references(
     ) as copy:
         for r in rows:
             copy.write_row((source.id, r.level, r.code, r.vintage, r.year, r.quarter, r.measure,
-                            r.typology, r.stat, r.value, r.unit))
+                            r.typology, r.stat, r.value, r.unit, r.month))
             count += 1
     return count
 
@@ -202,3 +203,41 @@ def series_values(
         """,
         (source_id, level, measure, typology, f"{code_prefix}%"),
     )}
+
+
+@dataclass(frozen=True)
+class MonthPoint:
+    year: int
+    month: int
+    value: Decimal
+
+
+def latest_month(
+    conn: psycopg.Connection, source_id: str, level: str, code: str, measure: str
+) -> MonthPoint | None:
+    row = conn.execute(
+        """
+        SELECT year, month, value FROM market_references
+        WHERE source_id = %s AND level = %s AND code = %s AND measure = %s AND month > 0
+        ORDER BY year DESC, month DESC LIMIT 1
+        """,
+        (source_id, level, code, measure),
+    ).fetchone()
+    return MonthPoint(*row) if row else None
+
+
+def annual_mean_of_months(
+    conn: psycopg.Connection, source_id: str, level: str, code: str, measure: str, year: int
+) -> Decimal | None:
+    """Media de los doce meses de un año; None si falta alguno."""
+    row = conn.execute(
+        """
+        SELECT count(*), avg(value) FROM market_references
+        WHERE source_id = %s AND level = %s AND code = %s AND measure = %s AND year = %s
+          AND month BETWEEN 1 AND 12
+        """,
+        (source_id, level, code, measure, year),
+    ).fetchone()
+    if row is None or row[0] != 12:
+        return None
+    return Decimal(row[1])

@@ -125,6 +125,31 @@ def by_size(cases: list[RentCase]) -> dict[str, Errors]:
             for _, _, label in BUCKETS}
 
 
+def cpi_updated_cases(
+    sections: dict[tuple[str, int], RentRow], cpi_annual: dict[int, Decimal], horizon: int,
+    since: int = 0,
+) -> list[RentCase]:
+    """Mediana de la sección de t × IPC de alquiler medio de t + h / de t, frente a la real."""
+    cases = []
+    for (code, year), now in sections.items():
+        later = sections.get((code, year + horizon))
+        if year < since or later is None or year not in cpi_annual or \
+                year + horizon not in cpi_annual:
+            continue
+        cases.append(RentCase(now.n, now.median * cpi_annual[year + horizon] / cpi_annual[year],
+                              later.median))
+    return cases
+
+
+def monthly_annual_means(monthly: dict[tuple[str, int, int], Decimal]) -> dict[int, Decimal]:
+    """(código, año, mes) → media anual de los años con los doce meses."""
+    months: dict[int, list[Decimal]] = defaultdict(list)
+    for (_, year, month), value in monthly.items():
+        if 1 <= month <= 12:
+            months[year].append(value)
+    return {year: sum(v) / 12 for year, v in months.items() if len(v) == 12}
+
+
 def index_backtest(
     appraisal: dict[tuple[str, int, int], Decimal], index: dict[tuple[str, int, int], Decimal],
     region: str,
@@ -173,6 +198,9 @@ def run(conninfo: str, province: str, region: str) -> dict[str, object]:
     from housefinder.db.references import rent_table, series_values
 
     with connect(conninfo) as conn:
+        cpi = {(code, year, month): value for code, year, month, value in conn.execute(
+            "SELECT code, year, month, value FROM market_references WHERE source_id = "
+            "'ine-ipc-alquiler' AND code = %s AND month > 0", (region,))}
         sections = rent_table(conn, "seccion", "colectiva", province)
         municipalities = rent_table(conn, "municipio", "colectiva", province)
         appraisal = series_values(conn, "valor-tasado-comunidad-madrid", "municipio",
@@ -192,6 +220,11 @@ def run(conninfo: str, province: str, region: str) -> dict[str, object]:
                                                  horizon=2)),
         "bias_raw_2y_k0_recent": signed_bias(
             rent_cases(_since(sections, 2021), municipalities, Decimal(0), False, horizon=2)),
+        "bias_cpi_2y": signed_bias(cpi_updated_cases(sections, monthly_annual_means(cpi), 2)),
+        "bias_cpi_2y_recent": signed_bias(cpi_updated_cases(
+            sections, monthly_annual_means(cpi), 2, since=2021)),
+        "rent_cpi_2y_recent": errors((c.predicted, c.actual) for c in cpi_updated_cases(
+            sections, monthly_annual_means(cpi), 2, since=2021)),
         "index_update": index_backtest(appraisal, index, region),
         "ratio_previous_year": ratio_backtest(appraisal, municipalities),
     }
@@ -212,9 +245,10 @@ def main() -> int:
         for key, err in result[name].items():  # type: ignore[union-attr]
             print(f"  {key:>10}: n={err.count:6d}  MdAPE={err.mdape:.2%}  "
                   f"MAE={err.mae:.2f}  ±10%={err.within_10:.1%}")
-    for name in ("bias_raw_1y_k0", "bias_raw_2y_k0", "bias_raw_2y_k0_recent"):
+    for name in ("bias_raw_1y_k0", "bias_raw_2y_k0", "bias_raw_2y_k0_recent", "bias_cpi_2y",
+                 "bias_cpi_2y_recent"):
         print(f"\n{name}: {result[name]:.2%}")  # type: ignore[str-format]
-    for name in ("index_update", "ratio_previous_year"):
+    for name in ("rent_cpi_2y_recent", "index_update", "ratio_previous_year"):
         err = result[name]
         print(f"\n{name}: n={err.count}  MdAPE={err.mdape:.2%}  MAE={err.mae:.0f}  "  # type: ignore[union-attr]
               f"±10%={err.within_10:.1%}")  # type: ignore[union-attr]

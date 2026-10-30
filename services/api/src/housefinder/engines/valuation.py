@@ -84,3 +84,10 @@ def index_update(value: Decimal, index_from: Decimal, index_to: Decimal) -> Deci
     if index_from <= 0:
         raise ValueError("El índice de partida tiene que ser positivo")
     return money(value * index_to / index_from)
+
+
+def scale(per_m2: Shrunk, index_from: Decimal, index_to: Decimal) -> Shrunk:
+    """Lleva la renta €/m² (P25, mediana y P75) de un periodo a otro con un índice."""
+    return Shrunk(index_update(per_m2.p25, index_from, index_to),
+                  index_update(per_m2.median, index_from, index_to),
+                  index_update(per_m2.p75, index_from, index_to), per_m2.weight)

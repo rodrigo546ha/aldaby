@@ -52,6 +52,11 @@ def database(migrated_database: str) -> str:
         replace_references(conn, source("valor-tasado-comunidad-madrid"), [
             ReferenceRow("municipio", MUNICIPALITY, None, 2024, 0, "valor_tasado_m2", "todas",
                          "valor", D("3600"), "EUR/m2")])
+        replace_references(conn, source("ine-ipc-alquiler"), [
+            ReferenceRow("comunidad", "13", None, year, 0, "ipc_alquiler", "todas", "indice",
+                         D(value), "índice base 2025", month=month)
+            for year, month, value in [(2024, m, "100") for m in range(1, 13)]
+            + [(2026, 9, "110")]])
         replace_references(conn, source("ine-ipv-80270"), [
             ReferenceRow("comunidad", "13", None, year, quarter, "ipv", "segunda_mano",
                          "indice", D(value), "índice base 2025")
@@ -83,12 +88,15 @@ def test_renta_y_precio_de_un_piso_de_80_m2(conn):
     report = value_property(conn, BOOK, LON, LAT, D("80"), on=ON)
     f = figures(report)
     assert report.section_code == SECTION and report.level == "seccion"
+    # Renta de 2024 × IPC de alquiler 110 / 100: 13 → 14,30; 16,5 → 18,15; 20,25 → 22,275 → 22,28
     rent = f["valuation.rent_m2_month"]
-    assert (rent.low, rent.value, rent.high) == (D("13.00"), D("16.50"), D("20.25"))
-    assert rent.provisional  # k es PROVISIONAL
+    assert (rent.low, rent.value, rent.high) == (D("14.30"), D("18.15"), D("22.28"))
+    assert rent.provisional  # k de prueba es PROVISIONAL
+    assert rent.as_of == date(2026, 9, 30)
+    assert any(s.id == "ine-ipc-alquiler@2026-09" for s in rent.sources)
     monthly = f["valuation.rent_monthly"]
-    assert (monthly.low, monthly.value, monthly.high) == (D("1040.00"), D("1320.00"),
-                                                          D("1620.00"))
+    assert (monthly.low, monthly.value, monthly.high) == (D("1144.00"), D("1452.00"),
+                                                          D("1782.40"))
     assert f["valuation.price_rent_ratio"].value == D("25.0000")
     price = f["valuation.price_m2"]
     assert (price.low, price.value, price.high) == (D("4290.00"), D("5445.00"), D("6682.50"))
@@ -98,13 +106,14 @@ def test_renta_y_precio_de_un_piso_de_80_m2(conn):
     assert (total.low, total.value, total.high) == (D("343200.00"), D("435600.00"),
                                                     D("534600.00"))
     assert any("peso del 75 %" in n for n in report.notes)
+    assert any("septiembre de 2026" in n and "+10.0%" in n for n in report.notes)
 
 
 def test_sin_datos_de_la_seccion_se_usa_el_municipio(conn):
     report = value_property(conn, BOOK, EMPTY_LON, EMPTY_LAT, D("80"), on=ON)
     assert report.level == "municipio"
-    rent = figures(report)["valuation.rent_m2_month"]
-    assert (rent.low, rent.value, rent.high) == (D("10.00"), D("12.00"), D("15.00"))
+    rent = figures(report)["valuation.rent_m2_month"]  # municipio × 1,1
+    assert (rent.low, rent.value, rent.high) == (D("11.00"), D("13.20"), D("16.50"))
 
 
 def test_unifamiliar_sin_referencias_y_punto_fuera(conn):
@@ -153,3 +162,16 @@ def test_api_de_valoracion(database):
         assert http.get("/valuation", params={"lon": LON, "lat": LAT}).status_code == 422
     finally:
         app.dependency_overrides.clear()
+
+
+def test_sin_ipc_de_alquiler_la_renta_no_se_actualiza(conn):
+    conn.execute("DELETE FROM market_references WHERE source_id = 'ine-ipc-alquiler'")
+    try:
+        report = value_property(conn, BOOK, LON, LAT, D("80"), on=ON)
+        rent = figures(report)["valuation.rent_m2_month"]
+        assert (rent.value, rent.as_of) == (D("16.50"), date(2024, 12, 31))
+        assert any("sin actualizar" in n for n in report.notes)
+        # El precio no cambia: sale de la renta de 2024 y del IPV
+        assert figures(report)["valuation.price_m2"].value == D("5445.00")
+    finally:
+        conn.rollback()

@@ -10,6 +10,7 @@ from housefinder.engines.valuation import (
     price_per_m2,
     price_to_rent_ratio,
     rent_for_area,
+    scale,
     shrink,
 )
 
@@ -57,3 +58,10 @@ def test_actualizacion_con_el_indice():
     assert index_update(D("4950"), index_from=D("100"), index_to=D("110")) == D("5445.00")
     with pytest.raises(ValueError):
         index_update(D("4950"), index_from=D("0"), index_to=D("110"))
+
+
+def test_renta_llevada_con_un_indice():
+    # 13 / 16,5 / 20,25 × 110 / 100 = 14,30 / 18,15 / 22,275 → 22,28 (redondeo comercial)
+    scaled = scale(shrink(SECTION, MUNICIPALITY, k=D("10")), D("100"), D("110"))
+    assert (scaled.p25, scaled.median, scaled.p75, scaled.weight) == (
+        D("14.30"), D("18.15"), D("22.28"), D("0.75"))

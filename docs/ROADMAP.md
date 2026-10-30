@@ -234,6 +234,7 @@ sección censal asignada.
       `docs/research/f5-6-backtesting.md`. Renta por sección a un año: 2,08 % de error mediano
       (k = 0, que pasa a ser el parámetro); una renta de dos años se queda corta un 8 % en los
       años recientes. Precio: actualización con el IPV 2,99 %, relación del año anterior 2,64 %.
+      La renta se actualiza con el IPC de alquiler: a dos años, del −7,9 % al −4,2 %.
 
 **Criterio de salida.** Error medio de la renta estimada frente a referencias reales por debajo del
 umbral fijado en F0, y cada estimación con su rango.

@@ -31,9 +31,13 @@ por debajo del municipio. Rodrigo decide estimar el precio desde la renta (2026-
 - **Contracción hacia el municipio** con pocos alquileres: mediana = w·sección + (1−w)·municipio,
   w = n/(n+k). *k* es un parámetro con fecha en `data/params/` marcado PROVISIONAL hasta el
   backtesting (F5.6), no una constante.
-- **Fecha de la referencia.** El último año del SERPAVI es 2024. La cifra lo dice («renta declarada
-  2024») y no se actualiza con un índice: no hay índice oficial de rentas posterior a 2024 por
-  debajo de la comunidad. Una actualización sería otro parámetro PROVISIONAL y una decisión aparte.
+- **Fecha de la referencia.** El último año del SERPAVI es 2024. **Actualización (2026-10-30,
+  decisión de Rodrigo):** la renta se lleva al último mes publicado con el componente de alquiler
+  del IPC del INE de la comunidad (tabla 76137, subgrupo 04.1, mensual, base 2025), que también
+  mide los alquileres en vigor. En el backtesting, una renta de dos años pasa de quedarse corta un
+  7,9 % a un 4,2 % (error mediano del 7,95 % al 4,23 %); el resto no se corrige con ningún factor
+  y el aviso lo dice. El precio no usa la renta actualizada: sale de la renta y del valor tasado
+  del mismo año y se actualiza con el IPV.
 
 - **Calibración (F5.6, 2026-10-30):** el backtesting da k = 0: contraer hacia el municipio empeora
   la estimación en todos los horizontes y tamaños de sección (`docs/research/f5-6-backtesting.md`).

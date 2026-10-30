@@ -68,6 +68,16 @@ misma rentabilidad en todo el municipio, no se puede medir con datos públicos.
 ## Pendiente
 - **El umbral de error aceptable lo fija F0** (criterio de salida de F5). Estas cifras son la
   referencia para fijarlo.
-- **Actualizar la renta:** decidir si se corrige el −8 % de una renta de dos años (por ejemplo, con
-  el componente de alquiler del IPC del INE, que también mide los contratos en vigor) o si se deja
-  sin actualizar y se cuantifica en el aviso.
+- ~~Actualizar la renta~~: hecho con el componente de alquiler del IPC (ver abajo).
+
+## Renta actualizada con el IPC de alquiler (2026-10-30)
+Mediana de la sección de t × IPC de alquiler medio de t + h / de t, frente a la real de t + h:
+
+| Antigüedad | Sesgo sin actualizar | Sesgo con IPC | Error mediano sin / con IPC |
+| --- | --- | --- | --- |
+| 1 año (desde 2022) | −4,21 % | −1,89 % | 4,23 % / 2,12 % |
+| 2 años (toda la serie) | −5,12 % | −3,44 % | 6,92 % / 4,80 % |
+| 2 años (desde 2021) | −7,95 % | −4,18 % | 7,95 % / 4,23 % |
+
+El IPC mide todos los contratos en vigor, también los antiguos, y sube más despacio que la mediana
+del SERPAVI: corrige la mitad del desfase. El resto se dice en el aviso de la cifra.

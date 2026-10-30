@@ -7,7 +7,7 @@ from decimal import Decimal
 import httpx
 import pytest
 
-from housefinder.ingestion import ine_ipv, valor_tasado
+from housefinder.ingestion import ine_ipc_alquiler, ine_ipv, valor_tasado
 
 # CSV real: Latin-1, «;», el código es el del INE sin provincia y con dígito de control.
 CSV = (
@@ -87,3 +87,27 @@ def test_carga_de_las_dos_fuentes(migrated_database: str):
                                (valor_tasado.SOURCE_ID,)).fetchone()[0]
     assert value == Decimal("4993.3")
     assert licence.startswith("CC BY 4.0") and "Ministerio de Vivienda" in licence
+
+
+def test_ipc_de_alquiler_mensual_de_la_comunidad():
+    def ipc(region, region_name, subgroup, subgroup_name, data_type, points):
+        return {"Nombre": f"{region_name}. {subgroup_name}. {data_type}. ",
+                "MetaData": [{"Codigo": region, "Nombre": region_name},
+                             {"Codigo": subgroup, "Nombre": subgroup_name},
+                             {"Codigo": "0" if data_type == "Índice" else "2",
+                              "Nombre": data_type}],
+                "Data": [{"Anyo": y, "T3_Periodo": p, "Valor": v} for y, p, v in points]}
+
+    payload = [
+        ipc("13", "Madrid, Comunidad de", "04.1", "Alquiler de vivienda", "Índice",
+            [(2026, "M09", 103.426), (2026, "M08", 103.3)]),
+        ipc("13", "Madrid, Comunidad de", "04.1", "Alquiler de vivienda", "Variación anual",
+            [(2026, "M09", 2.9)]),
+        ipc("13", "Madrid, Comunidad de", "04.5", "Electricidad, gas", "Índice",
+            [(2026, "M09", 99.0)]),
+        ipc("01", "Andalucía", "04.1", "Alquiler de vivienda", "Índice", [(2026, "M09", 101.0)]),
+    ]
+    rows = ine_ipc_alquiler.parse(payload, "13")
+    assert {(r.year, r.month): r.value for r in rows} == {(2026, 9): Decimal("103.426"),
+                                                          (2026, 8): Decimal("103.3")}
+    assert all(r.measure == "ipc_alquiler" and r.quarter == 0 for r in rows)

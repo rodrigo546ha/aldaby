@@ -72,3 +72,16 @@ def test_horizonte_y_sesgo():
     cases = rent_cases(sections, MUNICIPALITIES, D(0), growth_adjusted=False, horizon=2)
     assert [(c.predicted, c.actual) for c in cases] == [(D("18.00"), D("22.5"))]
     assert signed_bias(cases) == D("-0.2")
+
+
+def test_renta_actualizada_con_el_ipc():
+    from housefinder.valuation.backtest import cpi_updated_cases, monthly_annual_means
+
+    monthly = {("13", 2023, m): D(100) for m in range(1, 13)}
+    monthly |= {("13", 2024, m): D(110) for m in range(1, 13)}
+    monthly[("13", 2025, 1)] = D(120)  # año incompleto: no cuenta
+    annual = monthly_annual_means(monthly)
+    assert annual == {2023: D(100), 2024: D(110)}
+    # 18 × 110 / 100 = 19,8 frente a 20
+    cases = cpi_updated_cases(SECTIONS, annual, horizon=1)
+    assert [(c.predicted, c.actual) for c in cases] == [(D("19.8"), D(20))]

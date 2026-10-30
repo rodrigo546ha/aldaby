@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from housefinder.core.figures import Figure, SourceRef, money
@@ -20,7 +20,9 @@ from housefinder.db.connection import Connection
 from housefinder.db.references import (
     RentRow,
     annual_index,
+    annual_mean_of_months,
     latest_index,
+    latest_month,
     reference_value,
     rent_stats,
 )
@@ -33,6 +35,7 @@ from housefinder.engines.valuation import (
     price_per_m2,
     price_to_rent_ratio,
     rent_for_area,
+    scale,
     shrink,
 )
 from housefinder.params.book import ParamBook
@@ -42,6 +45,9 @@ SERPAVI_VINTAGE = 2021
 SERPAVI = "serpavi"
 APPRAISAL = "valor-tasado-comunidad-madrid"
 IPV = "ine-ipv-80270"
+IPC_RENT = "ine-ipc-alquiler"
+MONTHS = ("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+          "septiembre", "octubre", "noviembre", "diciembre")
 # Comunidad autónoma del INE por provincia, para el IPV. MVP: Madrid.
 REGION_BY_PROVINCE = {"28": "13"}
 LEVEL_NAMES = {"seccion": "la sección censal", "distrito": "el distrito censal",
@@ -57,6 +63,7 @@ ATTRIBUTION = [
     "Valor tasado de la vivienda libre, Ministerio de Vivienda y Agenda Urbana, vía Comunidad "
     "de Madrid (CC BY 4.0)",
     "Índice de Precios de Vivienda, INE",
+    "Índice de Precios de Consumo, alquiler de vivienda, INE",
 ]
 
 
@@ -104,14 +111,50 @@ def value_property(
 
     notes = [_level_note(local, shrunk)]
     rent_sources = (SourceRef("dataset", f"{SERPAVI}@{local.year}"), k.source, RENT_MODEL)
-    figures = _rent_figures(local, shrunk, area_m2, typology, rent_sources)
-    notes.append(f"La renta es la declarada en el IRPF en {local.year} (último año del SERPAVI); "
-                 "no se actualiza con ningún índice.")
+    current, as_of, update = _rent_update(conn, local, shrunk, municipality_code)
+    notes.append(update.note)
+    figures = _rent_figures(local, current, area_m2, typology, (*rent_sources, *update.sources),
+                            as_of, update.formula)
 
+    # El precio sale de la renta del mismo año que el valor tasado; se actualiza con el IPV.
     price = _price_figures(conn, local, municipal, shrunk, area_m2, new_build, rent_sources,
                            notes)
     figures.extend(price)
     return ValuationReport(section, local.level, figures, notes)
+
+
+@dataclass(frozen=True)
+class RentUpdate:
+    note: str
+    formula: str
+    sources: tuple[SourceRef, ...] = ()
+
+
+def _rent_update(conn: Connection, local: RentRow, shrunk: Shrunk,
+                 municipality_code: str) -> tuple[Shrunk, date, RentUpdate]:
+    """Renta del último año del SERPAVI llevada al último mes del IPC de alquiler, si lo hay."""
+    region = REGION_BY_PROVINCE.get(municipality_code[:2])
+    latest = latest_month(conn, IPC_RENT, "comunidad", region, "ipc_alquiler") if region else None
+    base = (annual_mean_of_months(conn, IPC_RENT, "comunidad", region, "ipc_alquiler",
+                                  local.year) if region else None)
+    if latest is None or base is None or (latest.year, latest.month) <= (local.year, 12):
+        return shrunk, date(local.year, 12, 31), RentUpdate(
+            note=(f"La renta es la declarada en el IRPF en {local.year} (último año del "
+                  "SERPAVI), sin actualizar: no hay índice de alquiler posterior cargado."),
+            formula=f"renta de {local.year}")
+    change = latest.value / base - 1
+    month = MONTHS[latest.month - 1]
+    return scale(shrunk, base, latest.value), _month_end(latest.year, latest.month), RentUpdate(
+        note=(f"Renta declarada en {local.year}, llevada a {month} de {latest.year} con el "
+              f"componente de alquiler del IPC de la comunidad ({change:+.1%}). En el "
+              "backtesting, una renta actualizada así se quedaba aún corta un 4 % a dos años."),
+        formula=f"renta de {local.year} × IPC de alquiler de {month} de {latest.year} / media "
+                f"de {local.year}",
+        sources=(SourceRef("dataset", f"{IPC_RENT}@{latest.year}-{latest.month:02d}"),))
+
+
+def _month_end(year: int, month: int) -> date:
+    return (date(year + month // 12, month % 12 + 1, 1) - timedelta(days=1))
 
 
 def _stats(row: RentRow) -> RentStats:
@@ -130,16 +173,14 @@ def _level_note(local: RentRow, shrunk: Shrunk) -> str:
 
 
 def _rent_figures(local: RentRow, shrunk: Shrunk, area_m2: Decimal, typology: str,
-                  sources: tuple[SourceRef, ...]) -> list[Figure]:
-    as_of = date(local.year, 12, 31)
+                  sources: tuple[SourceRef, ...], as_of: date, update: str) -> list[Figure]:
     rent = rent_for_area(shrunk, area_m2)
     return [
         Figure(
             key="valuation.rent_m2_month", value=shrunk.median, unit="EUR/m2 mes",
             low=shrunk.p25, high=shrunk.p75, as_of=as_of, sources=sources,
             formula=(f"Mediana de la renta por m² de {TYPOLOGY_NAMES[typology]} en "
-                     f"{LEVEL_NAMES[local.level]} ({local.year}), contraída hacia el municipio; "
-                     "rango P25–P75"),
+                     f"{LEVEL_NAMES[local.level]} ({update}); rango P25–P75"),
         ),
         Figure(
             key="valuation.rent_monthly", value=rent.value, unit="EUR/mes", low=rent.low,

@@ -52,3 +52,10 @@ schedules:
     at: "11:15"
     every_hours: 720
     payload: {}
+
+  # Componente de alquiler del IPC (ADR-0018): el INE lo publica cada mes, hacia mediados.
+  - name: referencias-ipc-alquiler
+    kind: ine_ipc_alquiler
+    at: "11:30"
+    every_hours: 168
+    payload: {region: "13"}
