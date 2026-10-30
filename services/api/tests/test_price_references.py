@@ -66,16 +66,16 @@ psycopg = pytest.importorskip("psycopg")
 
 
 @pytest.mark.db
-def test_carga_de_las_dos_fuentes(migrated_database: str):
+def test_carga_de_las_dos_fuentes(migrated_database: str, tmp_path):
     def handler(request: httpx.Request) -> httpx.Response:
-        if "datos.comunidad.madrid" in str(request.url):
-            return httpx.Response(200, content=CSV)
         if "servicios.ine.es" in str(request.url):
             return httpx.Response(200, json=IPV)
         return httpx.Response(404)
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
-    tasado = valor_tasado.load(migrated_database, client)
+    csv_file = tmp_path / "valor-tasado.csv"
+    csv_file.write_bytes(CSV)  # descargado a mano: el portal prohíbe el acceso automático
+    tasado = valor_tasado.load(migrated_database, csv_file)
     ipv = ine_ipv.load("13", migrated_database, client)
     assert (tasado["loaded"], tasado["municipalities"], tasado["empty"]) == (3, 2, 1)
     assert (ipv["loaded"], ipv["last"]) == (3, "2026T2")

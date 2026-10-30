@@ -15,7 +15,13 @@ import httpx
 
 from housefinder.db.connection import connect
 from housefinder.db.review_tasks import NewTask, mark_issue_read, open_task, read_issues
-from housefinder.ingestion.bocm import BocmItem, bulletin_key, fetch_bulletin_items, fetch_bulletins
+from housefinder.ingestion.bocm import (
+    BocmItem,
+    Pace,
+    bulletin_key,
+    fetch_bulletin_items,
+    fetch_bulletins,
+)
 from housefinder.ingestion.boe import fetch_sumario, iter_items
 from housefinder.watch.rules import Publication, WatchRules, load_rules, match
 
@@ -74,18 +80,20 @@ def watch_boe(
 
 
 def watch_bocm(
-    conninfo: str, client: httpx.Client, rules: WatchRules | None = None
+    conninfo: str, client: httpx.Client, rules: WatchRules | None = None,
+    pace: Pace | None = None,
 ) -> dict[str, Any]:
-    """Boletines del BOCM del RSS de sumarios que no se hayan leído."""
+    """Boletines del BOCM del RSS de sumarios que no se hayan leído (10 s entre peticiones)."""
     rules = rules or load_rules()
+    pace = pace or Pace()
     read = opened = 0
     with connect(conninfo, autocommit=True) as conn:
         done = read_issues(conn, "bocm")
-        for bulletin in fetch_bulletins(client):
+        for bulletin in fetch_bulletins(client, pace):
             key = bulletin_key(bulletin)
             if key in done:
                 continue
-            pubs = bocm_publications(fetch_bulletin_items(client, bulletin))
+            pubs = bocm_publications(fetch_bulletin_items(client, bulletin, pace))
             new = sum(open_task(conn, t) is not None for t in tasks_for(pubs, rules))
             mark_issue_read(conn, "bocm", key, len(pubs), new)
             read, opened = read + 1, opened + new

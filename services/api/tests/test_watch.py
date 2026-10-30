@@ -12,10 +12,12 @@ from pathlib import Path
 import httpx
 import pytest
 
-from housefinder.ingestion.bocm import parse_summary
+from housefinder.ingestion.bocm import Pace, parse_summary
 from housefinder.regulation.rules import RuleBook, default_rules_dir
 from housefinder.watch.rules import Publication, load_rules, match
 from housefinder.watch.run import bocm_publications, boe_publications, tasks_for
+
+NO_WAIT = Pace(sleep=lambda seconds: None)  # en los tests no se espera al BOCM
 
 FIXTURES = Path(__file__).parent / "fixtures"
 RULES = load_rules()
@@ -158,12 +160,12 @@ def test_vigilancia_del_bocm_sin_repetir(migrated_database: str):
     from housefinder.watch.run import watch_bocm
 
     fake = FakeBulletins()
-    result = watch_bocm(migrated_database, fake.client())
+    result = watch_bocm(migrated_database, fake.client(), pace=NO_WAIT)
     # Tres boletines en el RSS; el falso sirve el mismo sumario a los tres: las tareas no se
     # repiten porque la clave es la publicación.
     assert result["bulletins_read"] == 3 and result["tasks_opened"] >= 1
     before = len(fake.requests)
-    assert watch_bocm(migrated_database, fake.client()) == {"bulletins_read": 0,
+    assert watch_bocm(migrated_database, fake.client(), pace=NO_WAIT) == {"bulletins_read": 0,
                                                              "tasks_opened": 0}
     assert len(fake.requests) - before == 1  # solo el RSS
 
@@ -182,3 +184,19 @@ def test_decidir_una_tarea(migrated_database: str):
         assert not decide(conn, 10**9, "aplicada", "Rodrigo", None)
         with pytest.raises(ValueError, match="abierta"):
             decide(conn, task_id, "abierta", "Rodrigo", None)
+
+
+def test_el_bocm_se_lee_con_10_segundos_entre_peticiones():
+    now = [0.0]
+    waits: list[float] = []
+
+    def sleep(seconds: float) -> None:
+        waits.append(seconds)
+        now[0] += seconds
+
+    pace = Pace(sleep=sleep, clock=lambda: now[0])
+    pace.wait()  # la primera no espera
+    now[0] += 3  # han pasado 3 s
+    pace.wait()
+    pace.wait()
+    assert waits == [7.0, 10.0]

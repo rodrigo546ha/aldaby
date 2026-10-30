@@ -8,7 +8,7 @@ from uuid import UUID
 
 import httpx
 
-from housefinder.ingestion import ine_adrh, ine_ipc_alquiler, ine_ipv, ine_sections, valor_tasado
+from housefinder.ingestion import ine_adrh, ine_ipc_alquiler, ine_ipv, ine_sections
 from housefinder.jobs.worker import Handler
 from housefinder.offers.run import extract_boe_v, extract_pasted, run_boe_auctions, run_boe_v
 from housefinder.watch.run import watch_bocm, watch_boe
@@ -47,9 +47,6 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
     def rent_index(payload: dict[str, Any]) -> dict[str, Any]:
         return ine_ipc_alquiler.load(str(payload.get("region", "13")), conninfo)
 
-    def appraisal_values(payload: dict[str, Any]) -> dict[str, Any]:
-        return valor_tasado.load(conninfo)
-
     def offers_boe_auctions(payload: dict[str, Any]) -> dict[str, Any]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
             return run_boe_auctions(conninfo, client, date.today(), int(payload.get("days", 7)))
@@ -62,5 +59,5 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
     return {"ine_sections": sections, "ine_adrh": adrh, "watch_boe": boe, "watch_bocm": bocm,
             "offers_boe_v": offers_boe_v, "extract_offers": extract_offers,
             "extract_link": extract_link, "offers_boe_auctions": offers_boe_auctions,
-            "ine_ipv": price_index, "valor_tasado": appraisal_values,
+            "ine_ipv": price_index,
             "ine_ipc_alquiler": rent_index}

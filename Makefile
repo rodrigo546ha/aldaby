@@ -39,9 +39,10 @@ adrh:
 serpavi:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.serpavi --province $(PROVINCE)
 
-# Valor tasado por municipio (Comunidad de Madrid) e IPV del INE por comunidad (ADR-0018)
+# Valor tasado por municipio: CSV descargado a mano (FICHERO=…), el portal prohíbe el acceso
+# automático. IPV del INE por comunidad (ADR-0018)
 valor-tasado:
-	cd services/api && $(VENV)/python -m housefinder.ingestion.valor_tasado
+	cd services/api && $(VENV)/python -m housefinder.ingestion.valor_tasado --fichero "$(FICHERO)"
 
 ipv:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_ipv --region $(REGION)

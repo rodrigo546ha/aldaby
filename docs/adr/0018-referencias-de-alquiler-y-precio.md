@@ -24,6 +24,12 @@ por debajo del municipio. Rodrigo decide estimar el precio desde la renta (2026-
   tipología, estadístico (`n`, `p25`, `mediana`, `p75`, `valor`), valor y unidad. Cada carga tiene
   su fila en `sources` con la licencia y la fecha.
 
+- **Acceso (corrección del 2026-10-30):** el `robots.txt` de datos.comunidad.madrid prohíbe todo
+  acceso automático (`User-agent: *` / `Disallow: /`). El CSV del valor tasado se descargó y se
+  programó de forma automática por error; desde esta fecha lo descarga una persona y el cargador lo
+  lee del disco (`make valor-tasado FICHERO=…`), sin trabajo programado. Antes de automatizar una
+  fuente se comprueba el `robots.txt` de su servidor.
+
 ## Modelo de renta (F5.3)
 - Para un inmueble en la sección *s*, de tipología *t* y superficie *A*: €/m² mes de la sección
   (mediana y P25–P75) × *A*. Si la sección no tiene datos (menos de 10 alquileres), el distrito y,

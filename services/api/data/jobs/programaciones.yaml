@@ -39,19 +39,14 @@ schedules:
     every_hours: 24
     payload: {}
 
-  # Referencias de precio (ADR-0018): el INE publica el IPV cada trimestre y el valor tasado es
-  # anual. Mirar cada 30 días es barato; la carga sustituye la serie entera.
+  # Referencias de precio (ADR-0018): el INE publica el IPV cada trimestre. Mirar cada 30 días es
+  # barato; la carga sustituye la serie entera. El valor tasado no se programa: su portal
+  # (datos.comunidad.madrid) prohíbe el acceso automático y el CSV se descarga a mano.
   - name: referencias-ipv
     kind: ine_ipv
     at: "11:00"
     every_hours: 720
     payload: {region: "13"}
-
-  - name: referencias-valor-tasado
-    kind: valor_tasado
-    at: "11:15"
-    every_hours: 720
-    payload: {}
 
   # Componente de alquiler del IPC (ADR-0018): el INE lo publica cada mes, hacia mediados.
   - name: referencias-ipc-alquiler

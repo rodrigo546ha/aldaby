@@ -19,7 +19,7 @@ condiciones de reutilización y sin quedar registrada en la tabla `sources`.
 | Tipos | Trayectoria a 3 meses de las proyecciones del BCE (API, serie `MPD.Q.U2.STN.I.<ronda>.0000`) y Euríbor a un año oficial (BOE, resolución mensual del Banco de España) | Público; ADR-0006 | F1 | Decidida |
 | Normativa | BOE, BOCM | Datos abiertos y revisión humana | F2 | Motor listo |
 | Alquiler | SERPAVI (Ministerio de Vivienda y Agenda Urbana): mediana, P25 y P75 de €/m² mes por sección, distrito y municipio | Excel 2011–2024 en cdn.mivau.gob.es; reutilización libre citando fuente y fecha (aviso legal del Ministerio) | F5 | Cargado (`make serpavi`), ADR-0018 |
-| Precio | Valor tasado de la vivienda libre (Ministerio de Vivienda), copia de la Comunidad de Madrid | CSV anual 2005–2025, municipios de más de 25.000 habitantes; CC BY 4.0 | F5 | Cargado (`make valor-tasado`), ADR-0018 |
+| Precio | Valor tasado de la vivienda libre (Ministerio de Vivienda), copia de la Comunidad de Madrid | CSV anual 2005–2025, municipios de más de 25.000 habitantes; CC BY 4.0. El `robots.txt` del portal prohíbe el acceso automático: descarga manual | F5 | Cargado a mano (`make valor-tasado FICHERO=…`), ADR-0018 |
 | Precio | Índice de Precios de Vivienda (INE), tabla 80270 | API del INE, trimestral, base 2025, por comunidad autónoma | F5 | Cargado (`make ipv`), ADR-0018 |
 | Alquiler | IPC (INE), subgrupo 04.1 Alquiler de vivienda por comunidad, tabla 76137 | API del INE, mensual, base 2025 | F5 | Cargado (`make ipc-alquiler`); actualiza la renta del SERPAVI, ADR-0018 |
 | Precio | Portal Estadístico del Notariado | Visor con registro; términos: uso personal, sin uso comercial | F5 | Descartado sin autorización escrita |

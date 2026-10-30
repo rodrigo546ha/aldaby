@@ -4,15 +4,17 @@
 - La página de cada boletín enlaza su sumario en XML: `seccion` → `apartado` → `organismo` →
   `disposicion` (identificador CVE, título y enlaces).
 
-Solo se guardan títulos y enlaces de disposiciones oficiales.
+Solo se guardan títulos y enlaces de disposiciones oficiales. Entre petición y petición se esperan
+los 10 segundos que pide su `robots.txt` (`Crawl-delay: 10`).
 """
 
 from __future__ import annotations
 
 import re
+import time
 import xml.etree.ElementTree as ET
-from collections.abc import Iterator
-from dataclasses import dataclass
+from collections.abc import Callable, Iterator
+from dataclasses import dataclass, field
 from datetime import date
 
 import httpx
@@ -21,6 +23,24 @@ BASE = "https://www.bocm.es"
 SUMMARIES_RSS = f"{BASE}/sumarios.rss"
 BULLETIN_LINK = re.compile(r"/boletin-completo/BOCM-(\d{8})/(\d+)")
 SUMMARY_XML = re.compile(r'href="(/boletin/CM_Boletin_BOCM/[^"]+\.xml)"')
+CRAWL_DELAY = 10.0  # robots.txt de www.bocm.es: «Crawl-delay: 10»
+
+
+@dataclass
+class Pace:
+    """Separa las peticiones al BOCM al menos `seconds` segundos."""
+
+    seconds: float = CRAWL_DELAY
+    sleep: Callable[[float], None] = time.sleep
+    clock: Callable[[], float] = time.monotonic
+    _last: float | None = field(default=None, repr=False)
+
+    def wait(self) -> None:
+        if self._last is not None:
+            remaining = self.seconds - (self.clock() - self._last)
+            if remaining > 0:
+                self.sleep(remaining)
+        self._last = self.clock()
 
 
 @dataclass(frozen=True)
@@ -87,17 +107,21 @@ def parse_summary(xml: bytes) -> Iterator[BocmItem]:
                     )
 
 
-def fetch_bulletins(client: httpx.Client) -> list[Bulletin]:
+def fetch_bulletins(client: httpx.Client, pace: Pace) -> list[Bulletin]:
     """Los últimos veinte boletines, según el RSS de sumarios."""
+    pace.wait()
     response = client.get(SUMMARIES_RSS, timeout=60)
     response.raise_for_status()
     return parse_bulletins(response.content)
 
 
-def fetch_bulletin_items(client: httpx.Client, bulletin: Bulletin) -> list[BocmItem]:
+def fetch_bulletin_items(client: httpx.Client, bulletin: Bulletin,
+                         pace: Pace) -> list[BocmItem]:
     """Disposiciones de un boletín: su página da el enlace al sumario en XML."""
+    pace.wait()
     page = client.get(bulletin.page_url, timeout=60)
     page.raise_for_status()
+    pace.wait()
     xml = client.get(summary_xml_url(page.text), timeout=60)
     xml.raise_for_status()
     return list(parse_summary(xml.content))
