@@ -219,7 +219,8 @@ sección censal asignada.
       No hay precio de venta público por sección: el precio se estimará desde la renta.
 - [x] F5.3 Modelo base de renta por sección, superficie y características, con intervalo P25–P75.
       *Hecho (ADR-0018):* renta €/m² mes de la sección (o distrito, o municipio) del SERPAVI,
-      contraída hacia el municipio con k (PROVISIONAL hasta F5.6), × superficie; rango P25–P75.
+      contraída hacia el municipio con k (k = 0 tras el backtesting de F5.6), × superficie;
+      rango P25–P75.
       Solo tipología (colectiva o unifamiliar) y superficie: el SERPAVI no da más características.
 - [ ] F5.4 Modelo base de precio y margen de negociación respecto al precio pedido.
       *En parte:* precio €/m² desde la renta con la relación precio/renta del municipio
@@ -228,7 +229,11 @@ sección censal asignada.
       fuente pública. `GET /valuation` y `valuation/service.py`.
 - [ ] F5.5 Escenarios de revalorización (conservador, base, optimista) a partir de factores
       explicables: población, empleo, renta, oferta nueva.
-- [ ] F5.6 Backtesting: qué habría estimado el modelo con datos de años anteriores.
+- [x] F5.6 Backtesting: qué habría estimado el modelo con datos de años anteriores.
+      *Hecho:* `python -m housefinder.valuation.backtest` (`make backtest`); informe en
+      `docs/research/f5-6-backtesting.md`. Renta por sección a un año: 2,08 % de error mediano
+      (k = 0, que pasa a ser el parámetro); una renta de dos años se queda corta un 8 % en los
+      años recientes. Precio: actualización con el IPV 2,99 %, relación del año anterior 2,64 %.
 
 **Criterio de salida.** Error medio de la renta estimada frente a referencias reales por debajo del
 umbral fijado en F0, y cada estimación con su rango.

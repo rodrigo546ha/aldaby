@@ -35,6 +35,10 @@ por debajo del municipio. Rodrigo decide estimar el precio desde la renta (2026-
   2024») y no se actualiza con un índice: no hay índice oficial de rentas posterior a 2024 por
   debajo de la comunidad. Una actualización sería otro parámetro PROVISIONAL y una decisión aparte.
 
+- **Calibración (F5.6, 2026-10-30):** el backtesting da k = 0: contraer hacia el municipio empeora
+  la estimación en todos los horizontes y tamaños de sección (`docs/research/f5-6-backtesting.md`).
+  El mecanismo se mantiene; el parámetro ya no es provisional.
+
 ## Precio desde la renta (F5.4)
 - Relación precio/renta del municipio *m* en el año *y*: valor tasado (€/m²) / (renta mediana
   municipal del SERPAVI €/m² mes × 12).

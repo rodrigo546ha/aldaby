@@ -121,6 +121,7 @@ make adrh      # carga el Atlas de renta del INE 2015–2024 (PROVINCE=28)
 make serpavi   # carga las referencias de alquiler del SERPAVI 2011–2024 (PROVINCE=28)
 make valor-tasado  # valor tasado por municipio (Comunidad de Madrid, CC BY 4.0)
 make ipv       # índice de precios de vivienda del INE por comunidad (REGION=13)
+make backtest  # backtesting del modelo de renta y precio (F5.6)
 make worker    # worker de la cola; encolar con `python -m housefinder.jobs enqueue …`
 make schedules # aplica data/jobs/programaciones.yaml (trabajos diarios; el Makefile lee .env)
 make worker-install  # worker siempre en marcha en este Mac (launchd); logs: make worker-logs

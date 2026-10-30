@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi
+.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi
 
 # Configuración local (copia de .env.example, fuera de git): LLM, base de datos, claves…
 -include .env
@@ -45,6 +45,10 @@ valor-tasado:
 
 ipv:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_ipv --region $(REGION)
+
+# Backtesting del modelo de renta y precio (F5.6)
+backtest:
+	cd services/api && $(VENV)/python -m housefinder.valuation.backtest --province $(PROVINCE) --region $(REGION)
 
 # Worker de la cola de trabajos (ADR-0010). Encolar: python -m housefinder.jobs enqueue …
 worker:

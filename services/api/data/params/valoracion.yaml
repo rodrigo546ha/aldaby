@@ -1,15 +1,19 @@
 # Parámetros del modelo de renta y precio (ADR-0018). Ver data/params/README.md.
-# PROVISIONAL: k no está calibrado. Con k = 10 una sección en el mínimo de publicación del SERPAVI
-# (10 alquileres) pesa lo mismo que su municipio; con 90 alquileres, el 90 %. Se fija con el
-# backtesting de F5.6 (un registro nuevo con provisional: false y la medición como fuente).
-- id: contraccion-renta-inicial
+# Calibrado con el backtesting de F5.6 (docs/research/f5-6-backtesting.md): con los datos del
+# SERPAVI de la Comunidad de Madrid 2011–2024, contraer la sección hacia el municipio empeora la
+# estimación en todos los horizontes (1, 2 y 3 años) y en todos los tamaños de sección. k = 0: sin
+# contracción. El mecanismo se mantiene por si una calibración posterior cambia el resultado.
+- id: contraccion-renta-backtesting-2026-10
   kind: contraccion_renta
   territory: ES
   effective_from: 2026-10-30
   effective_to: null
-  provisional: true
+  provisional: false
   params:
-    k: 10          # alquileres equivalentes de la zona que contiene la sección
-  source: "Supuesto inicial: igual al mínimo de 10 alquileres con el que publica el SERPAVI"
+    k: 0           # alquileres equivalentes de la zona que contiene la sección
+  source: >-
+    Backtesting F5.6 del 2026-10-30 con el SERPAVI 2011–2024 de la provincia de Madrid:
+    mediana del error al año siguiente, descontada la variación municipal, 2,08 % con k = 0 y
+    2,52 % con k = 10 (docs/research/f5-6-backtesting.md)
   source_url: null
-  notes: "Pendiente de calibrar con el backtesting (F5.6)"
+  notes: "Sustituye al supuesto inicial k = 10, que no llegó a usarse en ningún plan guardado"

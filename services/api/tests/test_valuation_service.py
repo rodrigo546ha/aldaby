@@ -17,7 +17,7 @@ from conftest import add_section
 
 from housefinder.db.references import ReferenceRow, replace_references
 from housefinder.db.sections import SourceRecord
-from housefinder.params.book import ParamBook, default_params_dir
+from housefinder.params.book import Param, ParamBook
 from housefinder.valuation.service import OutsideCoverage, value_property
 
 pytestmark = pytest.mark.db
@@ -67,7 +67,11 @@ def conn(database):
         yield connection
 
 
-BOOK = ParamBook.from_dir(default_params_dir())
+# k = 10 fijo en la prueba: los valores a mano no dependen de la calibración de data/params.
+BOOK = ParamBook([Param(
+    id="contraccion-prueba", kind="contraccion_renta", territory="ES",
+    effective_from=date(2026, 1, 1), effective_to=None, params={"k": 10},
+    source="prueba", provisional=True)])
 ON = date(2026, 10, 30)
 
 
@@ -125,7 +129,7 @@ def test_sin_valor_tasado_no_hay_precio(conn):
 def test_api_de_valoracion(database):
     from fastapi.testclient import TestClient
 
-    from housefinder.api.deps import get_db
+    from housefinder.api.deps import get_db, get_param_book
     from housefinder.api.main import app
 
     def db():
@@ -133,6 +137,7 @@ def test_api_de_valoracion(database):
             yield connection
 
     app.dependency_overrides[get_db] = db
+    app.dependency_overrides[get_param_book] = lambda: BOOK
     try:
         http = TestClient(app)
         ok = http.get("/valuation", params={"lon": LON, "lat": LAT, "area_m2": "80"})

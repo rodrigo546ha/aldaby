@@ -163,3 +163,42 @@ def annual_index(
     if row is None or row[0] != 4:
         return None
     return Decimal(row[1])
+
+
+def rent_table(
+    conn: psycopg.Connection, level: str, typology: str, code_prefix: str,
+    source_id: str = "serpavi",
+) -> dict[tuple[str, int], RentRow]:
+    """Todas las rentas €/m² mes de un nivel con P25, mediana y P75, por (código, año)."""
+    values: dict[tuple[str, int], dict[str, Decimal]] = {}
+    for code, year, key, value in conn.execute(
+        """
+        SELECT code, year, measure || ':' || stat, value FROM market_references
+        WHERE source_id = %s AND level = %s AND typology = %s AND code LIKE %s AND quarter = 0
+          AND measure IN ('renta_m2_mes', 'alquileres')
+        """,
+        (source_id, level, typology, f"{code_prefix}%"),
+    ):
+        values.setdefault((code, year), {})[key] = value
+    table = {}
+    for (code, year), v in values.items():
+        if all(k in v for k in ("renta_m2_mes:p25", "renta_m2_mes:mediana", "renta_m2_mes:p75")):
+            n = v.get("alquileres:n")
+            table[(code, year)] = RentRow(level, code, year, int(n) if n is not None else None,
+                                          v["renta_m2_mes:p25"], v["renta_m2_mes:mediana"],
+                                          v["renta_m2_mes:p75"])
+    return table
+
+
+def series_values(
+    conn: psycopg.Connection, source_id: str, level: str, measure: str, code_prefix: str,
+    typology: str = "todas",
+) -> dict[tuple[str, int, int], Decimal]:
+    """Valores de una medida por (código, año, trimestre)."""
+    return {(code, year, quarter): value for code, year, quarter, value in conn.execute(
+        """
+        SELECT code, year, quarter, value FROM market_references
+        WHERE source_id = %s AND level = %s AND measure = %s AND typology = %s AND code LIKE %s
+        """,
+        (source_id, level, measure, typology, f"{code_prefix}%"),
+    )}

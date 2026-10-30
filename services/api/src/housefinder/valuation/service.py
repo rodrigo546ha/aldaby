@@ -123,6 +123,8 @@ def _level_note(local: RentRow, shrunk: Shrunk) -> str:
     count = f"{local.n} alquileres declarados" if local.n is not None else "alquileres sin contar"
     if local.level == "municipio":
         return f"La sección y su distrito no tienen datos publicados: renta de {where} ({count})."
+    if shrunk.weight == 1:
+        return f"Renta de {where} ({count}), sin mezclarla con la del municipio."
     return (f"Renta de {where} ({count}), con un peso del {shrunk.weight * 100:.0f} % frente al "
             "municipio.")
 
