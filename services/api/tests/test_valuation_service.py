@@ -106,7 +106,7 @@ def test_renta_y_precio_de_un_piso_de_80_m2(conn):
     assert (total.low, total.value, total.high) == (D("343200.00"), D("435600.00"),
                                                     D("534600.00"))
     assert any("peso del 75 %" in n for n in report.notes)
-    assert any("septiembre de 2026" in n and "+10.0%" in n for n in report.notes)
+    assert any("septiembre de 2026" in n and "+10,0 %" in n for n in report.notes)
 
 
 def test_sin_datos_de_la_seccion_se_usa_el_municipio(conn):

@@ -142,11 +142,11 @@ def _rent_update(conn: Connection, local: RentRow, shrunk: Shrunk,
             note=(f"La renta es la declarada en el IRPF en {local.year} (último año del "
                   "SERPAVI), sin actualizar: no hay índice de alquiler posterior cargado."),
             formula=f"renta de {local.year}")
-    change = latest.value / base - 1
+    change = f"{(latest.value / base - 1) * 100:+.1f}".replace(".", ",") + " %"
     month = MONTHS[latest.month - 1]
     return scale(shrunk, base, latest.value), _month_end(latest.year, latest.month), RentUpdate(
         note=(f"Renta declarada en {local.year}, llevada a {month} de {latest.year} con el "
-              f"componente de alquiler del IPC de la comunidad ({change:+.1%}). En el "
+              f"componente de alquiler del IPC de la comunidad ({change}). En el "
               "backtesting, una renta actualizada así se quedaba aún corta un 4 % a dos años."),
         formula=f"renta de {local.year} × IPC de alquiler de {month} de {latest.year} / media "
                 f"de {local.year}",
