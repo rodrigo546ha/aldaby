@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections adrh worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi
+.PHONY: setup db migrate sections adrh serpavi worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi
 
 # Configuración local (copia de .env.example, fuera de git): LLM, base de datos, claves…
 -include .env
@@ -33,6 +33,10 @@ sections:
 # adelante: cada año t va sobre el seccionado de t+1.
 adrh:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_adrh --province $(PROVINCE)
+
+# Referencias de alquiler del SERPAVI 2011–2024 (ADR-0018); el Excel se guarda en ~/.cache/housefinder
+serpavi:
+	cd services/api && $(VENV)/python -m housefinder.ingestion.serpavi --province $(PROVINCE)
 
 # Worker de la cola de trabajos (ADR-0010). Encolar: python -m housefinder.jobs enqueue …
 worker:

@@ -18,6 +18,7 @@ condiciones de reutilización y sin quedar registrada en la tabla `sources`.
 | Alquiler | Sistema Estatal de Referencia, IPVA (INE) | Público; acceso a revisar | F5 | Pendiente |
 | Tipos | Trayectoria a 3 meses de las proyecciones del BCE (API, serie `MPD.Q.U2.STN.I.<ronda>.0000`) y Euríbor a un año oficial (BOE, resolución mensual del Banco de España) | Público; ADR-0006 | F1 | Decidida |
 | Normativa | BOE, BOCM | Datos abiertos y revisión humana | F2 | Motor listo |
+| Alquiler | SERPAVI (Ministerio de Vivienda y Agenda Urbana): mediana, P25 y P75 de €/m² mes por sección, distrito y municipio | Excel 2011–2024 en cdn.mivau.gob.es; reutilización libre citando fuente y fecha (aviso legal del Ministerio) | F5 | Cargado (`make serpavi`), ADR-0018 |
 
 Fuera del MVP: portales inmobiliarios por scraping (prohibido sin ADR), conexión bancaria directa
 (requiere proveedor con licencia), feeds de agencias y MLS (fase posterior), NPL y cesiones de remate.

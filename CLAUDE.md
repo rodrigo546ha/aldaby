@@ -89,6 +89,9 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     ingestion/bocm.py     sumarios del BOCM (RSS y XML de cada boletín)
     ingestion/ine_sections.py  cartografía de secciones del INE (API OGC Features, CC BY 4.0)
     ingestion/ine_adrh.py Atlas de renta del INE por sección; el año t va sobre el seccionado t+1
+    ingestion/serpavi.py  referencias de alquiler del SERPAVI por sección, distrito y municipio (ADR-0018)
+    ingestion/xlsx.py     lector de .xlsx en streaming con la biblioteca estándar
+    db/references.py      referencias de alquiler y de precio (market_references)
     api/main.py           aplicación FastAPI; un router por dominio (simulate, territory, offers, boe)
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
@@ -110,6 +113,7 @@ make db        # PostgreSQL + PostGIS en Docker (127.0.0.1:5442) y migraciones p
 make migrate   # solo las migraciones pendientes (DATABASE_URL)
 make sections  # carga las secciones censales del INE (YEAR=2025 PROVINCE=28)
 make adrh      # carga el Atlas de renta del INE 2015–2024 (PROVINCE=28)
+make serpavi   # carga las referencias de alquiler del SERPAVI 2011–2024 (PROVINCE=28)
 make worker    # worker de la cola; encolar con `python -m housefinder.jobs enqueue …`
 make schedules # aplica data/jobs/programaciones.yaml (trabajos diarios; el Makefile lee .env)
 make worker-install  # worker siempre en marcha en este Mac (launchd); logs: make worker-logs

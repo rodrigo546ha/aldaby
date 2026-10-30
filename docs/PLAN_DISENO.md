@@ -518,6 +518,7 @@ Qué revisaría al crecer:
 | 0015 | Enlace pegado por el usuario | G5 |
 | 0016 | Ubicación de ofertas por referencia catastral | G5 |
 | 0017 | Subastas judiciales por los avisos del BOE | G5 |
-| — | Librería de modelos estadísticos | G6 |
+| 0018 | Referencias de alquiler y precio, y precio desde la renta | G6 |
+| — | Librería de modelos estadísticos (por ahora ninguna: ADR-0018) | G6 |
 | — | Motor de PDF | G7 |
 | — | Autenticación y despliegue | G8 |
