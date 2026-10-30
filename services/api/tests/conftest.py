@@ -51,9 +51,10 @@ def migrated_database(empty_database: str) -> str:
     return empty_database
 
 
-def add_section(conninfo: str, code: str, lon: float, lat: float, size: float = 0.01) -> None:
-    """Sección censal sintética (cartografía 2025) alrededor de un punto, para que el
-    localizador de ofertas lo acepte como dentro de la zona cubierta."""
+def add_section(conninfo: str, code: str, lon: float, lat: float, size: float = 0.01,
+                vintage: int = 2025) -> None:
+    """Sección censal sintética alrededor de un punto (cartografía 2025 por defecto), para que
+    el localizador de ofertas lo acepte como dentro de la zona cubierta."""
     import json
 
     import psycopg
@@ -65,5 +66,5 @@ def add_section(conninfo: str, code: str, lon: float, lat: float, size: float = 
             [lon - half, lat + half], [lon - half, lat - half]]
     geometry = json.dumps({"type": "MultiPolygon", "coordinates": [[ring]]})
     with psycopg.connect(conninfo) as conn:
-        upsert_sections(conn, [SectionRow(code, code[:5], geometry)], 2025, None)
+        upsert_sections(conn, [SectionRow(code, code[:5], geometry)], vintage, None)
         conn.commit()

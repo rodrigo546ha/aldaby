@@ -1,0 +1,15 @@
+# Parámetros del modelo de renta y precio (ADR-0018). Ver data/params/README.md.
+# PROVISIONAL: k no está calibrado. Con k = 10 una sección en el mínimo de publicación del SERPAVI
+# (10 alquileres) pesa lo mismo que su municipio; con 90 alquileres, el 90 %. Se fija con el
+# backtesting de F5.6 (un registro nuevo con provisional: false y la medición como fuente).
+- id: contraccion-renta-inicial
+  kind: contraccion_renta
+  territory: ES
+  effective_from: 2026-10-30
+  effective_to: null
+  provisional: true
+  params:
+    k: 10          # alquileres equivalentes de la zona que contiene la sección
+  source: "Supuesto inicial: igual al mínimo de 10 alquileres con el que publica el SERPAVI"
+  source_url: null
+  notes: "Pendiente de calibrar con el backtesting (F5.6)"

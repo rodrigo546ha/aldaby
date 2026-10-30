@@ -53,13 +53,15 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     engines/irr.py        TIR de la inversión con revalorización y venta
     engines/taxes.py      formas de cálculo de aranceles, AJD por bandas y plusvalía municipal
     engines/lease.py      indemnización por no prorrogar el alquiler
+    engines/valuation.py  contracción de la renta, renta por superficie, precio desde la renta e índice
     regulation/rules.py   motor de normativa versionada (RuleBook)
     regulation/kinds.py   catálogo de tipos de regla y esquema de sus parámetros
     regulation/resolvers.py  de reglas a entradas de los motores (TaxParams, ITP, IBI, IRPF)
                           y regulación del alquiler (zona tensionada, régimen por tipo)
     regulation/transactions.py  gastos y tributos de compra y venta (ITP, IVA, AJD, notaría,
                           registro, escala del ahorro, plusvalía)
-    params/               parámetros con fecha (ParamBook): criterios bancarios, Euríbor (ADR-0006)
+    params/               parámetros con fecha (ParamBook): criterios bancarios, Euríbor (ADR-0006),
+                          contracción de la renta (ADR-0018)
     planning/simulate.py  simulación de punta a punta: el único camino de cálculo del plan (D4)
     planning/scenarios.py escenarios normativos: comparación con / sin reglas pendientes
     db/migrate.py         ejecutor de migraciones (ADR-0008); solo db/ importa psycopg
@@ -85,6 +87,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     geo/cartociudad.py    geocodificador de CartoCiudad (ADR-0009); solo geo/ e ingestion/ usan la red
     geo/catastro.py       centroide de una parcela por referencia catastral (Catastro, ADR-0016)
     territory/            sección, renta, población y tendencias de una dirección como Figure
+    valuation/            renta y precio estimados de un inmueble como Figure con rango (ADR-0018)
     ingestion/boe.py      sumario diario del BOE (esquema comprobado con sumarios reales)
     ingestion/bocm.py     sumarios del BOCM (RSS y XML de cada boletín)
     ingestion/ine_sections.py  cartografía de secciones del INE (API OGC Features, CC BY 4.0)
@@ -94,7 +97,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     ingestion/valor_tasado.py  valor tasado de la vivienda libre por municipio (Ministerio, vía Comunidad de Madrid)
     ingestion/ine_ipv.py  índice de precios de vivienda del INE por comunidad, trimestral
     db/references.py      referencias de alquiler y de precio (market_references)
-    api/main.py           aplicación FastAPI; un router por dominio (simulate, territory, offers, boe)
+    api/main.py           aplicación FastAPI; un router por dominio (simulate, territory, offers, boe, valuation)
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
   data/watch/             filtros de la vigilancia del BOE y del BOCM

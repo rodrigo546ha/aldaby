@@ -62,3 +62,104 @@ def load_references(
             "SELECT code FROM census_sections WHERE vintage = %s AND code = ANY(%s)",
             (vintage, list(sections))).fetchall()}
     return loaded, sections - known
+
+
+# --- Lecturas para el modelo de valoración ------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class RentRow:
+    level: str
+    code: str
+    year: int
+    n: int | None
+    p25: Decimal
+    median: Decimal
+    p75: Decimal
+
+
+def rent_stats(
+    conn: psycopg.Connection, level: str, code: str, typology: str, year: int | None = None,
+    source_id: str = "serpavi",
+) -> RentRow | None:
+    """Renta €/m² mes de un territorio: el año pedido o, sin año, el último con mediana."""
+    if year is None:
+        row = conn.execute(
+            """
+            SELECT max(year) FROM market_references
+            WHERE source_id = %s AND level = %s AND code = %s AND typology = %s
+              AND measure = 'renta_m2_mes' AND stat = 'mediana'
+            """,
+            (source_id, level, code, typology),
+        ).fetchone()
+        if row is None or row[0] is None:
+            return None
+        year = int(row[0])
+    values = dict(conn.execute(
+        """
+        SELECT measure || ':' || stat, value FROM market_references
+        WHERE source_id = %s AND level = %s AND code = %s AND typology = %s AND year = %s
+          AND quarter = 0 AND measure IN ('renta_m2_mes', 'alquileres')
+        """,
+        (source_id, level, code, typology, year),
+    ).fetchall())
+    needed = ("renta_m2_mes:p25", "renta_m2_mes:mediana", "renta_m2_mes:p75")
+    if not all(key in values for key in needed):
+        return None
+    count = values.get("alquileres:n")
+    return RentRow(level, code, year, int(count) if count is not None else None,
+                   values[needed[0]], values[needed[1]], values[needed[2]])
+
+
+def reference_value(
+    conn: psycopg.Connection, source_id: str, level: str, code: str, measure: str, year: int,
+    typology: str = "todas", stat: str = "valor",
+) -> Decimal | None:
+    row = conn.execute(
+        """
+        SELECT value FROM market_references
+        WHERE source_id = %s AND level = %s AND code = %s AND measure = %s AND year = %s
+          AND quarter = 0 AND typology = %s AND stat = %s
+        """,
+        (source_id, level, code, measure, year, typology, stat),
+    ).fetchone()
+    return row[0] if row else None
+
+
+@dataclass(frozen=True)
+class IndexPoint:
+    year: int
+    quarter: int
+    value: Decimal
+
+
+def latest_index(
+    conn: psycopg.Connection, source_id: str, code: str, typology: str
+) -> IndexPoint | None:
+    row = conn.execute(
+        """
+        SELECT year, quarter, value FROM market_references
+        WHERE source_id = %s AND level = 'comunidad' AND code = %s AND typology = %s
+          AND stat = 'indice'
+        ORDER BY year DESC, quarter DESC LIMIT 1
+        """,
+        (source_id, code, typology),
+    ).fetchone()
+    return IndexPoint(*row) if row else None
+
+
+def annual_index(
+    conn: psycopg.Connection, source_id: str, code: str, typology: str, year: int
+) -> Decimal | None:
+    """Media de los cuatro trimestres de un año; None si falta alguno."""
+    row = conn.execute(
+        """
+        SELECT count(*), avg(value) FROM market_references
+        WHERE source_id = %s AND level = 'comunidad' AND code = %s AND typology = %s
+          AND stat = 'indice' AND year = %s AND quarter BETWEEN 1 AND 4
+        """,
+        (source_id, code, typology, year),
+    ).fetchone()
+    if row is None or row[0] != 4:
+        return None
+    return Decimal(row[1])

@@ -217,8 +217,15 @@ sección censal asignada.
       (`make valor-tasado`) e IPV del INE (`make ipv`). El Notariado prohíbe el uso comercial: fuera.
       El IPVA del INE es un índice, no niveles de renta: no hace falta por ahora.
       No hay precio de venta público por sección: el precio se estimará desde la renta.
-- [ ] F5.3 Modelo base de renta por sección, superficie y características, con intervalo P25–P75.
+- [x] F5.3 Modelo base de renta por sección, superficie y características, con intervalo P25–P75.
+      *Hecho (ADR-0018):* renta €/m² mes de la sección (o distrito, o municipio) del SERPAVI,
+      contraída hacia el municipio con k (PROVISIONAL hasta F5.6), × superficie; rango P25–P75.
+      Solo tipología (colectiva o unifamiliar) y superficie: el SERPAVI no da más características.
 - [ ] F5.4 Modelo base de precio y margen de negociación respecto al precio pedido.
+      *En parte:* precio €/m² desde la renta con la relación precio/renta del municipio
+      (valor tasado / renta municipal), llevado al último trimestre con el IPV; supone la misma
+      rentabilidad en todo el municipio. El margen de negociación sobre el precio pedido no tiene
+      fuente pública. `GET /valuation` y `valuation/service.py`.
 - [ ] F5.5 Escenarios de revalorización (conservador, base, optimista) a partir de factores
       explicables: población, empleo, renta, oferta nueva.
 - [ ] F5.6 Backtesting: qué habría estimado el modelo con datos de años anteriores.

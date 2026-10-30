@@ -194,6 +194,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/valuation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Valuation */
+        get: operations["get_valuation_valuation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -819,6 +836,30 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** ValuationResponse */
+        ValuationResponse: {
+            /** Lon */
+            lon: number;
+            /** Lat */
+            lat: number;
+            /** Matched Address */
+            matched_address: string | null;
+            /** Section Code */
+            section_code: string;
+            /**
+             * Rent Level
+             * @enum {string}
+             */
+            rent_level: "seccion" | "distrito" | "municipio";
+            /** Figures */
+            figures: {
+                [key: string]: components["schemas"]["FigureOut"];
+            };
+            /** Notes */
+            notes: string[];
+            /** Attribution */
+            attribution: string[];
+        };
     };
     responses: never;
     parameters: never;
@@ -1137,6 +1178,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AnnouncementDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_valuation_valuation_get: {
+        parameters: {
+            query: {
+                /** @description Superficie construida en m² */
+                area_m2: number | string;
+                typology?: "colectiva" | "unifamiliar";
+                new_build?: boolean;
+                address?: string | null;
+                lon?: number | null;
+                lat?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValuationResponse"];
                 };
             };
             /** @description Validation Error */

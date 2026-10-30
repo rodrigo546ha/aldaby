@@ -26,6 +26,7 @@ ALLOWED_INTERNAL = {
     "crypto": {"core", "crypto"},
     "profiles": {"core", "crypto", "db", "profiles"},
     "offers": {"agent", "core", "db", "geo", "ingestion", "offers", "territory"},
+    "valuation": {"core", "db", "engines", "params", "valuation"},
     "agent": {"agent", "core"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi"}

@@ -469,6 +469,136 @@
         }
       }
     },
+    "/valuation": {
+      "get": {
+        "tags": [
+          "valoración"
+        ],
+        "summary": "Get Valuation",
+        "operationId": "get_valuation_valuation_get",
+        "parameters": [
+          {
+            "name": "area_m2",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 2000.0,
+                  "exclusiveMinimum": 0.0
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "description": "Superficie construida en m²",
+              "title": "Area M2"
+            },
+            "description": "Superficie construida en m²"
+          },
+          {
+            "name": "typology",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "colectiva",
+                "unifamiliar"
+              ],
+              "type": "string",
+              "default": "colectiva",
+              "title": "Typology"
+            }
+          },
+          {
+            "name": "new_build",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "New Build"
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Address"
+            }
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 180,
+                  "minimum": -180
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lon"
+            }
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 90,
+                  "minimum": -90
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lat"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValuationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -2533,6 +2663,75 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "ValuationResponse": {
+        "properties": {
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "matched_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched Address"
+          },
+          "section_code": {
+            "type": "string",
+            "title": "Section Code"
+          },
+          "rent_level": {
+            "type": "string",
+            "enum": [
+              "seccion",
+              "distrito",
+              "municipio"
+            ],
+            "title": "Rent Level"
+          },
+          "figures": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "object",
+            "title": "Figures"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "attribution": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Attribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lon",
+          "lat",
+          "matched_address",
+          "section_code",
+          "rent_level",
+          "figures",
+          "notes",
+          "attribution"
+        ],
+        "title": "ValuationResponse"
       }
     }
   }
