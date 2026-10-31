@@ -9,6 +9,7 @@ convierte en segmentos; la web y el PDF formatean cada cifra, Python no la escri
 
 from __future__ import annotations
 
+import difflib
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -65,7 +66,8 @@ def check_text(text: str, figures: Mapping[str, Figure]) -> list[Problem]:
         key, part = match.group(1), match.group(2)
         figure = figures.get(key)
         if figure is None:
-            problems.append(Problem("clave_desconocida", f"La cifra «{key}» no está en el plan."))
+            problems.append(Problem("clave_desconocida", f"La cifra «{key}» no está en el plan."
+                                                         + _closest(key, figures)))
         elif part is not None and figure.low is None:
             problems.append(Problem("sin_rango", f"La cifra «{key}» no tiene rango: usa "
                                                  f"{{{{fig:{key}}}}} sin «:{part}»."))
@@ -75,6 +77,15 @@ def check_text(text: str, figures: Mapping[str, Figure]) -> list[Problem]:
                                                        f"unidad: quita «{unit.group(1)}» detrás "
                                                        "del marcador."))
     return problems
+
+
+def _closest(key: str, figures: Mapping[str, Figure]) -> str:
+    """La clave del plan más parecida, si la hay: con qwen3 se equivocaba de ruta
+    (`valuation.gross_yield_at_asking` por `offer.…`) o de idioma (`appreciation_optimista`)."""
+    leaf = key.rsplit(".", 1)[-1]
+    by_leaf = [k for k in figures if k.rsplit(".", 1)[-1] == leaf]
+    match = by_leaf or difflib.get_close_matches(key, list(figures), n=1, cutoff=0.8)
+    return f" ¿Querías decir «{match[0]}»?" if len(match) == 1 else ""
 
 
 def without_numbers(text: str) -> str:

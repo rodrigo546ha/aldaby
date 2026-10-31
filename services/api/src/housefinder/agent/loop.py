@@ -164,7 +164,8 @@ def _execute(tool: Tool | None, name: str, raw: str, figures: dict[str, Figure],
         arguments = tool.arguments.model_validate_json(raw or "{}")
     except ValidationError as exc:
         fields = sorted({".".join(str(p) for p in e["loc"]) or "argumentos" for e in exc.errors()})
-        return _error(f"Argumentos no válidos: {', '.join(fields)}"), False
+        described = ", ".join(_field_help(tool, f) for f in fields)
+        return _error(f"Argumentos no válidos: {described}"), False
     try:
         result = tool.run(arguments)
     except ToolFailed as exc:
@@ -184,6 +185,13 @@ def _execute(tool: Tool | None, name: str, raw: str, figures: dict[str, Figure],
     return json.dumps({"cifras": shown, "datos": result.facts,
                        "avisos": [without_numbers(n) for n in result.notes]},
                       ensure_ascii=False, default=str), True
+
+
+def _field_help(tool: Tool, name: str) -> str:
+    """El campo con su descripción del esquema: con qwen3, `oferta_id` llegaba como «Getafe» y,
+    sin saber de dónde sacar el identificador, el modelo se rendía."""
+    field = tool.arguments.model_fields.get(name)
+    return f"{name} ({field.description})" if field and field.description else name
 
 
 def _error(message: str) -> str:

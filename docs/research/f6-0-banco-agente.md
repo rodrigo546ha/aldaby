@@ -44,13 +44,32 @@ Sobre la oferta de prueba de Getafe (piso de 85 m² confirmado y ubicado):
   - en la zona respondió que el identificador no era válido;
   - sigue escribiendo «menos» delante de una diferencia negativa.
 
+## Ajustes del reintento con el 14B
+
+| | 14B inicial | + clave más parecida | + descripción del campo |
+| --- | --- | --- | --- |
+| Herramientas correctas | 4/5 | 4/5 | 4/5 |
+| Texto mostrado | 3/5 | 4/5 | 4/5 |
+| A la primera | 2/5 | 2/5 | 2/5 |
+| Tiempo medio | 46 s | 43 s | 39 s |
+
+- **Clave más parecida:** si la clave no existe, el reintento propone la del plan con la misma
+  parte final o una muy parecida («¿Querías decir `offer.gross_yield_at_asking`?»). La pregunta de
+  la rentabilidad bruta pasó a mostrarse.
+- **Descripción del campo:** un argumento que no valida devuelve la descripción del esquema
+  («oferta_id (Identificador de la oferta, de ofertas_guardadas)»). En la zona, el modelo pasaba
+  `{"oferta_id": "Getafe"}`; con el aviso nuevo tampoco pide la lista de ofertas y se rinde. Se
+  mantiene porque no cuesta nada y puede servir a otros modelos.
+- La revalorización sigue fallando: copia los valores que ve («−0.21% anual», «10 años»).
+
 ## Conclusiones
 
 - El tamaño importa más que las instrucciones: el 14B resuelve lo que no arreglaban los ajustes de
   instrucciones sobre el 8B. Para el agente, el 8B no sirve.
 - El 14B cabe en el Mac y tarda unos cuarenta y cinco segundos por pregunta: vale para desarrollo.
   Para la beta hace falta medir modelos mayores en el servidor de F7.
-- Lo siguiente que ayudaría a cualquier modelo: que el reintento sugiera la clave más parecida
-  cuando escribe una que no existe.
+- Quedan dos fallos del 14B: copia los valores que ve en los resultados (el modelo recibe los
+  valores para razonar, ADR-0019) y, con la pregunta de la zona, no pide la lista de ofertas antes
+  de usar el identificador.
 - Cinco preguntas sobre una oferta son pocas: el banco tiene que crecer con más ofertas y preguntas
   (F6.9) antes de decidir el modelo de producción.
