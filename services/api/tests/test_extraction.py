@@ -25,6 +25,7 @@ from housefinder.agent.llm import (
     OpenAICompatibleLLMClient,
     llm_from_env,
 )
+from housefinder.geo.cartociudad import FIND_URL
 from housefinder.offers.channels.boe_v import parse_announcement
 
 FIXTURES = Path(__file__).parent / "fixtures" / "boe"
@@ -252,23 +253,26 @@ def test_configuracion_sin_valores_por_defecto(monkeypatch):
 psycopg = pytest.importorskip("psycopg")
 
 
-def boe_client() -> httpx.Client:
+def boe_client(cartociudad: int = 404, seen: list[str] | None = None) -> httpx.Client:
     def handler(request: httpx.Request) -> httpx.Response:
         url = str(request.url)
+        if seen is not None:
+            seen.append(url)
         if url.endswith("/sumario/20261028"):
             return httpx.Response(200, content=(FIXTURES / "sumario-20261028-5b.json").read_bytes())
         if "xml.php?id=BOE-B-2026-35273" in url:
             return httpx.Response(200, content=ANNOUNCEMENT)
+        if url.startswith(FIND_URL):
+            return httpx.Response(cartociudad)
         return httpx.Response(404)
 
     return httpx.Client(transport=httpx.MockTransport(handler))
 
 
-@pytest.mark.db
-def test_lotes_extraidos_ubicados_y_pendientes_de_confirmar(migrated_database: str):
-    from housefinder.offers.run import extract_boe_v, run_boe_v
-
-    with psycopg.connect(migrated_database, autocommit=True) as conn:  # otros tests leen el día
+def pending_again(conninfo: str) -> None:
+    """Deja BOE-B-2026-35273 como único anuncio pendiente, con sus lotes sin ubicar y sin caché
+    de la parcela ni de la dirección."""
+    with psycopg.connect(conninfo, autocommit=True) as conn:  # otros tests leen el día
         conn.execute("DELETE FROM watch_issues WHERE source = 'offers_boe_v'")
         # Sin parcelas en la caché: el Catastro no responde aquí y se ubica por dirección.
         conn.execute("DELETE FROM geocode_cache WHERE query LIKE 'rc:%'")
@@ -283,6 +287,13 @@ def test_lotes_extraidos_ubicados_y_pendientes_de_confirmar(migrated_database: s
                      "AND extraction_status = 'pendiente' AND external_id <> 'BOE-B-2026-35273'")
         conn.execute("UPDATE offers SET extraction_status = 'pendiente' "
                      "WHERE external_id = 'BOE-B-2026-35273'")
+
+
+@pytest.mark.db
+def test_lotes_extraidos_ubicados_y_pendientes_de_confirmar(migrated_database: str):
+    from housefinder.offers.run import extract_boe_v, run_boe_v
+
+    pending_again(migrated_database)
     run_boe_v(migrated_database, boe_client(), date(2026, 10, 28), days=1)
     failing = FakeLLMClient(lambda *a: (_ for _ in ()).throw(LLMOutputError("prueba")))
     assert extract_boe_v(migrated_database, boe_client(), failing)["failed"] >= 1
@@ -314,3 +325,27 @@ def test_lotes_extraidos_ubicados_y_pendientes_de_confirmar(migrated_database: s
     assert lots[1][3] is None and lots[1][5] is False and lots[1][6] == "rechazado"
     assert parent == ("extraida",)
     assert extract_boe_v(migrated_database, boe_client(), llm)["announcements"] == 0
+
+
+@pytest.mark.db
+def test_un_500_de_cartociudad_no_tumba_la_extraccion(migrated_database: str):
+    """Trabajos 10 y 15 (2026-10-30 y 31): un 500 de CartoCiudad con un lote hacía fallar
+    `extract_offers` entero y cada reintento repetía la extracción con el LLM."""
+    from housefinder.offers.run import extract_boe_v, run_boe_v
+
+    pending_again(migrated_database)
+    run_boe_v(migrated_database, boe_client(), date(2026, 10, 28), days=1)
+    seen: list[str] = []
+    llm = FakeLLMClient(lambda *a: EXTRACTION)
+    report = extract_boe_v(migrated_database, boe_client(cartociudad=500, seen=seen), llm)
+    assert (report["announcements"], report["lots"], report["located"]) == (1, 2, 0)
+    assert report["unlocated"] == [{"offer": "BOE-B-2026-35273#1",
+                                    "reason": "CartoCiudad no responde: HTTP 500"}]
+    assert sum(url.startswith(FIND_URL) for url in seen) == 1
+    with psycopg.connect(migrated_database) as conn:
+        parent = conn.execute("SELECT extraction_status FROM offers "
+                              "WHERE external_id = 'BOE-B-2026-35273'").fetchone()
+        located = conn.execute("SELECT count(property_id) FROM offers "
+                               "WHERE external_id LIKE 'BOE-B-2026-35273#%'").fetchone()
+    # El anuncio queda extraído: un reintento no vuelve a pasar por el LLM.
+    assert parent == ("extraida",) and located == (0,)

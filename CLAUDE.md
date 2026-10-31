@@ -112,6 +112,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   data/watch/             filtros de la vigilancia del BOE y del BOCM
   data/jobs/              programaciones diarias de la cola (ADR-0010)
   data/offers/            sedes de partidos judiciales para los avisos de subastas (sin verificar)
+                          y zona cubierta (zona.yaml): un lote de otra provincia no se ubica
   tests/                  pytest; un test por regla de negocio
   tests/fixtures/planes/  prueba de oro: planes de F0 anonimizados (los reales, en private/)
 db/migrations/            SQL de PostgreSQL + PostGIS (NNNN_nombre.sql; no se editan una vez aplicadas)

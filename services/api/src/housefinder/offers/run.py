@@ -103,11 +103,16 @@ def extract_boe_v(
     only: list[str] | None = None,
 ) -> dict[str, Any]:
     """Extrae los lotes de hasta `limit` anuncios pendientes del BOE (ADR-0013); con `only`,
-    solo esos (BOE-B-…)."""
+    solo esos (BOE-B-…). `unlocated`: los lotes que no se mandaron a ubicar o cuyo servicio falló,
+    con el motivo."""
+    unlocated: list[dict[str, str]] = []
     with connect(conninfo) as conn:
         locate = offer_locator(conn, geocoder or (lambda address: geocode(client, address)),
-                               parcels or (lambda ref: find_parcel(client, ref)))
-        return extract_pending(conn, llm, boe_v.NAME, locate, limit, only).as_dict()
+                               parcels or (lambda ref: find_parcel(client, ref)),
+                               lambda offer, reason: unlocated.append(
+                                   {"offer": offer.external_id, "reason": reason}))
+        report = extract_pending(conn, llm, boe_v.NAME, locate, limit, only)
+    return {**report.as_dict(), "unlocated": unlocated}
 
 
 def extract_pasted(conninfo: str, llm: LLMClient, offer_id: UUID) -> dict[str, Any]:
