@@ -6,6 +6,8 @@ organización. Ningún valor va a un log ni a un mensaje de error.
 
 from __future__ import annotations
 
+import base64
+import binascii
 from datetime import date
 from typing import Any, Literal
 from uuid import UUID
@@ -13,9 +15,17 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from housefinder.agent.documents import DocumentKind, extract_document
 from housefinder.agent.llm import LLMOutputError
 from housefinder.agent.profiling import extract_answer
 from housefinder.api.deps import DbDep, KeysDep, LLMDep, OrgDep
+from housefinder.documents.reader import (
+    MAX_BYTES,
+    OcrUnavailable,
+    UnreadableDocument,
+    read_document,
+    read_text,
+)
 from housefinder.profiles import interview as iv
 from housefinder.profiles.model import ProfileError
 
@@ -39,8 +49,15 @@ class DraftFieldOut(BaseModel):
     required: bool
     value: str | list[str] | None
     evidence: str | None = None
-    source: Literal["respuesta", "calculado", "usuario"] | None = None
+    source: Literal["respuesta", "calculado", "usuario", "documento"] | None = None
     note: str = ""
+
+
+class DocumentOut(BaseModel):
+    kind: DocumentKind
+    method: str
+    fields: list[str]
+    truncated: bool
 
 
 class InterviewOut(BaseModel):
@@ -49,6 +66,7 @@ class InterviewOut(BaseModel):
     answers: list[AnswerOut]
     fields: list[DraftFieldOut]
     issues: list[str]
+    documents: list[DocumentOut]
     next_question: QuestionOut | None
     complete: bool = Field(description="Están todos los obligatorios: se puede confirmar")
     profile_id: UUID | None
@@ -56,6 +74,13 @@ class InterviewOut(BaseModel):
 
 class AnswerIn(BaseModel):
     text: str = Field(min_length=1, max_length=2000)
+
+
+class DocumentIn(BaseModel):
+    kind: DocumentKind
+    content_base64: str | None = Field(default=None, max_length=MAX_BYTES * 4 // 3 + 4,
+                                       description="PDF, JPG o PNG en base64")
+    text: str | None = Field(default=None, max_length=100_000, description="O el texto pegado")
 
 
 class ConfirmIn(BaseModel):
@@ -118,6 +143,37 @@ def answer(interview_id: UUID, body: AnswerIn, db: DbDep, keys: KeysDep, org: Or
     return _out(updated)
 
 
+@router.post("/interviews/{interview_id}/documents", response_model=InterviewOut)
+def add_document(interview_id: UUID, body: DocumentIn, db: DbDep, keys: KeysDep, org: OrgDep,
+                 llm: LLMDep) -> InterviewOut:
+    """Lee el documento en memoria, extrae sus campos y lo descarta (ADR-0021)."""
+    try:
+        if body.content_base64:
+            read = read_document(base64.b64decode(body.content_base64, validate=True))
+        elif body.text and body.text.strip():
+            read = read_text(body.text)
+        else:
+            raise HTTPException(status_code=422, detail="Falta el documento o su texto")
+        updated = iv.add_document(db, keys, interview_id, org, body.kind, read.text, read.method,
+                                  lambda kind, text: extract_document(llm, kind, text),
+                                  date.today())
+    except binascii.Error as exc:
+        raise HTTPException(status_code=422, detail="El fichero no llega bien codificado") from exc
+    except OcrUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except UnreadableDocument as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except iv.InterviewNotFound as exc:
+        raise HTTPException(status_code=404, detail="No existe esa entrevista") from exc
+    except iv.InterviewClosed as exc:
+        raise HTTPException(status_code=409, detail="La entrevista ya está terminada") from exc
+    except LLMOutputError as exc:
+        raise HTTPException(status_code=503, detail="El modelo no ha respondido: vuelve a "
+                                                    "intentarlo") from exc
+    db.commit()
+    return _out(updated)
+
+
 @router.post("/interviews/{interview_id}/confirm", response_model=ConfirmOut)
 def confirm(interview_id: UUID, body: ConfirmIn, db: DbDep, keys: KeysDep,
             org: OrgDep) -> ConfirmOut:
@@ -153,10 +209,17 @@ def _out(found: iv.Interview) -> InterviewOut:
             field=q.field, label=q.label, required=q.required,
             value=draft.value if draft else None, evidence=draft.evidence if draft else None,
             source=draft.source if draft else None, note=draft.note if draft else ""))
+    for name, label in iv.DOCUMENT_FIELDS.items():  # solo los rellena la declaración
+        draft = state.draft.get(name)
+        fields.append(DraftFieldOut(
+            field=name, label=label, required=False, value=draft.value if draft else None,
+            evidence=draft.evidence if draft else None, source=draft.source if draft else None,
+            note=draft.note if draft else ""))
     return InterviewOut(
         id=found.id, status=found.status,
         answers=[AnswerOut(question=a["question"], text=a["text"]) for a in state.answers],
         fields=fields, issues=state.issues,
+        documents=[DocumentOut(**d) for d in state.documents],
         next_question=QuestionOut(field=question.field, text=text)
         if question is not None and text is not None and found.status == "en_curso" else None,
         complete=all(q.field in state.draft for q in iv.QUESTIONS if q.required),

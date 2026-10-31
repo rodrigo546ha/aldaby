@@ -26,6 +26,7 @@ from uuid import UUID, uuid4
 
 import yaml
 
+from housefinder.agent.documents import CheckedDocument
 from housefinder.agent.profiling import CheckedAnswer
 from housefinder.core.figures import money
 from housefinder.crypto.envelope import KeyProvider, Sealed, open_sealed, seal
@@ -44,7 +45,7 @@ from housefinder.profiles import store
 from housefinder.profiles.model import UserProfile
 
 TABLE = "profile_interviews"
-Source = Literal["respuesta", "calculado", "usuario"]
+Source = Literal["respuesta", "calculado", "usuario", "documento"]
 
 
 @dataclass(frozen=True)
@@ -83,6 +84,13 @@ QUESTIONS = (
              "¿Quieres gestionar tú el alquiler o prefieres delegarlo en alguien?", False),
 )
 BY_FIELD = {q.field: q for q in QUESTIONS}
+# Campos del perfil que no se preguntan: solo los rellena la declaración de la renta (ADR-0021)
+DOCUMENT_FIELDS = {"taxable_base": "Base liquidable general (sin el alquiler)",
+                   "savings_base": "Base liquidable del ahorro"}
+DOCUMENT_NAMES = {"nomina": "nómina", "declaracion": "declaración de la renta",
+                  "extracto": "extracto bancario"}
+READ_BY = {"texto": "texto pegado", "pdf": "PDF", "ocr": "escaneo leído con OCR",
+           "pdf+ocr": "PDF con páginas escaneadas leídas con OCR"}
 NOT_UNDERSTOOD = "No lo he entendido. "
 
 
@@ -111,11 +119,12 @@ class State:
     skipped: list[str] = field(default_factory=list)  # opcionales que el usuario no contestó
     issues: list[str] = field(default_factory=list)  # por qué no se entendió la última respuesta
     asked: str | None = None  # campo de la última pregunta
+    documents: list[dict[str, Any]] = field(default_factory=list)  # leídos, sin su texto
 
     def to_json(self) -> bytes:
         return json.dumps({
             "answers": self.answers, "skipped": self.skipped, "issues": self.issues,
-            "asked": self.asked,
+            "asked": self.asked, "documents": self.documents,
             "draft": {k: v.__dict__ for k, v in self.draft.items()},
         }, ensure_ascii=False).encode()
 
@@ -123,7 +132,7 @@ class State:
     def from_json(cls, raw: bytes) -> State:
         data = json.loads(raw)
         return cls(answers=data["answers"], skipped=data["skipped"], issues=data["issues"],
-                   asked=data["asked"],
+                   asked=data["asked"], documents=data.get("documents", []),
                    draft={k: DraftField(**v) for k, v in data["draft"].items()})
 
 
@@ -181,6 +190,76 @@ def apply_answer(state: State, asked: str, text: str, checked: CheckedAnswer,
             skipped.append(asked)  # un opcional sin respuesta no se vuelve a preguntar
     answers = [*state.answers, {"field": asked, "question": BY_FIELD[asked].text, "text": text}]
     return State(answers, draft, skipped, issues, asked)
+
+
+def apply_document(state: State, checked: CheckedDocument, method: str, today: date) -> State:
+    """El borrador con los campos del documento. Pisan lo dicho en la conversación: el usuario lo
+    ha subido para eso, y confirma al final. El texto del documento no se guarda."""
+    found = document_fields(checked, method, today)
+    draft = {**state.draft, **found}
+    entry = {"kind": checked.kind, "method": method, "fields": sorted(found),
+             "truncated": checked.truncated}
+    issues = [] if found else [
+        f"No he encontrado datos en la {DOCUMENT_NAMES[checked.kind]}. Si es un escaneo, prueba "
+        "con el PDF original o una foto más nítida."]
+    if checked.truncated:
+        issues.append("El documento es largo y solo se ha leído el principio.")
+    return State(state.answers, draft, state.skipped, issues, state.asked,
+                 [*state.documents, entry])
+
+
+def document_fields(checked: CheckedDocument, method: str, today: date) -> dict[str, DraftField]:
+    """Campos del perfil desde lo verificado en el documento; las cuentas, aquí y con su nota."""
+    origin = f"De tu {DOCUMENT_NAMES[checked.kind]} ({READ_BY.get(method, method)})."
+    if method in ("ocr", "pdf+ocr"):
+        origin += " Comprueba la cifra: el OCR puede leer mal un número."
+    out: dict[str, DraftField] = {}
+    f = checked.fields
+
+    if checked.kind == "nomina" and (net := checked.verified("net_pay")) is not None:
+        amount = Decimal(str(net))
+        if checked.verified("extra_pay_prorated") == "sí":
+            out["net_monthly_income"] = DraftField(
+                str(money(amount)), f["net_pay"].evidence, "documento",
+                f"{origin} Pagas extra prorrateadas: el líquido ya las incluye.")
+        else:
+            out["net_monthly_income"] = DraftField(
+                str(money(amount * 14 / 12)), f["net_pay"].evidence, "documento",
+                f"{origin} {amount} € × 14 pagas / 12 meses: supone catorce pagas sin prorrata; "
+                "corrígelo si cobras otras.")
+
+    if checked.kind == "declaracion":
+        year = checked.verified("fiscal_year")
+        about = f" Ejercicio {int(Decimal(str(year)))}." if year is not None else ""
+        for name in ("taxable_base", "savings_base"):
+            if (value := checked.verified(name)) is not None:
+                extra = (" Si ya declaras alquileres, réstalos: la del perfil es sin el alquiler."
+                         if name == "taxable_base" else "")
+                out[name] = DraftField(str(money(Decimal(str(value)))), f[name].evidence,
+                                       "documento", origin + about + extra)
+        years = [c for c in checked.descendant_birth_years if c.status == "verificado"
+                 and 1900 <= int(Decimal(str(c.value))) <= today.year]
+        if years:
+            out["descendant_birth_years"] = DraftField(
+                [str(int(Decimal(str(c.value)))) for c in years],
+                " · ".join(c.evidence or "" for c in years), "documento", origin)
+
+    if checked.kind == "extracto":
+        if (balance := checked.verified("closing_balance")) is not None:
+            out["available_savings"] = DraftField(
+                str(money(Decimal(str(balance)))), f["closing_balance"].evidence, "documento",
+                f"{origin} Es el saldo de la cuenta: pon lo que de verdad dedicarías a la compra.")
+        loans: dict[str, Decimal] = {}  # una cuota por concepto, aunque el extracto tenga varias
+        for concept, amount in checked.loan_payments:
+            if concept.status == "verificado" and amount.status == "verificado":
+                loans.setdefault(_fold(str(concept.value)), Decimal(str(amount.value)))
+        if loans:
+            total = sum(loans.values(), Decimal(0))
+            out["existing_monthly_debt"] = DraftField(
+                str(money(total)), " · ".join(c.evidence or "" for c, _ in checked.loan_payments
+                                              if c.status == "verificado"),
+                "documento", f"{origin} Suma de {len(loans)} cuota(s) distintas del extracto.")
+    return out
 
 
 def _adult(birth_year: int, today: date) -> bool:
@@ -298,7 +377,8 @@ def _fold(text: str) -> str:
 
 def to_profile(values: Mapping[str, Any]) -> UserProfile:
     """Lo que el usuario confirma (o corrige) → `UserProfile` validado. Vacío = sin dato."""
-    data = {k: v for k, v in values.items() if k in BY_FIELD and v not in (None, "")}
+    data = {k: v for k, v in values.items()
+            if (k in BY_FIELD or k in DOCUMENT_FIELDS) and v not in (None, "")}
     if "descendant_birth_years" in data:
         data["descendant_birth_years"] = tuple(int(y) for y in data["descendant_birth_years"])
     return UserProfile.parse(data)
@@ -342,6 +422,18 @@ def answer(conn: Connection, keys: KeyProvider, interview_id: UUID, org_id: UUID
         raise InterviewClosed(str(interview_id))
     checked = extract(question.text, text)
     state = apply_answer(interview.state, question.field, text, checked, today)
+    update_interview(conn, interview_id, org_id, _row(_seal(state, interview_id, org_id, keys)))
+    return Interview(interview_id, "en_curso", state, None)
+
+
+def add_document(conn: Connection, keys: KeyProvider, interview_id: UUID, org_id: UUID,
+                 kind: str, text: str, method: str,
+                 extract: Callable[[str, str], CheckedDocument], today: date) -> Interview:
+    """Extrae los campos del texto del documento y los pone en el borrador; el texto se descarta."""
+    interview = load(conn, keys, interview_id, org_id)
+    if interview.status != "en_curso":
+        raise InterviewClosed(str(interview_id))
+    state = apply_document(interview.state, extract(kind, text), method, today)
     update_interview(conn, interview_id, org_id, _row(_seal(state, interview_id, org_id, keys)))
     return Interview(interview_id, "en_curso", state, None)
 

@@ -30,6 +30,15 @@ FIRST = "Nací en 1988, vivo en Madrid y gano 2.600 al mes"
 SECOND = "No pago ningún préstamo y tengo 45.000 ahorrados"
 
 
+def payslip(_instructions, _document, output):
+    from housefinder.agent.documents import PayslipExtraction
+
+    assert output is PayslipExtraction
+    return PayslipExtraction(
+        net_pay=Quoted(value="1850.32", evidence="Liquido a percibir 1.850,32"),
+        extra_pay_prorated=True, extra_pay_prorated_evidence="Prorrata pagas extra 350,00")
+
+
 def extraction(document: str) -> ProfileExtraction:
     """Lo que diría el modelo de cada respuesta de prueba."""
     if FIRST in document:
@@ -124,3 +133,30 @@ def test_sin_clave_maestra_responde_503(migrated_database, tmp_path, monkeypatch
     monkeypatch.setenv("HOUSEFINDER_KEYS_FILE", str(tmp_path / "no-existe.keys"))
     response = TestClient(app).post("/profile/interviews")
     assert response.status_code == 503 and "nueva-clave" in response.json()["detail"]
+
+
+def test_subir_una_nomina_rellena_el_borrador_y_no_guarda_el_documento(setup):
+    import base64
+
+    from test_documents import PAYSLIP, text_pdf
+
+    client, database, keys, orgs, _ = setup
+    app.dependency_overrides[get_llm] = lambda: FakeLLMClient(respond=payslip)
+    started = client.post("/profile/interviews").json()
+    url = f"/profile/interviews/{started['id']}/documents"
+    content = base64.b64encode(text_pdf(PAYSLIP)).decode()
+    after = client.post(url, json={"kind": "nomina", "content_base64": content}).json()
+    income = next(f for f in after["fields"] if f["field"] == "net_monthly_income")
+    assert income["value"] == "1850.32" and income["source"] == "documento"
+    assert after["documents"] == [{"kind": "nomina", "method": "pdf",
+                                   "fields": ["net_monthly_income"], "truncated": False}]
+    assert [f["field"] for f in after["fields"]][-2:] == ["taxable_base", "savings_base"]
+    from housefinder.profiles import interview as iv
+
+    with psycopg.connect(database) as conn:
+        inside = iv.load(conn, keys, started["id"], orgs[0]).state.to_json()
+    assert b"Salario base" not in inside and b"NOMINA" not in inside  # el texto no se guarda
+    bad = client.post(url, json={"kind": "nomina", "content_base64": base64.b64encode(
+        b"GIF89a").decode()})
+    assert bad.status_code == 422 and "PDF, JPG y PNG" in bad.json()["detail"]
+    assert client.post(url, json={"kind": "nomina"}).status_code == 422

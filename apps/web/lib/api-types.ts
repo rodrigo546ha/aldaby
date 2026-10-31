@@ -320,6 +320,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/profile/interviews/{interview_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Document
+         * @description Lee el documento en memoria, extrae sus campos y lo descarta (ADR-0021).
+         */
+        post: operations["add_document_profile_interviews__interview_id__documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/profile/interviews/{interview_id}/confirm": {
         parameters: {
             query?: never;
@@ -529,6 +549,38 @@ export interface components {
             /** Paragraphs */
             paragraphs: string[];
         };
+        /** DocumentIn */
+        DocumentIn: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "nomina" | "declaracion" | "extracto";
+            /**
+             * Content Base64
+             * @description PDF, JPG o PNG en base64
+             */
+            content_base64?: string | null;
+            /**
+             * Text
+             * @description O el texto pegado
+             */
+            text?: string | null;
+        };
+        /** DocumentOut */
+        DocumentOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "nomina" | "declaracion" | "extracto";
+            /** Method */
+            method: string;
+            /** Fields */
+            fields: string[];
+            /** Truncated */
+            truncated: boolean;
+        };
         /** DraftFieldOut */
         DraftFieldOut: {
             /** Field */
@@ -542,7 +594,7 @@ export interface components {
             /** Evidence */
             evidence?: string | null;
             /** Source */
-            source?: ("respuesta" | "calculado" | "usuario") | null;
+            source?: ("respuesta" | "calculado" | "usuario" | "documento") | null;
             /**
              * Note
              * @default
@@ -646,6 +698,8 @@ export interface components {
             fields: components["schemas"]["DraftFieldOut"][];
             /** Issues */
             issues: string[];
+            /** Documents */
+            documents: components["schemas"]["DocumentOut"][];
             next_question: components["schemas"]["QuestionOut"] | null;
             /**
              * Complete
@@ -1641,6 +1695,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AnswerIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_document_profile_interviews__interview_id__documents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                interview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentIn"];
             };
         };
         responses: {

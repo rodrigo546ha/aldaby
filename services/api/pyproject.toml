@@ -11,6 +11,11 @@ dependencies = [
   "pyyaml>=6.0",
   "psycopg[binary]>=3.2",
   "cryptography>=43",
+  # Documentos del usuario (ADR-0021): PDF con texto, páginas escaneadas a imagen y OCR local
+  "pypdf>=5.0",
+  "pypdfium2>=4.30",
+  "pytesseract>=0.3.13",
+  "pillow>=10.4",
 ]
 
 [project.optional-dependencies]

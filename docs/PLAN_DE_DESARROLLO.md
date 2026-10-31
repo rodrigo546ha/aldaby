@@ -125,6 +125,7 @@ GPU alquilada, no en este Mac.
 cd ~/Documents/housefinder
 cp .env.example .env
 make setup        # entorno Python y dependencias web
+brew install tesseract tesseract-lang   # OCR de escaneos y fotos (ADR-0021)
 make db           # PostgreSQL + PostGIS en Docker
 make test         # motores en verde
 ```

@@ -893,6 +893,60 @@
         }
       }
     },
+    "/profile/interviews/{interview_id}/documents": {
+      "post": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Add Document",
+        "description": "Lee el documento en memoria, extrae sus campos y lo descarta (ADR-0021).",
+        "operationId": "add_document_profile_interviews__interview_id__documents_post",
+        "parameters": [
+          {
+            "name": "interview_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interview Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/profile/interviews/{interview_id}/confirm": {
       "post": {
         "tags": [
@@ -1581,6 +1635,86 @@
         ],
         "title": "CorrectionOut"
       },
+      "DocumentIn": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "nomina",
+              "declaracion",
+              "extracto"
+            ],
+            "title": "Kind"
+          },
+          "content_base64": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 13981017
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Base64",
+            "description": "PDF, JPG o PNG en base64"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text",
+            "description": "O el texto pegado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "DocumentIn"
+      },
+      "DocumentOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "nomina",
+              "declaracion",
+              "extracto"
+            ],
+            "title": "Kind"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "method",
+          "fields",
+          "truncated"
+        ],
+        "title": "DocumentOut"
+      },
       "DraftFieldOut": {
         "properties": {
           "field": {
@@ -1630,7 +1764,8 @@
                 "enum": [
                   "respuesta",
                   "calculado",
-                  "usuario"
+                  "usuario",
+                  "documento"
                 ]
               },
               {
@@ -1996,6 +2131,13 @@
             "type": "array",
             "title": "Issues"
           },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentOut"
+            },
+            "type": "array",
+            "title": "Documents"
+          },
           "next_question": {
             "anyOf": [
               {
@@ -2031,6 +2173,7 @@
           "answers",
           "fields",
           "issues",
+          "documents",
           "next_question",
           "complete",
           "profile_id"

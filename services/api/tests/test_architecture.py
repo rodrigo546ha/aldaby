@@ -29,13 +29,17 @@ ALLOWED_INTERNAL = {
     "valuation": {"core", "db", "engines", "params", "valuation"},
     "agent": {"agent", "core"},
     "advisor": {"advisor", "agent", "core", "db", "params", "territory", "valuation"},
+    "documents": {"core", "documents"},
 }
-FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi"}
+FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi",
+                      "pypdf", "pypdfium2", "pytesseract", "PIL"}
 # Solo db/ habla con la base de datos (ADR-0008).
 DB_DRIVERS = {"psycopg", "psycopg_pool"}
 # Solo la ingesta descarga datos de la red.
 ALLOWED_EXTERNAL = {"ingestion": {"httpx"}, "geo": {"httpx"}, "jobs": {"httpx"},
-                    "watch": {"httpx"}, "offers": {"httpx"}, "agent": {"httpx"}}
+                    "watch": {"httpx"}, "offers": {"httpx"}, "agent": {"httpx"},
+                    # Solo documents/ lee PDF y hace OCR (ADR-0021)
+                    "documents": {"pypdf", "pypdfium2", "pytesseract", "PIL"}}
 
 
 def _imports(path: Path) -> set[str]:

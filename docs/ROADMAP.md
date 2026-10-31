@@ -272,7 +272,12 @@ umbral fijado en F0, y cada estimación con su rango.
       hace las cuentas (catorce pagas, edad, comunidad). Confirmación campo a campo en `/perfil` y
       perfil guardado cifrado; la entrevista también, para retomarla (`profile_interviews`).
       Base imponible y tipo marginal no se preguntan: vendrán de los documentos (F6.3).
-- [ ] F6.3 Lectura de documentos del usuario (nómina, extracto, declaración) con confirmación manual.
+- [x] F6.3 Lectura de documentos del usuario (nómina, extracto, declaración) con confirmación manual.
+      *Hecho (ADR-0021):* PDF con texto (`pypdf`), escaneos y fotos con OCR local (Tesseract en
+      español) y texto pegado (`documents/reader.py`). El usuario dice qué documento es; el modelo
+      saca sus campos con cita y etiqueta comprobadas (`agent/documents.py`) y el código hace las
+      cuentas (pagas, una cuota por concepto). El documento no se guarda: solo los campos con su
+      cita, en la entrevista cifrada, con IBAN y DNI tapados. Se sube desde `/perfil`.
 - [x] F6.4 Herramientas del agente: llama a los motores, nunca calcula.
       *Hecho (ADR-0019):* `agent/loop.py` (bucle con herramientas, texto comprobado con ADR-0012 y
       un reintento) y `advisor/tools.py`: ofertas guardadas, valoración de una oferta y zona de una

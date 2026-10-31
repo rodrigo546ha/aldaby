@@ -7,6 +7,7 @@ import type { components } from "../lib/api-types";
 type InterviewOut = components["schemas"]["InterviewOut"];
 type DraftField = components["schemas"]["DraftFieldOut"];
 type Region = components["schemas"]["RegionOut"];
+type DocumentKind = components["schemas"]["DocumentIn"]["kind"];
 
 // Entrevista de perfil (ADR-0020): las preguntas son fijas; de cada respuesta se sacan los datos
 // con la frase de la que salen, y aquí se confirman o se corrigen antes de guardarlos cifrados.
@@ -19,6 +20,18 @@ const SOURCE: Record<string, string> = {
   respuesta: "de tu respuesta",
   calculado: "calculado de tu respuesta",
   usuario: "corregido por ti",
+  documento: "de tu documento",
+};
+const KINDS: [DocumentKind, string][] = [
+  ["nomina", "Nómina"],
+  ["declaracion", "Declaración de la renta"],
+  ["extracto", "Extracto bancario"],
+];
+const READ_BY: Record<string, string> = {
+  texto: "texto pegado",
+  pdf: "PDF",
+  ocr: "escaneo (OCR)",
+  "pdf+ocr": "PDF con páginas escaneadas (OCR)",
 };
 
 type Edits = Record<string, string>;
@@ -164,6 +177,7 @@ export function Profile() {
             </div>
           </form>
         )}
+        {!confirmed && <DocumentUpload interview={interview} call={call} onDone={setInterview} />}
         {!interview.next_question && !confirmed && (
           <p className="hint">Ya está todo: revisa los datos y confírmalos.</p>
         )}
@@ -262,4 +276,109 @@ function FieldEditor(props: {
       {field.note && !edited && <p className="quote">{field.note}</p>}
     </div>
   );
+}
+
+function DocumentUpload(props: {
+  interview: InterviewOut;
+  call: (url: string, init?: RequestInit) => Promise<unknown>;
+  onDone: (interview: InterviewOut) => void;
+}) {
+  const { interview, call, onDone } = props;
+  const [kind, setKind] = useState<DocumentKind>("nomina");
+  const [file, setFile] = useState<File | null>(null);
+  const [pasted, setPasted] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function upload(event: FormEvent) {
+    event.preventDefault();
+    if (!file && !pasted.trim()) return;
+    setBusy(true);
+    // El documento viaja en base64 y la API lo lee en memoria: no se guarda (ADR-0021)
+    const body = file
+      ? { kind, content_base64: await toBase64(file) }
+      : { kind, text: pasted };
+    const updated = await call(`/api/profile/interviews/${interview.id}/documents`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (updated) {
+      onDone(updated as InterviewOut);
+      setFile(null);
+      setPasted("");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <form onSubmit={upload} className="documents" aria-labelledby="documents-title">
+      <h2 id="documents-title">Añadir un documento</h2>
+      <p className="hint">
+        Se lee y se descarta: solo guardamos los datos que confirmes, con la frase de la que salen.
+        Los escaneos y las fotos se leen con OCR en este equipo.
+      </p>
+      <div className="field">
+        <label htmlFor="document-kind">Documento</label>
+        <select
+          id="document-kind"
+          value={kind}
+          disabled={busy}
+          onChange={(e) => setKind(e.target.value as DocumentKind)}
+        >
+          {KINDS.map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="document-file">PDF, JPG o PNG (hasta 10 MB)</label>
+        <input
+          id="document-file"
+          type="file"
+          accept="application/pdf,image/jpeg,image/png"
+          disabled={busy}
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        />
+      </div>
+      {!file && (
+        <div className="field">
+          <label htmlFor="document-text">O pega su texto</label>
+          <textarea
+            id="document-text"
+            rows={3}
+            value={pasted}
+            disabled={busy}
+            onChange={(e) => setPasted(e.target.value)}
+          />
+        </div>
+      )}
+      <div className="actions">
+        <button type="submit" className="secondary" disabled={busy || (!file && !pasted.trim())}>
+          {busy ? "Leyendo el documento…" : "Leer documento"}
+        </button>
+      </div>
+      {interview.documents.length > 0 && (
+        <ul className="hint">
+          {interview.documents.map((d, i) => (
+            <li key={i}>
+              {KINDS.find(([k]) => k === d.kind)?.[1]} · {READ_BY[d.method] ?? d.method} ·{" "}
+              {d.fields.length === 1 ? "1 dato" : `${d.fields.length} datos`}
+              {d.truncated ? " · solo el principio" : ""}
+            </li>
+          ))}
+        </ul>
+      )}
+    </form>
+  );
+}
+
+function toBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",", 2)[1] ?? "");
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 }
