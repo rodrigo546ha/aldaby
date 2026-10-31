@@ -227,6 +227,10 @@ sección censal asignada.
       (valor tasado / renta municipal), llevado al último trimestre con el IPV; supone la misma
       rentabilidad en todo el municipio. El margen de negociación sobre el precio pedido no tiene
       fuente pública. `GET /valuation` y `valuation/service.py`.
+      Cada oferta confirmada y ubicada se valora (`GET /offers/{id}/valuation`,
+      `valuation/offer.py`): renta, precio y escenarios del inmueble, precio pedido frente al
+      estimado con su rango y rentabilidad bruta al precio pedido (renta pedida si es alquiler).
+      Se muestra en la ficha de la oferta; no se presenta como margen de negociación.
 - [x] F5.5 Escenarios de revalorización (conservador, base, optimista) a partir de factores
       explicables: población, empleo, renta, oferta nueva.
       *Hecho (decisión de Rodrigo, 2026-10-31):* ciclo de la comunidad con los P25/P50/P75 de las

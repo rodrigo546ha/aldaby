@@ -402,6 +402,88 @@
         }
       }
     },
+    "/offers/{offer_id}/valuation": {
+      "get": {
+        "tags": [
+          "ofertas"
+        ],
+        "summary": "Get Offer Valuation",
+        "description": "Renta, precio y escenarios del inmueble, y lo pedido frente a lo estimado (F5.4).",
+        "operationId": "get_offer_valuation_offers__offer_id__valuation_get",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          },
+          {
+            "name": "typology",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "colectiva",
+                "unifamiliar"
+              ],
+              "type": "string",
+              "default": "colectiva",
+              "title": "Typology"
+            }
+          },
+          {
+            "name": "new_build",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "New Build"
+            }
+          },
+          {
+            "name": "horizon_years",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 40,
+              "minimum": 1,
+              "description": "Horizonte de los escenarios (años)",
+              "default": 10,
+              "title": "Horizon Years"
+            },
+            "description": "Horizonte de los escenarios (años)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferValuationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/boe/announcements": {
       "get": {
         "tags": [
@@ -2164,6 +2246,53 @@
           "first_seen"
         ],
         "title": "OfferSummary"
+      },
+      "OfferValuationOut": {
+        "properties": {
+          "section_code": {
+            "type": "string",
+            "title": "Section Code"
+          },
+          "rent_level": {
+            "type": "string",
+            "enum": [
+              "seccion",
+              "distrito",
+              "municipio"
+            ],
+            "title": "Rent Level"
+          },
+          "figures": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "object",
+            "title": "Figures"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "attribution": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Attribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "section_code",
+          "rent_level",
+          "figures",
+          "notes",
+          "attribution"
+        ],
+        "title": "OfferValuationOut"
       },
       "PropertyRequest": {
         "properties": {

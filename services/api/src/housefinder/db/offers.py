@@ -213,13 +213,15 @@ class PrivateOffer:
     section_code: str | None
     municipality: str | None
     first_seen: datetime
+    lon: float | None = None  # punto del inmueble, si está ubicada
+    lat: float | None = None
 
 
 _PRIVATE = """
     SELECT o.id, o.url, o.title, o.extraction_status, o.extracted, o.raw, o.asking_price,
            o.built_area_m2, o.address, o.cadastral_ref, o.property_id, o.location_source,
-           p.section_code,
-           p.municipality, o.first_seen
+           p.section_code, p.municipality, o.first_seen,
+           ST_X(p.location::geometry), ST_Y(p.location::geometry)
     FROM offers o LEFT JOIN properties p ON p.id = o.property_id
 """
 

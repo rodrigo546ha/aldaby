@@ -8,6 +8,8 @@ convierte el resultado en `Figure` con sus fuentes.
   w = n / (n + k), estadístico = w·sección + (1 − w)·zona.
 - Precio desde la renta: €/m² = renta €/m² mes × 12 × (valor tasado / (renta municipal × 12)) del
   municipio. Supone la misma rentabilidad bruta en todo el municipio.
+- Oferta: lo pedido frente a lo estimado (pedido / estimado − 1, con el rango de la estimación) y
+  rentabilidad bruta al precio pedido (renta anual / precio).
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal
 
-from housefinder.core.figures import CENT, money
+from housefinder.core.figures import CENT, money, ratio
 
 TWELVE = Decimal(12)
 FOUR = Decimal("0.0001")
@@ -91,3 +93,22 @@ def scale(per_m2: Shrunk, index_from: Decimal, index_to: Decimal) -> Shrunk:
     return Shrunk(index_update(per_m2.p25, index_from, index_to),
                   index_update(per_m2.median, index_from, index_to),
                   index_update(per_m2.p75, index_from, index_to), per_m2.weight)
+
+
+def asking_gap(asked: Decimal, estimate: Range) -> Range:
+    """Cuánto se aparta lo pedido de lo estimado: pedido / estimado − 1.
+
+    El rango sale de comparar con el P75 (el extremo bajo) y con el P25 (el alto)."""
+    if estimate.low <= 0:
+        raise ValueError("La estimación tiene que ser positiva")
+    return Range(ratio(asked / estimate.high - 1), ratio(asked / estimate.value - 1),
+                 ratio(asked / estimate.low - 1))
+
+
+def gross_yield(rent_monthly: Range, price: Decimal) -> Range:
+    """Rentabilidad bruta a un precio: renta anual / precio, con el rango de la renta."""
+    if price <= 0:
+        raise ValueError("El precio tiene que ser positivo")
+    return Range(ratio(rent_monthly.low * TWELVE / price),
+                 ratio(rent_monthly.value * TWELVE / price),
+                 ratio(rent_monthly.high * TWELVE / price))

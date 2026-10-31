@@ -2,18 +2,20 @@
 
 La API solo traduce. La descarga es inmediata y, si el sitio no la permite, responde 422 con el
 motivo y `paste_text: true` para que el usuario pegue el texto. La extracción va a la cola: la
-oferta queda `pendiente` hasta que el trabajo `extract_link` la deja `extraida`.
+oferta queda `pendiente` hasta que el trabajo `extract_link` la deja `extraida`. Una oferta
+confirmada y ubicada se valora con `GET /offers/{id}/valuation` (F5.4).
 """
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from housefinder.agent.extraction import LISTING_KINDS
+from housefinder.api.figures import FigureOut, figure_out
 from housefinder.db.offers import (
     PrivateOffer,
     get_private_offer,
@@ -25,8 +27,18 @@ from housefinder.offers.channels import boe_subastas
 from housefinder.offers.link import LinkRefused
 from housefinder.offers.locate import offer_locator
 from housefinder.offers.pasted import ConfirmationError, confirm, submit_link, submit_text
+from housefinder.valuation.offer import CannotValue, value_offer
+from housefinder.valuation.service import OutsideCoverage
 
-from .deps import DbDep, GeocoderDep, LinkClientDep, OrgDep, ParcelFinderDep, ResolverDep
+from .deps import (
+    DbDep,
+    GeocoderDep,
+    LinkClientDep,
+    OrgDep,
+    ParamBookDep,
+    ParcelFinderDep,
+    ResolverDep,
+)
 
 router = APIRouter(prefix="/offers", tags=["ofertas"])
 
@@ -140,6 +152,41 @@ def post_confirm(offer_id: UUID, body: ConfirmIn, db: DbDep, org: OrgDep,
     if not done:
         raise HTTPException(status_code=404, detail="Oferta no encontrada")
     return _detail(db, org, offer_id)
+
+
+class OfferValuationOut(BaseModel):
+    section_code: str  # seccionado de 2021, el del SERPAVI
+    rent_level: Literal["seccion", "distrito", "municipio"]
+    figures: dict[str, FigureOut]
+    notes: list[str]
+    attribution: list[str]
+
+
+@router.get("/{offer_id}/valuation")
+def get_offer_valuation(
+    offer_id: UUID,
+    db: DbDep,
+    org: OrgDep,
+    book: ParamBookDep,
+    typology: Literal["colectiva", "unifamiliar"] = "colectiva",
+    new_build: bool = False,
+    horizon_years: Annotated[
+        int, Query(ge=1, le=40, description="Horizonte de los escenarios (años)")] = 10,
+) -> OfferValuationOut:
+    """Renta, precio y escenarios del inmueble, y lo pedido frente a lo estimado (F5.4)."""
+    offer = get_private_offer(db, offer_id, org)
+    if offer is None:
+        raise HTTPException(status_code=404, detail="Oferta no encontrada")
+    try:
+        valued = value_offer(db, book, offer, horizon_years, typology, new_build)
+    except (CannotValue, OutsideCoverage) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return OfferValuationOut(
+        section_code=valued.report.section_code,
+        rent_level=valued.report.level,  # type: ignore[arg-type]
+        figures={f.key: figure_out(f) for f in valued.figures},
+        notes=valued.notes, attribution=valued.report.attribution,
+    )
 
 
 def _summary(offer: PrivateOffer) -> OfferSummary:

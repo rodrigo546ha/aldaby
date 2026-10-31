@@ -160,6 +160,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/offers/{offer_id}/valuation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Offer Valuation
+         * @description Renta, precio y escenarios del inmueble, y lo pedido frente a lo estimado (F5.4).
+         */
+        get: operations["get_offer_valuation_offers__offer_id__valuation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/boe/announcements": {
         parameters: {
             query?: never;
@@ -656,6 +676,24 @@ export interface components {
             /** First Seen */
             first_seen: string;
         };
+        /** OfferValuationOut */
+        OfferValuationOut: {
+            /** Section Code */
+            section_code: string;
+            /**
+             * Rent Level
+             * @enum {string}
+             */
+            rent_level: "seccion" | "distrito" | "municipio";
+            /** Figures */
+            figures: {
+                [key: string]: components["schemas"]["FigureOut"];
+            };
+            /** Notes */
+            notes: string[];
+            /** Attribution */
+            attribution: string[];
+        };
         /** PropertyRequest */
         PropertyRequest: {
             /** Price */
@@ -1135,6 +1173,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OfferOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_offer_valuation_offers__offer_id__valuation_get: {
+        parameters: {
+            query?: {
+                typology?: "colectiva" | "unifamiliar";
+                new_build?: boolean;
+                /** @description Horizonte de los escenarios (años) */
+                horizon_years?: number;
+            };
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferValuationOut"];
                 };
             };
             /** @description Validation Error */

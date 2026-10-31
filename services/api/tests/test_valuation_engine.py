@@ -5,7 +5,10 @@ from decimal import Decimal
 import pytest
 
 from housefinder.engines.valuation import (
+    Range,
     RentStats,
+    asking_gap,
+    gross_yield,
     index_update,
     price_per_m2,
     price_to_rent_ratio,
@@ -65,3 +68,25 @@ def test_renta_llevada_con_un_indice():
     scaled = scale(shrink(SECTION, MUNICIPALITY, k=D("10")), D("100"), D("110"))
     assert (scaled.p25, scaled.median, scaled.p75, scaled.weight) == (
         D("14.30"), D("18.15"), D("22.28"), D("0.75"))
+
+
+def test_lo_pedido_frente_a_lo_estimado():
+    # pedido 189.500 frente a 343.200 / 435.600 / 534.600:
+    # 189.500 / 435.600 − 1 = −0,564968… → −0,5650
+    # rango: contra el P75, 189.500 / 534.600 − 1 = −0,645529… → −0,6455;
+    #        contra el P25, 189.500 / 343.200 − 1 = −0,447843… → −0,4478
+    gap = asking_gap(D("189500"), Range(D("343200"), D("435600"), D("534600")))
+    assert (gap.low, gap.value, gap.high) == (D("-0.6455"), D("-0.5650"), D("-0.4478"))
+    with pytest.raises(ValueError):
+        asking_gap(D("1"), Range(D("0"), D("1"), D("2")))
+
+
+def test_rentabilidad_bruta_al_precio_pedido():
+    # renta 1.144 / 1.452 / 1.782,40 €/mes, precio 189.500:
+    # 1.452 × 12 / 189.500 = 17.424 / 189.500 = 0,091947… → 0,0919
+    # 1.144 × 12 = 13.728 / 189.500 = 0,072443… → 0,0724
+    # 1.782,40 × 12 = 21.388,8 / 189.500 = 0,112869… → 0,1129
+    y = gross_yield(Range(D("1144"), D("1452"), D("1782.40")), D("189500"))
+    assert (y.low, y.value, y.high) == (D("0.0724"), D("0.0919"), D("0.1129"))
+    with pytest.raises(ValueError):
+        gross_yield(Range(D("1"), D("1"), D("1")), D("0"))

@@ -4,11 +4,13 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
 import { LISTING_LABELS, ORIGIN, spanishNumber } from "../lib/format";
+import { FigureView } from "./FigureView";
 
 type OfferOut = components["schemas"]["OfferOut"];
 type OfferSummary = components["schemas"]["OfferSummary"];
 type FieldOut = components["schemas"]["FieldOut"];
 type AuctionNotice = components["schemas"]["AuctionNoticeOut"];
+type OfferValuation = components["schemas"]["OfferValuationOut"];
 
 const STATUS: Record<string, string> = {
   pendiente: "Extrayendo",
@@ -17,6 +19,25 @@ const STATUS: Record<string, string> = {
 };
 const POLL_MS = 5000;
 const NOTICES_SHOWN = 10;
+const VALUATION_GROUPS = [
+  {
+    title: "Frente al anuncio",
+    keys: ["offer.asking_gap", "offer.gross_yield_at_asking", "offer.asking_rent_gap"],
+  },
+  { title: "Renta", keys: ["valuation.rent_monthly", "valuation.rent_m2_month"] },
+  {
+    title: "Precio",
+    keys: ["valuation.price_total", "valuation.price_m2", "valuation.price_rent_ratio"],
+  },
+  {
+    title: "Revalorización a 10 años",
+    keys: [
+      "valuation.appreciation_conservative",
+      "valuation.appreciation_base",
+      "valuation.appreciation_optimistic",
+    ],
+  },
+];
 
 export function Offers() {
   const [offers, setOffers] = useState<OfferSummary[]>([]);
@@ -363,7 +384,60 @@ function OfferDetail({ offer, onSaved }: { offer: OfferOut; onSaved: (offer: Off
           </div>
         </fieldset>
       </form>
+      {offer.status === "confirmada" && offer.located && <Valuation offer={offer} />}
     </>
+  );
+}
+
+/** Renta, precio y escenarios del inmueble, y lo pedido frente a lo estimado (F5.4). */
+function Valuation({ offer }: { offer: OfferOut }) {
+  const [valuation, setValuation] = useState<OfferValuation | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+
+  useEffect(() => {
+    let current = true;
+    setValuation(null);
+    setFailure(null);
+    fetch(`/api/offers/${offer.id}/valuation`)
+      .then(async (resp) => {
+        const body = await resp.json();
+        if (!current) return;
+        if (resp.ok) setValuation(body as OfferValuation);
+        else setFailure(typeof body.detail === "string" ? body.detail : "No se ha podido valorar.");
+      })
+      .catch(() => current && setFailure("No se ha podido conectar con la API."));
+    return () => {
+      current = false;
+    };
+  }, [offer]);
+
+  if (failure) return <p className="failure">Sin valoración: {failure}</p>;
+  if (!valuation) return <p className="empty">Valorando…</p>;
+  const f = valuation.figures;
+  return (
+    <section className="valuation" aria-labelledby="valuation-title">
+      <h2 id="valuation-title">Valoración</h2>
+      {VALUATION_GROUPS.map((group) => {
+        const keys = group.keys.filter((k) => f[k]);
+        if (keys.length === 0) return null;
+        return (
+          <div key={group.title} className="group">
+            <h3>{group.title}</h3>
+            <div className="grid">
+              {keys.map((k) => (
+                <FigureView key={k} figure={f[k]} />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+      <ul className="warnings">
+        {valuation.notes.map((n) => (
+          <li key={n}>{n}</li>
+        ))}
+      </ul>
+      <p className="hint">Fuentes: {valuation.attribution.join(" · ")}.</p>
+    </section>
   );
 }
 

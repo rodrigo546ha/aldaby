@@ -5,6 +5,7 @@ export type FigureOut = components["schemas"]["FigureOut"];
 
 const eur = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" });
 const pct = new Intl.NumberFormat("es-ES", { style: "percent", maximumFractionDigits: 2 });
+const years = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 });
 
 export function formatValue(value: string, unit: string): string {
   const n = Number(value);
@@ -15,10 +16,14 @@ export function formatValue(value: string, unit: string): string {
       return `${eur.format(n)} al mes`;
     case "EUR/año":
       return `${eur.format(n)} al año`;
+    case "EUR/m2":
+      return `${eur.format(n)}/m²`;
+    case "EUR/m2 mes":
+      return `${eur.format(n)}/m² al mes`;
     case "ratio":
       return pct.format(n);
     case "años":
-      return `${value} años`;
+      return `${years.format(n)} años`;
     default:
       return `${value} ${unit}`;
   }
@@ -78,6 +83,14 @@ export const LABELS: Record<string, string> = {
   "irr.rate": "TIR",
   "irr.rate_conservative": "TIR en el escenario conservador",
   "irr.rate_optimistic": "TIR en el escenario optimista",
+  "valuation.rent_monthly": "Renta estimada",
+  "valuation.rent_m2_month": "Renta por m²",
+  "valuation.price_total": "Precio estimado",
+  "valuation.price_m2": "Precio por m²",
+  "valuation.price_rent_ratio": "Años de renta que vale (municipio)",
+  "offer.asking_gap": "Precio pedido frente al estimado",
+  "offer.gross_yield_at_asking": "Rentabilidad bruta al precio pedido",
+  "offer.asking_rent_gap": "Renta pedida frente a la estimada",
   "valuation.appreciation_conservative": "Revalorización anual, conservador",
   "valuation.appreciation_base": "Revalorización anual, base",
   "valuation.appreciation_optimistic": "Revalorización anual, optimista",
