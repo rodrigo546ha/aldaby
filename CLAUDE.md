@@ -101,7 +101,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     territory/            sección, renta, población y tendencias de una dirección como Figure
     valuation/            renta y precio estimados de un inmueble como Figure con rango (ADR-0018)
                           y escenarios de revalorización (scenarios.py, F5.5); valoración de
-                          una oferta confirmada frente a lo que pide (offer.py, F5.4)
+                          una oferta confirmada frente a lo que pide (offer.py, F5.4); supuestos del
+                          plan desde fuentes públicas (assumptions.py, ADR-0022)
     ingestion/boe.py      sumario diario del BOE (esquema comprobado con sumarios reales)
     ingestion/bocm.py     sumarios del BOCM (RSS y XML de cada boletín)
     ingestion/ine_sections.py  cartografía de secciones del INE (API OGC Features, CC BY 4.0)
