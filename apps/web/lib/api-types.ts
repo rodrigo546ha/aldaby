@@ -231,6 +231,112 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/profile/regions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Regions
+         * @description Comunidades autónomas para corregir la residencia (`data/profiles/comunidades.yaml`).
+         */
+        get: operations["regions_profile_regions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/interviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Interview */
+        post: operations["start_interview_profile_interviews_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/interviews/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Current Interview */
+        get: operations["current_interview_profile_interviews_current_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/interviews/{interview_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Interview */
+        get: operations["get_interview_profile_interviews__interview_id__get"];
+        put?: never;
+        post?: never;
+        /** Discard */
+        delete: operations["discard_profile_interviews__interview_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/interviews/{interview_id}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer */
+        post: operations["answer_profile_interviews__interview_id__answers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/interviews/{interview_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm */
+        post: operations["confirm_profile_interviews__interview_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -325,6 +431,18 @@ export interface components {
             /** Corrections */
             corrections: number;
         };
+        /** AnswerIn */
+        AnswerIn: {
+            /** Text */
+            text: string;
+        };
+        /** AnswerOut */
+        AnswerOut: {
+            /** Question */
+            question: string;
+            /** Text */
+            text: string;
+        };
         /** AuctionNoticeOut */
         AuctionNoticeOut: {
             /** Portal Id */
@@ -390,14 +508,13 @@ export interface components {
             /** Lowest Stressed Payment */
             lowest_stressed_payment: string;
         };
-        /** ConfirmIn */
-        ConfirmIn: {
-            /** Operation */
-            operation?: ("venta" | "alquiler" | "desconocida") | null;
-            /** Values */
-            values: {
-                [key: string]: string | null;
-            };
+        /** ConfirmOut */
+        ConfirmOut: {
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
         };
         /** CorrectionOut */
         CorrectionOut: {
@@ -411,6 +528,26 @@ export interface components {
             title: string | null;
             /** Paragraphs */
             paragraphs: string[];
+        };
+        /** DraftFieldOut */
+        DraftFieldOut: {
+            /** Field */
+            field: string;
+            /** Label */
+            label: string;
+            /** Required */
+            required: boolean;
+            /** Value */
+            value: string | string[] | null;
+            /** Evidence */
+            evidence?: string | null;
+            /** Source */
+            source?: ("respuesta" | "calculado" | "usuario") | null;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
         };
         /** ExitRequest */
         ExitRequest: {
@@ -490,6 +627,33 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** InterviewOut */
+        InterviewOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "en_curso" | "confirmada";
+            /** Answers */
+            answers: components["schemas"]["AnswerOut"][];
+            /** Fields */
+            fields: components["schemas"]["DraftFieldOut"][];
+            /** Issues */
+            issues: string[];
+            next_question: components["schemas"]["QuestionOut"] | null;
+            /**
+             * Complete
+             * @description Están todos los obligatorios: se puede confirmar
+             */
+            complete: boolean;
+            /** Profile Id */
+            profile_id: string | null;
         };
         /** InvestmentRequest */
         InvestmentRequest: {
@@ -744,6 +908,20 @@ export interface components {
              */
             deed_agreement: "ley" | "comprador" | "vendedor";
         };
+        /** QuestionOut */
+        QuestionOut: {
+            /** Field */
+            field: string;
+            /** Text */
+            text: string;
+        };
+        /** RegionOut */
+        RegionOut: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+        };
         /**
          * RentalFacts
          * @description Situación de un contrato de alquiler de vivienda, en el vocabulario de las reglas.
@@ -905,6 +1083,25 @@ export interface components {
             notes: string[];
             /** Attribution */
             attribution: string[];
+        };
+        /** ConfirmIn */
+        housefinder__api__offers__ConfirmIn: {
+            /** Operation */
+            operation?: ("venta" | "alquiler" | "desconocida") | null;
+            /** Values */
+            values: {
+                [key: string]: string | null;
+            };
+        };
+        /** ConfirmIn */
+        housefinder__api__profiles__ConfirmIn: {
+            /**
+             * Values
+             * @description Valor de cada campo, corregido o no
+             */
+            values: {
+                [key: string]: unknown;
+            };
         };
     };
     responses: never;
@@ -1162,7 +1359,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ConfirmIn"];
+                "application/json": components["schemas"]["housefinder__api__offers__ConfirmIn"];
             };
         };
         responses: {
@@ -1299,6 +1496,196 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ValuationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    regions_profile_regions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegionOut"][];
+                };
+            };
+        };
+    };
+    start_interview_profile_interviews_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewOut"];
+                };
+            };
+        };
+    };
+    current_interview_profile_interviews_current_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewOut"];
+                };
+            };
+        };
+    };
+    get_interview_profile_interviews__interview_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                interview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discard_profile_interviews__interview_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                interview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    answer_profile_interviews__interview_id__answers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                interview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_profile_interviews__interview_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                interview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["housefinder__api__profiles__ConfirmIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmOut"];
                 };
             };
             /** @description Validation Error */

@@ -266,7 +266,12 @@ umbral fijado en F0, y cada estimación con su rango.
       Banco del agente (`python -m housefinder.advisor evaluar`): con las mismas cinco preguntas,
       `qwen3:8b` no pidió ninguna herramienta y `qwen3:14b` acertó en cuatro
       (`docs/research/f6-0-banco-agente.md`).
-- [ ] F6.2 Perfilado conversacional que produce un perfil estructurado y validado.
+- [x] F6.2 Perfilado conversacional que produce un perfil estructurado y validado.
+      *Hecho (ADR-0020):* preguntas fijas por campo (`profiles/interview.py`); el modelo solo saca
+      de cada respuesta lo que dice, con cita literal comprobada (`agent/profiling.py`), y el código
+      hace las cuentas (catorce pagas, edad, comunidad). Confirmación campo a campo en `/perfil` y
+      perfil guardado cifrado; la entrevista también, para retomarla (`profile_interviews`).
+      Base imponible y tipo marginal no se preguntan: vendrán de los documentos (F6.3).
 - [ ] F6.3 Lectura de documentos del usuario (nómina, extracto, declaración) con confirmación manual.
 - [x] F6.4 Herramientas del agente: llama a los motores, nunca calcula.
       *Hecho (ADR-0019):* `agent/loop.py` (bucle con herramientas, texto comprobado con ADR-0012 y

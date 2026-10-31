@@ -24,7 +24,7 @@ ALLOWED_INTERNAL = {
     "jobs": {"agent", "core", "db", "ingestion", "jobs", "offers", "watch"},
     "watch": {"core", "db", "ingestion", "watch"},
     "crypto": {"core", "crypto"},
-    "profiles": {"core", "crypto", "db", "profiles"},
+    "profiles": {"agent", "core", "crypto", "db", "profiles"},  # extracción de la entrevista
     "offers": {"agent", "core", "db", "geo", "ingestion", "offers", "territory"},
     "valuation": {"core", "db", "engines", "params", "valuation"},
     "agent": {"agent", "core"},

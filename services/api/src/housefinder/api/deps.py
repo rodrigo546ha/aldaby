@@ -10,6 +10,8 @@ from uuid import UUID
 import httpx
 from fastapi import Depends, HTTPException
 
+from housefinder.agent.llm import LLMClient, llm_from_env
+from housefinder.crypto.envelope import KeyProvider, provider_from_env
 from housefinder.db.connection import Connection, DatabaseUnavailable, connect
 from housefinder.db.profiles import get_or_create_organization
 from housefinder.geo.cartociudad import Geocoded, geocode
@@ -84,7 +86,25 @@ def get_resolver() -> Resolver:
     return system_resolve
 
 
+def get_keys() -> KeyProvider:
+    """Clave maestra para los datos personales (ADR-0011). Sin ella, 503 con cómo crearla."""
+    try:
+        return provider_from_env()
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+def get_llm() -> LLMClient:
+    try:
+        return llm_from_env()
+    except ValueError as exc:
+        raise HTTPException(status_code=503,
+                            detail=f"El modelo no está configurado: {exc}") from exc
+
+
 OrgDep = Annotated[UUID, Depends(get_org)]
+KeysDep = Annotated[KeyProvider, Depends(get_keys)]
+LLMDep = Annotated[LLMClient, Depends(get_llm)]
 ScenarioFinderDep = Annotated[
     Callable[[str, int, bool], AppreciationReport], Depends(get_scenario_finder)]
 ParcelFinderDep = Annotated[Callable[[str], Parcel], Depends(get_parcel_finder)]

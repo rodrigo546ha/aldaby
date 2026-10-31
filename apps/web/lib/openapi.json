@@ -373,7 +373,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmIn"
+                "$ref": "#/components/schemas/housefinder__api__offers__ConfirmIn"
               }
             }
           }
@@ -695,6 +695,257 @@
         }
       }
     },
+    "/profile/regions": {
+      "get": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Regions",
+        "description": "Comunidades autónomas para corregir la residencia (`data/profiles/comunidades.yaml`).",
+        "operationId": "regions_profile_regions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RegionOut"
+                  },
+                  "type": "array",
+                  "title": "Response Regions Profile Regions Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/interviews": {
+      "post": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Start Interview",
+        "operationId": "start_interview_profile_interviews_post",
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/interviews/current": {
+      "get": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Current Interview",
+        "operationId": "current_interview_profile_interviews_current_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/interviews/{interview_id}": {
+      "get": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Get Interview",
+        "operationId": "get_interview_profile_interviews__interview_id__get",
+        "parameters": [
+          {
+            "name": "interview_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interview Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Discard",
+        "operationId": "discard_profile_interviews__interview_id__delete",
+        "parameters": [
+          {
+            "name": "interview_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interview Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/interviews/{interview_id}/answers": {
+      "post": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Answer",
+        "operationId": "answer_profile_interviews__interview_id__answers_post",
+        "parameters": [
+          {
+            "name": "interview_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interview Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/interviews/{interview_id}/confirm": {
+      "post": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Confirm",
+        "operationId": "confirm_profile_interviews__interview_id__confirm_post",
+        "parameters": [
+          {
+            "name": "interview_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interview Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/housefinder__api__profiles__ConfirmIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -995,6 +1246,39 @@
         ],
         "title": "AnnouncementOut"
       },
+      "AnswerIn": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "AnswerIn"
+      },
+      "AnswerOut": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question",
+          "text"
+        ],
+        "title": "AnswerOut"
+      },
       "AuctionNoticeOut": {
         "properties": {
           "portal_id": {
@@ -1226,44 +1510,19 @@
         ],
         "title": "ComparisonOut"
       },
-      "ConfirmIn": {
+      "ConfirmOut": {
         "properties": {
-          "operation": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "venta",
-                  "alquiler",
-                  "desconocida"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Operation"
-          },
-          "values": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "type": "object",
-            "title": "Values"
+          "profile_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Profile Id"
           }
         },
         "type": "object",
         "required": [
-          "values"
+          "profile_id"
         ],
-        "title": "ConfirmIn"
+        "title": "ConfirmOut"
       },
       "CorrectionOut": {
         "properties": {
@@ -1321,6 +1580,79 @@
           "paragraphs"
         ],
         "title": "CorrectionOut"
+      },
+      "DraftFieldOut": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "respuesta",
+                  "calculado",
+                  "usuario"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "label",
+          "required",
+          "value"
+        ],
+        "title": "DraftFieldOut"
       },
       "ExitRequest": {
         "properties": {
@@ -1627,6 +1959,83 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "InterviewOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "en_curso",
+              "confirmada"
+            ],
+            "title": "Status"
+          },
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/AnswerOut"
+            },
+            "type": "array",
+            "title": "Answers"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/DraftFieldOut"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "issues": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Issues"
+          },
+          "next_question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuestionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete",
+            "description": "Están todos los obligatorios: se puede confirmar"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "answers",
+          "fields",
+          "issues",
+          "next_question",
+          "complete",
+          "profile_id"
+        ],
+        "title": "InterviewOut"
       },
       "InvestmentRequest": {
         "properties": {
@@ -2452,6 +2861,42 @@
         ],
         "title": "PropertyRequest"
       },
+      "QuestionOut": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "text"
+        ],
+        "title": "QuestionOut"
+      },
+      "RegionOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "title": "RegionOut"
+      },
       "RentalFacts": {
         "properties": {
           "contract": {
@@ -2886,6 +3331,60 @@
           "attribution"
         ],
         "title": "ValuationResponse"
+      },
+      "housefinder__api__offers__ConfirmIn": {
+        "properties": {
+          "operation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "venta",
+                  "alquiler",
+                  "desconocida"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "values": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Values"
+          }
+        },
+        "type": "object",
+        "required": [
+          "values"
+        ],
+        "title": "ConfirmIn"
+      },
+      "housefinder__api__profiles__ConfirmIn": {
+        "properties": {
+          "values": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Values",
+            "description": "Valor de cada campo, corregido o no"
+          }
+        },
+        "type": "object",
+        "required": [
+          "values"
+        ],
+        "title": "ConfirmIn"
       }
     }
   }

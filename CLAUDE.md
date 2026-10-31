@@ -75,8 +75,10 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     jobs/                 worker, reintentos, programaciones, alertas y tipos de trabajo
     db/review_tasks.py    tareas de revisión de la vigilancia normativa
     db/profiles.py        organizaciones y perfiles (solo bytes cifrados)
+    db/interviews.py      entrevistas de perfil (solo bytes cifrados)
     crypto/               cifrado de sobre AES-256-GCM y claves maestras (ADR-0011)
-    profiles/             perfil del inversor: modelo que se redacta y almacén cifrado
+    profiles/             perfil del inversor: modelo que se redacta, almacén cifrado y entrevista
+                          con preguntas fijas (interview.py, ADR-0020)
     db/offers.py          ofertas, versiones de lo recibido e inmuebles (deduplicación)
     offers/               canales de oferta (interfaz Channel), ingesta, ubicación y deduplicación
     offers/channels/      canales: BOE sección V (anuncios) y sección IV (avisos de subastas judiciales, ADR-0017)
@@ -85,6 +87,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     offers/pasted.py      enlace o texto pegado: oferta privada, extracción en la cola y confirmación
     agent/llm.py          cliente del LLM (modelo abierto en servidor propio, API compatible con OpenAI) y cliente falso (ADR-0014); solo agent/ llama al LLM
     agent/extraction.py   extracción con cita literal comprobada: ninguna cifra extraída es inventada
+    agent/profiling.py    datos del perfil en la respuesta libre, con cita comprobada (ADR-0020)
     agent/references.py   el agente escribe marcadores {{fig:clave}}, no cifras: comprobación y segmentos (ADR-0012)
     agent/loop.py         bucle del agente con herramientas; el texto final se comprueba con references (ADR-0019)
     advisor/              herramientas del agente sobre los motores (solo lectura, argumentos sin números),
@@ -111,6 +114,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   data/params/            parámetros con fecha en YAML (ADR-0005)
   data/watch/             filtros de la vigilancia del BOE y del BOCM
   data/jobs/              programaciones diarias de la cola (ADR-0010)
+  data/profiles/          comunidades autónomas por código INE, para la residencia del perfil
   data/offers/            sedes de partidos judiciales para los avisos de subastas (sin verificar)
                           y zona cubierta (zona.yaml): un lote de otra provincia no se ubica
   tests/                  pytest; un test por regla de negocio

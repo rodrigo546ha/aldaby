@@ -1,0 +1,29 @@
+# Comunidades autónomas por código INE y nombres con los que el usuario dice dónde vive
+# (ADR-0020). La comunidad se saca de sus palabras, sin modelo: el nombre de la comunidad, una de
+# sus provincias o un nombre habitual. Un municipio que no esté aquí («vivo en Getafe») no se
+# adivina: se vuelve a preguntar la comunidad.
+# Fuente de los códigos: INE, «Relación de comunidades y ciudades autónomas con sus códigos»,
+# https://www.ine.es/daco/daco42/codmun/cod_ccaa.htm
+"01": [Andalucía, Almería, Cádiz, Córdoba, Granada, Huelva, Jaén, Málaga, Sevilla]
+"02": [Aragón, Huesca, Teruel, Zaragoza]
+"03": [Asturias, Principado de Asturias, Oviedo, Gijón]
+"04": [Illes Balears, Islas Baleares, Baleares, Mallorca, Menorca, Ibiza, Formentera]
+"05": [Canarias, Islas Canarias, Las Palmas, Gran Canaria, Santa Cruz de Tenerife, Tenerife]
+"06": [Cantabria, Santander]
+"07": [Castilla y León, Ávila, Burgos, León, Palencia, Salamanca, Segovia, Soria, Valladolid,
+       Zamora]
+"08": [Castilla-La Mancha, Castilla La Mancha, Albacete, Ciudad Real, Cuenca, Guadalajara, Toledo]
+"09": [Cataluña, Catalunya, Barcelona, Girona, Gerona, Lleida, Lérida, Tarragona]
+"10": [Comunitat Valenciana, Comunidad Valenciana, Alicante, Alacant, Castellón, Castelló,
+       Valencia, València]
+"11": [Extremadura, Badajoz, Cáceres]
+"12": [Galicia, A Coruña, La Coruña, Lugo, Ourense, Orense, Pontevedra, Vigo, Santiago de
+       Compostela]
+"13": [Comunidad de Madrid, Madrid]
+"14": [Región de Murcia, Murcia]
+"15": [Comunidad Foral de Navarra, Navarra, Pamplona]
+"16": [País Vasco, Euskadi, Álava, Araba, Gipuzkoa, Guipúzcoa, Bizkaia, Vizcaya, Bilbao,
+       San Sebastián, Donostia, Vitoria]
+"17": [La Rioja, Logroño]
+"18": [Ceuta]
+"19": [Melilla]
