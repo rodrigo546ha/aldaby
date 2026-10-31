@@ -64,6 +64,18 @@ Límites: el último lote incluye las condiciones comunes que van detrás, y un 
 los lotes en un índice antes de describirlos tendrá tramos equivocados; en los dos casos el error
 es rechazar datos buenos, no aceptar datos de otro lote.
 
+## Ventana de contexto (2026-10-31)
+Ollama sirvió `qwen3:8b` con 4.096 tokens de contexto por la API compatible con OpenAI (otro cliente
+con otra ventana lo recargaba a 8.192). Al llenarse durante la respuesta, descarta la mitad de la
+conversación sin error: con el agente se perdieron las instrucciones, la pregunta y la valoración, y
+el texto solo hablaba de la zona. La extracción de un anuncio largo (≈ 2.400 tokens de entrada y
+2.000 de salida en la prueba inicial) tampoco cabe en 4.096.
+- **La ventana se fija siempre de forma explícita en el servidor**, nunca la que traiga por defecto.
+  En desarrollo, `qwen3-hf` (`infra/ollama/qwen3-hf.Modelfile`: `qwen3:8b` con `num_ctx 16384`).
+  En el servidor de F7, `--max-model-len` de vLLM.
+- Las extracciones hechas antes de este cambio pueden estar afectadas; la evaluación de F6.0 se
+  hace con la ventana fijada.
+
 ## Opciones consideradas
 - **Seguir con Claude en Bedrock:** mejor calidad de extracción, pero requiere una cuenta de AWS
   propia y envía el texto a un tercero. Descartado por decisión de Rodrigo.

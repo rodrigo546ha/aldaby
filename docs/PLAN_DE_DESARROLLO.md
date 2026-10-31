@@ -112,7 +112,7 @@ sistema, Docker, el editor y el navegador: quedan **unos 8–10 GB útiles para 
 
 | Uso | Modelo | Servidor | Licencia |
 | --- | --- | --- | --- |
-| Extracción y agente | `qwen3:8b` (Q4_K_M, ~6 GB) | Ollama en `localhost:11434` | Apache 2.0 |
+| Extracción y agente | `qwen3-hf`: `qwen3:8b` (Q4_K_M, ~6 GB) con ventana de 16.384 tokens | Ollama en `localhost:11434` | Apache 2.0 |
 
 Sin razonamiento (`LLM_REASONING_EFFORT=none`): con él la extracción fue más lenta y peor (ADR-0014).
 El modelo de producción se elige en F6.0 (sección 6); los candidatos más grandes se prueban en una
@@ -128,12 +128,14 @@ make db           # PostgreSQL + PostGIS en Docker
 make test         # motores en verde
 ```
 
-Modelo: `brew services start ollama` y `ollama pull qwen3:8b`. En `.env`:
+Modelo: `brew services start ollama`, `ollama pull qwen3:8b` y
+`ollama create qwen3-hf -f infra/ollama/qwen3-hf.Modelfile` (misma descarga, ventana de 16.384
+tokens; sin ella Ollama recorta la conversación a 4.096 en silencio). En `.env`:
 
 ```
 LLM_PROVIDER=openai_compatible
 LLM_BASE_URL=http://localhost:11434/v1
-LLM_MODEL_ID=qwen3:8b
+LLM_MODEL_ID=qwen3-hf
 LLM_REASONING_EFFORT=none
 ```
 

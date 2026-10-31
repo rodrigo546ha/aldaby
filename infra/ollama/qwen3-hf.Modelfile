@@ -1,0 +1,6 @@
+# qwen3:8b con ventana de contexto explícita para HouseFinder (ADR-0014).
+# Sin num_ctx, Ollama usa la de quien cargue el modelo (4.096 por la API compatible con OpenAI) y
+# recorta el principio de la conversación en silencio. Mismos pesos: no ocupa más disco.
+#   ollama create qwen3-hf -f infra/ollama/qwen3-hf.Modelfile
+FROM qwen3:8b
+PARAMETER num_ctx 16384
