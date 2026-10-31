@@ -25,7 +25,8 @@ equipo es de otra organización y no debe usarse).
 - **Se retiran** el cliente de Bedrock y la dependencia `anthropic[bedrock]`.
 - **Servidor:** en la UE (RGPD), accesible solo por TLS con clave o por red privada; nunca abierto a
   internet sin autenticación. Solo recibe el texto de las ofertas, nunca datos del usuario
-  (ADR-0011).
+  (ADR-0011). *Modificado por ADR-0019:* con el agente puede recibir datos del usuario, con
+  minimización por tarea y las demás condiciones del RGPD.
 - **Modelo:** pesos con licencia permisiva (Apache 2.0 o MIT), buen español y salida estructurada.
   Se elige con una prueba sobre anuncios reales del BOE y páginas pegadas, midiendo campos
   verificados, rechazados y atribuidos al lote equivocado. En desarrollo: `qwen3:8b` en Ollama

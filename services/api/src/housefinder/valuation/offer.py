@@ -71,6 +71,11 @@ def value_offer(
     operation = confirmed.get("operation")
     asked = _number(((confirmed.get("fields") or {}).get("price") or {}).get("value"))
     by_key = {f.key: f for f in figures}
+    if operation in OPERATION_NAMES and asked:
+        figures.append(Figure(
+            key="offer.asking_price", value=asked,
+            unit="EUR" if operation == "venta" else "EUR/mes", sources=(ASKED,),
+            formula=f"{OPERATION_NAMES[operation].capitalize()} en el anuncio, confirmado por ti"))
     if operation == "venta" and asked and "valuation.price_total" in by_key:
         figures += _sale(asked, by_key["valuation.price_total"],
                          by_key["valuation.rent_monthly"], notes)

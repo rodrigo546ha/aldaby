@@ -136,6 +136,7 @@ def test_piso_en_venta_frente_al_precio_estimado(api, database):
     assert gap["formula"].startswith("Precio pedido 400.000 € / precio estimado 435.600 €")
     assert {"kind": "user_input", "id": "anuncio-confirmado", "provisional": False} in \
         gap["sources"]
+    assert figures["offer.asking_price"]["value"] == "400000"
     gross = figures["offer.gross_yield_at_asking"]
     assert (gross["low"], gross["value"], gross["high"]) == ("0.0343", "0.0436", "0.0535")
     notes = body["notes"]

@@ -27,8 +27,9 @@ cifras, sino referencias a las del plan.
 - **Si el texto no pasa:** se reintenta una vez devolviendo al modelo los problemas encontrados; si
   vuelve a fallar, se muestran las cifras sin la explicación y queda registrado para la
   evaluación (F6.9). Nunca se muestra un texto rechazado.
-- **Qué recibe el agente:** las claves de las cifras con su etiqueta y su unidad, nunca los valores
-  como texto libre que pueda copiar. Así el marcador es la única forma de nombrar una cifra.
+- **Qué recibe el agente:** las cifras con su clave, valor, unidad y rango, para que pueda razonar
+  (corregido por ADR-0019). Copiarlas no sirve: cualquier dígito fuera de un marcador se rechaza,
+  así que el marcador es la única forma de nombrar una cifra.
 
 ## Opciones consideradas
 - **Dejar que el agente escriba cifras y compararlas después con el plan:** obliga a interpretar

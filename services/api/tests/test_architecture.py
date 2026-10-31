@@ -28,6 +28,7 @@ ALLOWED_INTERNAL = {
     "offers": {"agent", "core", "db", "geo", "ingestion", "offers", "territory"},
     "valuation": {"core", "db", "engines", "params", "valuation"},
     "agent": {"agent", "core"},
+    "advisor": {"advisor", "agent", "core", "db", "params", "territory", "valuation"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi"}
 # Solo db/ habla con la base de datos (ADR-0008).

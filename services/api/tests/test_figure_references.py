@@ -57,6 +57,7 @@ def test_los_problemas_se_pueden_devolver_al_modelo():
     problems = check_text("Te quedan 112 € y {{fig:otra.cifra}}.", FIGURES)
     messages = [p.message for p in problems]
     assert messages == [
-        "Hay un número escrito a mano («Te quedan 112 € y»): usa un marcador {{fig:clave}}.",
+        "Hay un número escrito a mano («Te quedan 112 € y»): usa un marcador {{fig:clave}} o di "
+        "lo mismo sin números.",
         "La cifra «otra.cifra» no está en el plan.",
     ]

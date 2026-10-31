@@ -263,7 +263,11 @@ umbral fijado en F0, y cada estimación con su rango.
       servidor virtual y modelo con una prueba sobre anuncios reales.
 - [ ] F6.2 Perfilado conversacional que produce un perfil estructurado y validado.
 - [ ] F6.3 Lectura de documentos del usuario (nómina, extracto, declaración) con confirmación manual.
-- [ ] F6.4 Herramientas del agente: llama a los motores, nunca calcula.
+- [x] F6.4 Herramientas del agente: llama a los motores, nunca calcula.
+      *Hecho (ADR-0019):* `agent/loop.py` (bucle con herramientas, texto comprobado con ADR-0012 y
+      un reintento) y `advisor/tools.py`: ofertas guardadas, valoración de una oferta y zona de una
+      oferta. Las herramientas reciben referencias, nunca números. Prueba en terminal:
+      `python -m housefinder.advisor preguntar "…"`. El plan completo de una oferta, en F6.7.
 - [ ] F6.5 Búsqueda inversa: puntuación de ofertas según el resultado esperado para el perfil y sus
       restricciones (cash flow mínimo, riesgo, gestión).
 - [ ] F6.6 Recomendación de tipo de alquiler y de gestión activa o pasiva según la ubicación.

@@ -101,7 +101,8 @@ def _loose(free: str) -> list[Problem]:
     digit = DIGIT.search(free)
     if digit:
         problems.append(Problem("digito", f"Hay un número escrito a mano («{_around(free, digit)}»)"
-                                          ": usa un marcador {{fig:clave}}."))
+                                          ": usa un marcador {{fig:clave}} o di lo mismo sin "
+                                          "números."))
     brace = BRACES.search(free)
     if brace:
         problems.append(Problem("marcador_mal_escrito",
