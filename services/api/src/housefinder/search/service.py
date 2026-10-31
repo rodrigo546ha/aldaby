@@ -23,7 +23,7 @@ import yaml
 
 from housefinder.core.figures import Figure, SourceRef, money, ratio
 from housefinder.db.connection import Connection
-from housefinder.db.offers import SearchCandidate, search_candidates
+from housefinder.db.offers import SearchCandidate, rent_expectations, search_candidates
 from housefinder.params.book import ParamBook
 from housefinder.planning.ranking import Outcome, Verdict, judge, rank, stress_rent
 from housefinder.planning.simulate import (
@@ -40,6 +40,7 @@ from housefinder.planning.simulate import (
 from housefinder.profiles.model import UserProfile
 from housefinder.regulation.kinds import RentalFacts
 from housefinder.regulation.rules import RuleBook
+from housefinder.search.rental import OfferRentalAdvice, rental_advice
 from housefinder.valuation.assumptions import (
     MarketAssumptions,
     MissingData,
@@ -74,6 +75,7 @@ class Scored:
     verdict: Verdict
     figures: tuple[Figure, ...]  # precio, renta, plan y supuestos de esta oferta
     notes: tuple[str, ...] = ()
+    advice: OfferRentalAdvice | None = None  # tipo de alquiler y gestión (F6.6)
 
 
 @dataclass(frozen=True)
@@ -103,9 +105,11 @@ def search(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProf
         raise SearchUnavailable([str(exc)]) from exc
     scored: dict[str, Scored] = {}
     skipped: list[Skipped] = []
+    expected = rent_expectations(conn, org_id)
     for candidate in search_candidates(conn, org_id):
         try:
-            result = _score(conn, book, rules, profile, market, candidate, today)
+            result = _score(conn, book, rules, profile, market, candidate, today,
+                            expected.get(candidate.offer_id, {}))
         except (_Unscorable, MissingData, OutsideCoverage, LookupError,
                 ValueError) as exc:  # una regla que falta (LookupError) solo afecta a esa oferta
             skipped.append(Skipped(candidate.offer_id, candidate.title, str(exc)))
@@ -140,7 +144,8 @@ class _Unscorable(Exception):
 
 
 def _score(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProfile,
-           market: MarketAssumptions, c: SearchCandidate, today: date) -> Scored:
+           market: MarketAssumptions, c: SearchCandidate, today: date,
+           expected: dict[str, Decimal] | None = None) -> Scored:
     extracted = c.extracted or {}
     listing = extracted.get("listing") or {}
     property_type = listing.get("property_type") if c.kind == "enlace" \
@@ -223,8 +228,14 @@ def _score(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProf
     notes = list(valuation.notes[:1]) + notes + warnings
     if c.asking_price is None:
         notes.append("Es una subasta: el precio es el tipo de salida y el final puede ser otro.")
+    try:
+        advice = rental_advice(inp, rent, assumed.maintenance_annual.value, rules, book, profile,
+                               expected or {}, today)
+    except (LookupError, ValueError) as exc:  # sin recomendación, la oferta se puntúa igual
+        advice = None
+        notes.append(f"Sin recomendación de tipo de alquiler: {exc}")
     return Scored(c.offer_id, c.kind, c.title, c.url, c.asking_price is None, verdict,
-                  tuple(figures), tuple(notes))
+                  tuple(figures), tuple(notes), advice)
 
 
 def _input(profile: UserProfile, market: MarketAssumptions, assumed: PropertyAssumptions,

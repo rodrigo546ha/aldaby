@@ -67,7 +67,9 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     planning/simulate.py  simulación de punta a punta: el único camino de cálculo del plan (D4)
     planning/scenarios.py escenarios normativos: comparación con / sin reglas pendientes
     planning/ranking.py   búsqueda inversa: restricciones por riesgo y orden por objetivo (ADR-0023)
-    search/               búsqueda inversa: el plan del usuario en cada oferta (ADR-0023)
+    planning/rental_advice.py  tipo de alquiler y gestión recomendados (ADR-0024)
+    search/               búsqueda inversa: el plan del usuario en cada oferta (ADR-0023) y su
+                          tipo de alquiler y gestión (rental.py, ADR-0024)
     db/migrate.py         ejecutor de migraciones (ADR-0008); solo db/ importa psycopg
     db/sections.py        fuentes (`sources`) y secciones censales; sección de un punto
     db/indicators.py      indicadores por sección y cartografía (renta, demografía)

@@ -235,3 +235,18 @@ def test_escenarios_de_revalorizacion_dan_tres_tir(rules, params):
     sale = next(f for f in sim.figures() if f.key == "irr.sale_price")
     assert base_sources[1] in sale.sources
     assert not any(s.id == "revalorizacion" for s in sale.sources)  # ya no es un supuesto
+
+
+def test_alquiler_que_no_es_de_vivienda_va_sin_reduccion(rules, params):
+    regime = SourceRef("rule", "alquiler-turistico-estatal", provisional=True)
+    sim = simulate(caso(rental=replace(caso().rental, housing_lease=False,
+                                       housing_lease_sources=(regime,))),
+                   rules, params, allow_unverified=True)
+    v = by_key(sim)
+    # Sin la reducción del 50 %: 2.898,22 de rendimiento × (15 % + 12,8 %) = 805,70, y
+    # (1.479,25 − 805,70) / 12 = 56,13 al mes.
+    assert abs(v["cashflow.annual_tax"] - D("805.70")) < 1
+    assert abs(v["cashflow.monthly_after_tax"] - D("56.13")) < 1
+    ids = {s.id for s in sim.cashflow.annual_tax.sources}
+    assert "alquiler-turistico-estatal" in ids
+    assert not any(i.startswith("irpf-reduccion") for i in ids)

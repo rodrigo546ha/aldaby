@@ -61,12 +61,26 @@ SPOKEN_LABELS = {"poblacion_menor_18": "Porcentaje de población menor de edad",
 ZONE = "en la sección censal de la oferta, según el Atlas de renta del INE"
 
 
+# Tipo de alquiler y gestión (F6.6, ADR-0024): rental.<tipo>.… y management.<tipo>.…
+RENTAL_LABELS = {"habitual": "habitual", "temporada": "de temporada",
+                 "habitaciones": "por habitaciones", "turistico": "turístico"}
+RENTAL = {
+    "income": "Renta mensual del alquiler {label}: la estimada de la zona en el habitual; en los "
+              "demás, la que espera el usuario (supuesto suyo, ya con los meses vacíos).",
+    "cashflow": "Lo que le queda al usuario cada mes con el alquiler {label}, con la gestión "
+                "recomendada para ese tipo, tras la hipoteca, los gastos y el IRPF.",
+    "delegation_cost": "Lo que cuesta cada mes delegar la gestión del alquiler {label}: cash flow "
+                       "con gestión propia menos cash flow con una gestora, tras impuestos.",
+}
+
+
 def describe(figures: Sequence[Figure]) -> dict[str, str]:
     """Clave del Figure → descripción, para las cifras que la tienen."""
     units = {f.key: f.unit for f in figures}
     result = {}
     for figure in figures:
-        text = DESCRIPTIONS.get(figure.key) or _territory(figure.key, units)
+        text = (DESCRIPTIONS.get(figure.key) or _territory(figure.key, units)
+                or _rental(figure.key))
         if text:
             result[figure.key] = text
     return result
@@ -88,3 +102,12 @@ def _territory(key: str, units: dict[str, str]) -> str | None:
     else:
         how = "relativa: cuánto ha crecido o bajado en proporción"
     return f"Variación en el último lustro, {how}. Indicador: {label.lower()} {ZONE}."
+
+
+def _rental(key: str) -> str | None:
+    parts = key.split(".")
+    if len(parts) != 3 or parts[0] not in ("rental", "management"):
+        return None
+    template = RENTAL.get(parts[2])
+    label = RENTAL_LABELS.get(parts[1])
+    return template.format(label=label) if template and label else None

@@ -411,6 +411,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/search/offers/{offer_id}/rent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Rent Expectation */
+        put: operations["save_rent_expectation_search_offers__offer_id__rent_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1057,6 +1074,32 @@ export interface components {
             name: string;
         };
         /**
+         * RentExpectationIn
+         * @description Lo que el usuario espera sacar al mes con un tipo sin renta pública; null lo borra.
+         */
+        RentExpectationIn: {
+            /**
+             * Rental Type
+             * @enum {string}
+             */
+            rental_type: "temporada" | "habitaciones" | "turistico";
+            /** Monthly Income */
+            monthly_income?: number | string | null;
+        };
+        /** RentalAdviceOut */
+        RentalAdviceOut: {
+            /** Recommended */
+            recommended: string | null;
+            /** Reasons */
+            reasons: string[];
+            /** Types */
+            types: components["schemas"]["RentalTypeOut"][];
+            /** Scenario */
+            scenario: string[];
+            /** Notes */
+            notes: string[];
+        };
+        /**
          * RentalFacts
          * @description Situación de un contrato de alquiler de vivienda, en el vocabulario de las reglas.
          *
@@ -1122,6 +1165,38 @@ export interface components {
              */
             contract_date: string;
         };
+        /** RentalTypeOut */
+        RentalTypeOut: {
+            /** Rental Type */
+            rental_type: string;
+            /** Allowed */
+            allowed: boolean;
+            /** Regime */
+            regime: string;
+            /** Requirements */
+            requirements: components["schemas"]["RequirementOut"][];
+            /** Irpf Reduction */
+            irpf_reduction: boolean | null;
+            /** Rule Ids */
+            rule_ids: string[];
+            /** Management */
+            management: string;
+            /** Management Reason */
+            management_reason: string;
+            /** Figures */
+            figures: components["schemas"]["FigureOut"][];
+            /** Notes */
+            notes: string[];
+        };
+        /** RequirementOut */
+        RequirementOut: {
+            /** Code */
+            code: string;
+            /** Description */
+            description: string;
+            /** Source Url */
+            source_url: string;
+        };
         /** ScenarioChangeOut */
         ScenarioChangeOut: {
             /** Key */
@@ -1163,6 +1238,7 @@ export interface components {
             figures: components["schemas"]["FigureOut"][];
             /** Notes */
             notes: string[];
+            advice: components["schemas"]["RentalAdviceOut"] | null;
         };
         /** SearchAssumptionsIn */
         SearchAssumptionsIn: {
@@ -1995,6 +2071,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+        };
+    };
+    save_rent_expectation_search_offers__offer_id__rent_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RentExpectationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

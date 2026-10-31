@@ -480,3 +480,50 @@ def search_candidates(conn: psycopg.Connection, org_id: UUID) -> list[SearchCand
     ).fetchall()
     return [SearchCandidate(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10])
             for r in rows]
+
+
+def searchable_offer(conn: psycopg.Connection, offer_id: UUID, org_id: UUID) -> bool:
+    """Si la búsqueda del usuario puede ver la oferta: suya y confirmada, o un lote del BOE."""
+    row = conn.execute(
+        """
+        SELECT 1 FROM offers
+        WHERE id = %s AND ((org_id = %s AND kind = 'enlace' AND extraction_status = 'confirmada')
+                           OR (org_id IS NULL AND kind = 'lote'))
+        """,
+        (offer_id, org_id),
+    ).fetchone()
+    return row is not None
+
+
+def rent_expectations(conn: psycopg.Connection, org_id: UUID) -> dict[UUID, dict[str, Decimal]]:
+    """Lo que el usuario espera sacar de cada oferta por tipo de alquiler (ADR-0024)."""
+    rows = conn.execute(
+        "SELECT offer_id, rental_type, monthly_income FROM offer_rent_expectations "
+        "WHERE org_id = %s",
+        (org_id,),
+    ).fetchall()
+    result: dict[UUID, dict[str, Decimal]] = {}
+    for offer_id, rental_type, income in rows:
+        result.setdefault(offer_id, {})[rental_type] = income
+    return result
+
+
+def set_rent_expectation(conn: psycopg.Connection, org_id: UUID, offer_id: UUID,
+                         rental_type: str, monthly_income: Decimal | None) -> None:
+    """Guarda la renta esperada de un tipo; None la borra."""
+    if monthly_income is None:
+        conn.execute(
+            "DELETE FROM offer_rent_expectations "
+            "WHERE org_id = %s AND offer_id = %s AND rental_type = %s",
+            (org_id, offer_id, rental_type),
+        )
+        return
+    conn.execute(
+        """
+        INSERT INTO offer_rent_expectations (org_id, offer_id, rental_type, monthly_income)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (org_id, offer_id, rental_type)
+        DO UPDATE SET monthly_income = EXCLUDED.monthly_income, updated_at = now()
+        """,
+        (org_id, offer_id, rental_type, monthly_income),
+    )

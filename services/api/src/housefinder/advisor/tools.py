@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from housefinder.advisor.glossary import describe
 from housefinder.agent.llm import LLMClient
 from housefinder.agent.loop import AgentAnswer, Tool, ToolFailed, ToolResult, run_agent
+from housefinder.agent.references import without_numbers
 from housefinder.core.figures import Figure
 from housefinder.db.connection import Connection
 from housefinder.db.offers import PrivateOffer, get_private_offer, list_private_offers
@@ -43,6 +44,9 @@ alquilarían, cuánto valen frente a lo que piden, cómo puede evolucionar su pr
 - No le digas al usuario que compre o que no compre: explícale lo que dicen las cifras.
 - Si pregunta qué ofertas le encajan, usa buscar_ofertas: el orden lo hace el programa con su plan;
   tú explicas por qué cada una está donde está, con sus motivos.
+- Si pregunta cómo alquilar una oferta (habitual, temporada, habitaciones o turístico) o si
+  delegar la gestión, usa recomendar_alquiler con el identificador de su marcador: la
+  recomendación la hace el programa; tú la explicas con sus motivos y requisitos.
 """
 SEARCH_FIGURES = ("offer.price", "valuation.rent_monthly", "cashflow.monthly_after_tax",
                   "search.stressed_cashflow", "irr.rate", "cashflow.cash_invested")
@@ -61,6 +65,18 @@ class OfferArguments(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     oferta_id: UUID = Field(description="Identificador de la oferta, de ofertas_guardadas")
+
+
+class MarkerArguments(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    oferta: str = Field(
+        pattern=r"^[0-9a-fA-F]{8}(-?[0-9a-fA-F]{4}){0,3}(-?[0-9a-fA-F]{12})?$",
+        description="La oferta: los ocho caracteres de su marcador {{oferta:…}} de "
+                    "buscar_ofertas, o su oferta_id de ofertas_guardadas")
+
+    def short(self) -> str:
+        return self.oferta.replace("-", "").lower()[:8]
 
 
 class ValuationArguments(OfferArguments):
@@ -130,9 +146,13 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID,
             for figure in scored.figures:
                 if figure.key in SEARCH_FIGURES:
                     keyed[f"oferta_{short}.{figure.key}"] = figure
+            chosen = scored.advice.advice.chosen() if scored.advice else None
             facts.append({"marcador": f"{{{{oferta:{short}}}}}", "puesto": position,
                           "pasa": scored.verdict.passes, "motivos": list(scored.verdict.reasons),
-                          "origen": "suya" if scored.kind == "enlace" else "subasta del BOE"})
+                          "origen": "suya" if scored.kind == "enlace" else "subasta del BOE",
+                          # El detalle de cada tipo, con recomendar_alquiler (F6.6)
+                          "alquiler_recomendado": chosen.option.rental_type if chosen else None,
+                          "gestion_recomendada": chosen.management if chosen else None})
         shown = [*report.market, *keyed.values()]
         notes = list(report.notes)
         if report.skipped:
@@ -142,7 +162,45 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID,
                           facts={"ofertas": facts, "orden": "según el objetivo del usuario"},
                           notes=tuple(notes), descriptions=describe(shown))
 
+    def rental(args: MarkerArguments) -> ToolResult:
+        if profile is None or rules is None:
+            raise ToolFailed("El usuario no ha confirmado su perfil: tiene que hacerlo en /perfil")
+        try:
+            report = search(conn, book, rules, profile, org_id)
+        except SearchUnavailable as exc:
+            raise ToolFailed("; ".join(exc.reasons)) from exc
+        short = args.short()
+        scored = next((s for s in report.ranked if s.offer_id.hex.startswith(short)), None)
+        if scored is None:
+            raise ToolFailed("Esa oferta no está entre las que se pueden puntuar: usa antes "
+                             "buscar_ofertas")
+        if scored.advice is None:
+            raise ToolFailed("No hay recomendación de tipo de alquiler para esa oferta")
+        advice = scored.advice.advice
+        # Los requisitos van por su código: sus descripciones llevan números (ADR-0012)
+        types = [{"tipo": t.option.rental_type, "se_puede": t.option.allowed,
+                  "reduccion_irpf": {True: "sí", False: "no", None: "por confirmar"}
+                  [t.option.irpf_reduction],
+                  "gestion": t.management, "motivo_gestion": t.management_reason,
+                  "con_cifras": t.cashflow is not None,
+                  "requisitos": [without_numbers(r.code) for r in t.option.requirements]}
+                 for t in advice.types]
+        figures = advice.figures()
+        notes = (*scored.advice.notes, *scored.advice.scenario,
+                 *(n for t in advice.types for n in t.notes))
+        return ToolResult(figures=figures, notes=notes,
+                          offers={short: scored.title or ("Oferta pegada"
+                                                          if scored.kind == "enlace"
+                                                          else "Lote del BOE")},
+                          facts={"oferta": f"{{{{oferta:{short}}}}}",
+                                 "recomendado": advice.recommended,
+                                 "motivos": list(advice.reasons), "tipos": types},
+                          descriptions=describe(figures))
+
     return [
+        Tool("recomendar_alquiler", "Tipo de alquiler (habitual, temporada, habitaciones o "
+             "turístico) y gestión recomendados para una oferta de buscar_ofertas, con la "
+             "normativa de cada tipo y lo que cuesta delegar.", MarkerArguments, rental),
         Tool("buscar_ofertas", "Ofertas que encajan con el plan del usuario (su capacidad, su "
              "riesgo y su objetivo), en orden, con los motivos de las que no pasan.",
              NoArguments, find),

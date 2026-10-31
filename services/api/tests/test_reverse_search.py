@@ -134,6 +134,43 @@ def test_busqueda_con_el_plan_del_usuario(searchable, org):
 
 
 @pytest.mark.db
+def test_tipo_de_alquiler_y_gestion_en_cada_oferta(searchable, org):
+    from test_offer_valuation import confirmed_offer
+
+    from housefinder.db.offers import set_rent_expectation
+    from housefinder.search.service import search
+
+    offer = confirmed_offer(searchable, org, "venta", "150000")
+    with psycopg.connect(searchable) as conn:
+        first = search(conn, book(), rules(), profile(management_fee_rate=D("0.08")),
+                       org).ranked[0]
+    advice = first.advice
+    assert advice is not None and advice.advice.recommended == "habitual"
+    habitual = advice.advice.types[0]
+    # El habitual con gestión activa es el plan de la búsqueda; delegar cuesta algo al mes
+    base = next(f for f in first.figures if f.key == "cashflow.monthly_after_tax")
+    assert habitual.cashflow is not None and habitual.cashflow.value == base.value
+    assert habitual.delegation_cost is not None and habitual.delegation_cost.value > 0
+    turistico = next(t for t in advice.advice.types if t.option.rental_type == "turistico")
+    assert turistico.cashflow is None and turistico.option.irpf_reduction is False
+    assert any("zona tensionada" in n for n in advice.notes)
+    assert any("Alquiler temporal" in c or "de temporada" in c for c in advice.scenario)
+
+    # Con lo que el usuario espera del turístico, se compara: sin reducción y con gestión pasiva
+    with psycopg.connect(searchable) as conn:
+        set_rent_expectation(conn, org, offer, "turistico", D("2500"))
+        conn.commit()
+        advice = search(conn, book(), rules(), profile(management_fee_rate=D("0.08")),
+                        org).ranked[0].advice
+    assert advice is not None
+    turistico = next(t for t in advice.advice.types if t.option.rental_type == "turistico")
+    assert turistico.management == "pasiva" and turistico.cashflow is not None
+    assert turistico.option.income is not None and turistico.option.income.sources[0].provisional
+    assert advice.advice.recommended == "turistico"
+    assert any("IVA" in n for n in advice.notes)
+
+
+@pytest.mark.db
 def test_sin_lo_necesario_dice_que_falta(searchable, org):
     from housefinder.search.service import SearchUnavailable, search
 
@@ -182,6 +219,22 @@ def test_api_de_busqueda(searchable, org):
         assert [r["offer_id"] for r in found["ranked"]] == [str(offer)]
         assert found["ranked"][0]["passes"] is True
         assert found["market"][0]["key"] == "assumption.mortgage_rate"
+        advice = found["ranked"][0]["advice"]
+        assert advice["recommended"] == "habitual"
+        assert [t["rental_type"] for t in advice["types"]] == [
+            "habitual", "temporada", "habitaciones", "turistico"]
+        # Lo que espera del turístico se guarda por oferta y entra en la recomendación
+        put = client.put(f"/search/offers/{offer}/rent",
+                         json={"rental_type": "turistico", "monthly_income": "2500"})
+        assert put.status_code == 204
+        types = client.get("/search").json()["ranked"][0]["advice"]["types"]
+        assert types[3]["figures"][0]["key"] == "rental.turistico.income"
+        assert client.put(f"/search/offers/{offer}/rent",
+                          json={"rental_type": "habitual", "monthly_income": "1"}
+                          ).status_code == 422  # el habitual sale del SERPAVI
+        from uuid import uuid4
+        assert client.put(f"/search/offers/{uuid4()}/rent",
+                          json={"rental_type": "turistico"}).status_code == 404
     finally:
         app.dependency_overrides.clear()
 
@@ -209,7 +262,9 @@ def test_herramienta_del_agente(searchable, org):
     assert any(isinstance(s, OfferSegment) and s.offer == short for s in answer.segments)
     sent = json.loads(llm.chats[1][-1]["content"])
     assert sent["datos"]["ofertas"][0] == {"marcador": f"{{{{oferta:{short}}}}}", "puesto": 1,
-                                         "pasa": True, "motivos": [], "origen": "suya"}
+                                         "pasa": True, "motivos": [], "origen": "suya",
+                                         "alquiler_recomendado": "habitual",
+                                         "gestion_recomendada": "activa"}
     assert all("descripcion" in c for c in sent["cifras"])  # el glosario cubre lo que se envía
     # Sin perfil, la herramienta lo dice
     llm = FakeLLMClient(turns=[ChatTurn(None, (ToolCall("c1", "buscar_ofertas", "{}"),)),
@@ -217,3 +272,35 @@ def test_herramienta_del_agente(searchable, org):
     with psycopg.connect(searchable) as conn:
         ask(conn, book(), llm, org, "¿Qué me encaja?")
     assert "perfil" in json.loads(llm.chats[1][-1]["content"])["error"]
+
+
+@pytest.mark.db
+def test_herramienta_de_tipo_de_alquiler(searchable, org):
+    import json
+
+    from test_offer_valuation import confirmed_offer
+
+    from housefinder.advisor.tools import ask
+    from housefinder.agent.llm import ChatTurn, FakeLLMClient, ToolCall
+
+    offer = confirmed_offer(searchable, org, "venta", "150000")
+    short = offer.hex[:8]
+    llm = FakeLLMClient(turns=[
+        # Con el oferta_id largo de ofertas_guardadas también vale
+        ChatTurn(None, (ToolCall("c1", "recomendar_alquiler",
+                                 json.dumps({"oferta": str(offer)})),)),
+        ChatTurn(f"Para {{{{oferta:{short}}}}}, el alquiler habitual: te deja "
+                 "{{fig:rental.habitual.cashflow}}."),
+    ])
+    with psycopg.connect(searchable) as conn:
+        answer = ask(conn, book(), llm, org, "¿Cómo la alquilo?",
+                     profile(management_fee_rate=D("0.08")), rules())
+    assert answer.failure is None, answer.failure
+    sent = json.loads(llm.chats[1][-1]["content"])
+    assert sent["datos"]["recomendado"] == "habitual"
+    assert {t["tipo"] for t in sent["datos"]["tipos"]} == {
+        "habitual", "temporada", "habitaciones", "turistico"}
+    # Ningún dato que no sea una cifra lleva dígitos: el modelo no los puede copiar
+    shown = json.dumps(sent["datos"]["tipos"], ensure_ascii=False)
+    assert not any(ch.isdigit() for ch in shown), shown
+    assert all("descripcion" in c for c in sent["cifras"])

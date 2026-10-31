@@ -194,3 +194,11 @@ th { color: var(--muted); font-weight: 500; }
 .status.pass { color: var(--accent); }
 .status.fail { color: var(--warn-text); }
 @media (max-width: 860px) { .search { grid-template-columns: 1fr; } }
+.rental-advice { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.rental-advice h4 { margin: 0; font-size: 1rem; }
+.rental-type { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.rental-type.recommended { border-color: var(--accent); }
+.rental-type summary { cursor: pointer; overflow-wrap: anywhere; }
+.rent-expectation { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; margin: 8px 0; }
+.rent-expectation label { grid-column: 1 / -1; font-size: 0.85rem; }
+.requirements { margin: 0; padding-left: 20px; font-size: 0.85rem; }

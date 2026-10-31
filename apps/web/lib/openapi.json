@@ -1084,6 +1084,52 @@
         }
       }
     },
+    "/search/offers/{offer_id}/rent": {
+      "put": {
+        "tags": [
+          "búsqueda"
+        ],
+        "summary": "Save Rent Expectation",
+        "operationId": "save_rent_expectation_search_offers__offer_id__rent_put",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RentExpectationIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -3165,6 +3211,93 @@
         ],
         "title": "RegionOut"
       },
+      "RentExpectationIn": {
+        "properties": {
+          "rental_type": {
+            "type": "string",
+            "enum": [
+              "temporada",
+              "habitaciones",
+              "turistico"
+            ],
+            "title": "Rental Type"
+          },
+          "monthly_income": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100000.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Income"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rental_type"
+        ],
+        "title": "RentExpectationIn",
+        "description": "Lo que el usuario espera sacar al mes con un tipo sin renta pública; null lo borra."
+      },
+      "RentalAdviceOut": {
+        "properties": {
+          "recommended": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "types": {
+            "items": {
+              "$ref": "#/components/schemas/RentalTypeOut"
+            },
+            "type": "array",
+            "title": "Types"
+          },
+          "scenario": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Scenario"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommended",
+          "reasons",
+          "types",
+          "scenario",
+          "notes"
+        ],
+        "title": "RentalAdviceOut"
+      },
       "RentalFacts": {
         "properties": {
           "contract": {
@@ -3313,6 +3446,106 @@
         ],
         "title": "RentalRequest"
       },
+      "RentalTypeOut": {
+        "properties": {
+          "rental_type": {
+            "type": "string",
+            "title": "Rental Type"
+          },
+          "allowed": {
+            "type": "boolean",
+            "title": "Allowed"
+          },
+          "regime": {
+            "type": "string",
+            "title": "Regime"
+          },
+          "requirements": {
+            "items": {
+              "$ref": "#/components/schemas/RequirementOut"
+            },
+            "type": "array",
+            "title": "Requirements"
+          },
+          "irpf_reduction": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Irpf Reduction"
+          },
+          "rule_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rule Ids"
+          },
+          "management": {
+            "type": "string",
+            "title": "Management"
+          },
+          "management_reason": {
+            "type": "string",
+            "title": "Management Reason"
+          },
+          "figures": {
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "array",
+            "title": "Figures"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rental_type",
+          "allowed",
+          "regime",
+          "requirements",
+          "irpf_reduction",
+          "rule_ids",
+          "management",
+          "management_reason",
+          "figures",
+          "notes"
+        ],
+        "title": "RentalTypeOut"
+      },
+      "RequirementOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "description",
+          "source_url"
+        ],
+        "title": "RequirementOut"
+      },
       "ScenarioChangeOut": {
         "properties": {
           "key": {
@@ -3438,6 +3671,16 @@
             },
             "type": "array",
             "title": "Notes"
+          },
+          "advice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RentalAdviceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -3451,7 +3694,8 @@
           "reasons",
           "metric",
           "figures",
-          "notes"
+          "notes",
+          "advice"
         ],
         "title": "ScoredOut"
       },

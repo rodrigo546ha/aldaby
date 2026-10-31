@@ -185,6 +185,10 @@ class RentalRegime(RuleParams):
     regime: str = Field(min_length=1)
     allowed: bool = True  # False: el tipo de alquiler no se puede ejercer en el territorio
     requirements: tuple[Requirement, ...] = ()
+    # Si la renta tiene la reducción del art. 23.2 de la Ley del IRPF (alquiler de vivienda).
+    # None en un nivel: ese nivel no lo dice; en todos: por confirmar (ADR-0024)
+    irpf_reduction: bool | None = None
+    tax_note: str | None = Field(default=None, min_length=1)  # trato fiscal que no se modela
 
 
 

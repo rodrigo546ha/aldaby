@@ -185,3 +185,51 @@ def test_el_rdl_28_no_aplica_antes_del_15_de_noviembre(book: RuleBook):
 )
 def test_indemnizacion_por_no_prorrogar(years, expected):
     assert non_renewal_compensation(D(12), D(1), D(1200), D(years)) == D(expected)
+
+
+# --- Reducción del IRPF por tipo (ADR-0024) ------------------------------------------------
+
+
+def test_reduccion_del_irpf_segun_el_tipo(book: RuleBook):
+    def reduction(kind: str, pending: bool = False) -> bool | None:
+        return rental_regime(book, kind, MADRID, HOY, include_pending=pending,
+                             allow_unverified=True).irpf_reduction
+
+    assert reduction("habitual") is True
+    assert reduction("temporada") is False and reduction("turistico") is False
+    assert reduction("habitaciones") is None  # por confirmar en la consulta legal
+    assert reduction("habitaciones", pending=True) is True  # con el RDL 29/2026, vivienda
+    turistico = rental_regime(book, "turistico", MADRID, HOY, allow_unverified=True)
+    assert any("IVA" in note for note in turistico.tax_notes)
+
+
+def test_la_reduccion_del_nivel_mas_especifico_gana(tmp_path: Path):
+    (tmp_path / "x.yaml").write_text(
+        """
+- id: estatal
+  kind: regimen_alquiler_temporada
+  territory: ES
+  effective_from: 2026-01-01
+  verified: false
+  params: {regime: "Estatal", irpf_reduction: false}
+  source_url: https://example.org/estatal
+- id: autonomica
+  kind: regimen_alquiler_temporada
+  territory: ES-13
+  effective_from: 2026-01-01
+  verified: false
+  params: {regime: "Autonómica", irpf_reduction: true}
+  source_url: https://example.org/autonomica
+- id: municipal
+  kind: regimen_alquiler_temporada
+  territory: ES-13-28079
+  effective_from: 2026-01-01
+  verified: false
+  params: {regime: "Municipal"}
+  source_url: https://example.org/municipal
+""",
+        encoding="utf-8",
+    )
+    res = rental_regime(RuleBook.from_dir(tmp_path), "temporada", MADRID, HOY,
+                        allow_unverified=True)
+    assert res.irpf_reduction is True  # el municipio no lo dice: manda la comunidad

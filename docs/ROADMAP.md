@@ -291,7 +291,15 @@ umbral fijado en F0, y cada estimación con su rango.
       (`planning/ranking.py`, `search/service.py`). `GET /search`, página `/busqueda` y
       herramienta del agente `buscar_ofertas` con el marcador `{{oferta:id}}`. Vacío, gestión,
       gastos de compra y venta y gran tenedor los pone el usuario: no tienen fuente oficial.
-- [ ] F6.6 Recomendación de tipo de alquiler y de gestión activa o pasiva según la ubicación.
+- [x] F6.6 Recomendación de tipo de alquiler y de gestión activa o pasiva según la ubicación.
+      *Hecho (ADR-0024):* por cada tipo (habitual, temporada, habitaciones, turístico), si se
+      puede ejercer en el municipio, los requisitos que suman Estado, comunidad y ayuntamiento y
+      si tiene la reducción del IRPF (dato de la regla, `irpf_reduction`). Cifras del habitual
+      con el SERPAVI; de los demás, con la renta que espera el usuario en cada oferta (no hay
+      fuente pública: `docs/research/f6-6-rentas-otros-tipos.md`). Gestión pasiva si el tipo
+      exige dedicación o la vivienda está fuera de su comunidad, con lo que cuesta delegar
+      (`planning/rental_advice.py`, `search/rental.py`). Escenario con las reglas pendientes y
+      zona tensionada. En cada oferta de `/busqueda` y en la herramienta `recomendar_alquiler`.
 - [ ] F6.7 Plan completo: capacidad, hipoteca, cash flow, estrés, escenarios legales, argumentos
       para no comprar y hoja de ruta de compra.
       *Base hecha (ADR-0012):* el texto del agente nombra las cifras con marcadores
