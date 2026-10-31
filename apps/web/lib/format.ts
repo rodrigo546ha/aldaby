@@ -109,6 +109,15 @@ export const LABELS: Record<string, string> = {
   "assumption.insurance_annual": "Seguro de hogar al año",
   "assumption.maintenance_annual": "Mantenimiento al año",
   "sale_costs.municipal_gains_tax": "Plusvalía municipal",
+  "plan.low_rent_cashflow": "Cash flow con la renta baja de la zona",
+  "assumption.variable_initial_rate": "Primer año de la variable",
+  "assumption.variable_spread": "Diferencial de la variable",
+  "mortgage_comparison.fija.first_payment": "Fija: primera cuota",
+  "mortgage_comparison.fija.expected_total_interest": "Fija: intereses esperados",
+  "mortgage_comparison.fija.stressed_max_payment": "Fija: cuota más alta en estrés",
+  "mortgage_comparison.variable.first_payment": "Variable: primera cuota",
+  "mortgage_comparison.variable.expected_total_interest": "Variable: intereses esperados",
+  "mortgage_comparison.variable.stressed_max_payment": "Variable: cuota más alta en estrés",
 };
 
 export function label(key: string): string {

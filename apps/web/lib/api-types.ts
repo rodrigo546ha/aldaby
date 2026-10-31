@@ -428,6 +428,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/plans/offers/{offer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Offer Plan */
+        get: operations["offer_plan_plans_offers__offer_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/offers/{offer_id}/explanation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Explanation */
+        post: operations["explanation_plans_offers__offer_id__explanation_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -534,6 +568,15 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** ArgumentOut */
+        ArgumentOut: {
+            /** Code */
+            code: string;
+            /** Text */
+            text: string;
+            /** Figure Keys */
+            figure_keys: string[];
+        };
         /** AuctionNoticeOut */
         AuctionNoticeOut: {
             /** Portal Id */
@@ -589,6 +632,14 @@ export interface components {
              * @default 0
              */
             savings_base: number | string;
+        };
+        /** ChangeOut */
+        ChangeOut: {
+            /** Key */
+            key: string;
+            base: components["schemas"]["FigureOut"];
+            scenario: components["schemas"]["FigureOut"];
+            delta: components["schemas"]["FigureOut"];
         };
         /** ComparisonOut */
         ComparisonOut: {
@@ -695,6 +746,17 @@ export interface components {
              * @default 10
              */
             horizon_years: number;
+        };
+        /** ExplanationOut */
+        ExplanationOut: {
+            /** Segments */
+            segments: components["schemas"]["SegmentOut"][] | null;
+            /** Failure */
+            failure: string | null;
+            /** Notes */
+            notes: string[];
+            /** Extra Arguments */
+            extra_arguments: string[];
         };
         /** FieldOut */
         FieldOut: {
@@ -989,6 +1051,41 @@ export interface components {
             /** Attribution */
             attribution: string[];
         };
+        /** PlanOut */
+        PlanOut: {
+            /**
+             * Offer Id
+             * Format: uuid
+             */
+            offer_id: string;
+            /** Kind */
+            kind: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string | null;
+            /** Auction */
+            auction: boolean;
+            /** Passes */
+            passes: boolean;
+            /** Reasons */
+            reasons: string[];
+            /** Sections */
+            sections: components["schemas"]["housefinder__api__plans__SectionOut"][];
+            advice: components["schemas"]["RentalAdviceOut"] | null;
+            /** Arguments */
+            arguments: components["schemas"]["ArgumentOut"][];
+            /** Roadmap */
+            roadmap: components["schemas"]["StepOut"][];
+            /** Pending Changes */
+            pending_changes: components["schemas"]["ChangeOut"][];
+            /** Cheapest Mortgage */
+            cheapest_mortgage: string | null;
+            /** Safest Mortgage */
+            safest_mortgage: string | null;
+            /** Notes */
+            notes: string[];
+        };
         /** ProfileOut */
         ProfileOut: {
             /**
@@ -1261,14 +1358,22 @@ export interface components {
             /** Notes */
             notes: string[];
         };
-        /** SectionOut */
-        SectionOut: {
-            /** Code */
-            code: string;
-            /** Municipality */
-            municipality: string;
-            /** Vintage */
-            vintage: number;
+        /** SegmentOut */
+        SegmentOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "text" | "figure" | "offer";
+            /** Text */
+            text?: string | null;
+            figure?: components["schemas"]["FigureOut"] | null;
+            /** Part */
+            part?: string | null;
+            /** Offer */
+            offer?: string | null;
+            /** Label */
+            label?: string | null;
         };
         /** SkippedOut */
         SkippedOut: {
@@ -1291,10 +1396,25 @@ export interface components {
             /** Provisional */
             provisional: boolean;
         };
+        /** StepOut */
+        StepOut: {
+            /** Id */
+            id: string;
+            /** Stage */
+            stage: string;
+            /** Title */
+            title: string;
+            /** Detail */
+            detail: string;
+            /** Source Url */
+            source_url: string;
+            /** Verified */
+            verified: boolean;
+        };
         /** TerritoryResponse */
         TerritoryResponse: {
             location: components["schemas"]["LocationOut"];
-            section: components["schemas"]["SectionOut"];
+            section: components["schemas"]["housefinder__api__territory__SectionOut"];
             /** Figures */
             figures: {
                 [key: string]: components["schemas"]["FigureOut"];
@@ -1361,6 +1481,15 @@ export interface components {
                 [key: string]: string | null;
             };
         };
+        /** SectionOut */
+        housefinder__api__plans__SectionOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Figures */
+            figures: components["schemas"]["FigureOut"][];
+        };
         /** ConfirmIn */
         housefinder__api__profiles__ConfirmIn: {
             /**
@@ -1370,6 +1499,15 @@ export interface components {
             values: {
                 [key: string]: unknown;
             };
+        };
+        /** SectionOut */
+        housefinder__api__territory__SectionOut: {
+            /** Code */
+            code: string;
+            /** Municipality */
+            municipality: string;
+            /** Vintage */
+            vintage: number;
         };
     };
     responses: never;
@@ -2096,6 +2234,68 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offer_plan_plans_offers__offer_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    explanation_plans_offers__offer_id__explanation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplanationOut"];
+                };
             };
             /** @description Validation Error */
             422: {

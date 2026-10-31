@@ -24,6 +24,7 @@ import yaml
 from housefinder.core.figures import Figure, SourceRef, money, ratio
 from housefinder.db.connection import Connection
 from housefinder.db.offers import SearchCandidate, rent_expectations, search_candidates
+from housefinder.engines.rates import MortgageTerms
 from housefinder.params.book import ParamBook
 from housefinder.planning.ranking import Outcome, Verdict, judge, rank, stress_rent
 from housefinder.planning.simulate import (
@@ -110,7 +111,7 @@ def search(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProf
         try:
             result = _score(conn, book, rules, profile, market, candidate, today,
                             expected.get(candidate.offer_id, {}))
-        except (_Unscorable, MissingData, OutsideCoverage, LookupError,
+        except (Unscorable, MissingData, OutsideCoverage, LookupError,
                 ValueError) as exc:  # una regla que falta (LookupError) solo afecta a esa oferta
             skipped.append(Skipped(candidate.offer_id, candidate.title, str(exc)))
             continue
@@ -139,31 +140,47 @@ def missing_inputs(profile: UserProfile) -> list[str]:
     return reasons
 
 
-class _Unscorable(Exception):
+class Unscorable(Exception):
     """La oferta no se puede puntuar; el mensaje dice por qué."""
 
 
-def _score(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProfile,
-           market: MarketAssumptions, c: SearchCandidate, today: date,
-           expected: dict[str, Decimal] | None = None) -> Scored:
+@dataclass(frozen=True)
+class Prepared:
+    """Las entradas y el plan base de una oferta: lo común a la búsqueda y al plan completo."""
+
+    candidate: SearchCandidate
+    inp: SimulationInput
+    plan: InvestmentSimulation
+    rent: Figure  # valuation.rent_monthly, con su rango
+    valuation_figures: tuple[Figure, ...]
+    assumed: PropertyAssumptions
+    price: Figure  # offer.price
+    notes: tuple[str, ...]
+
+
+def prepare(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProfile,
+            market: MarketAssumptions, c: SearchCandidate, today: date,
+            alternatives: tuple[MortgageTerms, ...] = ()) -> Prepared:
+    """Renta, supuestos, revalorización y plan base de una oferta; `Unscorable` si no se puede.
+    `alternatives`: hipotecas que comparar (fija y variable, en el plan completo)."""
     extracted = c.extracted or {}
     listing = extracted.get("listing") or {}
     property_type = listing.get("property_type") if c.kind == "enlace" \
         else extracted.get("property_type")
     if property_type not in (None, "vivienda") or (c.kind == "lote" and property_type is None):
-        raise _Unscorable(f"No es una vivienda ({property_type or 'tipo sin saber'})")
+        raise Unscorable(f"No es una vivienda ({property_type or 'tipo sin saber'})")
     confirmed = extracted.get("confirmed") or {}
     if c.kind == "enlace" and confirmed.get("operation") != "venta":
-        raise _Unscorable("No es una venta")
+        raise Unscorable("No es una venta")
     price = c.asking_price or c.auction_min_bid
     if price is None or price <= 0:
-        raise _Unscorable("No tiene precio")
+        raise Unscorable("No tiene precio")
     if c.built_area_m2 is None or c.built_area_m2 <= 0:
-        raise _Unscorable("Falta la superficie construida")
+        raise Unscorable("Falta la superficie construida")
     municipality = c.section_code[:5]
     region = provinces().get(municipality[:2])
     if region is None:
-        raise _Unscorable(f"No se sabe la comunidad de la provincia {municipality[:2]}")
+        raise Unscorable(f"No se sabe la comunidad de la provincia {municipality[:2]}")
 
     valuation = value_property(conn, book, c.lon, c.lat, c.built_area_m2, on=today)
     rent = next(f for f in valuation.figures if f.key == "valuation.rent_monthly")
@@ -176,15 +193,17 @@ def _score(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProf
         scenarios = appreciation_scenarios(conn, book, municipality, horizon, on=today)
         base = scenarios.scenarios["base"]
         appreciation, sources = base.rate, base.sources
-        alternatives = tuple(AppreciationAlternative(name, s.rate, s.sources)
-                             for name, s in scenarios.scenarios.items() if name != "base")
+        irr_alternatives = tuple(AppreciationAlternative(name, s.rate, s.sources)
+                                 for name, s in scenarios.scenarios.items() if name != "base")
     except NoScenarios:
         # El cash flow no depende de la revalorización; la TIR sí, y se dice
-        appreciation, sources, alternatives = Decimal(0), (NO_SCENARIO,), ()
+        appreciation, sources, irr_alternatives = Decimal(0), (NO_SCENARIO,), ()
         notes.append("Sin escenarios de revalorización para el municipio: la TIR sale sin "
                      "revalorizar.")
     inp = _input(profile, market, assumed, price, f"ES-{region}-{municipality}", rent.value,
-                 today, horizon, appreciation, sources, alternatives)
+                 today, horizon, appreciation, sources, irr_alternatives)
+    if alternatives:
+        inp = replace(inp, financing=replace(inp.financing, alternatives=alternatives))
     try:
         plan = simulate(inp, rules, book, allow_unverified=True)
     except LookupError as exc:
@@ -195,7 +214,22 @@ def _score(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProf
         plan = simulate(inp, rules, book, allow_unverified=True)
         notes.append("Sin la plusvalía municipal de la venta: no hay regla de su tipo para el "
                      "municipio. La TIR sale algo alta.")
+    asked = Figure("offer.price", money(price), "EUR",
+                   "Tipo de la subasta del BOE" if c.asking_price is None
+                   else "Precio que pide el anuncio, confirmado",
+                   (AUCTION if c.asking_price is None else ASKED,))
+    warnings = [w for w in plan.warnings
+                if not (notes and w.startswith("Falta el valor catastral del suelo"))]
+    notes = list(valuation.notes[:1]) + notes + warnings
+    if c.asking_price is None:
+        notes.append("Es una subasta: el precio es el tipo de salida y el final puede ser otro.")
+    return Prepared(c, inp, plan, rent, tuple(valuation.figures), assumed, asked, tuple(notes))
 
+
+def evaluate(p: Prepared, rules: RuleBook, book: ParamBook, profile: UserProfile, today: date,
+             expected: dict[str, Decimal] | None = None) -> Scored:
+    """Restricciones del usuario, cifras de la búsqueda y tipo de alquiler de una oferta."""
+    c, plan, inp, rent = p.candidate, p.plan, p.inp, p.rent
     stressed: Figure | None = None
     which = stress_rent(profile.risk_tolerance)
     if which is not None:
@@ -212,30 +246,29 @@ def _score(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProf
         savings_ok=cash.cash_invested.value <= profile.available_savings)
     verdict = judge(outcome, profile.risk_tolerance, profile.goal,
                     profile.min_monthly_cashflow or Decimal(0))
-    asked = Figure("offer.price", money(price), "EUR",
-                   "Tipo de la subasta del BOE" if c.asking_price is None
-                   else "Precio que pide el anuncio, confirmado",
-                   (AUCTION if c.asking_price is None else ASKED,))
-    figures = [asked, rent, cash.monthly_cashflow_after_tax, cash.cash_invested,
+    figures = [p.price, rent, cash.monthly_cashflow_after_tax, cash.cash_invested,
                cash.gross_yield, plan.monthly_payment, plan.loan, plan.ibi_annual]
     if stressed is not None:
         figures.append(stressed)
     if plan.irr.irr is not None:
         figures.append(plan.irr.irr)
-    figures += list(assumed.figures())
-    warnings = [w for w in plan.warnings
-                if not (notes and w.startswith("Falta el valor catastral del suelo"))]
-    notes = list(valuation.notes[:1]) + notes + warnings
-    if c.asking_price is None:
-        notes.append("Es una subasta: el precio es el tipo de salida y el final puede ser otro.")
+    figures += list(p.assumed.figures())
+    notes = list(p.notes)
     try:
-        advice = rental_advice(inp, rent, assumed.maintenance_annual.value, rules, book, profile,
-                               expected or {}, today)
+        advice = rental_advice(inp, rent, p.assumed.maintenance_annual.value, rules, book,
+                               profile, expected or {}, today)
     except (LookupError, ValueError) as exc:  # sin recomendación, la oferta se puntúa igual
         advice = None
         notes.append(f"Sin recomendación de tipo de alquiler: {exc}")
     return Scored(c.offer_id, c.kind, c.title, c.url, c.asking_price is None, verdict,
                   tuple(figures), tuple(notes), advice)
+
+
+def _score(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProfile,
+           market: MarketAssumptions, c: SearchCandidate, today: date,
+           expected: dict[str, Decimal] | None = None) -> Scored:
+    prepared = prepare(conn, book, rules, profile, market, c, today)
+    return evaluate(prepared, rules, book, profile, today, expected)
 
 
 def _input(profile: UserProfile, market: MarketAssumptions, assumed: PropertyAssumptions,

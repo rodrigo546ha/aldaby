@@ -300,9 +300,16 @@ umbral fijado en F0, y cada estimación con su rango.
       exige dedicación o la vivienda está fuera de su comunidad, con lo que cuesta delegar
       (`planning/rental_advice.py`, `search/rental.py`). Escenario con las reglas pendientes y
       zona tensionada. En cada oferta de `/busqueda` y en la herramienta `recomendar_alquiler`.
-- [ ] F6.7 Plan completo: capacidad, hipoteca, cash flow, estrés, escenarios legales, argumentos
+- [x] F6.7 Plan completo: capacidad, hipoteca, cash flow, estrés, escenarios legales, argumentos
       para no comprar y hoja de ruta de compra.
-      *Base hecha (ADR-0012):* el texto del agente nombra las cifras con marcadores
+      *Hecho (ADR-0025):* `plans/service.py` calcula el plan de una oferta al abrirlo, por el
+      camino de la búsqueda, con fija frente a variable (variable estimada con el Banco de España
+      y el Euríbor oficial), estrés con la renta baja de la zona y plan con las reglas pendientes.
+      Argumentos para no comprar con reglas fijas sobre las cifras (`planning/arguments.py`) y
+      hasta tres del asesor sin números (`agent/plan_arguments.py`). Hoja de ruta como datos con
+      su fuente, sin verificar (`data/plan/hoja_de_ruta.yaml`). Página `/plan/[oferta]` y botón
+      para que el asesor lo explique con la herramienta `plan_completo`.
+      *Base (ADR-0012):* el texto del agente nombra las cifras con marcadores
       `{{fig:clave}}`; `agent/references.py` rechaza dígitos fuera de marcadores y claves que no
       están en el plan, y lo convierte en segmentos que formatea la web.
 - [ ] F6.8 Exportación a PDF con todas las fuentes citadas.

@@ -1130,6 +1130,92 @@
         }
       }
     },
+    "/plans/offers/{offer_id}": {
+      "get": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Offer Plan",
+        "operationId": "offer_plan_plans_offers__offer_id__get",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plans/offers/{offer_id}/explanation": {
+      "post": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Explanation",
+        "operationId": "explanation_plans_offers__offer_id__explanation_post",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplanationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -1463,6 +1549,32 @@
         ],
         "title": "AnswerOut"
       },
+      "ArgumentOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "figure_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Figure Keys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "text",
+          "figure_keys"
+        ],
+        "title": "ArgumentOut"
+      },
       "AuctionNoticeOut": {
         "properties": {
           "portal_id": {
@@ -1667,6 +1779,31 @@
           "residence"
         ],
         "title": "BuyerRequest"
+      },
+      "ChangeOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "base": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "scenario": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "delta": {
+            "$ref": "#/components/schemas/FigureOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "base",
+          "scenario",
+          "delta"
+        ],
+        "title": "ChangeOut"
       },
       "ComparisonOut": {
         "properties": {
@@ -1976,6 +2113,57 @@
           "sale_cost_rate"
         ],
         "title": "ExitRequest"
+      },
+      "ExplanationOut": {
+        "properties": {
+          "segments": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SegmentOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segments"
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "extra_arguments": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Extra Arguments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "segments",
+          "failure",
+          "notes",
+          "extra_arguments"
+        ],
+        "title": "ExplanationOut"
       },
       "FieldOut": {
         "properties": {
@@ -2987,6 +3175,142 @@
         ],
         "title": "OfferValuationOut"
       },
+      "PlanOut": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Offer Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "auction": {
+            "type": "boolean",
+            "title": "Auction"
+          },
+          "passes": {
+            "type": "boolean",
+            "title": "Passes"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/housefinder__api__plans__SectionOut"
+            },
+            "type": "array",
+            "title": "Sections"
+          },
+          "advice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RentalAdviceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "arguments": {
+            "items": {
+              "$ref": "#/components/schemas/ArgumentOut"
+            },
+            "type": "array",
+            "title": "Arguments"
+          },
+          "roadmap": {
+            "items": {
+              "$ref": "#/components/schemas/StepOut"
+            },
+            "type": "array",
+            "title": "Roadmap"
+          },
+          "pending_changes": {
+            "items": {
+              "$ref": "#/components/schemas/ChangeOut"
+            },
+            "type": "array",
+            "title": "Pending Changes"
+          },
+          "cheapest_mortgage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cheapest Mortgage"
+          },
+          "safest_mortgage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safest Mortgage"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "offer_id",
+          "kind",
+          "title",
+          "url",
+          "auction",
+          "passes",
+          "reasons",
+          "sections",
+          "advice",
+          "arguments",
+          "roadmap",
+          "pending_changes",
+          "cheapest_mortgage",
+          "safest_mortgage",
+          "notes"
+        ],
+        "title": "PlanOut"
+      },
       "ProfileOut": {
         "properties": {
           "id": {
@@ -3754,28 +4078,77 @@
         ],
         "title": "SearchOut"
       },
-      "SectionOut": {
+      "SegmentOut": {
         "properties": {
-          "code": {
+          "kind": {
             "type": "string",
-            "title": "Code"
+            "enum": [
+              "text",
+              "figure",
+              "offer"
+            ],
+            "title": "Kind"
           },
-          "municipality": {
-            "type": "string",
-            "title": "Municipality"
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
           },
-          "vintage": {
-            "type": "integer",
-            "title": "Vintage"
+          "figure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "part": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part"
+          },
+          "offer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offer"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
           }
         },
         "type": "object",
         "required": [
-          "code",
-          "municipality",
-          "vintage"
+          "kind"
         ],
-        "title": "SectionOut"
+        "title": "SegmentOut"
       },
       "SkippedOut": {
         "properties": {
@@ -3831,13 +4204,51 @@
         ],
         "title": "SourceOut"
       },
+      "StepOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "stage": {
+            "type": "string",
+            "title": "Stage"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "stage",
+          "title",
+          "detail",
+          "source_url",
+          "verified"
+        ],
+        "title": "StepOut"
+      },
       "TerritoryResponse": {
         "properties": {
           "location": {
             "$ref": "#/components/schemas/LocationOut"
           },
           "section": {
-            "$ref": "#/components/schemas/SectionOut"
+            "$ref": "#/components/schemas/housefinder__api__territory__SectionOut"
           },
           "figures": {
             "additionalProperties": {
@@ -4057,6 +4468,32 @@
         ],
         "title": "ConfirmIn"
       },
+      "housefinder__api__plans__SectionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "figures": {
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "array",
+            "title": "Figures"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "figures"
+        ],
+        "title": "SectionOut"
+      },
       "housefinder__api__profiles__ConfirmIn": {
         "properties": {
           "values": {
@@ -4071,6 +4508,29 @@
           "values"
         ],
         "title": "ConfirmIn"
+      },
+      "housefinder__api__territory__SectionOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "municipality": {
+            "type": "string",
+            "title": "Municipality"
+          },
+          "vintage": {
+            "type": "integer",
+            "title": "Vintage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "municipality",
+          "vintage"
+        ],
+        "title": "SectionOut"
       }
     }
   }

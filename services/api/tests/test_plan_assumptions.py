@@ -51,8 +51,10 @@ def row(level, code, year, measure, value, unit="EUR", month=0, typology="todas"
 def references(migrated_database: str) -> str:
     with psycopg.connect(migrated_database) as conn:
         replace_references(conn, source("bde-be1904"), [
-            row("pais", "ES", 2026, "tedr_vivienda_nuevas", v, "ratio", m, "mas_10")
-            for m, v in [(6, "0.0270"), (7, "0.0281"), (8, "0.027556")]])
+            row("pais", "ES", 2026, "tedr_vivienda_nuevas", v, "ratio", m, band)
+            for m, v, band in [(6, "0.0270", "mas_10"), (7, "0.0281", "mas_10"),
+                               (8, "0.027556", "mas_10"), (7, "0.03158", "hasta_1"),
+                               (8, "0.032325", "hasta_1")]])
         replace_references(conn, source("catastro-urbana-2026"), [
             row("municipio", "28993", 2026, "inmuebles_residenciales", "1000", "inmuebles",
                 stat="n"),
@@ -97,3 +99,18 @@ def test_sin_datos_dice_que_falta_y_como_cargarlo(migrated_database):
     with psycopg.connect(migrated_database) as conn, pytest.raises(MissingData,
                                                                    match="make supuestos"):
         property_assumptions(conn, "28000", "13", D("1"), None)
+
+
+@pytest.mark.db
+def test_hipoteca_variable_estimada(references):
+    from housefinder.params.book import ParamBook, default_params_dir
+    from housefinder.valuation.assumptions import variable_mortgage
+
+    book = ParamBook.from_dir(default_params_dir())
+    with psycopg.connect(references) as conn:
+        variable = variable_mortgage(conn, book, date(2026, 10, 31))
+    assert variable.initial_rate.value == D("0.0323")  # agosto, el último mes
+    # Julio, el mes del Euríbor oficial del ancla (2,855 %): 0,03158 − 0,02855
+    assert variable.spread.value == D("0.0030")
+    assert variable.terms.initial_months == 12 and variable.terms.label == "variable"
+    assert any(s.provisional for s in variable.spread.sources)

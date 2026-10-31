@@ -28,12 +28,16 @@ ALLOWED_INTERNAL = {
     "offers": {"agent", "core", "db", "geo", "ingestion", "offers", "territory"},
     "valuation": {"core", "db", "engines", "params", "valuation"},
     "agent": {"agent", "core"},
-    "advisor": {"advisor", "agent", "core", "crypto", "db", "params", "profiles", "regulation",
-                "search", "territory", "valuation"},
+    "advisor": {"advisor", "agent", "core", "crypto", "db", "params", "plans", "profiles",
+                "regulation", "search", "territory", "valuation"},
     "documents": {"core", "documents"},
     # Orquesta la búsqueda inversa (F6.5): valoración, supuestos y el plan de planning/
-    "search": {"core", "db", "params", "planning", "profiles", "regulation", "search",
+    # engines solo por los tipos (MortgageTerms, la comparación del plan completo)
+    "search": {"core", "db", "engines", "params", "planning", "profiles", "regulation", "search",
                "valuation"},
+    # Plan completo (F6.7): el camino de la búsqueda más estrés, pendientes, argumentos y pasos
+    "plans": {"core", "db", "engines", "params", "planning", "plans", "profiles", "regulation",
+              "search", "valuation"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi",
                       "pypdf", "pypdfium2", "pytesseract", "PIL", "xlrd"}

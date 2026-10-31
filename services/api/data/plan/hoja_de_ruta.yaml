@@ -1,0 +1,126 @@
+# Hoja de ruta de compra (F6.7, ADR-0025). Ver plans/roadmap.py.
+# SIN VERIFICAR: ningún paso pasa a verified: true hasta que Rodrigo lea su fuente.
+#
+# Cada paso dice cuándo aplica (`when`):
+#   - channel: enlace (anuncio pegado) o lote (subasta del BOE);
+#   - mortgage: con o sin hipoteca;
+#   - rental_types: tipos de alquiler (el recomendado del plan).
+# Sin `when`, aplica siempre. Los plazos legales solo se escriben si la fuente los fija; si no,
+# el paso remite a la fuente. Orden: el del fichero, por etapas (antes, compra, despues).
+
+- id: nota-simple
+  stage: antes
+  title: "Pide la nota simple del Registro de la Propiedad"
+  detail: "Comprueba quién es el titular y qué cargas tiene la finca (hipotecas, embargos, usufructos) antes de comprometerte."
+  source_url: https://sede.registradores.org/
+  verified: false
+
+- id: deudas-comunidad
+  stage: antes
+  when: {channel: [enlace]}
+  title: "Pide el certificado de deudas con la comunidad de propietarios"
+  detail: "El vendedor tiene que declarar en la escritura que está al corriente de los gastos de comunidad o decir lo que debe, con el certificado del secretario de la comunidad (LPH, art. 9.1.e)."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1960-10906#a9
+  verified: false
+
+- id: ibi-al-corriente
+  stage: antes
+  when: {channel: [enlace]}
+  title: "Comprueba que el IBI está pagado"
+  detail: "La vivienda responde del IBI que se deba aunque cambie de dueño (afección real, Ley de Haciendas Locales, art. 64): pide los últimos recibos."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2004-4214#a64
+  verified: false
+
+- id: certificado-energetico
+  stage: antes
+  when: {channel: [enlace]}
+  title: "Pide el certificado de eficiencia energética"
+  detail: "El vendedor tiene que entregarlo al comprador (Real Decreto 390/2021); también hará falta para alquilarla."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2021-9176
+  verified: false
+
+- id: subasta-cargas-y-posesion
+  stage: antes
+  when: {channel: [lote]}
+  title: "Revisa en el portal de subastas las cargas que subsisten y si está ocupada"
+  detail: "Las cargas anteriores que no se cancelan con la subasta las asume quien se la adjudica (Ley de Enjuiciamiento Civil, art. 668)."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2000-323#a668
+  verified: false
+
+- id: subasta-deposito
+  stage: antes
+  when: {channel: [lote]}
+  title: "Consigna el depósito que fija el anuncio para poder pujar"
+  detail: "Se consigna en la cuenta del juzgado o por el portal de subastas antes de pujar (Ley de Enjuiciamiento Civil, art. 669)."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2000-323#a669
+  verified: false
+
+- id: fein
+  stage: antes
+  when: {mortgage: true}
+  title: "Pide la hipoteca: tasación, FEIN y FiAE"
+  detail: "El banco tasa la vivienda y te entrega la Ficha Europea de Información Normalizada (FEIN) y la Ficha de Advertencias Estandarizadas (FiAE) con al menos diez días naturales de antelación a la firma (Ley 5/2019, art. 14). Compara varias ofertas con el plan."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2019-3814#a14
+  verified: false
+
+- id: arras
+  stage: compra
+  when: {channel: [enlace]}
+  title: "Firma el contrato de arras con la financiación ya aprobada"
+  detail: "Con arras penitenciales, si te echas atrás pierdes lo entregado y, si se echa atrás el vendedor, te devuelve el doble (Código Civil, art. 1454). Que el contrato diga qué pasa si el banco no concede la hipoteca."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1889-4763#a1454
+  verified: false
+
+- id: acta-transparencia
+  stage: compra
+  when: {mortgage: true}
+  title: "Acude al notario antes de firmar la hipoteca"
+  detail: "El notario comprueba que has recibido la documentación y te explica el préstamo en un acta gratuita, antes de la firma (Ley 5/2019, art. 15)."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2019-3814#a15
+  verified: false
+
+- id: escritura
+  stage: compra
+  when: {channel: [enlace]}
+  title: "Firma la escritura de compraventa ante notario e inscríbela en el Registro"
+  detail: "Con la escritura se paga el precio y se entrega la vivienda; la inscripción en el Registro protege tu compra frente a terceros."
+  source_url: https://sede.registradores.org/
+  verified: false
+
+- id: subasta-pago
+  stage: compra
+  when: {channel: [lote]}
+  title: "Si te adjudicas el lote, paga el resto en el plazo que fije el juzgado"
+  detail: "Hasta que se paga el precio no hay decreto de adjudicación (Ley de Enjuiciamiento Civil, art. 670): la hipoteca tiene que estar lista antes de pujar."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2000-323#a670
+  verified: false
+
+- id: impuesto-compra
+  stage: despues
+  title: "Presenta y paga el impuesto de la compra"
+  detail: "Vivienda usada: Impuesto sobre Transmisiones Patrimoniales ante la comunidad autónoma; nueva: IVA en la factura y AJD. El plazo de presentación lo fija la normativa de la comunidad (por verificar)."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1993-25359
+  verified: false
+
+- id: registro-unico
+  stage: despues
+  when: {rental_types: [temporada, turistico]}
+  title: "Obtén el número del Registro Único de Arrendamientos antes de anunciarla"
+  detail: "Para anunciar un alquiler de corta duración en plataformas hace falta el número de registro (Real Decreto 1312/2024). Mira también los requisitos de su tipo de alquiler en el plan."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2024-26931
+  verified: false
+
+- id: fianza
+  stage: despues
+  when: {rental_types: [habitual, temporada, habitaciones]}
+  title: "Cobra la fianza y deposítala en la Comunidad de Madrid"
+  detail: "La fianza del alquiler es obligatoria (LAU, art. 36) y en la Comunidad de Madrid se deposita en la Agencia de Vivienda Social; el plazo, en su página (por verificar)."
+  source_url: https://www.comunidad.madrid/vivienda/fianzas-arrendamiento
+  verified: false
+
+- id: irpf
+  stage: despues
+  title: "Declara el alquiler en tu IRPF"
+  detail: "La renta es rendimiento del capital inmobiliario: se restan los gastos, los intereses y la amortización que calcula el plan (Ley del IRPF, arts. 22 y 23)."
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a22
+  verified: false

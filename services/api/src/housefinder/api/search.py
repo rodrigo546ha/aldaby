@@ -92,7 +92,7 @@ def reverse_search(db: DbDep, keys: KeysDep, org: OrgDep, book: ParamBookDep,
             passes=s.verdict.passes, reasons=list(s.verdict.reasons),
             metric=figure_out(s.verdict.metric) if s.verdict.metric else None,
             figures=[figure_out(f) for f in s.figures], notes=list(s.notes),
-            advice=_advice_out(s.advice) if s.advice else None)
+            advice=advice_out(s.advice) if s.advice else None)
             for s in report.ranked],
         skipped=[SkippedOut(offer_id=s.offer_id, title=s.title, reason=s.reason)
                  for s in report.skipped],
@@ -115,7 +115,7 @@ def save_rent_expectation(offer_id: UUID, body: RentExpectationIn, db: DbDep,
     db.commit()
 
 
-def _advice_out(advice: OfferRentalAdvice) -> RentalAdviceOut:
+def advice_out(advice: OfferRentalAdvice) -> RentalAdviceOut:
     return RentalAdviceOut(
         recommended=advice.advice.recommended, reasons=list(advice.advice.reasons),
         types=[RentalTypeOut(

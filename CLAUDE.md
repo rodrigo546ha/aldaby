@@ -67,9 +67,11 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     planning/simulate.py  simulación de punta a punta: el único camino de cálculo del plan (D4)
     planning/scenarios.py escenarios normativos: comparación con / sin reglas pendientes
     planning/ranking.py   búsqueda inversa: restricciones por riesgo y orden por objetivo (ADR-0023)
+    planning/arguments.py argumentos para no comprar: reglas fijas sobre las cifras (ADR-0025)
     planning/rental_advice.py  tipo de alquiler y gestión recomendados (ADR-0024)
     search/               búsqueda inversa: el plan del usuario en cada oferta (ADR-0023) y su
                           tipo de alquiler y gestión (rental.py, ADR-0024)
+    plans/                plan completo de una oferta y hoja de ruta de compra (ADR-0025)
     db/migrate.py         ejecutor de migraciones (ADR-0008); solo db/ importa psycopg
     db/sections.py        fuentes (`sources`) y secciones censales; sección de un punto
     db/indicators.py      indicadores por sección y cartografía (renta, demografía)
@@ -93,6 +95,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     agent/extraction.py   extracción con cita literal comprobada: ninguna cifra extraída es inventada
     agent/documents.py    campos de nómina, declaración y extracto con cita y etiqueta comprobadas (ADR-0021)
     agent/profiling.py    datos del perfil en la respuesta libre, con cita comprobada (ADR-0020)
+    agent/plan_arguments.py  argumentos del asesor para no comprar, sin números (ADR-0025)
     agent/references.py   el agente escribe marcadores {{fig:clave}}, no cifras: comprobación y segmentos (ADR-0012)
     agent/loop.py         bucle del agente con herramientas; el texto final se comprueba con references (ADR-0019)
     advisor/              herramientas del agente sobre los motores (solo lectura, argumentos sin números),
@@ -126,6 +129,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   data/jobs/              programaciones diarias de la cola (ADR-0010)
   data/profiles/          comunidades autónomas por código INE, para la residencia del perfil
   data/territory/         provincia → comunidad autónoma (códigos INE)
+  data/plan/              hoja de ruta de compra: pasos con su fuente, sin verificar (ADR-0025)
   data/offers/            sedes de partidos judiciales para los avisos de subastas (sin verificar)
                           y zona cubierta (zona.yaml): un lote de otra provincia no se ubica
   tests/                  pytest; un test por regla de negocio

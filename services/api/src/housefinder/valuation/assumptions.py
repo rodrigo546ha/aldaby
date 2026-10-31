@@ -16,9 +16,14 @@ from decimal import Decimal
 from housefinder.core.figures import Figure, SourceRef, money, ratio
 from housefinder.db.connection import Connection
 from housefinder.db.references import SeriesPoint, latest_values, national_series
+from housefinder.engines.rates import MortgageTerms
+from housefinder.params.book import ParamBook
+from housefinder.params.euribor import official_anchor
 
 RATE_MEASURE = "tedr_vivienda_nuevas"
 FIXED_BAND = "mas_10"  # la hipoteca del simulador es a tipo fijo
+VARIABLE_BAND = "hasta_1"  # variable: primer año fijo y revisión anual (ADR-0025)
+VARIABLE_ESTIMATE = SourceRef("assumption", "diferencial-variable-estimado", provisional=True)
 SHOCK_MONTHS = 24
 CATASTRO = ("inmuebles_residenciales", "valor_catastral_residencial", "valor_catastral",
             "valor_construccion")
@@ -74,6 +79,51 @@ def market_assumptions(conn: Connection) -> MarketAssumptions:
         f"{MONTHS[start.month - 1]} de {start.year} a {MONTHS[end.month - 1]} de {end.year}",
         (_dataset(last.source_id, f"{series[0].year}-{last.year}"),))
     return MarketAssumptions(rate, shock)
+
+
+@dataclass(frozen=True)
+class VariableMortgage:
+    """Hipoteca variable estimada con datos públicos, para compararla con la fija (ADR-0025)."""
+
+    terms: MortgageTerms
+    initial_rate: Figure
+    spread: Figure
+
+    def figures(self) -> tuple[Figure, ...]:
+        return (self.initial_rate, self.spread)
+
+
+def variable_mortgage(conn: Connection, book: ParamBook, on: date) -> VariableMortgage:
+    """Primer año al TEDR de las hipotecas con fijación de hasta un año (el último mes publicado)
+    y después Euríbor a un año + diferencial = ese TEDR − Euríbor oficial, los dos del mes del
+    ancla de la trayectoria del Euríbor (ADR-0006). Una media nacional, no la oferta de un banco.
+    """
+    series = national_series(conn, RATE_MEASURE, VARIABLE_BAND)
+    if not series:
+        raise MissingData("Faltan los tipos variables del Banco de España: `make supuestos`")
+    last = series[-1]
+    anchor = official_anchor(book, on)
+    same = next((p for p in series if (p.year, p.month) == (anchor.year, anchor.month)), None)
+    if same is None:
+        raise MissingData(f"Falta el tipo variable del Banco de España de {anchor.month:02d}/"
+                          f"{anchor.year}, el mes del Euríbor oficial")
+    initial = Figure(
+        "assumption.variable_initial_rate", ratio(last.value), "ratio",
+        f"TEDR de las nuevas hipotecas con fijación inicial de hasta un año, "
+        f"{MONTHS[last.month - 1]} de {last.year} (Banco de España): primer año de la variable",
+        (_dataset(last.source_id, f"{last.year}-{last.month:02d}"),),
+        as_of=date(last.year, last.month, 1))
+    spread = Figure(
+        "assumption.variable_spread", ratio(same.value - anchor.value), "ratio",
+        f"TEDR con fijación de hasta un año − Euríbor a un año oficial, los dos de "
+        f"{MONTHS[anchor.month - 1]} de {anchor.year}: diferencial medio estimado, no el de un "
+        "banco",
+        (_dataset(same.source_id, f"{same.year}-{same.month:02d}"), anchor.source,
+         VARIABLE_ESTIMATE))
+    terms = MortgageTerms(label="variable", initial_rate=initial.value, initial_months=12,
+                          spread=spread.value, revision_months=12,
+                          sources=(*initial.sources, *spread.sources))
+    return VariableMortgage(terms, initial, spread)
 
 
 def largest_rise(series: list[SeriesPoint],

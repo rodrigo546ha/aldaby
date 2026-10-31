@@ -9,6 +9,7 @@ lo pregunta al usuario.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import Literal
 from uuid import UUID
 
@@ -17,11 +18,18 @@ from pydantic import BaseModel, ConfigDict, Field
 from housefinder.advisor.glossary import describe
 from housefinder.agent.llm import LLMClient
 from housefinder.agent.loop import AgentAnswer, Tool, ToolFailed, ToolResult, run_agent
+from housefinder.agent.plan_arguments import extra_arguments
 from housefinder.agent.references import without_numbers
 from housefinder.core.figures import Figure
 from housefinder.db.connection import Connection
-from housefinder.db.offers import PrivateOffer, get_private_offer, list_private_offers
+from housefinder.db.offers import (
+    PrivateOffer,
+    get_private_offer,
+    list_private_offers,
+    search_candidates,
+)
 from housefinder.params.book import ParamBook
+from housefinder.plans.service import FullPlan, PlanUnavailable, full_plan
 from housefinder.profiles.model import UserProfile
 from housefinder.regulation.rules import RuleBook
 from housefinder.search.service import SearchUnavailable, search
@@ -44,6 +52,9 @@ alquilarían, cuánto valen frente a lo que piden, cómo puede evolucionar su pr
 - No le digas al usuario que compre o que no compre: explícale lo que dicen las cifras.
 - Si pregunta qué ofertas le encajan, usa buscar_ofertas: el orden lo hace el programa con su plan;
   tú explicas por qué cada una está donde está, con sus motivos.
+- Si pide su plan completo de una oferta, usa plan_completo: explica su capacidad, la hipoteca,
+  el cash flow, la prueba de estrés, las normas pendientes y los argumentos para no comprar que
+  da el programa, sin dejar ninguno.
 - Si pregunta cómo alquilar una oferta (habitual, temporada, habitaciones o turístico) o si
   delegar la gestión, usa recomendar_alquiler con el identificador de su marcador: la
   recomendación la hace el programa; tú la explicas con sus motivos y requisitos.
@@ -197,7 +208,29 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID,
                                  "motivos": list(advice.reasons), "tipos": types},
                           descriptions=describe(figures))
 
+    def full(args: MarkerArguments) -> ToolResult:
+        if profile is None or rules is None:
+            raise ToolFailed("El usuario no ha confirmado su perfil: tiene que hacerlo en /perfil")
+        offer_id = _offer_id(args.short())
+        if offer_id is None:
+            raise ToolFailed("Esa oferta no está entre las que se pueden puntuar: usa antes "
+                             "buscar_ofertas")
+        try:
+            plan = full_plan(conn, book, rules, profile, org_id, offer_id)
+        except SearchUnavailable as exc:
+            raise ToolFailed("; ".join(exc.reasons)) from exc
+        except PlanUnavailable as exc:
+            raise ToolFailed(str(exc)) from exc
+        return plan_result(plan)
+
+    def _offer_id(short: str) -> UUID | None:
+        return next((c.offer_id for c in search_candidates(conn, org_id)
+                     if c.offer_id.hex.startswith(short)), None)
+
     return [
+        Tool("plan_completo", "Plan completo del usuario para una oferta: capacidad, hipoteca "
+             "fija y variable, cash flow, prueba de estrés, normas pendientes, tipo de alquiler, "
+             "argumentos para no comprar y hoja de ruta.", MarkerArguments, full),
         Tool("recomendar_alquiler", "Tipo de alquiler (habitual, temporada, habitaciones o "
              "turístico) y gestión recomendados para una oferta de buscar_ofertas, con la "
              "normativa de cada tipo y lo que cuesta delegar.", MarkerArguments, rental),
@@ -212,6 +245,85 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID,
         Tool("zona_de_oferta", "Renta de los hogares, población y su evolución en la sección "
              "censal de una oferta ubicada.", OfferArguments, zone),
     ]
+
+
+PLAN_FIGURES = ("affordability.max_price", "offer.price", "purchase_costs.total",
+                "cashflow.cash_invested", "financing.loan", "financing.years",
+                "mortgage.monthly_payment", "assumption.mortgage_rate",
+                "mortgage.stressed_payment", "valuation.rent_monthly",
+                "cashflow.monthly_after_tax", "search.stressed_cashflow",
+                "plan.low_rent_cashflow", "term.recommended_years", "irr.rate",
+                "mortgage_comparison.fija.expected_total_interest",
+                "mortgage_comparison.variable.expected_total_interest")
+STAGES = {"antes": "antes de comprometerte", "compra": "la compra", "despues": "después"}
+
+
+def plan_result(plan: FullPlan) -> ToolResult:
+    """Lo que el modelo ve del plan: las cifras clave con su descripción, los argumentos y los
+    pasos en palabras (sin números: las cifras van con marcador, ADR-0012)."""
+    every = {f.key: f for f in plan.figures()}
+    chosen = [every[k] for k in PLAN_FIGURES if k in every]
+    picked = plan.advice.advice.chosen() if plan.advice else None
+    extra = [*(picked.figures() if picked else ()),
+             *(f for a in plan.arguments for f in a.figures)]
+    figures = list({f.key: f for f in (*chosen, *extra)}.values())
+    keys = {f.key: "normas_pendientes.cash_flow" for f in figures
+            if f.key.startswith("scenario.")}
+    short = plan.offer_id.hex[:8]
+    facts = {
+        "oferta": f"{{{{oferta:{short}}}}}",
+        "encaja": plan.verdict.passes, "motivos": list(plan.verdict.reasons),
+        "hipoteca_mas_barata": plan.cheapest_mortgage,
+        "hipoteca_mas_segura_en_estres": plan.safest_mortgage,
+        "alquiler_recomendado": picked.option.rental_type if picked else None,
+        "gestion_recomendada": picked.management if picked else None,
+        "argumentos_para_no_comprar": [
+            {"argumento": a.text,
+             "cifras": [keys.get(f.key, f.key) for f in a.figures]} for a in plan.arguments],
+        "hoja_de_ruta": [f"{STAGES[s.stage]}: {without_numbers(s.title)}" for s in plan.roadmap],
+    }
+    notes = plan.notes
+    if plan.pending is not None and plan.pending.changed:
+        notes = (*notes, "Si se convalidan las normas pendientes cambian cifras del plan.")
+    return ToolResult(figures=tuple(figures), facts=facts, notes=tuple(notes), keys=keys,
+                      offers={short: plan.title or ("Oferta pegada" if plan.kind == "enlace"
+                                                    else "Lote del BOE")},
+                      descriptions=describe(figures))
+
+
+def plan_summary(plan: FullPlan) -> str:
+    """El plan en palabras y sin cifras, para los argumentos que añade el asesor."""
+    picked = plan.advice.advice.chosen() if plan.advice else None
+    lines = [
+        "Inmueble: " + ("subasta del BOE" if plan.auction else "vivienda de un anuncio"),
+        "Encaja con sus restricciones: " + ("sí" if plan.verdict.passes else
+                                            "no (" + "; ".join(plan.verdict.reasons) + ")"),
+    ]
+    if picked:
+        lines.append(f"Alquiler recomendado: {picked.option.rental_type}, gestión "
+                     f"{picked.management}")
+    lines.append("Argumentos ya calculados:")
+    lines += [f"- {a.text}" for a in plan.arguments]
+    return without_numbers("\n".join(lines))
+
+
+@dataclass(frozen=True)
+class ExplainedPlan:
+    answer: AgentAnswer
+    extra_arguments: list[str]
+
+
+def explain_plan(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID,
+                 plan: FullPlan, profile: UserProfile, rules: RuleBook) -> ExplainedPlan:
+    """El asesor explica el plan (con marcadores) y añade sus argumentos (ADR-0025)."""
+    short = plan.offer_id.hex[:8]
+    question = (f"Explícame mi plan completo para la oferta {{{{oferta:{short}}}}} (usa "
+                f"plan_completo con oferta {short}): qué puedo pagar, la hipoteca, lo que me "
+                "queda cada mes, qué pasa si suben los tipos y por qué podría no comprarla.")
+    answer = run_agent(llm, INSTRUCTIONS, question,
+                       offer_tools(conn, book, org_id, profile, rules))
+    extra = extra_arguments(llm, plan_summary(plan), [a.text for a in plan.arguments])
+    return ExplainedPlan(answer, extra)
 
 
 def ask(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID, question: str,

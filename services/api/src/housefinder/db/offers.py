@@ -462,24 +462,29 @@ class SearchCandidate:
     extracted: dict[str, Any] | None
 
 
+_CANDIDATES = """
+    SELECT o.id, o.kind, o.title, o.url, o.asking_price, o.auction_min_bid,
+           coalesce(o.built_area_m2, p.built_area_m2),
+           ST_X(p.location::geometry), ST_Y(p.location::geometry), p.section_code, o.extracted
+    FROM offers o JOIN properties p ON p.id = o.property_id
+    WHERE p.location IS NOT NULL AND p.section_code IS NOT NULL
+      AND ((o.org_id = %s AND o.kind = 'enlace' AND o.extraction_status = 'confirmada')
+           OR (o.org_id IS NULL AND o.kind = 'lote' AND o.corrects_id IS NULL))
+"""
+
+
 def search_candidates(conn: psycopg.Connection, org_id: UUID) -> list[SearchCandidate]:
     """Ofertas ubicadas con sección: las confirmadas del usuario y los lotes del BOE (públicos).
     Lo que no se puede puntuar (otro tipo, sin precio) lo decide quien llama, con su motivo."""
-    rows = conn.execute(
-        """
-        SELECT o.id, o.kind, o.title, o.url, o.asking_price, o.auction_min_bid,
-               coalesce(o.built_area_m2, p.built_area_m2),
-               ST_X(p.location::geometry), ST_Y(p.location::geometry), p.section_code, o.extracted
-        FROM offers o JOIN properties p ON p.id = o.property_id
-        WHERE p.location IS NOT NULL AND p.section_code IS NOT NULL
-          AND ((o.org_id = %s AND o.kind = 'enlace' AND o.extraction_status = 'confirmada')
-               OR (o.org_id IS NULL AND o.kind = 'lote' AND o.corrects_id IS NULL))
-        ORDER BY o.first_seen
-        """,
-        (org_id,),
-    ).fetchall()
-    return [SearchCandidate(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10])
-            for r in rows]
+    rows = conn.execute(_CANDIDATES + " ORDER BY o.first_seen", (org_id,)).fetchall()
+    return [SearchCandidate(*r) for r in rows]
+
+
+def search_candidate(conn: psycopg.Connection, org_id: UUID,
+                     offer_id: UUID) -> SearchCandidate | None:
+    """Una oferta de la búsqueda del usuario (para su plan completo)."""
+    row = conn.execute(_CANDIDATES + " AND o.id = %s", (org_id, offer_id)).fetchone()
+    return SearchCandidate(*row) if row else None
 
 
 def searchable_offer(conn: psycopg.Connection, offer_id: UUID, org_id: UUID) -> bool:

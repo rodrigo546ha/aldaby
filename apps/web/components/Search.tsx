@@ -140,6 +140,7 @@ function OfferCard({ scored, onReload }: { scored: ScoredOut; onReload: () => vo
             Ver la oferta
           </a>
         )}
+        <a href={`/plan/${scored.offer_id}`}>Ver el plan completo</a>
       </div>
       {scored.reasons.length > 0 && (
         <ul className="warnings">
