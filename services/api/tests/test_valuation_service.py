@@ -157,6 +157,8 @@ def test_api_de_valoracion(database):
         assert (price["low"], price["value"], price["high"]) == ("343200.00", "435600.00",
                                                                  "534600.00")
         assert price["provisional"] is True  # k y el supuesto de rentabilidad uniforme
+        # Con solo 2024 y 2026T2 en el IPV de prueba no hay ventanas: se avisa, no falla
+        assert any("Sin escenarios de revalorización" in n for n in body["notes"])
         assert http.get("/valuation", params={"lon": 2.0, "lat": 41.0,
                                               "area_m2": "80"}).status_code == 404
         assert http.get("/valuation", params={"lon": LON, "lat": LAT}).status_code == 422

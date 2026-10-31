@@ -54,6 +54,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     engines/taxes.py      formas de cálculo de aranceles, AJD por bandas y plusvalía municipal
     engines/lease.py      indemnización por no prorrogar el alquiler
     engines/valuation.py  contracción de la renta, renta por superficie, precio desde la renta e índice
+    engines/appreciation.py  escenarios de revalorización: ventanas del IPV, percentiles y convergencia
     regulation/rules.py   motor de normativa versionada (RuleBook)
     regulation/kinds.py   catálogo de tipos de regla y esquema de sus parámetros
     regulation/resolvers.py  de reglas a entradas de los motores (TaxParams, ITP, IBI, IRPF)
@@ -88,6 +89,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     geo/catastro.py       centroide de una parcela por referencia catastral (Catastro, ADR-0016)
     territory/            sección, renta, población y tendencias de una dirección como Figure
     valuation/            renta y precio estimados de un inmueble como Figure con rango (ADR-0018)
+                          y escenarios de revalorización (scenarios.py, F5.5)
     ingestion/boe.py      sumario diario del BOE (esquema comprobado con sumarios reales)
     ingestion/bocm.py     sumarios del BOCM (RSS y XML de cada boletín)
     ingestion/ine_sections.py  cartografía de secciones del INE (API OGC Features, CC BY 4.0)

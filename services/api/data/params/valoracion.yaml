@@ -17,3 +17,26 @@
     2,52 % con k = 10 (docs/research/f5-6-backtesting.md)
   source_url: null
   notes: "Sustituye al supuesto inicial k = 10, que no llegó a usarse en ningún plan guardado"
+
+# Convergencia municipal para los escenarios de revalorización (F5.5, ADR-0018). b mide cuánto se
+# cierra (b < 0) o se abre (b > 0) cada 3 años la brecha logarítmica entre la renta de un municipio
+# y la de la provincia. Ajuste sin constante con el SERPAVI de la provincia de Madrid, por año de
+# partida 2011–2021 (11 periodos, `make backtest`): de +0,065 (2011) a −0,0767 (2019). Global
+# −0,0002. Percentiles 25 y 75 de los 11 periodos: −0,0313 y +0,0442. El signo cambia con el
+# ciclo: el escenario base usa el global y los extremos, el b que favorece o perjudica al municipio.
+- id: convergencia-municipal-2026-10
+  kind: convergencia_municipal
+  territory: ES-13
+  effective_from: 2026-10-31
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: -0.0002
+    b_low: -0.0313
+    b_high: 0.0442
+  source: >-
+    Ajuste del 2026-10-31 con el SERPAVI 2011–2024 de la provincia de Madrid (make backtest;
+    docs/research/f5-5-factores-revalorizacion.md)
+  source_url: null
+  notes: "Recalcular cuando se cargue un año nuevo del SERPAVI"

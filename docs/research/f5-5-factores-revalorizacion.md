@@ -50,7 +50,22 @@ A 3 años, la renta de la provincia subió un 10,3 % (2020→2023) y un 12,8 % (
 mediana del crecimiento municipal fue un 13 %. Las diferencias entre zonas son de ±3–4 %. Los
 factores locales explican, como mucho, una parte pequeña de esas diferencias, y nada del ciclo.
 
-## Pendiente
-- Probar empleo y oferta nueva por municipio, cuando se decidan sus fuentes.
-- Decidir de dónde sale el componente del mercado entero (el ciclo) en los escenarios: los
-  factores locales no lo dan.
+## 4. La convergencia cambia de signo con el ciclo
+Coeficiente b (crecimiento relativo a 3 años = b × brecha logarítmica de renta frente a la
+provincia, sin constante), por año de partida: 2011 +0,065; 2012 +0,065; 2013 +0,044;
+2014 +0,020; 2015 +0,015; 2016 +0,045; 2017 +0,019; 2018 −0,026; 2019 −0,077; 2020 −0,059;
+2021 −0,037. Toda la serie: −0,0002. Tras la crisis los municipios caros se alejaron; en la subida
+desde 2018 los baratos se acercaron. La validación de la sección 2 (ajuste 2018–2019) cayó en la
+fase de convergencia.
+
+## Decisión (Rodrigo, 2026-10-31)
+Escenarios = ciclo de la comunidad (P25, mediana y P75 de las ventanas del IPV de la duración del
+horizonte) + convergencia como dimensión del escenario: base con el b global; optimista con el b
+(P25 o P75 de los periodos) que favorece al municipio; conservador, con el otro. Parámetro
+`convergencia_municipal` en `data/params/valoracion.yaml`. Empleo y oferta nueva no se cargan: el
+empleo por municipio solo está en datos.comunidad.madrid (robots.txt prohíbe el acceso automático)
+y la oferta nueva no se publica por municipio.
+
+Con los datos reales, a 10 años: Madrid −0,09 % / 2,03 % / 5,99 %; Getafe −0,21 % / 2,04 % /
+5,94 %; Móstoles −0,37 % / 2,04 % / 6,05 %. El ciclo pesa casi todo; el municipio mueve unas
+décimas los extremos.

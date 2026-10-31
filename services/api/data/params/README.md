@@ -34,3 +34,4 @@ Un cambio se refleja añadiendo un registro nuevo con su vigencia, nunca editand
 | `trayectoria_euribor_3m` | Ronda de proyecciones del BCE (ADR-0006): `round`, `cut_off`, `series`, `unit: percent` y `quarters` (`2026-Q3: 2.5`, consecutivos), copiados tal cual de la API |
 | `euribor_12m_oficial` | Euríbor a un año del BOE: `month` (`2026-07`), `unit: percent` y `value`, copiados tal cual de la resolución mensual |
 | `contraccion_renta` | `k` ≥ 0: alquileres equivalentes de la zona hacia la que se contrae la renta de una sección (ADR-0018) |
+| `convergencia_municipal` | `step_years` (entero), `b_base`, `b_low` ≤ `b_high`: cierre de la brecha de renta municipio–provincia por paso, para los escenarios de revalorización (ADR-0018) |

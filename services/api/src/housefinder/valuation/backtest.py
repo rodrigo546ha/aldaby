@@ -19,6 +19,7 @@ Uso: `python -m housefinder.valuation.backtest --province 28` con `DATABASE_URL`
 from __future__ import annotations
 
 import argparse
+import math
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -150,6 +151,35 @@ def monthly_annual_means(monthly: dict[tuple[str, int, int], Decimal]) -> dict[i
     return {year: sum(v) / 12 for year, v in months.items() if len(v) == 12}
 
 
+def convergence_by_period(
+    municipalities: dict[tuple[str, int], RentRow], provinces: dict[tuple[str, int], RentRow],
+    province: str, step: int = 3,
+) -> tuple[Decimal, dict[int, Decimal]]:
+    """Coeficiente b de rel = b · brecha, sin constante: global y por año de partida.
+
+    brecha = log(renta municipal / provincial) en t; rel = crecimiento logarítmico municipal
+    menos provincial entre t y t + step. b < 0: los municipios baratos suben más (convergen).
+    """
+    pairs: dict[int, list[tuple[float, float]]] = defaultdict(list)
+    for (code, year), now in municipalities.items():
+        later = municipalities.get((code, year + step))
+        prov_now, prov_later = provinces.get((province, year)), provinces.get(
+            (province, year + step))
+        if later is None or prov_now is None or prov_later is None:
+            continue
+        gap = math.log(now.median / prov_now.median)
+        relative = math.log(later.median / now.median) - math.log(
+            prov_later.median / prov_now.median)
+        pairs[year].append((gap, relative))
+
+    def slope(data: list[tuple[float, float]]) -> Decimal:
+        den = sum(g * g for g, _ in data)
+        return Decimal(str(round(sum(g * r for g, r in data) / den, 4))) if den else Decimal(0)
+
+    by_year = {year: slope(data) for year, data in sorted(pairs.items())}
+    return slope([p for data in pairs.values() for p in data]), by_year
+
+
 def index_backtest(
     appraisal: dict[tuple[str, int, int], Decimal], index: dict[tuple[str, int, int], Decimal],
     region: str,
@@ -203,6 +233,7 @@ def run(conninfo: str, province: str, region: str) -> dict[str, object]:
             "'ine-ipc-alquiler' AND code = %s AND month > 0", (region,))}
         sections = rent_table(conn, "seccion", "colectiva", province)
         municipalities = rent_table(conn, "municipio", "colectiva", province)
+        provinces = rent_table(conn, "provincia", "colectiva", province)
         appraisal = series_values(conn, "valor-tasado-comunidad-madrid", "municipio",
                                   "valor_tasado_m2", province)
         index = series_values(conn, "ine-ipv-80270", "comunidad", "ipv", region)
@@ -225,6 +256,7 @@ def run(conninfo: str, province: str, region: str) -> dict[str, object]:
             sections, monthly_annual_means(cpi), 2, since=2021)),
         "rent_cpi_2y_recent": errors((c.predicted, c.actual) for c in cpi_updated_cases(
             sections, monthly_annual_means(cpi), 2, since=2021)),
+        "convergence": convergence_by_period(municipalities, provinces, province),
         "index_update": index_backtest(appraisal, index, region),
         "ratio_previous_year": ratio_backtest(appraisal, municipalities),
     }
@@ -248,6 +280,9 @@ def main() -> int:
     for name in ("bias_raw_1y_k0", "bias_raw_2y_k0", "bias_raw_2y_k0_recent", "bias_cpi_2y",
                  "bias_cpi_2y_recent"):
         print(f"\n{name}: {result[name]:.2%}")  # type: ignore[str-format]
+    pooled, by_year = result["convergence"]  # type: ignore[misc]
+    print(f"\nconvergencia municipal (b a 3 años, sin constante): global {pooled}; por año "
+          + ", ".join(f"{y}: {b}" for y, b in by_year.items()))
     for name in ("rent_cpi_2y_recent", "index_update", "ratio_previous_year"):
         err = result[name]
         print(f"\n{name}: n={err.count}  MdAPE={err.mdape:.2%}  MAE={err.mae:.0f}  "  # type: ignore[union-attr]

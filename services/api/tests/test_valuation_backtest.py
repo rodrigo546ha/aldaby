@@ -85,3 +85,16 @@ def test_renta_actualizada_con_el_ipc():
     # 18 × 110 / 100 = 19,8 frente a 20
     cases = cpi_updated_cases(SECTIONS, annual, horizon=1)
     assert [(c.predicted, c.actual) for c in cases] == [(D("19.8"), D(20))]
+
+
+def test_convergencia_por_periodo():
+    from housefinder.valuation.backtest import convergence_by_period
+
+    # Provincia 10 → 11 (+log 1,1). Municipio barato a 8 (brecha log 0,8) sube a 9,24: relativo
+    # log(9,24/8) − log(1,1) = log(1,05) ≈ 0,04879; b = 0,04879 / log(0,8) ≈ −0,2186
+    municipalities = {("28001", 2020): row("municipio", "28001", 2020, 50, D(8)),
+                      ("28001", 2023): row("municipio", "28001", 2023, 50, D("9.24"))}
+    provinces = {("28", 2020): row("provincia", "28", 2020, 9999, D(10)),
+                 ("28", 2023): row("provincia", "28", 2023, 9999, D(11))}
+    pooled, by_year = convergence_by_period(municipalities, provinces, "28")
+    assert pooled == D("-0.2186") and by_year == {2020: D("-0.2186")}
