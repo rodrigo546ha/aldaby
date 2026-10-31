@@ -37,6 +37,7 @@ Reglas para escribir (obligatorias):
   {{fig:clave}}, con la clave exacta que devuelve una herramienta. Si la cifra tiene rango, puedes
   usar {{fig:clave:low}}, {{fig:clave:high}} o {{fig:clave:range}}.
 - Si una cifra no la ha devuelto ninguna herramienta, no la menciones.
+- Nombra cada cifra por lo que dice su «descripcion», no por su clave.
 - No escribas la unidad detrás del marcador (€, %, años, al mes…): la cifra se muestra ya con la
   suya. Escribe «la renta sería de {{fig:clave}}», no «{{fig:clave}} € al mes».
 - En las fórmulas y los avisos, «…» es un número que no puedes citar: no lo sustituyas ni lo
@@ -62,6 +63,7 @@ class ToolResult:
     notes: tuple[str, ...] = ()
     scope: str | None = None  # prefijo de las claves, si la misma cifra existe para varias cosas
     keys: dict[str, str] = field(default_factory=dict)  # clave del Figure → clave para el modelo
+    descriptions: dict[str, str] = field(default_factory=dict)  # clave del Figure → qué es
 
 
 @dataclass(frozen=True)
@@ -142,8 +144,13 @@ def run_agent(
         if retries == 0:
             return answer(None, "texto_rechazado")
         retries -= 1
+        lines = [p.message for p in problems]
+        if not figures and "{{" in text:
+            # Visto con qwen3: se saltaba la herramienta e inventaba claves («{{fig:renta}}»)
+            lines.append("Todavía no tienes ninguna cifra: pide antes la herramienta que la "
+                         "calcula y usa las claves que devuelva.")
         messages.append({"role": "user", "content": (
-            "Tu texto no se puede mostrar:\n" + "\n".join(f"- {p.message}" for p in problems)
+            "Tu texto no se puede mostrar:\n" + "\n".join(f"- {line}" for line in lines)
             + "\nReescríbelo entero cumpliendo las reglas.")})
     return answer(None, "pasos_agotados")
 
@@ -167,10 +174,12 @@ def _execute(tool: Tool | None, name: str, raw: str, figures: dict[str, Figure],
         key = result.keys.get(figure.key, figure.key)
         key = f"{result.scope}.{key}" if result.scope else key
         figures[key] = figure
-        shown.append({"clave": key, "valor": str(figure.value), "unidad": figure.unit,
-                      "rango": ([str(figure.low), str(figure.high)]
-                                if figure.low is not None else None),
-                      "formula": without_numbers(figure.formula)})
+        entry = {"clave": key, "valor": str(figure.value), "unidad": figure.unit,
+                 "rango": [str(figure.low), str(figure.high)] if figure.low is not None else None}
+        if figure.key in result.descriptions:
+            entry["descripcion"] = result.descriptions[figure.key]
+        entry["formula"] = without_numbers(figure.formula)
+        shown.append(entry)
     notes.extend(n for n in result.notes if n not in notes)
     return json.dumps({"cifras": shown, "datos": result.facts,
                        "avisos": [without_numbers(n) for n in result.notes]},

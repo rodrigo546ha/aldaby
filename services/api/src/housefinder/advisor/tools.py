@@ -14,6 +14,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from housefinder.advisor.glossary import describe
 from housefinder.agent.llm import LLMClient
 from housefinder.agent.loop import AgentAnswer, Tool, ToolFailed, ToolResult, run_agent
 from housefinder.core.figures import Figure
@@ -29,9 +30,12 @@ inmuebles. Ayudas a un inversor particular a entender las ofertas que ha guardad
 alquilarían, cuánto valen frente a lo que piden, cómo puede evolucionar su precio y cómo es la zona.
 
 - Usa las herramientas para obtener cada dato; no supongas nada que no te devuelvan.
+- Si el usuario pregunta por una oferta que está confirmada y ubicada, valórala directamente:
+  no le pidas que lo confirme.
 - Si una herramienta dice que falta un dato, explícale al usuario qué tiene que confirmar.
-- Explica con frases cortas y claras, en español, y di los límites de cada estimación (rangos,
-  supuestos, avisos de las herramientas).
+- Explica con frases cortas y claras, en español, y di los límites de cada estimación (rangos y
+  supuestos). Los avisos de las herramientas se muestran solos debajo de tu respuesta: no hagas
+  una lista de avisos ni los copies.
 - Contesta en pocas frases, unas seis como mucho, y no repitas ninguna.
 - No le digas al usuario que compre o que no compre: explícale lo que dicen las cifras.
 """
@@ -64,10 +68,15 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID) -> list[Tool]:
         return offer
 
     def saved(_: NoArguments) -> ToolResult:
-        offers = [{"oferta_id": str(o.id), "titulo": o.title, "estado": o.extraction_status,
-                   "operacion": ((o.extracted or {}).get("confirmed") or {}).get("operation"),
-                   "ubicada": o.property_id is not None}
-                  for o in list_private_offers(conn, org_id)]
+        offers = []
+        for o in list_private_offers(conn, org_id):
+            confirmed = (o.extracted or {}).get("confirmed") or {}
+            # El municipio, para que el usuario pueda decir «la de Getafe»; la dirección no, que
+            # lleva números y el modelo no la necesita
+            town = ((confirmed.get("fields") or {}).get("municipality") or {}).get("value")
+            offers.append({"oferta_id": str(o.id), "titulo": o.title, "municipio": town,
+                           "estado": o.extraction_status, "operacion": confirmed.get("operation"),
+                           "ubicada": o.property_id is not None})
         return ToolResult(facts={"ofertas": offers})
 
     def valuation(args: ValuationArguments) -> ToolResult:
@@ -79,7 +88,8 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID) -> list[Tool]:
         return ToolResult(figures=tuple(valued.figures), notes=tuple(valued.notes),
                           facts={"titulo": offer.title,
                                  "renta_de": valued.report.level},
-                          scope=_scope(offer), keys=_spoken_keys(valued.figures))
+                          scope=_scope(offer), keys=_spoken_keys(valued.figures),
+                          descriptions=describe(valued.figures))
 
     def zone(args: OfferArguments) -> ToolResult:
         offer = own(args.oferta_id)
@@ -92,7 +102,7 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID) -> list[Tool]:
             raise ToolFailed(str(exc)) from exc
         return ToolResult(figures=tuple(report.figures), notes=tuple(report.notes),
                           facts={"titulo": offer.title}, scope=_scope(offer),
-                          keys=_spoken_keys(report.figures))
+                          keys=_spoken_keys(report.figures), descriptions=describe(report.figures))
 
     return [
         Tool("ofertas_guardadas", "Ofertas que el usuario ha guardado, con su estado: solo las "

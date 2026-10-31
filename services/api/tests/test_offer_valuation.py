@@ -110,7 +110,8 @@ def confirmed_offer(database, org, operation, price, property_type="vivienda", l
                           "listing": {"property_type": property_type},
                           "confirmed": {"operation": operation, "fields": {
                               "price": {"value": price, "origin": "extraido"},
-                              "built_area_m2": {"value": "80", "origin": "extraido"}}}})
+                              "built_area_m2": {"value": "80", "origin": "extraido"},
+                              "municipality": {"value": "Villaprueba", "origin": "usuario"}}}})
         if located:
             prop = create_property(conn, lon=LON, lat=LAT, cadastral_ref=None,
                                    address="calle de Prueba, 1", built_area_m2=D("80"),

@@ -85,7 +85,8 @@ def test_formulas_y_avisos_llegan_sin_numeros_y_claves_renombradas():
     note = "Desde 2023 la población sale del Censo Anual."
     zone = Tool("zona", "Zona", OfferArgs, lambda args: ToolResult(
         figures=(older,), notes=(note,), scope="oferta_a1",
-        keys={"territory.poblacion_65_y_mas": "territory.poblacion_mayor"}))
+        keys={"territory.poblacion_65_y_mas": "territory.poblacion_mayor"},
+        descriptions={"territory.poblacion_65_y_mas": "Porcentaje de población de edad avanzada"}))
     llm = FakeLLMClient(turns=[
         call('{"oferta_id": "a1"}', name="zona"),
         ChatTurn("La población mayor es {{fig:oferta_a1.territory.poblacion_mayor}}."),
@@ -96,7 +97,19 @@ def test_formulas_y_avisos_llegan_sin_numeros_y_claves_renombradas():
     assert answer.notes == [note]  # el usuario ve el aviso entero
     result = json.loads(llm.chats[1][-1]["content"])
     assert result["cifras"][0]["formula"] == "Porcentaje de … y más años del Atlas, año …"
+    assert result["cifras"][0]["descripcion"] == "Porcentaje de población de edad avanzada"
     assert result["avisos"] == ["Desde … la población sale del Censo Anual."]
+
+
+def test_marcadores_sin_cifras_piden_la_herramienta():
+    llm = FakeLLMClient(turns=[
+        ChatTurn("La renta sería de {{fig:renta_estimada}}."),
+        call('{"oferta_id": "a1"}'),
+        ChatTurn("La renta sería de {{fig:oferta_a1.valuation.rent_monthly}}."),
+    ])
+    answer = run_agent(llm, "x", "¿Renta?", TOOLS)
+    assert answer.failure is None
+    assert "pide antes la herramienta" in llm.chats[1][-1]["content"]
 
 
 def test_si_vuelve_a_fallar_quedan_las_cifras_sin_texto():

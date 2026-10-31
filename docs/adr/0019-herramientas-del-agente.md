@@ -55,7 +55,16 @@ el agente eso ya no es posible.
 - Cada turno del agente tiene un tope de 2.048 tokens (`CHAT_MAX_TOKENS`). A temperatura 0, qwen3
   repitió una frase hasta agotar los diez minutos de espera; una respuesta cortada cuenta como texto
   rechazado, gasta el reintento y, si vuelve a pasar, falla con `respuesta_cortada`.
-- La temperatura sigue en 0. El muestreo recomendado para cada modelo se revisa en F6.0.
+- Cada cifra lleva una descripción sin números (`advisor/glossary.py`): qué es y cómo se lee
+  («no es el valor tasado», «tasa anual, no la subida total», «diferencia en puntos»). Con ella,
+  qwen3 dejó de confundir el precio estimado con el valor tasado y de inventar el horizonte.
+- `ofertas_guardadas` da el municipio confirmado, para que el usuario pueda decir «la de Getafe».
+- Si el modelo escribe marcadores sin haber pedido ninguna cifra, el reintento le dice que pida
+  antes la herramienta.
+- La temperatura sigue en 0. El muestreo recomendado para cada modelo se revisa en F6.0. Con
+  `qwen3:8b` el comportamiento cambia mucho con cambios pequeños de las instrucciones (unas veces
+  valora la oferta y otras pide confirmación o inventa claves): la comprobación lo frena, pero
+  la elección del modelo es de F6.0.
 
 ## Opciones consideradas
 - **Que el modelo rellene los argumentos numéricos** (tipo de interés, vacío): es la forma más

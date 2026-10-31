@@ -43,7 +43,10 @@ def test_el_agente_lista_valora_y_explica_con_marcadores(database, org):  # noqa
     assert answer.failure is None
     assert [s.tool for s in answer.steps] == ["ofertas_guardadas", "valorar_oferta"]
     listed = json.loads(llm.chats[1][-1]["content"])["datos"]["ofertas"]
+    valued = json.loads(llm.chats[2][-1]["content"])["cifras"]
+    assert all(c.get("descripcion") for c in valued)  # el glosario cubre toda la valoración
     assert listed[0]["oferta_id"] == str(offer_id) and listed[0]["ubicada"] is True
+    assert listed[0]["municipio"] == "Villaprueba"  # el usuario dice «la de Villaprueba»
     cited = [s.figure for s in answer.segments if isinstance(s, FigureSegment)]
     assert [(f.key, str(f.value)) for f in cited] == [("offer.asking_price", "400000"),
                                                       ("offer.asking_gap", "-0.0817")]
