@@ -144,6 +144,15 @@ def test_api_del_plan(searchable, org):  # noqa: F811
         assert plan["sections"][0]["id"] == "capacidad"
         assert plan["roadmap"][0]["id"] == "nota-simple"
         assert any(a["code"] == "cifras-provisionales" for a in plan["arguments"])
+        pdf = client.get(f"/plans/offers/{offer}/pdf")
+        try:
+            import weasyprint  # noqa: F401
+        except OSError:  # sin pango: la API lo dice (ADR-0026)
+            assert pdf.status_code == 503
+        else:
+            assert pdf.status_code == 200 and pdf.content.startswith(b"%PDF")
+            assert pdf.headers["cache-control"] == "no-store"
+            assert pdf.headers["content-disposition"].endswith(f'plan-{short}.pdf"')
         explained = client.post(f"/plans/offers/{offer}/explanation").json()
         assert explained["failure"] is None
         assert [s["kind"] for s in explained["segments"]] == ["text", "figure", "text"]

@@ -72,6 +72,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     search/               búsqueda inversa: el plan del usuario en cada oferta (ADR-0023) y su
                           tipo de alquiler y gestión (rental.py, ADR-0024)
     plans/                plan completo de una oferta y hoja de ruta de compra (ADR-0025)
+    reports/              PDF del plan con anexo de fuentes; solo aquí weasyprint (ADR-0026)
     db/migrate.py         ejecutor de migraciones (ADR-0008); solo db/ importa psycopg
     db/sections.py        fuentes (`sources`) y secciones censales; sección de un punto
     db/indicators.py      indicadores por sección y cartografía (renta, demografía)
@@ -142,7 +143,8 @@ docs/                     ROADMAP, ARCHITECTURE, DATA_SOURCES, ADRs y plantillas
 ## Comandos
 
 ```bash
-make setup     # entorno Python (.venv) y dependencias web; OCR: brew install tesseract tesseract-lang
+make setup     # entorno Python (.venv) y dependencias web; OCR: brew install tesseract tesseract-lang;
+               # PDF del plan: brew install pango (ADR-0026)
 make db        # PostgreSQL + PostGIS en Docker (127.0.0.1:5442) y migraciones pendientes
 make migrate   # solo las migraciones pendientes (DATABASE_URL)
 make sections  # carga las secciones censales del INE (YEAR=2025 PROVINCE=28)

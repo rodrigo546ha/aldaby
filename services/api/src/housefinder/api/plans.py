@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
 
 from housefinder.advisor.tools import explain_plan
@@ -21,6 +22,7 @@ from housefinder.plans.service import FullPlan, PlanUnavailable, full_plan
 from housefinder.profiles import store
 from housefinder.profiles.model import UserProfile
 from housefinder.regulation.rules import RuleBook
+from housefinder.reports.pdf import plan_html, plan_pdf, plan_sources
 from housefinder.search.service import SearchUnavailable
 
 router = APIRouter(prefix="/plans", tags=["plan"])
@@ -107,6 +109,24 @@ def offer_plan(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, book: Para
                          for c in (plan.pending.changed if plan.pending else ())],
         cheapest_mortgage=plan.cheapest_mortgage, safest_mortgage=plan.safest_mortgage,
         notes=list(plan.notes))
+
+
+@router.get("/offers/{offer_id}/pdf", response_class=Response,
+            responses={200: {"content": {"application/pdf": {}}}})
+def offer_plan_pdf(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, book: ParamBookDep,
+                   rules: RuleBookDep) -> Response:
+    """El plan en PDF con su anexo de fuentes (ADR-0026). No se guarda: lleva datos personales."""
+    plan = _plan(db, keys, org, book, rules, offer_id)[1]
+    html = plan_html(plan, plan_sources(db, plan, rules, book), date.today())
+    try:
+        pdf = plan_pdf(html)
+    except OSError as exc:  # faltan pango o cairo
+        raise HTTPException(status_code=503, detail="No se puede generar el PDF: faltan las "
+                            "bibliotecas de WeasyPrint (brew install pango; ver ADR-0026)"
+                            ) from exc
+    return Response(pdf, media_type="application/pdf", headers={
+        "Content-Disposition": f'attachment; filename="plan-{offer_id.hex[:8]}.pdf"',
+        "Cache-Control": "no-store"})
 
 
 @router.post("/offers/{offer_id}/explanation", response_model=ExplanationOut)

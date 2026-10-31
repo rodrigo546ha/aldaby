@@ -1173,6 +1173,46 @@
         }
       }
     },
+    "/plans/offers/{offer_id}/pdf": {
+      "get": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Offer Plan Pdf",
+        "description": "El plan en PDF con su anexo de fuentes (ADR-0026). No se guarda: lleva datos personales.",
+        "operationId": "offer_plan_pdf_plans_offers__offer_id__pdf_get",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/plans/offers/{offer_id}/explanation": {
       "post": {
         "tags": [

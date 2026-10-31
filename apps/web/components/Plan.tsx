@@ -51,6 +51,9 @@ export function Plan({ offerId }: { offerId: string }) {
             Ver la oferta
           </a>
         )}
+        <a href={`/api/plans/offers/${offerId}/pdf`} download>
+          Descargar PDF
+        </a>
         {plan.reasons.length > 0 && (
           <ul className="warnings">
             {plan.reasons.map((r) => (

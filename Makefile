@@ -10,6 +10,10 @@ HOUSEFINDER_DB_PORT ?= 5442
 DATABASE_URL ?= postgresql://housefinder:housefinder@127.0.0.1:$(HOUSEFINDER_DB_PORT)/housefinder
 export HOUSEFINDER_DB_PORT DATABASE_URL
 
+# WeasyPrint (PDF del plan, ADR-0026) carga pango y cairo de Homebrew. macOS no pasa DYLD_* a
+# través de /bin/sh, así que va delante de cada orden que puede generar un PDF.
+PDF_LIBS := $(if $(wildcard /opt/homebrew/lib/libpango-1.0.dylib),DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib,)
+
 setup:
 	cd services/api && $(PYTHON) -m venv .venv && $(VENV)/pip install -e ".[dev]"
 	cd apps/web && npm install
@@ -97,7 +101,7 @@ worker-logs:
 	tail -n 50 -f $(WORKER_LOGS)/worker.log
 
 test:
-	cd services/api && $(VENV)/python -m pytest -q
+	cd services/api && $(PDF_LIBS) $(VENV)/python -m pytest -q
 
 lint:
 	cd services/api && $(VENV)/ruff check src tests
@@ -106,7 +110,7 @@ rules-check:
 	cd services/api && $(VENV)/python -m housefinder.regulation.check
 
 api:
-	cd services/api && $(VENV)/uvicorn housefinder.api.main:app --reload --app-dir src
+	cd services/api && $(PDF_LIBS) $(VENV)/uvicorn housefinder.api.main:app --reload --app-dir src
 
 web:
 	cd apps/web && npm run dev

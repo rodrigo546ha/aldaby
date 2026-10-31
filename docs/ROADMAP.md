@@ -312,7 +312,12 @@ umbral fijado en F0, y cada estimación con su rango.
       *Base (ADR-0012):* el texto del agente nombra las cifras con marcadores
       `{{fig:clave}}`; `agent/references.py` rechaza dígitos fuera de marcadores y claves que no
       están en el plan, y lo convierte en segmentos que formatea la web.
-- [ ] F6.8 Exportación a PDF con todas las fuentes citadas.
+- [x] F6.8 Exportación a PDF con todas las fuentes citadas.
+      *Hecho (ADR-0026):* WeasyPrint en la API (`reports/`): el plan completo en HTML con cada
+      cifra, su fórmula y notas numeradas a un anexo con cada fuente una vez (norma con su enlace
+      y si está verificada, parámetro, datos con licencia y fecha, supuestos en palabras). Sin la
+      explicación del asesor y sin guardarlo: `GET /plans/offers/{id}/pdf` con `no-store` y enlace
+      «Descargar PDF» en `/plan`. En el Mac necesita pango de Homebrew (`PDF_LIBS` del Makefile).
 - [ ] F6.9 Evaluaciones automáticas: extracción de anuncios, ausencia de cifras inventadas en el
       texto del agente y coherencia del plan.
 

@@ -38,9 +38,11 @@ ALLOWED_INTERNAL = {
     # Plan completo (F6.7): el camino de la búsqueda más estrés, pendientes, argumentos y pasos
     "plans": {"core", "db", "engines", "params", "planning", "plans", "profiles", "regulation",
               "search", "valuation"},
+    # PDF del plan (F6.8): el plan, las fuentes de reglas, parámetros y datos
+    "reports": {"core", "db", "params", "planning", "plans", "regulation", "reports"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi",
-                      "pypdf", "pypdfium2", "pytesseract", "PIL", "xlrd"}
+                      "pypdf", "pypdfium2", "pytesseract", "PIL", "xlrd", "weasyprint"}
 # Solo db/ habla con la base de datos (ADR-0008).
 DB_DRIVERS = {"psycopg", "psycopg_pool"}
 # Solo la ingesta descarga datos de la red.
@@ -48,7 +50,9 @@ DB_DRIVERS = {"psycopg", "psycopg_pool"}
 ALLOWED_EXTERNAL = {"ingestion": {"httpx", "pypdf", "xlrd"}, "geo": {"httpx"}, "jobs": {"httpx"},
                     "watch": {"httpx"}, "offers": {"httpx"}, "agent": {"httpx"},
                     # Solo documents/ lee PDF y hace OCR (ADR-0021)
-                    "documents": {"pypdf", "pypdfium2", "pytesseract", "PIL"}}
+                    "documents": {"pypdf", "pypdfium2", "pytesseract", "PIL"},
+                    # Solo reports/ genera PDF (ADR-0026)
+                    "reports": {"weasyprint"}}
 
 
 def _imports(path: Path) -> set[str]:
