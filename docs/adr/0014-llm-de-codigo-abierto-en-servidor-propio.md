@@ -76,6 +76,13 @@ el texto solo hablaba de la zona. La extracción de un anuncio largo (≈ 2.400 
 - Las extracciones hechas antes de este cambio pueden estar afectadas; la evaluación de F6.0 se
   hace con la ventana fijada.
 
+## Modelo de desarrollo: qwen3:14b (2026-10-31)
+En el banco del agente (`docs/research/f6-0-banco-agente.md`), con el mismo código, `qwen3:8b` no
+pidió ninguna de las herramientas necesarias y `qwen3:14b` acertó en cuatro de cinco. Desde ahora el
+modelo de desarrollo es `qwen3-14b-hf` (`infra/ollama/qwen3-14b-hf.Modelfile`, Apache 2.0), para el
+agente y para la extracción; tarda unos cuarenta y cinco segundos por pregunta del agente en el Mac.
+La extracción con el 14B no se ha medido aún frente a la del 8B.
+
 ## Opciones consideradas
 - **Seguir con Claude en Bedrock:** mejor calidad de extracción, pero requiere una cuenta de AWS
   propia y envía el texto a un tercero. Descartado por decisión de Rodrigo.

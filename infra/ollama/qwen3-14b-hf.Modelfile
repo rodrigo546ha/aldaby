@@ -1,0 +1,6 @@
+# qwen3:14b con ventana de contexto explícita para HouseFinder (ADR-0014). Modelo de desarrollo
+# desde el banco del agente (docs/research/f6-0-banco-agente.md): el 8B no pedía las herramientas.
+# Ocupa 9,3 GB: en un Mac de 16 GB, mejor con poco más abierto.
+#   ollama pull qwen3:14b && ollama create qwen3-14b-hf -f infra/ollama/qwen3-14b-hf.Modelfile
+FROM qwen3:14b
+PARAMETER num_ctx 16384

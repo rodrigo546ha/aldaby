@@ -18,7 +18,7 @@ tiene ADR, lo dice: **propuesta, pendiente de ADR**.
 | **MVP** | Madrid y área metropolitana; oferta por enlace del usuario, BOE (subastas y sección V) y grandes servicers |
 | **Competencia directa** | Invisor y Cassandra AI: rastrean portales y recogen preferencias, pero no calculan la rentabilidad personal ni modelan la normativa por inmueble |
 | **Hitos** | Validación en noviembre · beta privada con profesionales a mediados de enero de 2027 · pase para particulares en febrero · decisión a finales de marzo |
-| **Modo actual** | Todo en local (Mac M5, 16 GB): PostgreSQL + PostGIS en Docker, worker con launchd y `qwen3:8b` en Ollama. El despliegue de F7 está por decidir (sección 3.3) |
+| **Modo actual** | Todo en local (Mac M5, 16 GB): PostgreSQL + PostGIS en Docker, worker con launchd y `qwen3:14b` en Ollama. El despliegue de F7 está por decidir (sección 3.3) |
 
 ---
 
@@ -89,7 +89,7 @@ pendiente de ADR**; hoy la deduplicación es por referencia catastral y distanci
 | Motores y API | `make api` (FastAPI) | Por decidir |
 | Trabajos | `make worker-install` (launchd) | Por decidir |
 | Base de datos | PostgreSQL + PostGIS en Docker | Por decidir |
-| Modelos | `qwen3:8b` en Ollama (Homebrew) | Servidor propio en la UE (ADR-0014) |
+| Modelos | `qwen3:14b` en Ollama (Homebrew) | Servidor propio en la UE (ADR-0014) |
 | Claves | Clave maestra en fichero local (ADR-0011) | Gestor de claves (ADR-0011 dice AWS KMS) |
 
 Lo documentado hoy para F7 es AWS (ADR-0011, PLAN_DISENO y F7.5). **Propuesta de este plan,
@@ -112,7 +112,8 @@ sistema, Docker, el editor y el navegador: quedan **unos 8–10 GB útiles para 
 
 | Uso | Modelo | Servidor | Licencia |
 | --- | --- | --- | --- |
-| Extracción y agente | `qwen3-hf`: `qwen3:8b` (Q4_K_M, ~6 GB) con ventana de 16.384 tokens | Ollama en `localhost:11434` | Apache 2.0 |
+| Extracción y agente | `qwen3-14b-hf`: `qwen3:14b` (Q4_K_M, 9,3 GB) con ventana de 16.384 tokens | Ollama en `localhost:11434` | Apache 2.0 |
+| Alternativa con poca memoria | `qwen3-hf`: `qwen3:8b` (5,2 GB), misma ventana; extrae, pero no sirve para el agente | Ollama | Apache 2.0 |
 
 Sin razonamiento (`LLM_REASONING_EFFORT=none`): con él la extracción fue más lenta y peor (ADR-0014).
 El modelo de producción se elige en F6.0 (sección 6); los candidatos más grandes se prueban en una
@@ -128,14 +129,14 @@ make db           # PostgreSQL + PostGIS en Docker
 make test         # motores en verde
 ```
 
-Modelo: `brew services start ollama`, `ollama pull qwen3:8b` y
-`ollama create qwen3-hf -f infra/ollama/qwen3-hf.Modelfile` (misma descarga, ventana de 16.384
-tokens; sin ella Ollama recorta la conversación a 4.096 en silencio). En `.env`:
+Modelo: `brew services start ollama`, `ollama pull qwen3:14b` y
+`ollama create qwen3-14b-hf -f infra/ollama/qwen3-14b-hf.Modelfile` (misma descarga, ventana de
+16.384 tokens; sin ella Ollama recorta la conversación a 4.096 en silencio). En `.env`:
 
 ```
 LLM_PROVIDER=openai_compatible
 LLM_BASE_URL=http://localhost:11434/v1
-LLM_MODEL_ID=qwen3-hf
+LLM_MODEL_ID=qwen3-14b-hf
 LLM_REASONING_EFFORT=none
 ```
 
@@ -254,14 +255,15 @@ renta, la verificación de reglas y la calibración bancaria.
 | Paso | Detalle |
 | --- | --- |
 | Conjunto de pruebas | 30 anuncios reales pegados a mano y anuncios del BOE, 10 nóminas y 10 extractos **inventados**, 10 conversaciones de perfil simuladas, 10 casos de llamada a herramientas |
-| Candidatos | `qwen3:8b` (referencia actual), Gemma 4 12B, Gemma 4 26B-A4B, Qwen3.6-35B-A3B, gpt-oss-20b |
+| Candidatos | `qwen3:14b` (desarrollo; el 8B no pide las herramientas, ver `research/f6-0-banco-agente.md`), Gemma 4 12B, Gemma 4 26B-A4B, Qwen3.6-35B-A3B, gpt-oss-20b |
 | Dónde | Los que quepan en el Mac (8–10 GB útiles), en local; el resto en una GPU alquilada por horas (24–48 GB) |
 | Métricas | Campos extraídos verificados, rechazados y atribuidos al lote equivocado (ADR-0014); JSON válido; llamadas a herramientas correctas; textos que pasan el verificador a la primera; calidad del español; latencia |
 | Decisión | Mejor relación calidad / memoria que quepa en el servidor de F7, con licencia comprobada en su archivo LICENSE (ADR-0014 pide Apache 2.0 o MIT) |
 
 Coste estimado: unas pocas horas de GPU alquilada, del orden de unos euros. Lo visto con
-`qwen3:8b`: extrae con citas pero puede copiar los datos de un lote en otro, y en el agente elige
-bien las herramientas pero tiende a copiar números de los avisos en su texto.
+`qwen3:8b`: extrae con citas pero puede copiar los datos de un lote en otro, y en el agente no
+pide las herramientas de forma fiable. Con `qwen3:14b` el agente acierta las herramientas en cuatro
+de cinco preguntas, pero copia valores y se equivoca de clave (`research/f6-0-banco-agente.md`).
 
 ---
 
