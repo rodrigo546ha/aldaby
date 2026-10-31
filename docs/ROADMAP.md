@@ -269,6 +269,9 @@ umbral fijado en F0, y cada estimación con su rango.
 - [ ] F6.6 Recomendación de tipo de alquiler y de gestión activa o pasiva según la ubicación.
 - [ ] F6.7 Plan completo: capacidad, hipoteca, cash flow, estrés, escenarios legales, argumentos
       para no comprar y hoja de ruta de compra.
+      *Base hecha (ADR-0012):* el texto del agente nombra las cifras con marcadores
+      `{{fig:clave}}`; `agent/references.py` rechaza dígitos fuera de marcadores y claves que no
+      están en el plan, y lo convierte en segmentos que formatea la web.
 - [ ] F6.8 Exportación a PDF con todas las fuentes citadas.
 - [ ] F6.9 Evaluaciones automáticas: extracción de anuncios, ausencia de cifras inventadas en el
       texto del agente y coherencia del plan.
