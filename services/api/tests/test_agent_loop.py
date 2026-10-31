@@ -11,6 +11,7 @@ from housefinder.agent.llm import (
     ChatTurn,
     FakeLLMClient,
     LLMOutputError,
+    LLMTruncated,
     OpenAICompatibleLLMClient,
     ToolCall,
     ToolSpec,
@@ -59,7 +60,7 @@ def test_pide_una_herramienta_y_explica_con_marcadores():
     result = json.loads(tool_message["content"])
     assert result["cifras"][0] == {
         "clave": "oferta_a1.valuation.rent_monthly", "valor": "839.80", "unidad": "EUR/mes",
-        "rango": ["718.25", "1037.00"], "formula": "9,88 €/m² × 85 m²"}
+        "rango": ["718.25", "1037.00"], "formula": "… €/m² × … m²"}
     assert result["datos"] == {"municipio": "Getafe"}
     assert "marcador" in llm.chats[0][0]["content"]  # las reglas de ADR-0012 van en el sistema
 
@@ -76,23 +77,26 @@ def test_texto_con_cifras_a_mano_se_reintenta_una_vez():
     assert retry["role"] == "user" and "número escrito a mano" in retry["content"]
 
 
-def test_si_copia_un_aviso_el_reintento_se_lo_dice():
-    # Visto con qwen3: copiaba «Desde 2023 la población…» de un aviso y el reintento genérico
-    # («di lo mismo sin números») no bastaba
-    note = ("Desde 2023 la población sale del Censo Anual: parte del cambio puede deberse a "
-            "la fuente.")
-    zone = Tool("zona", "Zona", OfferArgs, lambda args: ToolResult(figures=(RENT,), notes=(note,)))
+def test_formulas_y_avisos_llegan_sin_numeros_y_claves_renombradas():
+    # Visto con qwen3: copiaba años y códigos de las fórmulas y los avisos («año 2024, sección
+    # 2806501011», «Desde 2023…») y nombraba el indicador por su clave («65 años»)
+    older = Figure("territory.poblacion_65_y_mas", D("0.235"), "ratio",
+                   "Porcentaje de 65 y más años del Atlas, año 2024")
+    note = "Desde 2023 la población sale del Censo Anual."
+    zone = Tool("zona", "Zona", OfferArgs, lambda args: ToolResult(
+        figures=(older,), notes=(note,), scope="oferta_a1",
+        keys={"territory.poblacion_65_y_mas": "territory.poblacion_mayor"}))
     llm = FakeLLMClient(turns=[
         call('{"oferta_id": "a1"}', name="zona"),
-        ChatTurn("Renta: {{fig:valuation.rent_monthly}}. Ojo: desde 2023 la población cambia de "
-                 "fuente. Hay 3 colegios."),
-        ChatTurn("Renta: {{fig:valuation.rent_monthly}}."),
+        ChatTurn("La población mayor es {{fig:oferta_a1.territory.poblacion_mayor}}."),
     ])
-    answer = run_agent(llm, "x", "¿Renta?", [zone])
+    answer = run_agent(llm, "x", "¿Zona?", [zone])
     assert answer.failure is None
-    retry = llm.chats[2][-1]["content"]
-    assert "copia un aviso" in retry and "Quita esa frase" in retry
-    assert "colegios" in retry  # el otro dígito sigue con el mensaje genérico
+    assert answer.figures == {"oferta_a1.territory.poblacion_mayor": older}
+    assert answer.notes == [note]  # el usuario ve el aviso entero
+    result = json.loads(llm.chats[1][-1]["content"])
+    assert result["cifras"][0]["formula"] == "Porcentaje de … y más años del Atlas, año …"
+    assert result["avisos"] == ["Desde … la población sale del Censo Anual."]
 
 
 def test_si_vuelve_a_fallar_quedan_las_cifras_sin_texto():
@@ -121,6 +125,18 @@ def test_errores_de_herramienta_vuelven_al_modelo():
     assert errors[2] == "No existe la herramienta «borrar_todo»"
     assert errors[3].startswith("Argumentos no válidos")
     assert [s.ok for s in answer.steps] == [False, False, False, False]
+
+
+def test_respuesta_cortada_se_reintenta_una_vez():
+    llm = FakeLLMClient(turns=[
+        call('{"oferta_id": "a1"}'), LLMTruncated("Respuesta cortada por longitud"),
+        ChatTurn("Se alquilaría por {{fig:oferta_a1.valuation.rent_monthly}}."),
+    ])
+    answer = run_agent(llm, "x", "¿Renta?", TOOLS)
+    assert answer.failure is None and answer.rejected == [["Respuesta cortada por longitud"]]
+    assert "pocas frases" in llm.chats[2][-1]["content"]
+    llm = FakeLLMClient(turns=[call('{"oferta_id": "a1"}'), LLMTruncated("x"), LLMTruncated("x")])
+    assert run_agent(llm, "x", "¿Renta?", TOOLS).failure == "respuesta_cortada"
 
 
 def test_pasos_agotados_y_modelo_caido():
@@ -155,6 +171,7 @@ def test_chat_con_herramientas_en_formato_openai():
     assert turn == ChatTurn(None, (ToolCall("call_1", "valorar_oferta", '{"oferta_id": "a1"}'),))
     body = json.loads(seen[0].content)
     assert body["temperature"] == 0
+    assert body["max_tokens"] == 2048  # un bucle del modelo se corta, no agota la espera
     assert body["tools"] == [{"type": "function", "function": {
         "name": "valorar_oferta", "description": "Valora",
         "parameters": OfferArgs.model_json_schema()}}]

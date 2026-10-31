@@ -2,7 +2,8 @@
 
 El texto del agente nombra cada cifra con un marcador `{{fig:clave}}` (o `{{fig:clave:low}}`,
 `:high`, `:range` si tiene rango). Antes de mostrarlo se comprueba sin LLM: ningún dígito fuera de
-un marcador, cada clave entre las cifras del plan y ninguna llave suelta. El texto válido se
+un marcador, cada clave entre las cifras del plan, ninguna unidad detrás de un marcador (la cifra se
+muestra ya con la suya) y ninguna llave suelta. El texto válido se
 convierte en segmentos; la web y el PDF formatean cada cifra, Python no la escribe como texto.
 """
 
@@ -16,10 +17,15 @@ from typing import Literal
 from housefinder.core.figures import Figure
 
 Part = Literal["value", "low", "high", "range"]
-ProblemKind = Literal["digito", "clave_desconocida", "sin_rango", "marcador_mal_escrito"]
+ProblemKind = Literal["digito", "clave_desconocida", "sin_rango", "unidad_repetida",
+                      "marcador_mal_escrito"]
 
 MARKER = re.compile(r"\{\{fig:([a-z0-9_]+(?:\.[a-z0-9_]+)+)(?::(low|high|range))?\}\}")
 NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
+# Lo que la web ya escribe junto a la cifra («235.000 €», «839,80 € al mes», «4,29 %», «19,7 años»)
+UNIT_AFTER = re.compile(r"[*_ ]*(€|euros?\b|eur\b|%|por ciento\b|ratio\b|años?\b|personas\b|"
+                        r"m²|m2\b|metros\b|al mes\b|al año\b|/mes\b|/año\b|mensuales\b|"
+                        r"anuales\b)", re.IGNORECASE)
 BRACES = re.compile(r"\{|\}")
 CONTEXT = 12  # caracteres a cada lado del problema en el mensaje
 
@@ -42,7 +48,6 @@ Segment = TextSegment | FigureSegment
 class Problem:
     kind: ProblemKind
     message: str  # en español: se devuelve al modelo en el reintento
-    phrase: str = ""  # el número con la palabra de cada lado, para saber de dónde lo copió
 
 
 class InvalidText(ValueError):
@@ -64,7 +69,18 @@ def check_text(text: str, figures: Mapping[str, Figure]) -> list[Problem]:
         elif part is not None and figure.low is None:
             problems.append(Problem("sin_rango", f"La cifra «{key}» no tiene rango: usa "
                                                  f"{{{{fig:{key}}}}} sin «:{part}»."))
+        unit = UNIT_AFTER.match(text, end)
+        if unit:
+            problems.append(Problem("unidad_repetida", f"La cifra «{key}» ya se muestra con su "
+                                                       f"unidad: quita «{unit.group(1)}» detrás "
+                                                       "del marcador."))
     return problems
+
+
+def without_numbers(text: str) -> str:
+    """El texto con cada número cambiado por «…», para lo que el modelo lee y no puede citar
+    (fórmulas, avisos): así no copia un año o un código que no tiene marcador."""
+    return NUMBER.sub("…", text)
 
 
 def segments(text: str, figures: Mapping[str, Figure]) -> list[Segment]:
@@ -100,11 +116,12 @@ def _loose(free: str) -> list[Problem]:
     """Problemas de un tramo de texto libre: cada número y llaves que no forman un marcador."""
     problems = []
     for number in NUMBER.finditer(free):
-        phrase = " ".join(free[:number.start()].split()[-1:] + [number.group()]
-                          + free[number.end():].split()[:1])
         problems.append(Problem("digito", f"Hay un número escrito a mano "
                                           f"(«{_around(free, number)}»): usa un marcador "
-                                          "{{fig:clave}} o di lo mismo sin números.", phrase))
+                                          "{{fig:clave}} o di lo mismo sin números."))
+    if "…" in free:  # un número tapado por without_numbers, copiado de un aviso o una fórmula
+        problems.append(Problem("digito", "Has copiado «…» de un aviso o de una fórmula: es un "
+                                          "número que no puedes citar. Quita esa frase."))
     brace = BRACES.search(free)
     if brace:
         problems.append(Problem("marcador_mal_escrito",

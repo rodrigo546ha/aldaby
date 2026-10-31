@@ -48,6 +48,15 @@ el agente eso ya no es posible.
   de una oferta llega en F6.7, cuando sus supuestos (tipo de interés, vacío, seguros) tengan
   parámetro o los dé el usuario.
 
+## Ajustes tras la prueba con qwen3 (2026-10-31)
+- Las fórmulas y los avisos van al modelo sin números (ADR-0012) y las claves con números se le dan
+  con otro nombre (`ToolResult.keys`: `poblacion_65_y_mas` → `poblacion_mayor`); los marcadores
+  siguen apuntando al mismo `Figure`.
+- Cada turno del agente tiene un tope de 2.048 tokens (`CHAT_MAX_TOKENS`). A temperatura 0, qwen3
+  repitió una frase hasta agotar los diez minutos de espera; una respuesta cortada cuenta como texto
+  rechazado, gasta el reintento y, si vuelve a pasar, falla con `respuesta_cortada`.
+- La temperatura sigue en 0. El muestreo recomendado para cada modelo se revisa en F6.0.
+
 ## Opciones consideradas
 - **Que el modelo rellene los argumentos numéricos** (tipo de interés, vacío): es la forma más
   directa de colar una cifra inventada en un motor. Descartado.

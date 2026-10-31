@@ -31,6 +31,18 @@ cifras, sino referencias a las del plan.
   (corregido por ADR-0019). Copiarlas no sirve: cualquier dígito fuera de un marcador se rechaza,
   así que el marcador es la única forma de nombrar una cifra.
 
+## Prueba con qwen3 (2026-10-31)
+Con `qwen3-hf` el texto pasa la comprobación al segundo intento. Lo que se añadió tras las pruebas:
+- **Unidad repetida** (`unidad_repetida`): una unidad detrás de un marcador («{{fig:…}} €», «… al
+  mes», «… años») se rechaza, porque la web ya escribe la cifra con la suya y saldría dos veces.
+- **Números tapados:** lo que el modelo lee y no puede citar (fórmulas, avisos) le llega con cada
+  número cambiado por «…» (`without_numbers`); el usuario los ve enteros. Si copia «…», se rechaza.
+- Cada número del texto es un problema distinto en el reintento, no solo el primero de cada tramo.
+- **Límite conocido:** la comprobación no ve el significado. qwen3 llegó a llamar «valor tasado» al
+  precio por m² estimado, a inventar un horizonte («en cinco años», con letras) y a poner «por
+  debajo» delante de una diferencia negativa. Eso es de la evaluación de F6.9 y de la elección del
+  modelo en F6.0.
+
 ## Opciones consideradas
 - **Dejar que el agente escriba cifras y compararlas después con el plan:** obliga a interpretar
   formatos («1.452 €», «unos 1.500», «el 4,3 %»), y redondear o aproximar se confunde con inventar.

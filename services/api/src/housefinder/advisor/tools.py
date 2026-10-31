@@ -8,6 +8,7 @@ lo pregunta al usuario.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Literal
 from uuid import UUID
 
@@ -15,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from housefinder.agent.llm import LLMClient
 from housefinder.agent.loop import AgentAnswer, Tool, ToolFailed, ToolResult, run_agent
+from housefinder.core.figures import Figure
 from housefinder.db.connection import Connection
 from housefinder.db.offers import PrivateOffer, get_private_offer, list_private_offers
 from housefinder.params.book import ParamBook
@@ -30,8 +32,13 @@ alquilarían, cuánto valen frente a lo que piden, cómo puede evolucionar su pr
 - Si una herramienta dice que falta un dato, explícale al usuario qué tiene que confirmar.
 - Explica con frases cortas y claras, en español, y di los límites de cada estimación (rangos,
   supuestos, avisos de las herramientas).
+- Contesta en pocas frases, unas seis como mucho, y no repitas ninguna.
 - No le digas al usuario que compre o que no compre: explícale lo que dicen las cifras.
 """
+# Partes de clave con números, dichas sin ellos: el modelo nombra el indicador por su clave
+# («población de sesenta y cinco…») y el texto se rechaza (ADR-0012)
+SPOKEN = {"poblacion_65_y_mas": "poblacion_mayor", "poblacion_menor_18": "poblacion_menor_de_edad",
+          "change_5y": "cambio_lustro"}
 
 
 class NoArguments(BaseModel):
@@ -72,7 +79,7 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID) -> list[Tool]:
         return ToolResult(figures=tuple(valued.figures), notes=tuple(valued.notes),
                           facts={"titulo": offer.title,
                                  "renta_de": valued.report.level},
-                          scope=_scope(offer))
+                          scope=_scope(offer), keys=_spoken_keys(valued.figures))
 
     def zone(args: OfferArguments) -> ToolResult:
         offer = own(args.oferta_id)
@@ -84,7 +91,8 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID) -> list[Tool]:
         except SectionNotFound as exc:
             raise ToolFailed(str(exc)) from exc
         return ToolResult(figures=tuple(report.figures), notes=tuple(report.notes),
-                          facts={"titulo": offer.title}, scope=_scope(offer))
+                          facts={"titulo": offer.title}, scope=_scope(offer),
+                          keys=_spoken_keys(report.figures))
 
     return [
         Tool("ofertas_guardadas", "Ofertas que el usuario ha guardado, con su estado: solo las "
@@ -106,3 +114,13 @@ def ask(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID,
 def _scope(offer: PrivateOffer) -> str:
     """Prefijo de las claves de una oferta: con varias ofertas, la misma cifra no se pisa."""
     return f"oferta_{offer.id.hex[:8]}"
+
+
+def _spoken_keys(figures: Sequence[Figure]) -> dict[str, str]:
+    """Clave del Figure → clave sin números para el modelo, solo las que cambian."""
+    keys = {}
+    for figure in figures:
+        spoken = ".".join(SPOKEN.get(part, part) for part in figure.key.split("."))
+        if spoken != figure.key:
+            keys[figure.key] = spoken
+    return keys

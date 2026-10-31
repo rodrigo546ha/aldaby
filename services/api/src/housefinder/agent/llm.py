@@ -25,10 +25,17 @@ from pydantic import BaseModel, ValidationError
 T = TypeVar("T", bound=BaseModel)
 
 DEFAULT_TIMEOUT_S = 600.0  # sin GPU, un anuncio largo tarda minutos
+# Tope de salida de cada turno del agente: una respuesta o una llamada caben de sobra. Sin él, qwen3
+# entró una vez en bucle y generó miles de tokens hasta agotar el tiempo de espera.
+CHAT_MAX_TOKENS = 2048
 
 
 class LLMOutputError(RuntimeError):
     """La respuesta no trae una salida válida (cortada por longitud, sin estructura o error)."""
+
+
+class LLMTruncated(LLMOutputError):
+    """La respuesta llegó al tope de tokens: con el agente, casi siempre un bucle de frases."""
 
 
 Message = dict[str, Any]  # mensaje de chat en el formato compatible con OpenAI
@@ -118,7 +125,8 @@ class OpenAICompatibleLLMClient:
             raise LLMOutputError("La respuesta no trae la salida estructurada esperada") from exc
 
     def chat(self, messages: Sequence[Message], tools: Sequence[ToolSpec]) -> ChatTurn:
-        body: dict[str, Any] = {"model": self.model, "temperature": 0, "messages": list(messages)}
+        body: dict[str, Any] = {"model": self.model, "temperature": 0, "messages": list(messages),
+                                "max_tokens": CHAT_MAX_TOKENS}
         if tools:
             body["tools"] = [{"type": "function", "function": {
                 "name": t.name, "description": t.description, "parameters": t.parameters}}
@@ -146,7 +154,7 @@ class OpenAICompatibleLLMClient:
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
             raise LLMOutputError(f"El servidor del LLM no respondió bien: {exc}") from exc
         if choice.get("finish_reason") == "length":
-            raise LLMOutputError("Respuesta cortada por longitud")
+            raise LLMTruncated("Respuesta cortada por longitud")
         if not isinstance(message, dict):
             raise LLMOutputError("El servidor del LLM no devolvió un mensaje")
         return message
@@ -165,7 +173,7 @@ class FakeLLMClient:
     `turns` son los turnos de chat, en orden."""
 
     respond: Callable[[str, str, type[BaseModel]], BaseModel] | None = None
-    turns: list[ChatTurn] = field(default_factory=list)
+    turns: list[ChatTurn | LLMOutputError] = field(default_factory=list)  # un error se lanza
     calls: list[str] = field(default_factory=list)
     chats: list[list[Message]] = field(default_factory=list)  # historial visto en cada turno
 
@@ -182,7 +190,10 @@ class FakeLLMClient:
         self.chats.append([dict(m) for m in messages])
         if not self.turns:
             raise LLMOutputError("Sin más turnos falsos preparados")
-        return self.turns.pop(0)
+        turn = self.turns.pop(0)
+        if isinstance(turn, LLMOutputError):
+            raise turn
+        return turn
 
 
 def llm_from_env() -> LLMClient:
