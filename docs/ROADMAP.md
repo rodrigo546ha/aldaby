@@ -261,6 +261,9 @@ umbral fijado en F0, y cada estimación con su rango.
       `agent/llm.py` con un servidor propio de modelos abiertos por la API compatible con OpenAI
       (ADR-0014) y cliente falso. Probado con `qwen3:8b` en Ollama local. *Pendiente:* elegir
       servidor virtual y modelo con una prueba sobre anuncios reales.
+      Banco del agente (`python -m housefinder.advisor evaluar`): con las mismas cinco preguntas,
+      `qwen3:8b` no pidió ninguna herramienta y `qwen3:14b` acertó en cuatro
+      (`docs/research/f6-0-banco-agente.md`).
 - [ ] F6.2 Perfilado conversacional que produce un perfil estructurado y validado.
 - [ ] F6.3 Lectura de documentos del usuario (nómina, extracto, declaración) con confirmación manual.
 - [x] F6.4 Herramientas del agente: llama a los motores, nunca calcula.

@@ -87,7 +87,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     agent/extraction.py   extracción con cita literal comprobada: ninguna cifra extraída es inventada
     agent/references.py   el agente escribe marcadores {{fig:clave}}, no cifras: comprobación y segmentos (ADR-0012)
     agent/loop.py         bucle del agente con herramientas; el texto final se comprueba con references (ADR-0019)
-    advisor/              herramientas del agente sobre los motores (solo lectura, argumentos sin números) y CLI
+    advisor/              herramientas del agente sobre los motores (solo lectura, argumentos sin números),
+                          glosario de cifras para el modelo, banco de preguntas (evaluation.py) y CLI
     watch/                vigilancia del BOE y del BOCM: filtros, lectura y tareas (F2.6)
     geo/cartociudad.py    geocodificador de CartoCiudad (ADR-0009); solo geo/ e ingestion/ usan la red
     geo/catastro.py       centroide de una parcela por referencia catastral (Catastro, ADR-0016)

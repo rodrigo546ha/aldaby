@@ -1,6 +1,7 @@
 """Pregunta al agente desde la terminal, para probarlo en desarrollo (ADR-0019).
 
     python -m housefinder.advisor preguntar "¿Cuál de mis ofertas se alquilaría mejor?"
+    python -m housefinder.advisor evaluar --salida banco.md   # banco de preguntas (F6.0)
 
 Usa el LLM de `.env` (ADR-0014) y las ofertas de la organización local de desarrollo. Las cifras
 salen como [clave = valor unidad]: la web las formatea con `<FigureView>`.
@@ -9,12 +10,17 @@ salen como [clave = valor unidad]: la web las formatea con `<FigureView>`.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
+from pathlib import Path
+from uuid import UUID
 
+from housefinder.advisor.evaluation import CASES, run_cases, summary
 from housefinder.advisor.tools import ask
-from housefinder.agent.llm import llm_from_env
+from housefinder.agent.llm import LLMClient, llm_from_env
 from housefinder.agent.references import FigureSegment
-from housefinder.db.connection import connect
+from housefinder.db.connection import Connection, connect
+from housefinder.db.offers import list_private_offers
 from housefinder.db.profiles import get_or_create_organization
 from housefinder.params.book import ParamBook, default_params_dir
 
@@ -26,6 +32,8 @@ def main() -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     question = sub.add_parser("preguntar", help="una pregunta sobre tus ofertas")
     question.add_argument("texto")
+    bench = sub.add_parser("evaluar", help="banco de preguntas con el modelo de .env")
+    bench.add_argument("--salida", type=Path, help="informe en Markdown con cada texto")
     args = parser.parse_args()
 
     llm = llm_from_env()
@@ -33,6 +41,8 @@ def main() -> int:
     with connect() as conn:
         org = get_or_create_organization(conn, DEV_ORG, "particular")
         conn.commit()
+        if args.command == "evaluar":
+            return _evaluate(conn, book, llm, org, args.salida)
         answer = ask(conn, book, llm, org, args.texto)
     for step in answer.steps:
         print(f"· {step.tool}: {'bien' if step.ok else 'error'}", file=sys.stderr)
@@ -51,6 +61,30 @@ def main() -> int:
     for note in answer.notes:
         print(f"  aviso: {note}")
     return 0 if answer.failure is None else 1
+
+
+def _evaluate(conn: Connection, book: ParamBook, llm: LLMClient, org: UUID,
+              output: Path | None) -> int:
+    town = next((((o.extracted or {}).get("confirmed") or {}).get("fields", {})
+                 .get("municipality", {}).get("value")
+                 for o in list_private_offers(conn, org) if o.property_id is not None), None)
+    if not town:
+        print("Hace falta una oferta confirmada, ubicada y con municipio.", file=sys.stderr)
+        return 1
+    results = run_cases(lambda q: ask(conn, book, llm, org, q), CASES, town)
+    model = os.environ.get("LLM_MODEL_ID")
+    lines = [f"# Banco del agente con {model}", "", summary(results), ""]
+    for r in results:
+        lines += [f"## {r.question}", "",
+                  f"herramientas {'bien' if r.tools_ok else 'MAL'} · "
+                  f"{'mostrado' if r.shown else 'NO mostrado'}"
+                  f"{' a la primera' if r.first_try else ''} · fallo: {r.failure or '—'} · "
+                  f"{r.seconds} s", "", r.text, ""]
+    report = "\n".join(lines)
+    print(report)
+    if output:
+        output.write_text(report, encoding="utf-8")
+    return 0
 
 
 def _part(segment: FigureSegment) -> str:
