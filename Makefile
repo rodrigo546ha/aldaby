@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi
+.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler supuestos backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi
 
 # Configuración local (copia de .env.example, fuera de git): LLM, base de datos, claves…
 -include .env
@@ -51,6 +51,17 @@ ipc-alquiler:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_ipc_alquiler --region $(REGION)
 
 # Backtesting del modelo de renta y precio (F5.6)
+# Supuestos del plan desde fuentes públicas (ADR-0022): tipos del Banco de España y del INE,
+# estadísticas del Catastro, gasto de la vivienda de la EPF y reglas del IBI de Hacienda.
+CATASTRO_YEAR ?= 2026
+IBI_YEAR ?= 2026
+supuestos:
+	cd services/api && $(VENV)/python -m housefinder.ingestion.bde_tipos
+	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_hipotecas
+	cd services/api && $(VENV)/python -m housefinder.ingestion.catastro_urbana --year $(CATASTRO_YEAR) --province $(PROVINCE)
+	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_epf
+	cd services/api && $(VENV)/python -m housefinder.ingestion.hacienda_ibi --year $(IBI_YEAR) --region MADRID --ccaa $(REGION)
+
 backtest:
 	cd services/api && $(VENV)/python -m housefinder.valuation.backtest --province $(PROVINCE) --region $(REGION)
 

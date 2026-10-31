@@ -111,6 +111,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     ingestion/valor_tasado.py  valor tasado de la vivienda libre por municipio (Ministerio, vía Comunidad de Madrid)
     ingestion/ine_ipv.py  índice de precios de vivienda del INE por comunidad, trimestral
     ingestion/ine_ipc_alquiler.py  componente de alquiler del IPC del INE por comunidad, mensual
+    ingestion/bde_tipos.py, ine_hipotecas.py, catastro_urbana.py, ine_epf.py, hacienda_ibi.py
+                          fuentes de los supuestos del plan (ADR-0022); hacienda_ibi genera reglas
     db/references.py      referencias de alquiler y de precio (market_references)
     api/main.py           aplicación FastAPI; un router por dominio (simulate, territory, offers, boe, valuation)
   data/rules/             reglas de normativa en YAML
@@ -139,6 +141,7 @@ make serpavi   # carga las referencias de alquiler del SERPAVI 2011–2024 (PROV
 make valor-tasado FICHERO=…  # valor tasado por municipio: CSV descargado a mano (su portal prohíbe el acceso automático)
 make ipv       # índice de precios de vivienda del INE por comunidad (REGION=13)
 make ipc-alquiler  # componente de alquiler del IPC del INE por comunidad, mensual (REGION=13)
+make supuestos # supuestos del plan: tipos del BdE y del INE, Catastro, EPF y reglas del IBI (ADR-0022)
 make backtest  # backtesting del modelo de renta y precio (F5.6)
 make worker    # worker de la cola; encolar con `python -m housefinder.jobs enqueue …`
 make schedules # aplica data/jobs/programaciones.yaml (trabajos diarios; el Makefile lee .env)

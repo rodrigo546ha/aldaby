@@ -32,11 +32,12 @@ ALLOWED_INTERNAL = {
     "documents": {"core", "documents"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi",
-                      "pypdf", "pypdfium2", "pytesseract", "PIL"}
+                      "pypdf", "pypdfium2", "pytesseract", "PIL", "xlrd"}
 # Solo db/ habla con la base de datos (ADR-0008).
 DB_DRIVERS = {"psycopg", "psycopg_pool"}
 # Solo la ingesta descarga datos de la red.
-ALLOWED_EXTERNAL = {"ingestion": {"httpx"}, "geo": {"httpx"}, "jobs": {"httpx"},
+# La ingesta lee además PDF y Excel antiguos de fuentes públicas (ADR-0022).
+ALLOWED_EXTERNAL = {"ingestion": {"httpx", "pypdf", "xlrd"}, "geo": {"httpx"}, "jobs": {"httpx"},
                     "watch": {"httpx"}, "offers": {"httpx"}, "agent": {"httpx"},
                     # Solo documents/ lee PDF y hace OCR (ADR-0021)
                     "documents": {"pypdf", "pypdfium2", "pytesseract", "PIL"}}

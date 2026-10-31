@@ -16,6 +16,8 @@ dependencies = [
   "pypdfium2>=4.30",
   "pytesseract>=0.3.13",
   "pillow>=10.4",
+  # Excel antiguo (.xls) de las estadísticas del Catastro (ADR-0022)
+  "xlrd>=2.0",
 ]
 
 [project.optional-dependencies]

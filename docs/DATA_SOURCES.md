@@ -22,6 +22,11 @@ condiciones de reutilización y sin quedar registrada en la tabla `sources`.
 | Precio | Valor tasado de la vivienda libre (Ministerio de Vivienda), copia de la Comunidad de Madrid | CSV anual 2005–2025, municipios de más de 25.000 habitantes; CC BY 4.0. El `robots.txt` del portal prohíbe el acceso automático: descarga manual | F5 | Cargado a mano (`make valor-tasado FICHERO=…`), ADR-0018 |
 | Precio | Índice de Precios de Vivienda (INE), tabla 80270 | API del INE, trimestral, base 2025, por comunidad autónoma | F5 | Cargado (`make ipv`), ADR-0018 |
 | Alquiler | IPC (INE), subgrupo 04.1 Alquiler de vivienda por comunidad, tabla 76137 | API del INE, mensual, base 2025 | F5 | Cargado (`make ipc-alquiler`); actualiza la renta del SERPAVI, ADR-0018 |
+| Hipotecas | Banco de España, Boletín Estadístico 19.4: TEDR de nuevas operaciones de crédito a la vivienda por periodo de fijación | CSV mensual nacional desde 2003; citar al Banco de España sin alterar los datos | F6 | Cargado (`make supuestos`), ADR-0022: tipo fijo y subida del estrés |
+| Hipotecas | INE, Estadística de Hipotecas, tabla 76315 | API del INE, mensual, nacional (fijo, variable y total) | F6 | Cargado, solo contraste (ADR-0022) |
+| Catastro | Estadísticas catastrales urbanas por municipio (`URBANA{año}.xls`) | XLS anual; reproducción autorizada citando el origen | F6 | Cargado 2026 de Madrid (ADR-0022): valor catastral residencial medio y parte de construcción |
+| Impuestos | Ministerio de Hacienda, Oficina Virtual EELL: tipos del IBI por municipio | PDF anual por comunidad (municipios de más de 1.000 habitantes); reutilización citando la fuente | F6 | Reglas `tipo_ibi` sin verificar en `data/rules/ibi_hacienda_2026.yaml` (ADR-0022) |
+| Gastos | INE, Encuesta de Presupuestos Familiares, tabla 73993 | API del INE, anual, por comunidad: gastos comunitarios, seguros y mantenimiento de la vivienda | F6 | Cargado 2023–2025 (ADR-0022); medias de todos los hogares, se quedan cortas |
 | Precio | Portal Estadístico del Notariado | Visor con registro; términos: uso personal, sin uso comercial | F5 | Descartado sin autorización escrita |
 
 Fuera del MVP: portales inmobiliarios por scraping (prohibido sin ADR), conexión bancaria directa
