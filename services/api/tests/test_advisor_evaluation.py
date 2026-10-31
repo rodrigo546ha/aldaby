@@ -30,3 +30,25 @@ def test_el_banco_mide_cada_caso():
     assert second.text == "a | b"
     assert summary(results).startswith(
         "herramientas correctas 1/2 · texto mostrado 1/2 · a la primera 0/2")
+
+
+def test_cuenta_cifras_fuera_de_marcadores_y_contradicciones():
+    cash = Figure("cashflow.monthly_after_tax", Decimal("-36.66"), "EUR/mes", "x")
+    replies = {"¿Renta de la de Getafe?": AgentAnswer(
+        [TextSegment("Tienes un cash flow positivo de "), FigureSegment(cash, "value"),
+         TextSegment(", unos 40 al mes.")], {}, [], [Step("valorar_oferta", True)])}
+    result = run_cases(replies.__getitem__, CASES[:1], "Getafe")[0]
+    assert result.invented == 2
+    assert result.contradictions == (
+        "palabra positiva junto a cashflow.monthly_after_tax, que es negativa",)
+    assert "cifras fuera de marcadores 2 · contradicciones 1" in summary([result])
+
+
+def test_nombra_las_ofertas_por_su_titulo():
+    from housefinder.agent.references import OfferSegment
+
+    replies = {"¿Renta de la de Getafe?": AgentAnswer(
+        [OfferSegment("abcd1234", "Oferta pegada"), TextSegment(" no encaja.")], {}, [],
+        [Step("valorar_oferta", True)])}
+    assert run_cases(replies.__getitem__, CASES[:1], "Getafe")[0].text == (
+        "[oferta Oferta pegada] no encaja.")

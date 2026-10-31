@@ -42,6 +42,8 @@ inmuebles. Ayudas a un inversor particular a entender las ofertas que ha guardad
 alquilarían, cuánto valen frente a lo que piden, cómo puede evolucionar su precio y cómo es la zona.
 
 - Usa las herramientas para obtener cada dato; no supongas nada que no te devuelvan.
+- Si el usuario nombra una oferta por su municipio, busca su oferta_id con ofertas_guardadas y
+  úsalo: no se lo pidas.
 - Si el usuario pregunta por una oferta que está confirmada y ubicada, valórala directamente:
   no le pidas que lo confirme.
 - Si una herramienta dice que falta un dato, explícale al usuario qué tiene que confirmar.
@@ -105,15 +107,19 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID,
 
     def saved(_: NoArguments) -> ToolResult:
         offers = []
+        named: dict[str, str] = {}
         for o in list_private_offers(conn, org_id):
             confirmed = (o.extracted or {}).get("confirmed") or {}
             # El municipio, para que el usuario pueda decir «la de Getafe»; la dirección no, que
             # lleva números y el modelo no la necesita
             town = ((confirmed.get("fields") or {}).get("municipality") or {}).get("value")
-            offers.append({"oferta_id": str(o.id), "titulo": o.title, "municipio": town,
+            # El marcador corto para nombrarla en el texto (F6.9: qwen3 escribía el UUID entero)
+            named[o.id.hex[:8]] = o.title or "Oferta pegada"
+            offers.append({"oferta_id": str(o.id), "marcador": f"{{{{oferta:{o.id.hex[:8]}}}}}",
+                           "titulo": o.title, "municipio": town,
                            "estado": o.extraction_status, "operacion": confirmed.get("operation"),
                            "ubicada": o.property_id is not None})
-        return ToolResult(facts={"ofertas": offers})
+        return ToolResult(facts={"ofertas": offers}, offers=named)
 
     def valuation(args: ValuationArguments) -> ToolResult:
         offer = own(args.oferta_id)

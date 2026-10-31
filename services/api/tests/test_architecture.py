@@ -40,6 +40,9 @@ ALLOWED_INTERNAL = {
               "search", "valuation"},
     # PDF del plan (F6.8): el plan, las fuentes de reglas, parámetros y datos
     "reports": {"core", "db", "params", "planning", "plans", "regulation", "reports"},
+    # Evaluaciones (F6.9): el asesor, la extracción y el plan, con el perfil de desarrollo
+    "evaluations": {"advisor", "agent", "core", "crypto", "db", "evaluations", "params", "plans",
+                    "profiles", "regulation", "search"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi",
                       "pypdf", "pypdfium2", "pytesseract", "PIL", "xlrd", "weasyprint"}

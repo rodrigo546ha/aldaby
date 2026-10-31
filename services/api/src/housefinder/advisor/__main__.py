@@ -73,7 +73,12 @@ def _evaluate(conn: Connection, book: ParamBook, llm: LLMClient, org: UUID,
     if not town:
         print("Hace falta una oferta confirmada, ubicada y con municipio.", file=sys.stderr)
         return 1
-    results = run_cases(lambda q: ask(conn, book, llm, org, q), CASES, town)
+    profile, rules = _profile(conn, org)
+    cases = [c for c in CASES if profile is not None or not c.needs_profile]
+    if len(cases) < len(CASES):
+        print("Sin perfil confirmado (o sin clave maestra): se saltan las preguntas de búsqueda, "
+              "alquiler y plan.", file=sys.stderr)
+    results = run_cases(lambda q: ask(conn, book, llm, org, q, profile, rules), cases, town)
     model = os.environ.get("LLM_MODEL_ID")
     lines = [f"# Banco del agente con {model}", "", summary(results), ""]
     for r in results:
@@ -82,6 +87,7 @@ def _evaluate(conn: Connection, book: ParamBook, llm: LLMClient, org: UUID,
                   f"{'mostrado' if r.shown else 'NO mostrado'}"
                   f"{' a la primera' if r.first_try else ''} · fallo: {r.failure or '—'} · "
                   f"{r.seconds} s", "", r.text, ""]
+        lines += [f"- contradicción: {c}" for c in r.contradictions]
     report = "\n".join(lines)
     print(report)
     if output:

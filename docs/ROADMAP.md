@@ -318,8 +318,15 @@ umbral fijado en F0, y cada estimación con su rango.
       y si está verificada, parámetro, datos con licencia y fecha, supuestos en palabras). Sin la
       explicación del asesor y sin guardarlo: `GET /plans/offers/{id}/pdf` con `no-store` y enlace
       «Descargar PDF» en `/plan`. En el Mac necesita pango de Homebrew (`PDF_LIBS` del Makefile).
-- [ ] F6.9 Evaluaciones automáticas: extracción de anuncios, ausencia de cifras inventadas en el
+- [x] F6.9 Evaluaciones automáticas: extracción de anuncios, ausencia de cifras inventadas en el
       texto del agente y coherencia del plan.
+      *Hecho (ADR-0027):* juego etiquetado de doce anuncios sintéticos y cuatro del BOE
+      (`data/evaluation/`), banco del asesor ampliado con búsqueda, alquiler y plan, con dígitos
+      fuera de marcadores y contradicciones de sentido (`agent/sense.py`), y reglas de coherencia
+      del plan que se avisan en el propio plan (`plans/coherence.py`). `make evaluar` compara con
+      la línea base guardada. La primera pasada destapó que qwen3 escribía «value» en vez del
+      dato: con la corrección, la extracción pasa de 57 a 102 campos de 141 y el asesor acierta
+      las herramientas 8/8 (`docs/research/f6-9-evaluaciones.md`).
 
 **Criterio de salida.** Los 10 planes manuales de F0 se reproducen con la herramienta en menos de
 10 minutos cada uno, y ninguna cifra del texto del agente falta en los `Figure` del plan.

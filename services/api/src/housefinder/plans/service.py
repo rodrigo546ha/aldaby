@@ -21,6 +21,7 @@ from housefinder.planning.arguments import Argument, ArgumentInputs, arguments
 from housefinder.planning.ranking import Verdict
 from housefinder.planning.scenarios import ScenarioComparison, compare_with_pending
 from housefinder.planning.simulate import simulate
+from housefinder.plans.coherence import check_plan
 from housefinder.plans.roadmap import Step, roadmap
 from housefinder.profiles.model import UserProfile
 from housefinder.regulation.rules import RuleBook
@@ -166,12 +167,18 @@ def full_plan(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserP
     steps = roadmap(candidate.kind, plan.loan.value > 0,
                     chosen.option.rental_type if chosen else "habitual")
     comparison = plan.comparison
-    return FullPlan(
+    result = FullPlan(
         candidate.offer_id, candidate.kind, candidate.title, candidate.url, scored.auction,
         scored.verdict, _sections(figures), advice, found, steps, pending,
         comparison.cheapest_expected if comparison else None,
         comparison.lowest_stressed_payment if comparison else None,
         (*scored.notes, *notes))
+    # Un fallo de coherencia es un error del programa: el plan lo avisa (ADR-0027)
+    issues = check_plan(result)
+    if issues:
+        result = replace(result, notes=(*result.notes, *(f"Incoherencia del plan (avísanos): "
+                                                         f"{i}." for i in issues)))
+    return result
 
 
 def _sections(figures: dict[str, Figure]) -> tuple[PlanSection, ...]:

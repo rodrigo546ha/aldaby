@@ -1,0 +1,29 @@
+{
+  "modelo": "qwen3-14b-hf",
+  "fecha": "2026-10-31",
+  "metricas": {
+    "extraccion": {
+      "correctos": 102,
+      "con_valor": 141,
+      "campos": 188,
+      "falta": 36,
+      "distinto": 0,
+      "sobra": 7,
+      "lotes_de_mas": 0,
+      "lotes_de_menos": 0,
+      "errores": 0
+    },
+    "agente": {
+      "preguntas": 8,
+      "herramientas": 8,
+      "mostrados": 7,
+      "a_la_primera": 3,
+      "cifras_fuera": 0,
+      "contradicciones": 0
+    },
+    "coherencia": {
+      "planes": 1,
+      "incoherencias": 0
+    }
+  }
+}

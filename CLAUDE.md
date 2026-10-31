@@ -73,6 +73,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
                           tipo de alquiler y gestión (rental.py, ADR-0024)
     plans/                plan completo de una oferta y hoja de ruta de compra (ADR-0025)
     reports/              PDF del plan con anexo de fuentes; solo aquí weasyprint (ADR-0026)
+    plans/coherence.py    reglas de coherencia del plan; un fallo se avisa en el plan (ADR-0027)
+    evaluations/          extracción contra el juego etiquetado, banco del asesor y línea base (ADR-0027)
     db/migrate.py         ejecutor de migraciones (ADR-0008); solo db/ importa psycopg
     db/sections.py        fuentes (`sources`) y secciones censales; sección de un punto
     db/indicators.py      indicadores por sección y cartografía (renta, demografía)
@@ -97,6 +99,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     agent/documents.py    campos de nómina, declaración y extracto con cita y etiqueta comprobadas (ADR-0021)
     agent/profiling.py    datos del perfil en la respuesta libre, con cita comprobada (ADR-0020)
     agent/plan_arguments.py  argumentos del asesor para no comprar, sin números (ADR-0025)
+    agent/sense.py        contradicciones de sentido junto a los marcadores del asesor (ADR-0027)
     agent/references.py   el agente escribe marcadores {{fig:clave}}, no cifras: comprobación y segmentos (ADR-0012)
     agent/loop.py         bucle del agente con herramientas; el texto final se comprueba con references (ADR-0019)
     advisor/              herramientas del agente sobre los motores (solo lectura, argumentos sin números),
@@ -131,6 +134,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   data/profiles/          comunidades autónomas por código INE, para la residencia del perfil
   data/territory/         provincia → comunidad autónoma (códigos INE)
   data/plan/              hoja de ruta de compra: pasos con su fuente, sin verificar (ADR-0025)
+  data/evaluation/        juego etiquetado de anuncios (sintéticos y BOE) y línea base de las evaluaciones
   data/offers/            sedes de partidos judiciales para los avisos de subastas (sin verificar)
                           y zona cubierta (zona.yaml): un lote de otra provincia no se ubica
   tests/                  pytest; un test por regla de negocio
@@ -155,6 +159,7 @@ make ipv       # índice de precios de vivienda del INE por comunidad (REGION=13
 make ipc-alquiler  # componente de alquiler del IPC del INE por comunidad, mensual (REGION=13)
 make supuestos # supuestos del plan: tipos del BdE y del INE, Catastro, EPF y reglas del IBI (ADR-0022)
 make backtest  # backtesting del modelo de renta y precio (F5.6)
+make evaluar   # evaluaciones con el modelo de .env frente a la línea base (BASE=1 la guarda)
 make worker    # worker de la cola; encolar con `python -m housefinder.jobs enqueue …`
 make schedules # aplica data/jobs/programaciones.yaml (trabajos diarios; el Makefile lee .env)
 make worker-install  # worker siempre en marcha en este Mac (launchd); logs: make worker-logs

@@ -1,0 +1,235 @@
+# Juego etiquetado de la extracción de anuncios (F6.9, ADR-0027). Ver evaluations/listings.py.
+#
+# Los anuncios de portal (01–12) son SINTÉTICOS, escritos para este juego. Los del BOE son los
+# textos de las fixtures (tests/fixtures/boe), públicos.
+#
+# Un campo que no aparece se espera vacío (el documento no lo da). Una lista admite varias
+# lecturas del documento; `null` en la lista admite también dejarlo vacío. Números sin separador
+# de miles y con punto decimal; textos sin importar mayúsculas ni tildes, y basta con que uno
+# contenga al otro.
+
+- id: piso-getafe
+  file: anuncios/01-piso-getafe.txt
+  kind: anuncio
+  expected:
+    operation: venta
+    property_type: vivienda
+    price: 235000
+    built_area_m2: 85
+    usable_area_m2: 72
+    rooms: 3
+    bathrooms: 2
+    floor: "2ª"
+    condition: buen estado
+    address: calle de Madrid, 34
+    municipality: Getafe
+    year_built: 1998
+    community_fees: 60
+
+- id: alquiler-chamberi
+  file: anuncios/02-alquiler-chamberi.txt
+  kind: anuncio
+  expected:
+    operation: alquiler
+    property_type: vivienda
+    price: 1100
+    built_area_m2: 65
+    rooms: 2
+    bathrooms: 1
+    floor: "4ª"
+    condition: [reformado, null]
+    address: [calle de Fuencarral, null]
+    municipality: Madrid
+    # «reformado en 2021» no es el año de construcción
+
+- id: rebajado-leganes
+  file: anuncios/03-rebajado-leganes.txt
+  kind: anuncio
+  expected:
+    operation: venta
+    property_type: vivienda
+    price: 185000          # el precio de ahora, no el de antes
+    built_area_m2: 78
+    rooms: 3
+    bathrooms: 1
+    floor: "1ª"
+    condition: para reformar
+    address: avenida de la Universidad, 12
+    municipality: Leganés
+    year_built: 1975
+    community_fees: 45
+
+- id: precio-m2-alcorcon
+  file: anuncios/04-precio-m2-alcorcon.txt
+  kind: anuncio
+  expected:
+    operation: venta
+    property_type: vivienda
+    price: 228000          # no el precio por m² ni el del garaje
+    built_area_m2: 80
+    rooms: 2
+    bathrooms: 2
+    floor: "3"
+    condition: buen estado
+    municipality: Alcorcón
+    cadastral_ref: 9872023VH5797S
+    community_fees: 70
+
+- id: local-mostoles
+  file: anuncios/05-local-mostoles.txt
+  kind: anuncio
+  expected:
+    operation: venta
+    property_type: local
+    price: 150000
+    built_area_m2: 120
+    floor: [baja, planta baja]
+    condition: buen estado
+    address: Calle Echegaray, 7
+    municipality: Móstoles
+
+- id: garaje-fuenlabrada
+  file: anuncios/06-garaje-fuenlabrada.txt
+  kind: anuncio
+  expected:
+    operation: venta
+    property_type: garaje
+    price: 18000
+    built_area_m2: [12, null]
+    floor: [sótano -1, "-1", null]
+    municipality: Fuenlabrada
+    community_fees: 15
+
+- id: atico-pozuelo
+  file: anuncios/07-atico-pozuelo.txt
+  kind: anuncio
+  expected:
+    operation: venta
+    property_type: vivienda
+    price: 389000
+    built_area_m2: 90
+    usable_area_m2: 78
+    rooms: 2
+    bathrooms: 2
+    floor: ático
+    condition: a reformar
+    municipality: Pozuelo de Alarcón
+    year_built: 1985
+    community_fees: 95
+
+- id: sin-precio-alcala
+  file: anuncios/08-sin-precio-alcala.txt
+  kind: anuncio
+  expected:
+    operation: venta
+    property_type: vivienda
+    # sin precio: «Consultar precio»
+    built_area_m2: 100
+    rooms: 4
+    bathrooms: 2
+    floor: "5ª"
+    condition: para entrar a vivir
+    municipality: Alcalá de Henares
+
+- id: recomendados-parla
+  file: anuncios/09-recomendados-parla.txt
+  kind: anuncio
+  expected:
+    operation: venta
+    property_type: vivienda
+    price: 142000          # no los de los otros inmuebles recomendados
+    built_area_m2: 70
+    rooms: 3
+    bathrooms: 1
+    floor: "2ª"
+    condition: buen estado
+    address: calle Real, 50
+    municipality: Parla
+    community_fees: 50
+
+- id: bajo-obra-nueva-alcorcon
+  file: anuncios/10-bajo-obra-nueva-alcorcon.txt
+  kind: anuncio
+  expected:
+    operation: venta
+    property_type: vivienda
+    price: 210000
+    built_area_m2: 75
+    rooms: 3
+    bathrooms: 2
+    floor: [baja, planta baja]
+    condition: obra nueva
+    municipality: Alcorcón
+    cadastral_ref: 9872023VH5797S0001WX
+    year_built: [2024, null]
+    community_fees: 80
+
+- id: adosado-las-rozas
+  file: anuncios/11-adosado-las-rozas.txt
+  kind: anuncio
+  expected:
+    operation: venta
+    property_type: vivienda
+    price: 450000
+    built_area_m2: 180
+    rooms: 4
+    bathrooms: 3
+    condition: buen estado
+    municipality: Las Rozas de Madrid
+    year_built: 2002
+    community_fees: 120
+
+- id: estudio-alquiler-madrid
+  file: anuncios/12-estudio-alquiler-madrid.txt
+  kind: anuncio
+  expected:
+    operation: alquiler
+    property_type: vivienda
+    price: 750
+    built_area_m2: 35
+    rooms: [0, null]       # un estudio
+    bathrooms: 1
+    floor: "3ª"
+    condition: [reformado, null]
+    municipality: Madrid
+    # comunidad «incluida»: no hay importe
+
+# --- BOE --------------------------------------------------------------------------------------
+
+- id: boe-alcaniz
+  file: anuncios/boe-BOE-B-2026-34976.txt
+  kind: boe
+  lots: []                 # solo remite al portal de subastas
+
+- id: boe-madrid-31-a
+  file: anuncios/boe-BOE-B-2026-35002.txt
+  kind: boe
+  lots: []
+
+- id: boe-madrid-31-b
+  file: anuncios/boe-BOE-B-2026-35003.txt
+  kind: boe
+  lots: []
+
+- id: boe-tgss-alcala
+  file: anuncios/boe-BOE-B-2026-35273.txt
+  kind: boe
+  lots:
+    - label: Lote 1
+      property_type: suelo
+      address: ["Carretera M-119 (Camarma-Valdeavero), n°21", "Carretera M-119"]
+      municipality: Alcalá de Henares
+      province: Madrid
+      cadastral_ref: 7744401VK6874N0001FJ
+      built_area_m2: [185421, 163883, null]   # registral o catastral; es suelo
+      price: 25802189
+      deposit: 1290109.45
+    - label: Lote 2
+      property_type: suelo
+      address: ["Carretera M-119 (Camarma-Valdeavero), n°21", "Carretera M-119"]
+      municipality: Alcalá de Henares
+      province: Madrid
+      cadastral_ref: 7744403VK6873N0001OM
+      built_area_m2: [48713, 53700, null]
+      price: 6778639
+      deposit: 338931.95

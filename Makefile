@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler supuestos backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi
+.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler supuestos backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi evaluar
 
 # Configuración local (copia de .env.example, fuera de git): LLM, base de datos, claves…
 -include .env
@@ -102,6 +102,11 @@ worker-logs:
 
 test:
 	cd services/api && $(PDF_LIBS) $(VENV)/python -m pytest -q
+
+# Evaluaciones con el modelo de .env (ADR-0027): extracción, asesor y coherencia del plan.
+# Compara con data/evaluation/linea_base.json; BASE=1 guarda la nueva línea base.
+evaluar:
+	cd services/api && $(PDF_LIBS) $(VENV)/python -m housefinder.evaluations $(if $(BASE),--guardar-base,)
 
 lint:
 	cd services/api && $(VENV)/ruff check src tests
