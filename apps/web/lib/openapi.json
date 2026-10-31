@@ -522,6 +522,20 @@
             }
           },
           {
+            "name": "horizon_years",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 40,
+              "minimum": 1,
+              "description": "Horizonte de los escenarios (años)",
+              "default": 10,
+              "title": "Horizon Years"
+            },
+            "description": "Horizonte de los escenarios (años)"
+          },
+          {
             "name": "address",
             "in": "query",
             "required": false,
@@ -1237,9 +1251,13 @@
               },
               {
                 "type": "string"
+              },
+              {
+                "type": "null"
               }
             ],
-            "title": "Appreciation Rate"
+            "title": "Appreciation Rate",
+            "description": "Revalorización anual supuesta. Vacía: escenarios del municipio (F5.5)"
           },
           "sale_cost_rate": {
             "anyOf": [
@@ -1265,7 +1283,6 @@
         },
         "type": "object",
         "required": [
-          "appreciation_rate",
           "sale_cost_rate"
         ],
         "title": "ExitRequest"
@@ -1614,6 +1631,14 @@
             },
             "type": "array",
             "title": "Warnings"
+          },
+          "appreciation_notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Appreciation Notes",
+            "default": []
           }
         },
         "type": "object",

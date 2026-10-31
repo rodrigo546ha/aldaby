@@ -136,10 +136,22 @@ class RentalInput:
 
 
 @dataclass(frozen=True)
+class AppreciationAlternative:
+    """Otro escenario de revalorización con el que se repite la venta y la TIR (F5.5)."""
+
+    name: str  # 'conservative', 'optimistic'…: la TIR sale como irr.rate_<name>
+    rate: Decimal
+    sources: tuple[SourceRef, ...]
+
+
+@dataclass(frozen=True)
 class ExitInput:
     appreciation_rate: Decimal
     sale_cost_rate: Decimal  # agencia y otros gastos de venta de mercado, sobre el precio
     horizon_years: int = 10
+    # De dónde sale la revalorización: el supuesto del usuario o el escenario base (F5.5)
+    appreciation_sources: tuple[SourceRef, ...] = (APPRECIATION,)
+    alternatives: tuple[AppreciationAlternative, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -171,6 +183,7 @@ class InvestmentSimulation:
     irr: IrrResult
     comparison: MortgageComparison | None
     warnings: tuple[str, ...] = field(default_factory=tuple)
+    irr_alternatives: tuple[Figure, ...] = ()  # TIR de los otros escenarios (irr.rate_<nombre>)
 
     def figures(self) -> tuple[Figure, ...]:
         """Todas las cifras del plan, cada clave una vez."""
@@ -189,6 +202,7 @@ class InvestmentSimulation:
         result += [self.irr.capital_gains_tax, self.irr.net_sale_proceeds]
         if self.irr.irr is not None:
             result.append(self.irr.irr)
+        result += list(self.irr_alternatives)
         if self.comparison is not None:
             for option in self.comparison.options:
                 result += [option.first_payment, option.expected_total_interest,
@@ -322,36 +336,45 @@ def simulate(
     term = recommended_term(investment, rent, tax, fin.annual_rate, fin.rate_shock, max_years,
                             rate_sources=(FINANCING,), max_years_sources=aff.years.sources)
 
-    # 6. Venta y TIR.
+    # 6. Venta y TIR, con la revalorización base y con cada escenario alternativo.
     exit_ = inp.exit
     sale_date = _years_later(on, exit_.horizon_years)
-    sale_price = projected_sale_price(prop.price, exit_.appreciation_rate,
-                                      exit_.horizon_years)
-    sale_value_sources = (PROPERTY, APPRECIATION, RULES_AT_SALE)
     buyer_pays, _ = buyer_pays_deed(rules, sale_date, "ley", allow_unverified)
-    sale_notary = (
-        None
-        if buyer_pays
-        else notary_fee(rules, sale_price, sale_date, "sale_costs.notary", sale_value_sources,
-                        include_pending, allow_unverified)
-    )
-    municipal = _municipal_gains(rules, prop, sale_date, exit_.horizon_years, sale_price,
-                                 include_pending, allow_unverified)
     gains_profile = savings_tax_profile(
         rules, buyer.residence, sale_date, buyer.savings_base, buyer.taxable_base, buyer.age,
         buyer.descendant_ages, (BUYER, RULES_AT_SALE, PERSONAL_AT_SALE), allow_unverified,
     )
-    irr = investment_irr(
-        investment, rent, tax, fin.annual_rate, years,
-        appreciation_rate=exit_.appreciation_rate,
-        sale_cost_rate=exit_.sale_cost_rate,
-        horizon_years=exit_.horizon_years,
-        rate_sources=(FINANCING,),
-        appreciation_sources=(APPRECIATION,),
-        sale_sources=(SALE_COSTS,),
-        gains_tax_profile=gains_profile,
-        extra_sale_costs=tuple(f for f in (sale_notary, municipal) if f is not None),
-    )
+
+    def sale_and_irr(
+        rate: Decimal, appreciation_sources: tuple[SourceRef, ...]
+    ) -> tuple[Figure | None, Figure | None, IrrResult]:
+        sale_price = projected_sale_price(prop.price, rate, exit_.horizon_years)
+        value_sources = (PROPERTY, *appreciation_sources, RULES_AT_SALE)
+        notary = (None if buyer_pays else notary_fee(
+            rules, sale_price, sale_date, "sale_costs.notary", value_sources, include_pending,
+            allow_unverified))
+        gains = _municipal_gains(rules, prop, sale_date, exit_.horizon_years, sale_price,
+                                 value_sources, include_pending, allow_unverified)
+        result = investment_irr(
+            investment, rent, tax, fin.annual_rate, years,
+            appreciation_rate=rate,
+            sale_cost_rate=exit_.sale_cost_rate,
+            horizon_years=exit_.horizon_years,
+            rate_sources=(FINANCING,),
+            appreciation_sources=appreciation_sources,
+            sale_sources=(SALE_COSTS,),
+            gains_tax_profile=gains_profile,
+            extra_sale_costs=tuple(f for f in (notary, gains) if f is not None),
+        )
+        return notary, gains, result
+
+    sale_notary, municipal, irr = sale_and_irr(exit_.appreciation_rate,
+                                               exit_.appreciation_sources)
+    alternatives = []
+    for alt in exit_.alternatives:
+        alt_irr = sale_and_irr(alt.rate, alt.sources)[2].irr
+        if alt_irr is not None:
+            alternatives.append(replace(alt_irr, key=f"irr.rate_{alt.name}"))
 
     # 7. Comparación de ofertas.
     comparison = None
@@ -377,6 +400,7 @@ def simulate(
         municipal_gains=municipal,
         irr=irr,
         comparison=comparison,
+        irr_alternatives=tuple(alternatives),
     )
     return replace(sim, warnings=_warnings(sim, inp, criteria.max_ltv, max_years))
 
@@ -394,6 +418,7 @@ def _municipal_gains(
     sale_date: date,
     holding_years: int,
     sale_price: Decimal,
+    value_sources: tuple[SourceRef, ...],
     include_pending: bool,
     allow_unverified: bool,
 ) -> Figure | None:
@@ -403,7 +428,7 @@ def _municipal_gains(
     resolved = municipal_gains_params(
         rules, prop.territory, sale_date, holding_years, 0, prop.cadastral_land_value,
         prop.cadastral_land_value / prop.cadastral_value,
-        (PROPERTY, APPRECIATION, RULES_AT_SALE), include_pending, allow_unverified,
+        value_sources, include_pending, allow_unverified,
     )
     tax, method = municipal_gains_tax(resolved.params, prop.price, sale_price)
     return Figure(

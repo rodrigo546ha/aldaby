@@ -11,10 +11,12 @@ from decimal import Decimal
 
 import pytest
 
+from housefinder.core.figures import SourceRef
 from housefinder.engines.rates import MortgageTerms
 from housefinder.params.book import ParamBook, default_params_dir
 from housefinder.planning.scenarios import compare_with_pending
 from housefinder.planning.simulate import (
+    AppreciationAlternative,
     BuyerInput,
     ExitInput,
     FinancingInput,
@@ -214,3 +216,22 @@ def test_escenario_con_reglas_pendientes(rules, params):
     assert "plusvalia-coeficientes-maximos-rdl-29-2026" in {r.id for r in comp.new_rules}
     plusvalia = next(c for c in comp.changed if c.key == "sale_costs.municipal_gains_tax")
     assert plusvalia.scenario.value == D("2552.00")  # 40.000 × 0,22 × 29 %
+
+
+def test_escenarios_de_revalorizacion_dan_tres_tir(rules, params):
+    # F5.5: la base va al plan con sus fuentes; los otros escenarios repiten venta y TIR
+    base_sources = (SourceRef("dataset", "ine-ipv-80270@2026T2"),
+                    SourceRef("model", "escenarios-revalorizacion-v1"))
+    other = (SourceRef("dataset", "ine-ipv-80270@2026T2"),)
+    exit_ = replace(caso().exit, appreciation_sources=base_sources, alternatives=(
+        AppreciationAlternative("conservative", D("-0.0009"), other),
+        AppreciationAlternative("optimistic", D("0.0599"), other)))
+    sim = simulate(caso(exit=exit_), rules, params, allow_unverified=True)
+    v = by_key(sim)
+    assert v["irr.rate_conservative"] < v["irr.rate"] < v["irr.rate_optimistic"]
+    # el plan principal no cambia: sigue con el 2 % de la base
+    assert v["irr.rate"] == by_key(simulate(caso(), rules, params, allow_unverified=True))[
+        "irr.rate"]
+    sale = next(f for f in sim.figures() if f.key == "irr.sale_price")
+    assert base_sources[1] in sale.sources
+    assert not any(s.id == "revalorizacion" for s in sale.sources)  # ya no es un supuesto

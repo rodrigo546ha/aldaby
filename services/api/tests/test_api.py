@@ -136,3 +136,42 @@ def test_inversion_sin_reglas_del_territorio_es_503():
     resp = client.post("/simulate/investment", json=peticion(property__territory="ES-09-08019"))
     assert resp.status_code == 503
     assert "impuesto_compra_segunda_mano" in resp.json()["detail"]
+
+
+def test_inversion_sin_revalorizacion_usa_los_escenarios_del_municipio():
+    # F5.5: sin revalorización, base al plan y TIR de los otros dos escenarios
+    from decimal import Decimal
+
+    from housefinder.api.deps import get_scenario_finder
+    from housefinder.core.figures import Figure, SourceRef
+    from housefinder.valuation.scenarios import AppreciationReport, Scenario
+
+    calls = []
+    sources = (SourceRef("dataset", "ine-ipv-80270@2026T2"),
+               SourceRef("model", "escenarios-revalorizacion-v1"))
+
+    def find(municipality, horizon_years, new_build):
+        calls.append((municipality, horizon_years, new_build))
+        rates = {"conservative": "-0.0009", "base": "0.0203", "optimistic": "0.0599"}
+        return AppreciationReport(
+            scenarios={k: Scenario(k, Decimal(v), sources) for k, v in rates.items()},
+            figures=[Figure(f"valuation.appreciation_{k}", Decimal(v), "ratio", "prueba",
+                            sources) for k, v in rates.items()],
+            notes=["Ciclo de la comunidad: prueba"])
+
+    app.dependency_overrides[get_scenario_finder] = lambda: find
+    try:
+        body = client.post("/simulate/investment",
+                           json=peticion(exit__appreciation_rate=None)).json()
+        bad = client.post("/simulate/investment", json=peticion(
+            exit__appreciation_rate=None, property__territory="ES-13"))
+    finally:
+        app.dependency_overrides.clear()
+    figures = body["figures"]
+    assert calls == [("28079", 10, False)]
+    irr = {k: Decimal(figures[f"irr.rate{k}"]["value"])
+           for k in ("_conservative", "", "_optimistic")}
+    assert irr["_conservative"] < irr[""] < irr["_optimistic"]
+    assert figures["valuation.appreciation_base"]["value"] == "0.0203"
+    assert body["appreciation_notes"] == ["Ciclo de la comunidad: prueba"]
+    assert bad.status_code == 422

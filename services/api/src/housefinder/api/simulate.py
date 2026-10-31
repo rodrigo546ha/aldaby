@@ -6,6 +6,7 @@ tal cual. Los importes viajan como texto para no perder precisión (D11).
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date
 from decimal import Decimal
 from typing import Literal
@@ -13,13 +14,15 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from housefinder.core.figures import SourceRef
+from housefinder.core.figures import Figure, SourceRef
+from housefinder.db.connection import DatabaseUnavailable
 from housefinder.engines import mortgage
 from housefinder.engines.rates import MortgageTerms
 from housefinder.params.bank import bank_criteria
 from housefinder.planning.scenarios import compare_with_pending
 from housefinder.planning.simulate import (
     FINANCING,
+    AppreciationAlternative,
     BuyerInput,
     ExitInput,
     FinancingInput,
@@ -30,8 +33,9 @@ from housefinder.planning.simulate import (
     simulate,
 )
 from housefinder.regulation.kinds import RentalFacts
+from housefinder.valuation.scenarios import NoScenarios
 
-from .deps import ParamBookDep, RuleBookDep
+from .deps import ParamBookDep, RuleBookDep, ScenarioFinderDep
 from .figures import FigureOut, SourceOut, figure_out
 
 router = APIRouter(prefix="/simulate", tags=["simuladores"])
@@ -169,7 +173,9 @@ class RentalRequest(BaseModel):
 
 
 class ExitRequest(BaseModel):
-    appreciation_rate: Decimal = Field(ge=Decimal("-0.2"), le=Decimal("0.2"))
+    appreciation_rate: Decimal | None = Field(
+        default=None, ge=Decimal("-0.2"), le=Decimal("0.2"),
+        description="Revalorización anual supuesta. Vacía: escenarios del municipio (F5.5)")
     sale_cost_rate: Decimal = Field(
         ge=0, le=Decimal("0.2"), description="Agencia y otros gastos de venta de mercado"
     )
@@ -210,7 +216,8 @@ class InvestmentRequest(BaseModel):
             ),
             rental=RentalInput(**{**r.model_dump(exclude={"situation"}),
                                   "situation": r.situation}),
-            exit=ExitInput(**e.model_dump()),
+            exit=ExitInput(appreciation_rate=e.appreciation_rate or Decimal(0),
+                           sale_cost_rate=e.sale_cost_rate, horizon_years=e.horizon_years),
             purchase_date=self.purchase_date or date.today(),
         )
 
@@ -243,14 +250,41 @@ class InvestmentResponse(BaseModel):
     comparison: ComparisonOut | None
     pending_scenario: ScenarioOut
     warnings: list[str]
+    appreciation_notes: list[str] = []  # de dónde salen los escenarios, si se usaron
+
+
+def _with_scenarios(inp: SimulationInput, find: ScenarioFinderDep,
+                    new_build: bool) -> tuple[SimulationInput, list[Figure], list[str]]:
+    """Revalorización vacía: escenario base al plan y TIR de los otros dos (F5.5)."""
+    code = inp.property.territory.rsplit("-", 1)[-1]
+    if not (code.isdigit() and len(code) == 5):
+        raise HTTPException(status_code=422, detail="Indica la revalorización o un municipio "
+                                                     "con su código INE (ES-13-28079)")
+    try:
+        report = find(code, inp.exit.horizon_years, new_build)
+    except NoScenarios as exc:
+        raise HTTPException(status_code=422, detail=f"{exc}: indica la revalorización") from exc
+    except DatabaseUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    base = report.scenarios["base"]
+    exit_ = replace(inp.exit, appreciation_rate=base.rate, appreciation_sources=base.sources,
+                    alternatives=tuple(AppreciationAlternative(name, s.rate, s.sources)
+                                       for name, s in report.scenarios.items()
+                                       if name != "base"))
+    return replace(inp, exit=exit_), report.figures, report.notes
 
 
 @router.post("/investment")
 def simulate_investment(
-    req: InvestmentRequest, rules: RuleBookDep, params: ParamBookDep
+    req: InvestmentRequest, rules: RuleBookDep, params: ParamBookDep,
+    find_scenarios: ScenarioFinderDep,
 ) -> InvestmentResponse:
+    extra: list[Figure] = []
+    notes: list[str] = []
     try:
         inp = req.to_input()
+        if req.exit.appreciation_rate is None:
+            inp, extra, notes = _with_scenarios(inp, find_scenarios, req.property.new_build)
 
         def run(pending: bool) -> InvestmentSimulation:
             return simulate(inp, rules, params, pending, ALLOW_UNVERIFIED)
@@ -264,7 +298,7 @@ def simulate_investment(
 
     comparison = sim.comparison
     return InvestmentResponse(
-        figures={f.key: figure_out(f) for f in sim.figures()},
+        figures={f.key: figure_out(f) for f in (*sim.figures(), *extra)},
         within_budget=sim.within_budget,
         binding_constraint=sim.affordability.binding_constraint,
         term_feasible=sim.term.feasible,
@@ -286,4 +320,5 @@ def simulate_investment(
             new_rules=[SourceOut(**r.to_dict()) for r in scenario.new_rules],
         ),
         warnings=list(sim.warnings),
+        appreciation_notes=notes,
     )

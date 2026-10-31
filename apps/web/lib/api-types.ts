@@ -394,8 +394,11 @@ export interface components {
         };
         /** ExitRequest */
         ExitRequest: {
-            /** Appreciation Rate */
-            appreciation_rate: number | string;
+            /**
+             * Appreciation Rate
+             * @description Revalorización anual supuesta. Vacía: escenarios del municipio (F5.5)
+             */
+            appreciation_rate?: number | string | null;
             /**
              * Sale Cost Rate
              * @description Agencia y otros gastos de venta de mercado
@@ -499,6 +502,11 @@ export interface components {
             pending_scenario: components["schemas"]["ScenarioOut"];
             /** Warnings */
             warnings: string[];
+            /**
+             * Appreciation Notes
+             * @default []
+             */
+            appreciation_notes: string[];
         };
         /** LinkIn */
         LinkIn: {
@@ -1198,6 +1206,8 @@ export interface operations {
                 area_m2: number | string;
                 typology?: "colectiva" | "unifamiliar";
                 new_build?: boolean;
+                /** @description Horizonte de los escenarios (años) */
+                horizon_years?: number;
                 address?: string | null;
                 lon?: number | null;
                 lat?: number | null;

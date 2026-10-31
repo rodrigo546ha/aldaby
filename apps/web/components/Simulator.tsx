@@ -101,7 +101,13 @@ const SECTIONS: Section[] = [
   {
     title: "Venta",
     fields: [
-      { id: "appreciation_rate", label: "Revalorización anual (supuesto)", kind: "pct" },
+      {
+        id: "appreciation_rate",
+        label: "Revalorización anual",
+        kind: "pct",
+        optional: true,
+        hint: "Vacía: escenarios del municipio (conservador, base y optimista) con el IPV del INE",
+      },
       {
         id: "sale_cost_rate",
         label: "Agencia y otros gastos de venta",
@@ -148,7 +154,7 @@ const EXAMPLE: Record<string, string> = {
   maintenance_reserve_rate: "5",
   contract_date: "2026-11-15",
   large_holder: "false",
-  appreciation_rate: "2",
+  appreciation_rate: "",
   sale_cost_rate: "3",
 };
 
@@ -249,6 +255,13 @@ const GROUPS: { title: string; keys: string[] }[] = [
     keys: [
       "irr.sale_price", "sale_costs.notary", "sale_costs.municipal_gains_tax",
       "irr.capital_gains_tax", "irr.net_sale_proceeds", "irr.rate",
+    ],
+  },
+  {
+    title: "Escenarios de revalorización",
+    keys: [
+      "valuation.appreciation_conservative", "valuation.appreciation_base",
+      "valuation.appreciation_optimistic", "irr.rate_conservative", "irr.rate_optimistic",
     ],
   },
 ];
@@ -430,6 +443,13 @@ function Results({ result }: { result: InvestmentResponse }) {
           </div>
         </div>
       ))}
+      {result.appreciation_notes.length > 0 && (
+        <ul className="warnings">
+          {result.appreciation_notes.map((n) => (
+            <li key={n}>{n}</li>
+          ))}
+        </ul>
+      )}
       <div className="group">
         <h3>Si se aprueban las normas pendientes</h3>
         {scenario.changes.length === 0 ? (
