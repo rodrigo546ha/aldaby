@@ -19,7 +19,7 @@ Part = Literal["value", "low", "high", "range"]
 ProblemKind = Literal["digito", "clave_desconocida", "sin_rango", "marcador_mal_escrito"]
 
 MARKER = re.compile(r"\{\{fig:([a-z0-9_]+(?:\.[a-z0-9_]+)+)(?::(low|high|range))?\}\}")
-DIGIT = re.compile(r"\d")
+NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
 BRACES = re.compile(r"\{|\}")
 CONTEXT = 12  # caracteres a cada lado del problema en el mensaje
 
@@ -42,6 +42,7 @@ Segment = TextSegment | FigureSegment
 class Problem:
     kind: ProblemKind
     message: str  # en español: se devuelve al modelo en el reintento
+    phrase: str = ""  # el número con la palabra de cada lado, para saber de dónde lo copió
 
 
 class InvalidText(ValueError):
@@ -96,13 +97,14 @@ def _pieces(text: str) -> list[tuple[int, int, re.Match[str] | None]]:
 
 
 def _loose(free: str) -> list[Problem]:
-    """Problemas de un tramo de texto libre: dígitos y llaves que no forman un marcador."""
+    """Problemas de un tramo de texto libre: cada número y llaves que no forman un marcador."""
     problems = []
-    digit = DIGIT.search(free)
-    if digit:
-        problems.append(Problem("digito", f"Hay un número escrito a mano («{_around(free, digit)}»)"
-                                          ": usa un marcador {{fig:clave}} o di lo mismo sin "
-                                          "números."))
+    for number in NUMBER.finditer(free):
+        phrase = " ".join(free[:number.start()].split()[-1:] + [number.group()]
+                          + free[number.end():].split()[:1])
+        problems.append(Problem("digito", f"Hay un número escrito a mano "
+                                          f"(«{_around(free, number)}»): usa un marcador "
+                                          "{{fig:clave}} o di lo mismo sin números.", phrase))
     brace = BRACES.search(free)
     if brace:
         problems.append(Problem("marcador_mal_escrito",

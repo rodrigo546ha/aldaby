@@ -18,7 +18,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ValidationError
 
 from housefinder.agent.llm import LLMClient, LLMOutputError, Message, ToolSpec, tool_message
-from housefinder.agent.references import Segment, check_text, segments
+from housefinder.agent.references import Problem, Segment, check_text, segments
 from housefinder.core.figures import Figure
 
 MAX_STEPS = 6
@@ -119,9 +119,20 @@ def run_agent(
             return answer(None, "texto_rechazado")
         retries -= 1
         messages.append({"role": "user", "content": (
-            "Tu texto no se puede mostrar:\n" + "\n".join(f"- {p.message}" for p in problems)
+            "Tu texto no se puede mostrar:\n"
+            + "\n".join(f"- {_retry_line(p, notes)}" for p in problems)
             + "\nReescríbelo entero cumpliendo las reglas.")})
     return answer(None, "pasos_agotados")
+
+
+def _retry_line(problem: Problem, notes: Sequence[str]) -> str:
+    """El problema para el reintento. Si el número sale de un aviso, se le dice: con el mensaje
+    genérico, qwen3 reescribía la frase y volvía a copiar el año del aviso."""
+    phrase = problem.phrase.lower()
+    if phrase and any(phrase in " ".join(note.split()).lower() for note in notes):
+        return (f"La frase con «{problem.phrase}» copia un aviso: los avisos ya se muestran debajo "
+                "de tu respuesta. Quita esa frase entera.")
+    return problem.message
 
 
 def _execute(tool: Tool | None, name: str, raw: str, figures: dict[str, Figure],

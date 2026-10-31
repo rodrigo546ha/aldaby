@@ -76,6 +76,25 @@ def test_texto_con_cifras_a_mano_se_reintenta_una_vez():
     assert retry["role"] == "user" and "número escrito a mano" in retry["content"]
 
 
+def test_si_copia_un_aviso_el_reintento_se_lo_dice():
+    # Visto con qwen3: copiaba «Desde 2023 la población…» de un aviso y el reintento genérico
+    # («di lo mismo sin números») no bastaba
+    note = ("Desde 2023 la población sale del Censo Anual: parte del cambio puede deberse a "
+            "la fuente.")
+    zone = Tool("zona", "Zona", OfferArgs, lambda args: ToolResult(figures=(RENT,), notes=(note,)))
+    llm = FakeLLMClient(turns=[
+        call('{"oferta_id": "a1"}', name="zona"),
+        ChatTurn("Renta: {{fig:valuation.rent_monthly}}. Ojo: desde 2023 la población cambia de "
+                 "fuente. Hay 3 colegios."),
+        ChatTurn("Renta: {{fig:valuation.rent_monthly}}."),
+    ])
+    answer = run_agent(llm, "x", "¿Renta?", [zone])
+    assert answer.failure is None
+    retry = llm.chats[2][-1]["content"]
+    assert "copia un aviso" in retry and "Quita esa frase" in retry
+    assert "colegios" in retry  # el otro dígito sigue con el mensaje genérico
+
+
 def test_si_vuelve_a_fallar_quedan_las_cifras_sin_texto():
     llm = FakeLLMClient(turns=[
         call('{"oferta_id": "a1"}'), ChatTurn("Unos 840 €."), ChatTurn("Ya te dije, 840 €."),

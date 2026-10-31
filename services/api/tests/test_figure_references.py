@@ -61,3 +61,9 @@ def test_los_problemas_se_pueden_devolver_al_modelo():
         "lo mismo sin números.",
         "La cifra «otra.cifra» no está en el plan.",
     ]
+
+
+def test_cada_numero_es_un_problema_con_su_frase():
+    problems = check_text("Desde 2023 la población crece; hay 3,5 colegios", FIGURES)
+    assert [p.phrase for p in problems] == ["Desde 2023 la", "hay 3,5 colegios"]
+    assert check_text("{{fig:cashflow.monthly_after_tax}}0 al mes", FIGURES)[0].phrase == "0 al"
