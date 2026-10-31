@@ -1000,6 +1000,90 @@
         }
       }
     },
+    "/profile/current": {
+      "get": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Current Profile",
+        "operationId": "current_profile_profile_current_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/current/search": {
+      "put": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Set Search Assumptions",
+        "description": "Cambia solo los supuestos de búsqueda del perfil confirmado.",
+        "operationId": "set_search_assumptions_profile_current_search_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchAssumptionsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": [
+          "búsqueda"
+        ],
+        "summary": "Reverse Search",
+        "operationId": "reverse_search_search_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -1778,6 +1862,17 @@
             "type": "string",
             "title": "Note",
             "default": ""
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "texto",
+              "ratio",
+              "eur",
+              "bool"
+            ],
+            "title": "Kind",
+            "default": "texto"
           }
         },
         "type": "object",
@@ -2846,6 +2941,36 @@
         ],
         "title": "OfferValuationOut"
       },
+      "ProfileOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "values": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Values",
+            "description": "Valor de cada campo del perfil confirmado"
+          },
+          "missing_search": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Search",
+            "description": "Supuestos de búsqueda sin valor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "values",
+          "missing_search"
+        ],
+        "title": "ProfileOut"
+      },
       "PropertyRequest": {
         "properties": {
           "price": {
@@ -3242,6 +3367,149 @@
         ],
         "title": "ScenarioOut"
       },
+      "ScoredOut": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Offer Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "auction": {
+            "type": "boolean",
+            "title": "Auction"
+          },
+          "passes": {
+            "type": "boolean",
+            "title": "Passes"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "metric": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "figures": {
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "array",
+            "title": "Figures"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "offer_id",
+          "kind",
+          "title",
+          "url",
+          "auction",
+          "passes",
+          "reasons",
+          "metric",
+          "figures",
+          "notes"
+        ],
+        "title": "ScoredOut"
+      },
+      "SearchAssumptionsIn": {
+        "properties": {
+          "values": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Values",
+            "description": "Supuestos de búsqueda (ADR-0022)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "values"
+        ],
+        "title": "SearchAssumptionsIn"
+      },
+      "SearchOut": {
+        "properties": {
+          "ranked": {
+            "items": {
+              "$ref": "#/components/schemas/ScoredOut"
+            },
+            "type": "array",
+            "title": "Ranked"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/SkippedOut"
+            },
+            "type": "array",
+            "title": "Skipped"
+          },
+          "market": {
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "array",
+            "title": "Market"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ranked",
+          "skipped",
+          "market",
+          "notes"
+        ],
+        "title": "SearchOut"
+      },
       "SectionOut": {
         "properties": {
           "code": {
@@ -3264,6 +3532,37 @@
           "vintage"
         ],
         "title": "SectionOut"
+      },
+      "SkippedOut": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Offer Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "offer_id",
+          "title",
+          "reason"
+        ],
+        "title": "SkippedOut"
       },
       "SourceOut": {
         "properties": {

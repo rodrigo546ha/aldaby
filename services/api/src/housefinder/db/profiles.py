@@ -97,3 +97,12 @@ def replace_wrapped_key(
 def assert_row(row: object) -> None:
     if row is None:
         raise RuntimeError("La inserción no devolvió fila")
+
+
+def latest_profile_id(conn: psycopg.Connection, org_id: UUID) -> UUID | None:
+    """El perfil más reciente de la organización (hasta la autenticación, uno por organización)."""
+    row = conn.execute(
+        "SELECT id FROM user_profiles WHERE org_id = %s ORDER BY updated_at DESC LIMIT 1",
+        (org_id,),
+    ).fetchone()
+    return row[0] if row else None

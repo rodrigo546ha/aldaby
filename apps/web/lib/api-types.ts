@@ -357,6 +357,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/profile/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Current Profile */
+        get: operations["current_profile_profile_current_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/current/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Search Assumptions
+         * @description Cambia solo los supuestos de búsqueda del perfil confirmado.
+         */
+        put: operations["set_search_assumptions_profile_current_search_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reverse Search */
+        get: operations["reverse_search_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -600,6 +654,12 @@ export interface components {
              * @default
              */
             note: string;
+            /**
+             * Kind
+             * @default texto
+             * @enum {string}
+             */
+            kind: "texto" | "ratio" | "eur" | "bool";
         };
         /** ExitRequest */
         ExitRequest: {
@@ -912,6 +972,26 @@ export interface components {
             /** Attribution */
             attribution: string[];
         };
+        /** ProfileOut */
+        ProfileOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Values
+             * @description Valor de cada campo del perfil confirmado
+             */
+            values: {
+                [key: string]: unknown;
+            };
+            /**
+             * Missing Search
+             * @description Supuestos de búsqueda sin valor
+             */
+            missing_search: string[];
+        };
         /** PropertyRequest */
         PropertyRequest: {
             /** Price */
@@ -1059,6 +1139,52 @@ export interface components {
             /** New Rules */
             new_rules: components["schemas"]["SourceOut"][];
         };
+        /** ScoredOut */
+        ScoredOut: {
+            /**
+             * Offer Id
+             * Format: uuid
+             */
+            offer_id: string;
+            /** Kind */
+            kind: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string | null;
+            /** Auction */
+            auction: boolean;
+            /** Passes */
+            passes: boolean;
+            /** Reasons */
+            reasons: string[];
+            metric: components["schemas"]["FigureOut"] | null;
+            /** Figures */
+            figures: components["schemas"]["FigureOut"][];
+            /** Notes */
+            notes: string[];
+        };
+        /** SearchAssumptionsIn */
+        SearchAssumptionsIn: {
+            /**
+             * Values
+             * @description Supuestos de búsqueda (ADR-0022)
+             */
+            values: {
+                [key: string]: unknown;
+            };
+        };
+        /** SearchOut */
+        SearchOut: {
+            /** Ranked */
+            ranked: components["schemas"]["ScoredOut"][];
+            /** Skipped */
+            skipped: components["schemas"]["SkippedOut"][];
+            /** Market */
+            market: components["schemas"]["FigureOut"][];
+            /** Notes */
+            notes: string[];
+        };
         /** SectionOut */
         SectionOut: {
             /** Code */
@@ -1067,6 +1193,18 @@ export interface components {
             municipality: string;
             /** Vintage */
             vintage: number;
+        };
+        /** SkippedOut */
+        SkippedOut: {
+            /**
+             * Offer Id
+             * Format: uuid
+             */
+            offer_id: string;
+            /** Title */
+            title: string | null;
+            /** Reason */
+            reason: string;
         };
         /** SourceOut */
         SourceOut: {
@@ -1784,6 +1922,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    current_profile_profile_current_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+        };
+    };
+    set_search_assumptions_profile_current_search_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchAssumptionsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reverse_search_search_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
                 };
             };
         };

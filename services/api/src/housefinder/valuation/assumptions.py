@@ -44,13 +44,15 @@ class MarketAssumptions:
 @dataclass(frozen=True)
 class PropertyAssumptions:
     cadastral_value: Figure
+    cadastral_land_value: Figure  # para la plusvalía municipal de la venta
     construction_value: Figure
     community_fees_monthly: Figure
     insurance_annual: Figure
     maintenance_annual: Figure
 
     def figures(self) -> tuple[Figure, ...]:
-        return (self.cadastral_value, self.construction_value, self.community_fees_monthly,
+        return (self.cadastral_value, self.cadastral_land_value, self.construction_value,
+                self.community_fees_monthly,
                 self.insurance_annual, self.maintenance_annual)
 
 
@@ -107,6 +109,10 @@ def property_assumptions(conn: Connection, municipality: str, region: str, price
         f"Valor catastral residencial del municipio / inmuebles residenciales ({year}): la media "
         "del municipio, sin ajustar por superficie (el Catastro no la publica)", (cat_source,))
     share = ratio(cat["valor_construccion"].value / cat["valor_catastral"].value)
+    land = Figure(
+        "assumption.cadastral_land_value", money(average * (1 - share)), "EUR",
+        f"Valor catastral estimado × parte de suelo del municipio ({1 - share}, {year}, todos los "
+        "usos): para la plusvalía municipal de la venta", (cat_source,))
     construction = Figure(
         "assumption.construction_value", money(price * share), "EUR",
         f"Precio × parte de construcción del valor catastral del municipio ({share}, {year}, "
@@ -132,7 +138,7 @@ def property_assumptions(conn: Connection, municipality: str, region: str, price
         money(epf["gasto_mantenimiento_vivienda_hogar"].value), "EUR/año",
         f"Gasto medio por hogar en mantenimiento y reparaciones corrientes ({epf_year}, EPF): "
         "media de todos los hogares, no de las viviendas alquiladas", (epf_source,))
-    return PropertyAssumptions(cadastral, construction, fees, insurance, maintenance)
+    return PropertyAssumptions(cadastral, land, construction, fees, insurance, maintenance)
 
 
 def _dataset(source_id: str, period: str) -> SourceRef:

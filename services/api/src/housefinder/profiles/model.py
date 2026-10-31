@@ -34,6 +34,13 @@ class UserProfile(BaseModel):
     horizon_years: int | None = Field(default=None, ge=1, le=50)
     risk_tolerance: Literal["baja", "media", "alta"] | None = None
     management: Literal["activa", "pasiva"] | None = None
+    # Supuestos de búsqueda sin fuente oficial: los pone el usuario (ADR-0022), en tanto por uno
+    vacancy_rate: Decimal | None = Field(default=None, ge=0, le=1)  # parte del año vacía
+    management_fee_rate: Decimal | None = Field(default=None, ge=0, le=1)  # sobre la renta
+    other_purchase_cost_rate: Decimal | None = Field(default=None, ge=0, le=1)  # gestoría, tasación
+    sale_cost_rate: Decimal | None = Field(default=None, ge=0, le=1)  # agencia y gastos de venta
+    min_monthly_cashflow: Decimal | None = None  # restricción de la búsqueda inversa (F6.5)
+    large_holder: bool | None = None  # gran tenedor: cambia la reducción del IRPF del alquiler
 
     def __repr__(self) -> str:
         return REDACTED

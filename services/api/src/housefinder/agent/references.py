@@ -19,13 +19,16 @@ from housefinder.core.figures import Figure
 
 Part = Literal["value", "low", "high", "range"]
 ProblemKind = Literal["digito", "clave_desconocida", "sin_rango", "unidad_repetida",
-                      "marcador_mal_escrito"]
+                      "oferta_desconocida", "marcador_mal_escrito"]
 
-MARKER = re.compile(r"\{\{fig:([a-z0-9_]+(?:\.[a-z0-9_]+)+)(?::(low|high|range))?\}\}")
+# {{fig:clave}} nombra una cifra; {{oferta:id}} una oferta (F6.5): sus títulos llevan números
+MARKER = re.compile(r"\{\{fig:([a-z0-9_]+(?:\.[a-z0-9_]+)+)(?::(low|high|range))?\}\}"
+                    r"|\{\{oferta:([0-9a-f]{8})\}\}")
 NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
 # Lo que la web ya escribe junto a la cifra («235.000 €», «839,80 € al mes», «4,29 %», «19,7 años»)
 UNIT_AFTER = re.compile(r"[*_ ]*(€|euros?\b|eur\b|%|por ciento\b|ratio\b|años?\b|personas\b|"
-                        r"m²|m2\b|metros\b|al mes\b|al año\b|/mes\b|/año\b|mensuales\b|"
+                        r"m²|m2\b|metros\b|(?:al|cada|por) mes\b|(?:al|cada|por) año\b|"
+                        r"/mes\b|/año\b|mensuales\b|"
                         r"anuales\b)", re.IGNORECASE)
 BRACES = re.compile(r"\{|\}")
 CONTEXT = 12  # caracteres a cada lado del problema en el mensaje
@@ -42,7 +45,15 @@ class FigureSegment:
     part: Part
 
 
-Segment = TextSegment | FigureSegment
+@dataclass(frozen=True)
+class OfferSegment:
+    """Una oferta; la web escribe su título (el agente no lo copia)."""
+
+    offer: str  # identificador corto: los ocho primeros caracteres hexadecimales del UUID
+    label: str
+
+
+Segment = TextSegment | FigureSegment | OfferSegment
 
 
 @dataclass(frozen=True)
@@ -57,11 +68,18 @@ class InvalidText(ValueError):
         self.problems = problems
 
 
-def check_text(text: str, figures: Mapping[str, Figure]) -> list[Problem]:
+def check_text(text: str, figures: Mapping[str, Figure],
+               offers: Mapping[str, str] | None = None) -> list[Problem]:
+    """`offers`: identificador corto → título, de las ofertas que dieron las herramientas."""
     problems: list[Problem] = []
     for start, end, match in _pieces(text):
         if match is None:
             problems += _loose(text[start:end])
+            continue
+        if (offer := match.group(3)) is not None:
+            if offer not in (offers or {}):
+                problems.append(Problem("oferta_desconocida", f"La oferta «{offer}» no la ha "
+                                                              "dado ninguna herramienta."))
             continue
         key, part = match.group(1), match.group(2)
         figure = figures.get(key)
@@ -94,15 +112,18 @@ def without_numbers(text: str) -> str:
     return NUMBER.sub("…", text)
 
 
-def segments(text: str, figures: Mapping[str, Figure]) -> list[Segment]:
+def segments(text: str, figures: Mapping[str, Figure],
+             offers: Mapping[str, str] | None = None) -> list[Segment]:
     """Texto comprobado → segmentos. `InvalidText` con los problemas si no pasa."""
-    problems = check_text(text, figures)
+    problems = check_text(text, figures, offers)
     if problems:
         raise InvalidText(problems)
     result: list[Segment] = []
     for start, end, match in _pieces(text):
         if match is None:
             result.append(TextSegment(text[start:end]))
+        elif (offer := match.group(3)) is not None:
+            result.append(OfferSegment(offer, (offers or {})[offer]))
         else:
             part: Part = match.group(2) or "value"  # type: ignore[assignment]
             result.append(FigureSegment(figures[match.group(1)], part))

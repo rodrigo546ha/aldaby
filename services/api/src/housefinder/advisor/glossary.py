@@ -40,6 +40,20 @@ DESCRIPTIONS = {
     "offer.gross_yield_at_asking": "Rentabilidad bruta si se compra al precio pedido: renta "
                                    "estimada de un año entre el precio pedido, sin gastos ni "
                                    "impuestos.",
+    # Búsqueda inversa (F6.5, ADR-0023)
+    "offer.price": "Precio de la oferta: lo que pide el anuncio o, en una subasta del BOE, el "
+                   "tipo de salida (el precio final puede ser otro).",
+    "cashflow.monthly_after_tax": "Lo que le queda al usuario cada mes con este inmueble, tras "
+                                  "la hipoteca, los gastos y el IRPF del alquiler.",
+    "search.stressed_cashflow": "El cash flow mensual si suben los tipos (con riesgo bajo, "
+                                "además con la renta baja de la zona).",
+    "irr.rate": "Rentabilidad anual de la inversión del usuario hasta su horizonte, con la venta "
+                "y el escenario base de revalorización.",
+    "cashflow.cash_invested": "Dinero que pone el usuario: entrada, gastos de compra y reforma.",
+    "assumption.mortgage_rate": "Tipo de mercado de una hipoteca fija nueva (Banco de España); no "
+                                "es el que le darían al usuario.",
+    "assumption.rate_shock": "Subida de tipos del escenario de estrés: la mayor de la serie en "
+                             "una ventana de dos años.",
 }
 # Las etiquetas del INE que llevan números, dichas sin ellos
 SPOKEN_LABELS = {"poblacion_menor_18": "Porcentaje de población menor de edad",

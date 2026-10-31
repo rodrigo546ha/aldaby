@@ -283,8 +283,14 @@ umbral fijado en F0, y cada estimación con su rango.
       un reintento) y `advisor/tools.py`: ofertas guardadas, valoración de una oferta y zona de una
       oferta. Las herramientas reciben referencias, nunca números. Prueba en terminal:
       `python -m housefinder.advisor preguntar "…"`. El plan completo de una oferta, en F6.7.
-- [ ] F6.5 Búsqueda inversa: puntuación de ofertas según el resultado esperado para el perfil y sus
+- [x] F6.5 Búsqueda inversa: puntuación de ofertas según el resultado esperado para el perfil y sus
       restricciones (cash flow mínimo, riesgo, gestión).
+      *Hecho (ADR-0022, ADR-0023):* el plan del usuario en cada oferta con supuestos estimados de
+      fuentes públicas (Banco de España, Catastro, Hacienda, EPF); restricciones por capacidad,
+      ahorro y cash flow mínimo en el estrés de su riesgo, y orden por su objetivo
+      (`planning/ranking.py`, `search/service.py`). `GET /search`, página `/busqueda` y
+      herramienta del agente `buscar_ofertas` con el marcador `{{oferta:id}}`. Vacío, gestión,
+      gastos de compra y venta y gran tenedor los pone el usuario: no tienen fuente oficial.
 - [ ] F6.6 Recomendación de tipo de alquiler y de gestión activa o pasiva según la ubicación.
 - [ ] F6.7 Plan completo: capacidad, hipoteca, cash flow, estrés, escenarios legales, argumentos
       para no comprar y hoja de ruta de compra.

@@ -48,6 +48,7 @@ def test_texto_con_marcadores_validos():
     ("Te quedan {{fig:cashflow.monthly_after_tax}} al mes.", "unidad_repetida"),
     ("Desde **{{fig:valuation.price_m2:low}}** €/m².", "unidad_repetida"),
     ("Un {{fig:valuation.price_m2}} ratio.", "unidad_repetida"),
+    ("Te deja {{fig:cashflow.monthly_after_tax}} cada mes.", "unidad_repetida"),
     ("Te quedan {{fig: cashflow.monthly_after_tax}}.", "marcador_mal_escrito"),
     ("Te quedan {fig:cashflow.monthly_after_tax}}.", "marcador_mal_escrito"),
     ("{{cifra:cashflow.monthly_after_tax}}", "marcador_mal_escrito"),
@@ -91,3 +92,14 @@ def test_clave_desconocida_sugiere_la_mas_parecida():
     assert spanish[0].message.endswith("«oferta_a1.valuation.appreciation_optimistic»?")
     invented = check_text("{{fig:renta.estimada}}", figures)
     assert invented[0].message == "La cifra «renta.estimada» no está en el plan."
+
+
+def test_marcador_de_oferta():
+    from housefinder.agent.references import OfferSegment
+
+    offers = {"a1b2c3d4": "BOE-B-2026-35273 · Lote 1"}
+    text = "La primera es {{oferta:a1b2c3d4}}, con {{fig:cashflow.monthly_after_tax}}."
+    parts = segments(text, FIGURES, offers)
+    assert parts[1] == OfferSegment("a1b2c3d4", "BOE-B-2026-35273 · Lote 1")  # la web lo escribe
+    assert check_text("Mira {{oferta:deadbeef}}.", FIGURES, offers)[0].kind == "oferta_desconocida"
+    assert check_text("Mira {{oferta:Getafe}}.", FIGURES, offers)[0].kind == "marcador_mal_escrito"

@@ -21,6 +21,9 @@ from housefinder.core.figures import Figure
 from housefinder.db.connection import Connection
 from housefinder.db.offers import PrivateOffer, get_private_offer, list_private_offers
 from housefinder.params.book import ParamBook
+from housefinder.profiles.model import UserProfile
+from housefinder.regulation.rules import RuleBook
+from housefinder.search.service import SearchUnavailable, search
 from housefinder.territory.service import Location, SectionNotFound, territory_at
 from housefinder.valuation.offer import CannotValue, value_offer
 from housefinder.valuation.service import OutsideCoverage
@@ -38,7 +41,12 @@ alquilarían, cuánto valen frente a lo que piden, cómo puede evolucionar su pr
   una lista de avisos ni los copies.
 - Contesta en pocas frases, unas seis como mucho, y no repitas ninguna.
 - No le digas al usuario que compre o que no compre: explícale lo que dicen las cifras.
+- Si pregunta qué ofertas le encajan, usa buscar_ofertas: el orden lo hace el programa con su plan;
+  tú explicas por qué cada una está donde está, con sus motivos.
 """
+SEARCH_FIGURES = ("offer.price", "valuation.rent_monthly", "cashflow.monthly_after_tax",
+                  "search.stressed_cashflow", "irr.rate", "cashflow.cash_invested")
+SEARCH_SHOWN = 5  # las primeras del orden: el contexto del modelo es corto
 # Partes de clave con números, dichas sin ellos: el modelo nombra el indicador por su clave
 # («población de sesenta y cinco…») y el texto se rechaza (ADR-0012)
 SPOKEN = {"poblacion_65_y_mas": "poblacion_mayor", "poblacion_menor_18": "poblacion_menor_de_edad",
@@ -60,7 +68,8 @@ class ValuationArguments(OfferArguments):
         default=10, description="Años de los escenarios de revalorización")
 
 
-def offer_tools(conn: Connection, book: ParamBook, org_id: UUID) -> list[Tool]:
+def offer_tools(conn: Connection, book: ParamBook, org_id: UUID,
+                profile: UserProfile | None = None, rules: RuleBook | None = None) -> list[Tool]:
     def own(offer_id: UUID) -> PrivateOffer:
         offer = get_private_offer(conn, offer_id, org_id)
         if offer is None:
@@ -104,7 +113,39 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID) -> list[Tool]:
                           facts={"titulo": offer.title}, scope=_scope(offer),
                           keys=_spoken_keys(report.figures), descriptions=describe(report.figures))
 
+    def find(_: NoArguments) -> ToolResult:
+        if profile is None or rules is None:
+            raise ToolFailed("El usuario no ha confirmado su perfil: tiene que hacerlo en /perfil")
+        try:
+            report = search(conn, book, rules, profile, org_id)
+        except SearchUnavailable as exc:
+            raise ToolFailed("; ".join(exc.reasons)) from exc
+        keyed: dict[str, Figure] = {}
+        offers: dict[str, str] = {}
+        facts = []
+        for position, scored in enumerate(report.ranked[:SEARCH_SHOWN], 1):
+            short = scored.offer_id.hex[:8]
+            offers[short] = scored.title or ("Oferta pegada" if scored.kind == "enlace"
+                                             else "Lote del BOE")
+            for figure in scored.figures:
+                if figure.key in SEARCH_FIGURES:
+                    keyed[f"oferta_{short}.{figure.key}"] = figure
+            facts.append({"marcador": f"{{{{oferta:{short}}}}}", "puesto": position,
+                          "pasa": scored.verdict.passes, "motivos": list(scored.verdict.reasons),
+                          "origen": "suya" if scored.kind == "enlace" else "subasta del BOE"})
+        shown = [*report.market, *keyed.values()]
+        notes = list(report.notes)
+        if report.skipped:
+            notes.append("Hay ofertas que no se han podido puntuar (otro tipo de inmueble, sin "
+                         "precio o sin superficie).")
+        return ToolResult(figures=report.market, keyed=keyed, offers=offers,
+                          facts={"ofertas": facts, "orden": "según el objetivo del usuario"},
+                          notes=tuple(notes), descriptions=describe(shown))
+
     return [
+        Tool("buscar_ofertas", "Ofertas que encajan con el plan del usuario (su capacidad, su "
+             "riesgo y su objetivo), en orden, con los motivos de las que no pasan.",
+             NoArguments, find),
         Tool("ofertas_guardadas", "Ofertas que el usuario ha guardado, con su estado: solo las "
              "confirmadas y ubicadas se pueden valorar.", NoArguments, saved),
         Tool("valorar_oferta", "Renta y precio estimados de una oferta confirmada, escenarios de "
@@ -115,10 +156,11 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID) -> list[Tool]:
     ]
 
 
-def ask(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID,
-        question: str) -> AgentAnswer:
+def ask(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID, question: str,
+        profile: UserProfile | None = None, rules: RuleBook | None = None) -> AgentAnswer:
     """Una pregunta del usuario sobre sus ofertas, contestada con las herramientas."""
-    return run_agent(llm, INSTRUCTIONS, question, offer_tools(conn, book, org_id))
+    return run_agent(llm, INSTRUCTIONS, question,
+                     offer_tools(conn, book, org_id, profile, rules))
 
 
 def _scope(offer: PrivateOffer) -> str:

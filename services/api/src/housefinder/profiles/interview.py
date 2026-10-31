@@ -87,6 +87,16 @@ BY_FIELD = {q.field: q for q in QUESTIONS}
 # Campos del perfil que no se preguntan: solo los rellena la declaración de la renta (ADR-0021)
 DOCUMENT_FIELDS = {"taxable_base": "Base liquidable general (sin el alquiler)",
                    "savings_base": "Base liquidable del ahorro"}
+# Supuestos de búsqueda que no tienen fuente oficial (ADR-0022): no se preguntan, se escriben en
+# la confirmación o después. Los de «ratio» van en tanto por uno.
+SEARCH_FIELDS = {
+    "vacancy_rate": ("Meses vacío al año (%)", "ratio"),
+    "management_fee_rate": ("Gestión si la delegas (% de la renta)", "ratio"),
+    "other_purchase_cost_rate": ("Gestoría y tasación (% del precio)", "ratio"),
+    "sale_cost_rate": ("Gastos de venta (% del precio)", "ratio"),
+    "min_monthly_cashflow": ("Cash flow mínimo al mes que buscas (€)", "eur"),
+    "large_holder": ("¿Tienes más de diez viviendas (gran tenedor)?", "bool"),
+}
 DOCUMENT_NAMES = {"nomina": "nómina", "declaracion": "declaración de la renta",
                   "extracto": "extracto bancario"}
 READ_BY = {"texto": "texto pegado", "pdf": "PDF", "ocr": "escaneo leído con OCR",
@@ -378,7 +388,10 @@ def _fold(text: str) -> str:
 def to_profile(values: Mapping[str, Any]) -> UserProfile:
     """Lo que el usuario confirma (o corrige) → `UserProfile` validado. Vacío = sin dato."""
     data = {k: v for k, v in values.items()
-            if (k in BY_FIELD or k in DOCUMENT_FIELDS) and v not in (None, "")}
+            if (k in BY_FIELD or k in DOCUMENT_FIELDS or k in SEARCH_FIELDS)
+            and v not in (None, "")}
+    if isinstance(data.get("large_holder"), str):
+        data["large_holder"] = data["large_holder"].strip().lower() in ("sí", "si", "true")
     if "descendant_birth_years" in data:
         data["descendant_birth_years"] = tuple(int(y) for y in data["descendant_birth_years"])
     return UserProfile.parse(data)

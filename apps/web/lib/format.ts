@@ -98,6 +98,16 @@ export const LABELS: Record<string, string> = {
   "irr.net_sale_proceeds": "Venta neta",
   "irr.capital_gains_tax": "IRPF de la ganancia",
   "sale_costs.notary": "Notaría de la venta",
+  "offer.price": "Precio",
+  "search.stressed_cashflow": "Cash flow con subida de tipos",
+  "assumption.mortgage_rate": "Tipo de una hipoteca fija nueva",
+  "assumption.rate_shock": "Subida de tipos del estrés",
+  "assumption.cadastral_value": "Valor catastral estimado",
+  "assumption.cadastral_land_value": "Valor catastral del suelo estimado",
+  "assumption.construction_value": "Valor de la construcción estimado",
+  "assumption.community_fees_monthly": "Comunidad al mes",
+  "assumption.insurance_annual": "Seguro de hogar al año",
+  "assumption.maintenance_annual": "Mantenimiento al año",
   "sale_costs.municipal_gains_tax": "Plusvalía municipal",
 };
 

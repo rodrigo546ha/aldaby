@@ -443,3 +443,40 @@ def lots_of(conn: psycopg.Connection, announcement_id: UUID) -> list[LotRow]:
         (announcement_id,),
     ).fetchall()
     return [LotRow(*r) for r in rows]
+
+
+@dataclass(frozen=True)
+class SearchCandidate:
+    """Una oferta que la búsqueda inversa puede intentar puntuar (F6.5)."""
+
+    offer_id: UUID
+    kind: str  # 'enlace' (del usuario) o 'lote' (del BOE)
+    title: str | None
+    url: str | None
+    asking_price: Decimal | None
+    auction_min_bid: Decimal | None
+    built_area_m2: Decimal | None
+    lon: float
+    lat: float
+    section_code: str
+    extracted: dict[str, Any] | None
+
+
+def search_candidates(conn: psycopg.Connection, org_id: UUID) -> list[SearchCandidate]:
+    """Ofertas ubicadas con sección: las confirmadas del usuario y los lotes del BOE (públicos).
+    Lo que no se puede puntuar (otro tipo, sin precio) lo decide quien llama, con su motivo."""
+    rows = conn.execute(
+        """
+        SELECT o.id, o.kind, o.title, o.url, o.asking_price, o.auction_min_bid,
+               coalesce(o.built_area_m2, p.built_area_m2),
+               ST_X(p.location::geometry), ST_Y(p.location::geometry), p.section_code, o.extracted
+        FROM offers o JOIN properties p ON p.id = o.property_id
+        WHERE p.location IS NOT NULL AND p.section_code IS NOT NULL
+          AND ((o.org_id = %s AND o.kind = 'enlace' AND o.extraction_status = 'confirmada')
+               OR (o.org_id IS NULL AND o.kind = 'lote' AND o.corrects_id IS NULL))
+        ORDER BY o.first_seen
+        """,
+        (org_id,),
+    ).fetchall()
+    return [SearchCandidate(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10])
+            for r in rows]

@@ -28,8 +28,12 @@ ALLOWED_INTERNAL = {
     "offers": {"agent", "core", "db", "geo", "ingestion", "offers", "territory"},
     "valuation": {"core", "db", "engines", "params", "valuation"},
     "agent": {"agent", "core"},
-    "advisor": {"advisor", "agent", "core", "db", "params", "territory", "valuation"},
+    "advisor": {"advisor", "agent", "core", "crypto", "db", "params", "profiles", "regulation",
+                "search", "territory", "valuation"},
     "documents": {"core", "documents"},
+    # Orquesta la búsqueda inversa (F6.5): valoración, supuestos y el plan de planning/
+    "search": {"core", "db", "params", "planning", "profiles", "regulation", "search",
+               "valuation"},
 }
 FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi",
                       "pypdf", "pypdfium2", "pytesseract", "PIL", "xlrd"}

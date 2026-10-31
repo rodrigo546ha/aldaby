@@ -83,6 +83,7 @@ def test_supuestos_de_una_oferta_con_su_fuente(references):
     assert market.rate_shock.value == D("0.0011")  # 0,0270 → 0,0281
     assert prop.cadastral_value.value == D("90000.00")  # 90.000.000 / 1.000
     assert prop.construction_value.value == D("80000.00")  # 200.000 × (80 / 200)
+    assert prop.cadastral_land_value.value == D("54000.00")  # 90.000 × (1 − 0,4)
     assert prop.community_fees_monthly.value == D("87.15")  # 1.045,76 / 12, el último año
     assert "se queda corta" in prop.community_fees_monthly.formula
     assert prop.insurance_annual.value == D("270.54")

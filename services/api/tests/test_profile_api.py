@@ -160,3 +160,25 @@ def test_subir_una_nomina_rellena_el_borrador_y_no_guarda_el_documento(setup):
         b"GIF89a").decode()})
     assert bad.status_code == 422 and "PDF, JPG y PNG" in bad.json()["detail"]
     assert client.post(url, json={"kind": "nomina"}).status_code == 422
+
+
+def test_supuestos_de_busqueda_se_cambian_sin_rehacer_el_perfil(setup):
+    client, *_ = setup
+    assert client.get("/profile/current").status_code == 404
+    started = client.post("/profile/interviews").json()
+    client.post(f"/profile/interviews/{started['id']}/confirm", json={"values": {
+        "birth_year": "1988", "residence": "ES-13", "net_monthly_income": "2600",
+        "existing_monthly_debt": "0", "available_savings": "45000",
+        "vacancy_rate": "0.05"}})
+    current = client.get("/profile/current").json()
+    assert current["values"]["vacancy_rate"] == "0.05"
+    assert "sale_cost_rate" in current["missing_search"]
+    updated = client.put("/profile/current/search", json={"values": {
+        "management_fee_rate": "0.08", "other_purchase_cost_rate": "0.005",
+        "sale_cost_rate": "0.03", "min_monthly_cashflow": "100", "large_holder": "no",
+        "net_monthly_income": "99999"}}).json()  # lo que no es supuesto de búsqueda no se toca
+    assert updated["missing_search"] == []
+    assert updated["values"]["large_holder"] is False
+    assert updated["values"]["net_monthly_income"] == "2600"
+    wrong = client.put("/profile/current/search", json={"values": {"vacancy_rate": "5"}})
+    assert wrong.status_code == 422 and "5" not in wrong.json()["detail"]  # % sin pasar a ratio

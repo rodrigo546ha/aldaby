@@ -18,11 +18,15 @@ from uuid import UUID
 from housefinder.advisor.evaluation import CASES, run_cases, summary
 from housefinder.advisor.tools import ask
 from housefinder.agent.llm import LLMClient, llm_from_env
-from housefinder.agent.references import FigureSegment
+from housefinder.agent.references import FigureSegment, OfferSegment, Segment
+from housefinder.crypto.envelope import provider_from_env
 from housefinder.db.connection import Connection, connect
 from housefinder.db.offers import list_private_offers
-from housefinder.db.profiles import get_or_create_organization
+from housefinder.db.profiles import get_or_create_organization, latest_profile_id
 from housefinder.params.book import ParamBook, default_params_dir
+from housefinder.profiles import store
+from housefinder.profiles.model import UserProfile
+from housefinder.regulation.rules import RuleBook, default_rules_dir
 
 DEV_ORG = "Desarrollo local"  # la misma que usa la API hasta la autenticación (G8)
 
@@ -43,7 +47,8 @@ def main() -> int:
         conn.commit()
         if args.command == "evaluar":
             return _evaluate(conn, book, llm, org, args.salida)
-        answer = ask(conn, book, llm, org, args.texto)
+        profile, rules = _profile(conn, org)
+        answer = ask(conn, book, llm, org, args.texto, profile, rules)
     for step in answer.steps:
         print(f"· {step.tool}: {'bien' if step.ok else 'error'}", file=sys.stderr)
     for number, problems in enumerate(answer.rejected, 1):
@@ -54,10 +59,7 @@ def main() -> int:
         for key, figure in answer.figures.items():
             print(f"  [{key} = {figure.value} {figure.unit}]")
     else:
-        print("".join(
-            f"[{s.figure.key}{'' if s.part == 'value' else ':' + s.part} = "
-            f"{_part(s)} {s.figure.unit}]" if isinstance(s, FigureSegment) else s.text
-            for s in answer.segments))
+        print("".join(_shown(s) for s in answer.segments))
     for note in answer.notes:
         print(f"  aviso: {note}")
     return 0 if answer.failure is None else 1
@@ -85,6 +87,27 @@ def _evaluate(conn: Connection, book: ParamBook, llm: LLMClient, org: UUID,
     if output:
         output.write_text(report, encoding="utf-8")
     return 0
+
+
+def _profile(conn: Connection, org: UUID) -> tuple[UserProfile | None, RuleBook | None]:
+    """El perfil confirmado, si hay clave maestra y perfil: sin él, buscar_ofertas lo dice."""
+    profile_id = latest_profile_id(conn, org)
+    try:
+        keys = provider_from_env()
+    except FileNotFoundError:
+        return None, None
+    if profile_id is None:
+        return None, None
+    return store.load(conn, keys, profile_id, org), RuleBook.from_dir(default_rules_dir())
+
+
+def _shown(segment: Segment) -> str:
+    if isinstance(segment, FigureSegment):
+        part = "" if segment.part == "value" else ":" + segment.part
+        return f"[{segment.figure.key}{part} = {_part(segment)} {segment.figure.unit}]"
+    if isinstance(segment, OfferSegment):
+        return f"[oferta {segment.label}]"
+    return segment.text
 
 
 def _part(segment: FigureSegment) -> str:

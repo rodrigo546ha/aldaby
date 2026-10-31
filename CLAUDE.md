@@ -66,6 +66,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
                           contracción de la renta (ADR-0018)
     planning/simulate.py  simulación de punta a punta: el único camino de cálculo del plan (D4)
     planning/scenarios.py escenarios normativos: comparación con / sin reglas pendientes
+    planning/ranking.py   búsqueda inversa: restricciones por riesgo y orden por objetivo (ADR-0023)
+    search/               búsqueda inversa: el plan del usuario en cada oferta (ADR-0023)
     db/migrate.py         ejecutor de migraciones (ADR-0008); solo db/ importa psycopg
     db/sections.py        fuentes (`sources`) y secciones censales; sección de un punto
     db/indicators.py      indicadores por sección y cartografía (renta, demografía)
@@ -121,6 +123,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   data/watch/             filtros de la vigilancia del BOE y del BOCM
   data/jobs/              programaciones diarias de la cola (ADR-0010)
   data/profiles/          comunidades autónomas por código INE, para la residencia del perfil
+  data/territory/         provincia → comunidad autónoma (códigos INE)
   data/offers/            sedes de partidos judiciales para los avisos de subastas (sin verificar)
                           y zona cubierta (zona.yaml): un lote de otra provincia no se ubica
   tests/                  pytest; un test por regla de negocio

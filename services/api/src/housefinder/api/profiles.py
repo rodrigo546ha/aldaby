@@ -19,6 +19,7 @@ from housefinder.agent.documents import DocumentKind, extract_document
 from housefinder.agent.llm import LLMOutputError
 from housefinder.agent.profiling import extract_answer
 from housefinder.api.deps import DbDep, KeysDep, LLMDep, OrgDep
+from housefinder.db.profiles import latest_profile_id
 from housefinder.documents.reader import (
     MAX_BYTES,
     OcrUnavailable,
@@ -27,7 +28,8 @@ from housefinder.documents.reader import (
     read_text,
 )
 from housefinder.profiles import interview as iv
-from housefinder.profiles.model import ProfileError
+from housefinder.profiles import store
+from housefinder.profiles.model import ProfileError, UserProfile
 
 router = APIRouter(prefix="/profile", tags=["perfil"])
 OWNER = "local"  # hasta la autenticación (G8)
@@ -51,6 +53,7 @@ class DraftFieldOut(BaseModel):
     evidence: str | None = None
     source: Literal["respuesta", "calculado", "usuario", "documento"] | None = None
     note: str = ""
+    kind: Literal["texto", "ratio", "eur", "bool"] = "texto"
 
 
 class DocumentOut(BaseModel):
@@ -189,6 +192,51 @@ def confirm(interview_id: UUID, body: ConfirmIn, db: DbDep, keys: KeysDep,
     return ConfirmOut(profile_id=profile_id)
 
 
+class ProfileOut(BaseModel):
+    id: UUID
+    values: dict[str, Any] = Field(description="Valor de cada campo del perfil confirmado")
+    missing_search: list[str] = Field(description="Supuestos de búsqueda sin valor")
+
+
+class SearchAssumptionsIn(BaseModel):
+    values: dict[str, Any] = Field(description="Supuestos de búsqueda (ADR-0022)")
+
+
+@router.get("/current", response_model=ProfileOut)
+def current_profile(db: DbDep, keys: KeysDep, org: OrgDep) -> ProfileOut:
+    profile_id, profile = _latest(db, keys, org)
+    return _profile_out(profile_id, profile)
+
+
+@router.put("/current/search", response_model=ProfileOut)
+def set_search_assumptions(body: SearchAssumptionsIn, db: DbDep, keys: KeysDep,
+                           org: OrgDep) -> ProfileOut:
+    """Cambia solo los supuestos de búsqueda del perfil confirmado."""
+    profile_id, profile = _latest(db, keys, org)
+    current = profile.model_dump(mode="json")
+    wanted = {k: v for k, v in body.values.items() if k in iv.SEARCH_FIELDS}
+    try:
+        updated = iv.to_profile({**current, **wanted})
+    except ProfileError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    store.save(db, keys, profile_id, org, updated)
+    db.commit()
+    return _profile_out(profile_id, updated)
+
+
+def _latest(db: DbDep, keys: KeysDep, org: OrgDep) -> tuple[UUID, UserProfile]:
+    profile_id = latest_profile_id(db, org)
+    if profile_id is None:
+        raise HTTPException(status_code=404, detail="Todavía no hay un perfil confirmado")
+    return profile_id, store.load(db, keys, profile_id, org)
+
+
+def _profile_out(profile_id: UUID, profile: UserProfile) -> ProfileOut:
+    values = profile.model_dump(mode="json")
+    return ProfileOut(id=profile_id, values=values,
+                      missing_search=[k for k in iv.SEARCH_FIELDS if values.get(k) is None])
+
+
 @router.delete("/interviews/{interview_id}", status_code=204)
 def discard(interview_id: UUID, db: DbDep, org: OrgDep) -> None:
     try:
@@ -209,6 +257,9 @@ def _out(found: iv.Interview) -> InterviewOut:
             field=q.field, label=q.label, required=q.required,
             value=draft.value if draft else None, evidence=draft.evidence if draft else None,
             source=draft.source if draft else None, note=draft.note if draft else ""))
+    for name, (label, kind) in iv.SEARCH_FIELDS.items():  # supuestos sin fuente (ADR-0022)
+        fields.append(DraftFieldOut(field=name, label=label, required=False, value=None,
+                                    kind=kind))
     for name, label in iv.DOCUMENT_FIELDS.items():  # solo los rellena la declaración
         draft = state.draft.get(name)
         fields.append(DraftFieldOut(
