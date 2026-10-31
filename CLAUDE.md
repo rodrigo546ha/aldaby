@@ -2,6 +2,7 @@
 
 Contexto e instrucciones para trabajar en este repositorio con Claude Code.
 Léelo entero al empezar cada sesión, y después `docs/ROADMAP.md` para saber en qué fase estamos.
+El contexto completo (producto, arquitectura, entorno, calendario, costes) está en `docs/PLAN_DE_DESARROLLO.md`.
 
 ## Qué es HouseFinder
 

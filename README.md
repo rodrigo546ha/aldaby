@@ -22,7 +22,8 @@ curl -X POST localhost:8000/simulate/affordability -H 'Content-Type: application
 ## Documentación
 
 - [CLAUDE.md](CLAUDE.md): reglas del proyecto e instrucciones para Claude Code.
-- [docs/ROADMAP.md](docs/ROADMAP.md): planning por fases y fase activa.
+- [docs/PLAN_DE_DESARROLLO.md](docs/PLAN_DE_DESARROLLO.md): plan maestro (producto, arquitectura, entorno, fases, costes).
+- [docs/ROADMAP.md](docs/ROADMAP.md): estado de cada tarea y fase activa.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): arquitectura y flujo de datos.
 - [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md): fuentes de datos y su estado.
 - [docs/adr/](docs/adr/): decisiones de arquitectura.
