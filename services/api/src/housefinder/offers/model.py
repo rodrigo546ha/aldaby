@@ -49,6 +49,7 @@ class NormalizedOffer:
     address: str | None = None
     cadastral_ref: str | None = None
     municipality: str | None = None  # para comprobar la geocodificación
+    province: str | None = None  # fuera de la zona cubierta, no se geocodifica
     built_area_m2: Decimal | None = None
     lon: float | None = None  # si el canal ya trae el punto
     lat: float | None = None

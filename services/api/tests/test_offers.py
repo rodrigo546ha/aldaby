@@ -193,3 +193,66 @@ def test_canal_boe_seccion_v_de_punta_a_punta(database):
         ).fetchone()
     assert row[0] == "anuncio" and row[2] == "boe-seccion-v"
     assert "citar la fuente" in row[3]
+
+
+def cartociudad_down() -> httpx.Client:
+    """CartoCiudad devuelve un 500, como el 2026-10-30 con una parcela de Sahagún (León)."""
+    return httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(500)))
+
+
+@pytest.mark.db
+def test_un_500_de_cartociudad_deja_la_oferta_sin_ubicar_con_su_motivo(conn):
+    from housefinder.geo.cartociudad import geocode
+    from housefinder.offers.locate import offer_locator
+
+    client = cartociudad_down()
+    misses: list[tuple[str, str]] = []
+    locate = offer_locator(conn, lambda address: geocode(client, address),
+                           on_miss=lambda o, reason: misses.append((o.external_id, reason)))
+    assert locate(offer("e1", address="Calle Mayor 1, Madrid", municipality="Madrid")) is None
+    assert misses == [("e1", "CartoCiudad no responde: HTTP 500")]
+
+
+def test_fuera_de_la_zona_no_se_pregunta_al_catastro_ni_a_cartociudad():
+    from housefinder.offers.locate import Zone, offer_locator
+
+    asked: list[str] = []
+
+    def service(query):
+        asked.append(query)
+        raise AssertionError("no se tenía que preguntar")
+
+    misses: list[tuple[str, str]] = []
+    locate = offer_locator(None, service, service, lambda o, r: misses.append((o.external_id, r)),
+                           zone=Zone.of(["Madrid"]))
+    address = "parcela 14, polígono 501. Municipio: Sahagún (León), Sahagún (León), León"
+    assert locate(offer("f1", address=address, municipality="Sahagún (León)",
+                        province="León", cadastral_ref="24137A501000140000XX")) is None
+    # Sin provincia, la del paréntesis del municipio.
+    assert locate(offer("f2", address=address, municipality="Sahagún (León)")) is None
+    assert asked == []
+    assert misses == [("f1", "fuera de la zona cubierta: provincia «León»"),
+                      ("f2", "fuera de la zona cubierta: provincia «León»")]
+
+
+@pytest.mark.parametrize("province, municipality, outside", [
+    ("Madrid", "Alcalá de Henares", None),
+    ("provincia de Madrid", None, None),
+    ("Comunidad de Madrid", "Alcalá de Henares (Madrid)", None),
+    (None, "Alcalá de Henares (MADRID)", None),
+    (None, None, None),  # no lo dice: se intenta y decide la cartografía
+    ("León", "Sahagún", "León"),
+    ("Toledo", "Seseña (Toledo)", "Toledo"),
+])
+def test_provincia_de_la_oferta_frente_a_la_zona(province, municipality, outside):
+    from housefinder.offers.locate import Zone
+
+    zone = Zone.of(["Madrid"])
+    assert zone.outside(offer("g", province=province, municipality=municipality)) == outside
+
+
+def test_la_zona_por_defecto_es_la_de_las_secciones_cargadas():
+    from housefinder.offers.locate import load_zone
+
+    assert load_zone().outside(offer("h", province="Madrid")) is None
+    assert load_zone().outside(offer("h", province="León")) == "León"

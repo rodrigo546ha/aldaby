@@ -106,6 +106,7 @@ def lot_offer(announcement: PendingAnnouncement, lot: CheckedLot, index: int) ->
         published_on=announcement.published_on,
         address=full_address,
         municipality=municipality,
+        province=province,
         cadastral_ref=_text(lot.value("cadastral_ref")),
         built_area_m2=_number(lot.value("built_area_m2")),
         auction_min_bid=_number(lot.value("price")),
