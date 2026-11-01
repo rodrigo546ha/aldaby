@@ -65,3 +65,11 @@ repetía la extracción con el LLM. Comprobado el 2026-11-01 con peticiones real
 - Una caída de CartoCiudad o del Catastro retrasa la ubicación de un lote un día, no la extracción.
 - La zona se amplía cargando secciones, sin tocar código. Valorar una oferta de otra provincia
   necesita además sus referencias de renta y precio (ADRH, SERPAVI): eso no cambia aquí.
+- Secciones de 2025 de todas las provincias cargadas el 2026-11-01 (36.554). Con ellas se ubicaron
+  22 de los 26 lotes que esperaban. Quedan sin ubicar, con su motivo:
+  - el anuncio dice un municipio y la referencia catastral es de otro (Utiel y Requena), o el
+    municipio extraído es el del Registro de la Propiedad: el Catastro manda y no se acepta;
+  - **País Vasco y Navarra** tienen catastros forales: la Dirección General del Catastro no tiene
+    sus referencias. Ubicarlos por referencia pide los servicios de cada hacienda foral (otro ADR);
+  - nombres bilingües: «Castellón de la Plana» frente a «Castelló de la Plana» del Catastro no se
+    reconocen como el mismo municipio (pendiente).
