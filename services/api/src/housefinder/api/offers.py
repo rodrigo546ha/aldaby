@@ -32,6 +32,7 @@ from housefinder.valuation.service import OutsideCoverage
 
 from .deps import (
     DbDep,
+    ForalFinderDep,
     GeocoderDep,
     LinkClientDep,
     MunicipalityFinderDep,
@@ -145,10 +146,11 @@ def get_offer(offer_id: UUID, db: DbDep, org: OrgDep) -> OfferOut:
 @router.post("/{offer_id}/confirm")
 def post_confirm(offer_id: UUID, body: ConfirmIn, db: DbDep, org: OrgDep,
                  geocoder: GeocoderDep, parcels: ParcelFinderDep,
-                 municipalities: MunicipalityFinderDep) -> OfferOut:
+                 municipalities: MunicipalityFinderDep, foral: ForalFinderDep) -> OfferOut:
     try:
         done = confirm(db, org, offer_id, body.values, body.operation,
-                       offer_locator(db, geocoder, parcels, municipalities=municipalities))
+                       offer_locator(db, geocoder, parcels, municipalities=municipalities,
+                                     foral=foral))
     except ConfirmationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     if not done:

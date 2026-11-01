@@ -77,6 +77,6 @@ repetía la extracción con el LLM. Comprobado el 2026-11-01 con peticiones real
   - el anuncio dice un municipio y la referencia catastral es de otro (Utiel y Requena), o el
     municipio extraído es el del Registro de la Propiedad: el Catastro manda y no se acepta;
   - **País Vasco y Navarra** tienen catastros forales: la Dirección General del Catastro no tiene
-    sus referencias. Ubicarlos por referencia pide los servicios de cada hacienda foral (otro ADR);
+    sus referencias. Se ubican con el servicio de cada territorio (ADR-0032);
   - los nombres bilingües («Castellón de la Plana» frente a «CASTELLO DE LA PLANA» del Catastro)
     se reconocen por el código INE (punto 6).

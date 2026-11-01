@@ -14,6 +14,7 @@ from housefinder.agent.extraction import ListingExtraction, Quoted
 from housefinder.agent.llm import FakeLLMClient
 from housefinder.api.deps import (
     get_db,
+    get_foral_finder,
     get_geocoder,
     get_link_client,
     get_municipality_finder,
@@ -63,6 +64,9 @@ def client(migrated_database: str, monkeypatch):
     def no_parcels(ref: str):
         raise ParcelNotFound("sin red en los tests")
 
+    def no_foral(province: str, key: str):
+        raise ParcelNotFound("sin red en los tests")
+
     def geocoder(address: str) -> Geocoded:
         return Geocoded(-3.7322, 40.3057, "portal", address, "28901", None)
 
@@ -72,6 +76,7 @@ def client(migrated_database: str, monkeypatch):
     app.dependency_overrides[get_geocoder] = lambda: geocoder
     app.dependency_overrides[get_parcel_finder] = lambda: no_parcels
     app.dependency_overrides[get_municipality_finder] = lambda: (lambda name: frozenset())
+    app.dependency_overrides[get_foral_finder] = lambda: no_foral
     try:
         yield TestClient(app), pages
     finally:

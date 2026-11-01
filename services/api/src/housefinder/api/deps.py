@@ -19,6 +19,7 @@ from housefinder.db.connection import Connection, DatabaseUnavailable, connect
 from housefinder.db.profiles import get_or_create_organization
 from housefinder.geo.cartociudad import Geocoded, geocode, municipality_codes
 from housefinder.geo.catastro import Parcel, find_parcel
+from housefinder.geo.foral import find_foral_parcel
 from housefinder.offers.link import Resolver, link_client, system_resolve
 from housefinder.params.book import ParamBook, default_params_dir
 from housefinder.regulation.rules import RuleBook, default_rules_dir
@@ -92,6 +93,11 @@ def get_parcel_finder() -> Iterator[Callable[[str], Parcel]]:
         yield lambda ref: find_parcel(client, ref)
 
 
+def get_foral_finder() -> Iterator[Callable[[str, str], Parcel]]:
+    with httpx.Client(headers={"User-Agent": "HouseFinder/0.1 (datos abiertos)"}) as client:
+        yield lambda province, key: find_foral_parcel(client, province, key)
+
+
 def get_municipality_finder() -> Iterator[Callable[[str], frozenset[str]]]:
     with httpx.Client(headers={"User-Agent": "HouseFinder/0.1 (datos abiertos)"}) as client:
         yield lambda name: municipality_codes(client, name)
@@ -138,6 +144,7 @@ LLMDep = Annotated[LLMClient, Depends(get_llm)]
 ScenarioFinderDep = Annotated[
     Callable[[str, int, bool], AppreciationReport], Depends(get_scenario_finder)]
 ParcelFinderDep = Annotated[Callable[[str], Parcel], Depends(get_parcel_finder)]
+ForalFinderDep = Annotated[Callable[[str, str], Parcel], Depends(get_foral_finder)]
 MunicipalityFinderDep = Annotated[Callable[[str], frozenset[str]],
                                   Depends(get_municipality_finder)]
 LinkClientDep = Annotated[httpx.Client, Depends(get_link_client)]

@@ -16,6 +16,7 @@ from housefinder.db.review_tasks import mark_issue_read, read_issues
 from housefinder.db.sections import SourceRecord, upsert_source
 from housefinder.geo.cartociudad import Geocoded, geocode, municipality_codes
 from housefinder.geo.catastro import Parcel, find_parcel, find_rustic_parcel
+from housefinder.geo.foral import find_foral_parcel
 from housefinder.offers.channels import boe_subastas, boe_v
 from housefinder.offers.extract import extract_pending
 from housefinder.offers.ingest import IngestReport, ingest
@@ -49,7 +50,8 @@ def run_boe_v(
         done = read_issues(conn, ISSUES)
         locate = offer_locator(conn, geocoder or (lambda address: geocode(client, address)),
                                parcels or (lambda ref: find_parcel(client, ref)),
-                               municipalities=lambda name: municipality_codes(client, name))
+                               municipalities=lambda name: municipality_codes(client, name),
+                               foral=lambda province, key: find_foral_parcel(client, province, key))
         for offset in range(days):
             day = today - timedelta(days=offset)
             if day.isoformat() in done:
@@ -104,6 +106,7 @@ def extract_boe_v(
     only: list[str] | None = None,
     rustic: RusticFinder | None = None,
     municipalities: Callable[[str], frozenset[str]] | None = None,
+    foral: Callable[[str, str], Parcel] | None = None,
 ) -> dict[str, Any]:
     """Extrae los lotes de hasta `limit` anuncios pendientes del BOE (ADR-0013); con `only`,
     solo esos (BOE-B-…). Antes, vuelve a ubicar los lotes que esperaban otro intento (ADR-0031);
@@ -113,7 +116,9 @@ def extract_boe_v(
                                parcels or (lambda ref: find_parcel(client, ref)),
                                rustic or (lambda *args: find_rustic_parcel(client, *args)),
                                municipalities=municipalities or (
-                                   lambda name: municipality_codes(client, name)))
+                                   lambda name: municipality_codes(client, name)),
+                               foral=foral or (
+                                   lambda province, key: find_foral_parcel(client, province, key)))
         return extract_pending(conn, llm, boe_v.NAME, locate, limit, only).as_dict()
 
 

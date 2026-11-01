@@ -1,0 +1,149 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<wfs:FeatureCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd http://www.opengis.net/gml/3.2 http://schemas.opengis.net/gml/3.2.1/gml.xsd http://inspire.ec.europa.eu/schemas/cp/4.0 https://b5m.gipuzkoa.eus/inspire/wfs/gipuzkoa_wfs_cp?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=DescribeFeatureType&amp;OUTPUTFORMAT=application%2Fgml%2Bxml%3B+version%3D3.2&amp;TYPENAME=cp:CadastralParcel&amp;NAMESPACES=xmlns(cp,http%3A%2F%2Finspire.ec.europa.eu%2Fschemas%2Fcp%2F4.0)" xmlns:wfs="http://www.opengis.net/wfs/2.0" timeStamp="2026-11-01T14:51:20Z" xmlns:gml="http://www.opengis.net/gml/3.2" numberMatched="4" numberReturned="4">
+  <wfs:boundedBy>
+    <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4258">
+      <gml:lowerCorner>43.209148 -2.255904</gml:lowerCorner>
+      <gml:upperCorner>43.211663 -2.252563</gml:upperCorner>
+    </gml:Envelope>
+  </wfs:boundedBy>
+  <wfs:member>
+    <cp:CadastralParcel xmlns:cp="http://inspire.ec.europa.eu/schemas/cp/4.0" gml:id="ES.GFA.CP.018-6084022-3358">
+      <cp:areaValue uom="m2">39829</cp:areaValue>
+      <cp:beginLifespanVersion xsi:nil="false">2015-03-04T00:00:00</cp:beginLifespanVersion>
+      <cp:endLifespanVersion xsi:nil="false">2017-02-17T00:00:00</cp:endLifespanVersion>
+      <cp:geometry>
+        <!--Inlined geometry 'ES.GFA.CP.018-6084022-3358_CP_GEOMETRY'-->
+        <gml:Polygon gml:id="ES.GFA.CP.018-6084022-3358_CP_GEOMETRY" srsName="http://www.opengis.net/def/crs/EPSG/0/4258">
+          <gml:exterior>
+            <gml:LinearRing>
+              <gml:posList>43.211659 -2.255145 43.210312 -2.255863 43.210312 -2.255863 43.210296 -2.255870 43.210229 -2.255889 43.210161 -2.255890 43.210094 -2.255872 43.210031 -2.255836 43.209968 -2.255760 43.209968 -2.255760 43.209950 -2.255715 43.209862 -2.255415 43.209424 -2.253802 43.209408 -2.253738 43.209289 -2.253571 43.209166 -2.253358 43.209166 -2.253358 43.209155 -2.253322 43.209154 -2.253280 43.209163 -2.253240 43.209183 -2.253208 43.209210 -2.253187 43.209239 -2.253175 43.209253 -2.253167 43.209377 -2.253105 43.209377 -2.253105 43.209408 -2.253110 43.209525 -2.253173 43.210680 -2.252587 43.210746 -2.252822 43.210876 -2.253281 43.210940 -2.253511 43.211005 -2.253741 43.211068 -2.253963 43.211394 -2.255120 43.211626 -2.255001 43.211659 -2.255145</gml:posList>
+            </gml:LinearRing>
+          </gml:exterior>
+        </gml:Polygon>
+      </cp:geometry>
+      <cp:inspireId>
+        <base:Identifier xmlns:base="http://inspire.ec.europa.eu/schemas/base/3.3">
+          <base:localId>018-6084022-3358</base:localId>
+          <base:namespace>ES.GFA.CP</base:namespace>
+        </base:Identifier>
+      </cp:inspireId>
+      <cp:label>6084022</cp:label>
+      <cp:nationalCadastralReference>6084022</cp:nationalCadastralReference>
+      <cp:referencePoint>
+        <!--Inlined geometry 'ES.GFA.CP.018-6084022-3358_CP_REFERENCEPOINT'-->
+        <gml:Point gml:id="ES.GFA.CP.018-6084022-3358_CP_REFERENCEPOINT" srsName="http://www.opengis.net/def/crs/EPSG/0/4258">
+          <gml:pos>43.210350 -2.254276</gml:pos>
+        </gml:Point>
+      </cp:referencePoint>
+      <cp:validFrom xsi:nil="true" nilReason="http://inspire.ec.europa.eu/codelist/VoidReasonValue/Unpopulated"/>
+      <cp:validTo xsi:nil="true" nilReason="http://inspire.ec.europa.eu/codelist/VoidReasonValue/Unpopulated"/>
+      <cp:administrativeUnit xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://b5m.gipuzkoa.eus/inspire/wfs/gipuzkoa_wfs_au?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=GetFeature&amp;STOREDQUERY_ID=urn:ogc:def:query:OGC-WFS::GetFeatureById&amp;ID=ES.GFA.AU_ADMINISTRATIVEUNIT.34162020018"/>
+      <cp:zoning xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://b5m.gipuzkoa.eus/inspire/wfs/gipuzkoa_wfs_cp?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=GetFeature&amp;OUTPUTFORMAT=application%2Fgml%2Bxml%3B+version%3D3.2&amp;STOREDQUERY_ID=urn:ogc:def:query:OGC-WFS::GetFeatureById&amp;ID=ES.GFA.CP.Z.018-821-131737#ES.GFA.CP.Z.018-821-131737"/>
+    </cp:CadastralParcel>
+  </wfs:member>
+  <wfs:member>
+    <cp:CadastralParcel xmlns:cp="http://inspire.ec.europa.eu/schemas/cp/4.0" gml:id="ES.GFA.CP.018-6084022-7956">
+      <cp:areaValue uom="m2">39360</cp:areaValue>
+      <cp:beginLifespanVersion xsi:nil="false">2017-02-17T00:00:00</cp:beginLifespanVersion>
+      <cp:endLifespanVersion xsi:nil="false">2024-02-29T00:00:00</cp:endLifespanVersion>
+      <cp:geometry>
+        <!--Inlined geometry 'ES.GFA.CP.018-6084022-7956_CP_GEOMETRY'-->
+        <gml:Polygon gml:id="ES.GFA.CP.018-6084022-7956_CP_GEOMETRY" srsName="http://www.opengis.net/def/crs/EPSG/0/4258">
+          <gml:exterior>
+            <gml:LinearRing>
+              <gml:posList>43.211656 -2.255140 43.210312 -2.255863 43.210312 -2.255863 43.210296 -2.255870 43.210229 -2.255889 43.210161 -2.255890 43.210094 -2.255872 43.210031 -2.255836 43.209968 -2.255760 43.209968 -2.255760 43.209950 -2.255715 43.209862 -2.255415 43.209424 -2.253802 43.209408 -2.253738 43.209289 -2.253571 43.209166 -2.253358 43.209166 -2.253358 43.209155 -2.253322 43.209154 -2.253280 43.209163 -2.253240 43.209183 -2.253208 43.209210 -2.253187 43.209239 -2.253175 43.209253 -2.253167 43.209377 -2.253105 43.209377 -2.253105 43.209438 -2.253119 43.209518 -2.253177 43.209520 -2.253176 43.209523 -2.253175 43.209880 -2.252991 43.210670 -2.252584 43.210737 -2.252828 43.210864 -2.253289 43.210928 -2.253519 43.210991 -2.253749 43.211054 -2.253977 43.211159 -2.254358 43.211352 -2.255136 43.211383 -2.255121 43.211619 -2.254998 43.211656 -2.255140</gml:posList>
+            </gml:LinearRing>
+          </gml:exterior>
+        </gml:Polygon>
+      </cp:geometry>
+      <cp:inspireId>
+        <base:Identifier xmlns:base="http://inspire.ec.europa.eu/schemas/base/3.3">
+          <base:localId>018-6084022-7956</base:localId>
+          <base:namespace>ES.GFA.CP</base:namespace>
+        </base:Identifier>
+      </cp:inspireId>
+      <cp:label>6084022</cp:label>
+      <cp:nationalCadastralReference>6084022</cp:nationalCadastralReference>
+      <cp:referencePoint>
+        <!--Inlined geometry 'ES.GFA.CP.018-6084022-7956_CP_REFERENCEPOINT'-->
+        <gml:Point gml:id="ES.GFA.CP.018-6084022-7956_CP_REFERENCEPOINT" srsName="http://www.opengis.net/def/crs/EPSG/0/4258">
+          <gml:pos>43.210340 -2.254275</gml:pos>
+        </gml:Point>
+      </cp:referencePoint>
+      <cp:validFrom xsi:nil="true" nilReason="http://inspire.ec.europa.eu/codelist/VoidReasonValue/Unpopulated"/>
+      <cp:validTo xsi:nil="true" nilReason="http://inspire.ec.europa.eu/codelist/VoidReasonValue/Unpopulated"/>
+      <cp:administrativeUnit xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://b5m.gipuzkoa.eus/inspire/wfs/gipuzkoa_wfs_au?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=GetFeature&amp;STOREDQUERY_ID=urn:ogc:def:query:OGC-WFS::GetFeatureById&amp;ID=ES.GFA.AU_ADMINISTRATIVEUNIT.34162020018"/>
+      <cp:zoning xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://b5m.gipuzkoa.eus/inspire/wfs/gipuzkoa_wfs_cp?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=GetFeature&amp;OUTPUTFORMAT=application%2Fgml%2Bxml%3B+version%3D3.2&amp;STOREDQUERY_ID=urn:ogc:def:query:OGC-WFS::GetFeatureById&amp;ID=ES.GFA.CP.Z.018-821-131737#ES.GFA.CP.Z.018-821-131737"/>
+    </cp:CadastralParcel>
+  </wfs:member>
+  <wfs:member>
+    <cp:CadastralParcel xmlns:cp="http://inspire.ec.europa.eu/schemas/cp/4.0" gml:id="ES.GFA.CP.018-6084022-45701">
+      <cp:areaValue uom="m2">39382</cp:areaValue>
+      <cp:beginLifespanVersion xsi:nil="false">2024-02-29T00:00:00</cp:beginLifespanVersion>
+      <cp:endLifespanVersion xsi:nil="false">2025-10-13T00:00:00</cp:endLifespanVersion>
+      <cp:geometry>
+        <!--Inlined geometry 'ES.GFA.CP.018-6084022-45701_CP_GEOMETRY'-->
+        <gml:Polygon gml:id="ES.GFA.CP.018-6084022-45701_CP_GEOMETRY" srsName="http://www.opengis.net/def/crs/EPSG/0/4258">
+          <gml:exterior>
+            <gml:LinearRing>
+              <gml:posList>43.210737 -2.252828 43.210864 -2.253289 43.210928 -2.253519 43.210991 -2.253749 43.211054 -2.253977 43.211159 -2.254358 43.211352 -2.255136 43.211383 -2.255121 43.211619 -2.254998 43.211656 -2.255140 43.210312 -2.255863 43.210298 -2.255870 43.210290 -2.255873 43.210281 -2.255876 43.210274 -2.255879 43.210265 -2.255882 43.210256 -2.255884 43.210248 -2.255886 43.210240 -2.255887 43.210231 -2.255889 43.210222 -2.255890 43.210214 -2.255891 43.210205 -2.255891 43.210197 -2.255892 43.210189 -2.255892 43.210180 -2.255891 43.210171 -2.255891 43.210163 -2.255890 43.210154 -2.255888 43.210146 -2.255887 43.210138 -2.255885 43.210129 -2.255883 43.210120 -2.255881 43.210112 -2.255878 43.210104 -2.255876 43.210096 -2.255872 43.210088 -2.255869 43.210079 -2.255865 43.210072 -2.255861 43.210063 -2.255857 43.210055 -2.255852 43.210048 -2.255848 43.210039 -2.255842 43.210032 -2.255837 43.210031 -2.255836 43.209968 -2.255760 43.209959 -2.255737 43.209950 -2.255714 43.209941 -2.255690 43.209932 -2.255667 43.209924 -2.255644 43.209916 -2.255620 43.209909 -2.255597 43.209901 -2.255573 43.209896 -2.255553 43.209890 -2.255534 43.209885 -2.255514 43.209880 -2.255494 43.209875 -2.255475 43.209870 -2.255455 43.209866 -2.255435 43.209862 -2.255415 43.209424 -2.253802 43.209408 -2.253738 43.209289 -2.253571 43.209166 -2.253358 43.209163 -2.253352 43.209161 -2.253346 43.209160 -2.253341 43.209158 -2.253335 43.209156 -2.253329 43.209155 -2.253323 43.209154 -2.253317 43.209154 -2.253311 43.209153 -2.253304 43.209153 -2.253298 43.209153 -2.253292 43.209153 -2.253285 43.209154 -2.253279 43.209155 -2.253272 43.209156 -2.253266 43.209157 -2.253260 43.209159 -2.253254 43.209160 -2.253249 43.209163 -2.253242 43.209165 -2.253237 43.209167 -2.253232 43.209170 -2.253227 43.209173 -2.253221 43.209176 -2.253216 43.209180 -2.253212 43.209183 -2.253208 43.209187 -2.253204 43.209190 -2.253201 43.209194 -2.253197 43.209199 -2.253194 43.209203 -2.253191 43.209207 -2.253189 43.209210 -2.253187 43.209239 -2.253175 43.209377 -2.253105 43.209387 -2.253105 43.209397 -2.253107 43.209407 -2.253109 43.209416 -2.253111 43.209425 -2.253114 43.209434 -2.253118 43.209443 -2.253121 43.209452 -2.253126 43.209461 -2.253131 43.209470 -2.253136 43.209479 -2.253142 43.209487 -2.253148 43.209495 -2.253155 43.209503 -2.253162 43.209511 -2.253170 43.209518 -2.253177 43.210670 -2.252584 43.210737 -2.252828</gml:posList>
+            </gml:LinearRing>
+          </gml:exterior>
+        </gml:Polygon>
+      </cp:geometry>
+      <cp:inspireId>
+        <base:Identifier xmlns:base="http://inspire.ec.europa.eu/schemas/base/3.3">
+          <base:localId>018-6084022-45701</base:localId>
+          <base:namespace>ES.GFA.CP</base:namespace>
+        </base:Identifier>
+      </cp:inspireId>
+      <cp:label>6084022</cp:label>
+      <cp:nationalCadastralReference>6084022</cp:nationalCadastralReference>
+      <cp:referencePoint>
+        <!--Inlined geometry 'ES.GFA.CP.018-6084022-45701_CP_REFERENCEPOINT'-->
+        <gml:Point gml:id="ES.GFA.CP.018-6084022-45701_CP_REFERENCEPOINT" srsName="http://www.opengis.net/def/crs/EPSG/0/4258">
+          <gml:pos>43.210340 -2.254275</gml:pos>
+        </gml:Point>
+      </cp:referencePoint>
+      <cp:validFrom xsi:nil="true" nilReason="http://inspire.ec.europa.eu/codelist/VoidReasonValue/Unpopulated"/>
+      <cp:validTo xsi:nil="true" nilReason="http://inspire.ec.europa.eu/codelist/VoidReasonValue/Unpopulated"/>
+      <cp:administrativeUnit xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://b5m.gipuzkoa.eus/inspire/wfs/gipuzkoa_wfs_au?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=GetFeature&amp;STOREDQUERY_ID=urn:ogc:def:query:OGC-WFS::GetFeatureById&amp;ID=ES.GFA.AU_ADMINISTRATIVEUNIT.34162020018"/>
+      <cp:zoning xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://b5m.gipuzkoa.eus/inspire/wfs/gipuzkoa_wfs_cp?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=GetFeature&amp;OUTPUTFORMAT=application%2Fgml%2Bxml%3B+version%3D3.2&amp;STOREDQUERY_ID=urn:ogc:def:query:OGC-WFS::GetFeatureById&amp;ID=ES.GFA.CP.Z.018-821-131737#ES.GFA.CP.Z.018-821-131737"/>
+    </cp:CadastralParcel>
+  </wfs:member>
+  <wfs:member>
+    <cp:CadastralParcel xmlns:cp="http://inspire.ec.europa.eu/schemas/cp/4.0" gml:id="ES.GFA.CP.018-6084022-110587">
+      <cp:areaValue uom="m2">39937</cp:areaValue>
+      <cp:beginLifespanVersion xsi:nil="false">2025-10-13T00:00:00</cp:beginLifespanVersion>
+      <cp:endLifespanVersion xsi:nil="true" nilReason="http://inspire.ec.europa.eu/codelist/VoidReasonValue/Unpopulated"/>
+      <cp:geometry>
+        <!--Inlined geometry 'ES.GFA.CP.018-6084022-110587_CP_GEOMETRY'-->
+        <gml:Polygon gml:id="ES.GFA.CP.018-6084022-110587_CP_GEOMETRY" srsName="http://www.opengis.net/def/crs/EPSG/0/4258">
+          <gml:exterior>
+            <gml:LinearRing>
+              <gml:posList>43.210755 -2.252819 43.210882 -2.253279 43.210946 -2.253510 43.211009 -2.253740 43.211070 -2.253961 43.211389 -2.255116 43.211619 -2.254998 43.211628 -2.255028 43.211656 -2.255140 43.210312 -2.255863 43.210298 -2.255870 43.210290 -2.255873 43.210281 -2.255876 43.210274 -2.255879 43.210265 -2.255882 43.210256 -2.255884 43.210248 -2.255886 43.210240 -2.255887 43.210231 -2.255889 43.210222 -2.255890 43.210214 -2.255891 43.210205 -2.255891 43.210197 -2.255892 43.210189 -2.255892 43.210180 -2.255891 43.210171 -2.255891 43.210163 -2.255890 43.210154 -2.255888 43.210146 -2.255887 43.210138 -2.255885 43.210129 -2.255883 43.210120 -2.255881 43.210112 -2.255878 43.210104 -2.255876 43.210096 -2.255872 43.210088 -2.255869 43.210079 -2.255865 43.210072 -2.255861 43.210063 -2.255857 43.210055 -2.255852 43.210048 -2.255848 43.210039 -2.255842 43.210032 -2.255837 43.210031 -2.255836 43.209968 -2.255760 43.209959 -2.255737 43.209950 -2.255714 43.209941 -2.255690 43.209932 -2.255667 43.209924 -2.255644 43.209916 -2.255620 43.209909 -2.255597 43.209901 -2.255573 43.209896 -2.255553 43.209890 -2.255534 43.209885 -2.255514 43.209880 -2.255494 43.209875 -2.255475 43.209870 -2.255455 43.209866 -2.255435 43.209862 -2.255415 43.209424 -2.253802 43.209408 -2.253738 43.209289 -2.253571 43.209166 -2.253358 43.209163 -2.253352 43.209161 -2.253346 43.209160 -2.253341 43.209158 -2.253335 43.209156 -2.253329 43.209155 -2.253323 43.209154 -2.253317 43.209154 -2.253311 43.209153 -2.253304 43.209153 -2.253298 43.209153 -2.253292 43.209153 -2.253285 43.209154 -2.253279 43.209155 -2.253272 43.209156 -2.253266 43.209157 -2.253260 43.209159 -2.253254 43.209160 -2.253249 43.209163 -2.253242 43.209165 -2.253237 43.209167 -2.253232 43.209170 -2.253227 43.209173 -2.253221 43.209176 -2.253216 43.209180 -2.253212 43.209183 -2.253208 43.209187 -2.253204 43.209190 -2.253201 43.209194 -2.253197 43.209199 -2.253194 43.209203 -2.253191 43.209207 -2.253189 43.209210 -2.253187 43.209239 -2.253175 43.209377 -2.253105 43.209387 -2.253105 43.209397 -2.253107 43.209407 -2.253109 43.209416 -2.253111 43.209425 -2.253114 43.209434 -2.253118 43.209443 -2.253121 43.209452 -2.253126 43.209461 -2.253131 43.209470 -2.253136 43.209479 -2.253142 43.209487 -2.253148 43.209495 -2.253155 43.209503 -2.253162 43.209511 -2.253170 43.209518 -2.253177 43.210163 -2.252845 43.210250 -2.252800 43.210365 -2.252741 43.210688 -2.252575 43.210755 -2.252819</gml:posList>
+            </gml:LinearRing>
+          </gml:exterior>
+        </gml:Polygon>
+      </cp:geometry>
+      <cp:inspireId>
+        <base:Identifier xmlns:base="http://inspire.ec.europa.eu/schemas/base/3.3">
+          <base:localId>018-6084022-110587</base:localId>
+          <base:namespace>ES.GFA.CP</base:namespace>
+        </base:Identifier>
+      </cp:inspireId>
+      <cp:label>6084022</cp:label>
+      <cp:nationalCadastralReference>6084022</cp:nationalCadastralReference>
+      <cp:referencePoint>
+        <!--Inlined geometry 'ES.GFA.CP.018-6084022-110587_CP_REFERENCEPOINT'-->
+        <gml:Point gml:id="ES.GFA.CP.018-6084022-110587_CP_REFERENCEPOINT" srsName="http://www.opengis.net/def/crs/EPSG/0/4258">
+          <gml:pos>43.210350 -2.254271</gml:pos>
+        </gml:Point>
+      </cp:referencePoint>
+      <cp:validFrom xsi:nil="true" nilReason="http://inspire.ec.europa.eu/codelist/VoidReasonValue/Unpopulated"/>
+      <cp:validTo xsi:nil="true" nilReason="http://inspire.ec.europa.eu/codelist/VoidReasonValue/Unpopulated"/>
+      <cp:administrativeUnit xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://b5m.gipuzkoa.eus/inspire/wfs/gipuzkoa_wfs_au?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=GetFeature&amp;STOREDQUERY_ID=urn:ogc:def:query:OGC-WFS::GetFeatureById&amp;ID=ES.GFA.AU_ADMINISTRATIVEUNIT.34162020018"/>
+      <cp:zoning xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://b5m.gipuzkoa.eus/inspire/wfs/gipuzkoa_wfs_cp?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=GetFeature&amp;OUTPUTFORMAT=application%2Fgml%2Bxml%3B+version%3D3.2&amp;STOREDQUERY_ID=urn:ogc:def:query:OGC-WFS::GetFeatureById&amp;ID=ES.GFA.CP.Z.018-821-131737#ES.GFA.CP.Z.018-821-131737"/>
+    </cp:CadastralParcel>
+  </wfs:member>
+</wfs:FeatureCollection>

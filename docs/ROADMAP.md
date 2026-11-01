@@ -193,6 +193,8 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       y parcela del Catastro; un fallo de un servicio deja el lote sin ubicar sin tumbar el trabajo;
       el motivo se guarda en la oferta (`location_issue`) y `extract_offers` reintenta sin el LLM
       los fallos y los lotes de provincias sin secciones; la zona son las secciones cargadas.
+      Secciones de 2025 de toda España cargadas; País Vasco y Navarra, con su catastro foral
+      (ADR-0032).
 - [x] F4.7 Trabajos programados con reintentos y alertas de fallo (ADR-0010): cola en PostgreSQL con
       `SKIP LOCKED`, esperas de 1 minuto a 1 hora, programaciones por intervalo, alertas en el log
       `housefinder.alertas`; `make worker`. Primeros tipos: `ine_sections` e `ine_adrh`.

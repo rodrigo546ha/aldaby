@@ -1,5 +1,6 @@
-"""Ubicar una oferta: por referencia catastral (Catastro, ADR-0016), por polígono y parcela
-(Catastro, ADR-0031) y, si no, por dirección (CartoCiudad con caché, ADR-0009).
+"""Ubicar una oferta: por referencia catastral (Catastro, ADR-0016; en el País Vasco y Navarra, su
+catastro foral, ADR-0032), por polígono y parcela (Catastro, ADR-0031) y, si no, por dirección
+(CartoCiudad con caché, ADR-0009).
 
 Un resultado no se acepta a ciegas. CartoCiudad devolvió para «Carretera M-119 21, Alcalá de
 Henares» la «CALLE ALCALA HENARES 119, 30720 Santiago de la Ribera», en Murcia: leyó el municipio
@@ -29,10 +30,16 @@ from housefinder.db.connection import Connection
 from housefinder.db.sections import latest_vintage, loaded_provinces, section_at
 from housefinder.geo.cartociudad import AddressNotFound, AddressTooVague, Geocoded
 from housefinder.geo.catastro import CatastroUnavailable, Parcel, ParcelNotFound
+from housefinder.geo.foral import FORAL, NAVARRA, SERVICES, foral_key, navarra_key
 from housefinder.geo.http import failure
 from housefinder.offers.ingest import Locator, Point, Unlocated
 from housefinder.offers.model import NormalizedOffer
-from housefinder.territory.service import locate_address, locate_parcel
+from housefinder.territory.service import (
+    Location,
+    locate_address,
+    locate_foral_parcel,
+    locate_parcel,
+)
 
 # Referencia de una finca rústica: (provincia, municipio, polígono, parcela) → 14 caracteres.
 RusticFinder = Callable[[str, str, str, str], str]
@@ -100,8 +107,13 @@ def offer_locator(
     rustic: RusticFinder | None = None,
     zone: Zone | None = None,
     municipalities: Callable[[str], frozenset[str]] | None = None,
+    foral: Callable[[str, str], Parcel] | None = None,
 ) -> Locator:
     covered = zone or load_zone(conn)
+
+    def province_code(offer: NormalizedOffer) -> str | None:
+        stated = offer.province or stated_province(offer.municipality)
+        return covered.provinces.code(stated) if stated else None
 
     def in_municipality(name: str, lon: float, lat: float, named: bool,
                         pending: list[str]) -> bool:
@@ -132,6 +144,24 @@ def offer_locator(
         except ParcelNotFound as exc:
             notes.append(f"{ref}: {exc}")
             return None
+        return checked(offer, found, ref, "catastro", notes, pending)
+
+    def at_foral(offer: NormalizedOffer, province: str, key: str, notes: list[str],
+                 pending: list[str]) -> Point | None:
+        if foral is None:
+            return None
+        try:
+            found = locate_foral_parcel(conn, province, key, foral)
+        except CatastroUnavailable as exc:
+            pending.append(str(exc))
+            return None
+        except ParcelNotFound as exc:
+            notes.append(f"{key}: {exc}")
+            return None
+        return checked(offer, found, key, SERVICES[province].source_id, notes, pending)
+
+    def checked(offer: NormalizedOffer, found: Location, ref: str, source: str,
+                notes: list[str], pending: list[str]) -> Point | None:
         if not _covered(conn, found.lon, found.lat):
             pending.append(f"la parcela {ref} cae fuera de las secciones cargadas")
             return None
@@ -140,19 +170,48 @@ def offer_locator(
                 parcel_in_municipality(offer.municipality, found.matched), pending):
             notes.append(f"la parcela {ref} es de otro municipio: {found.matched}")
             return None
-        return Point(found.lon, found.lat, "catastro")
+        return Point(found.lon, found.lat, source)
 
     def by_parcel(offer: NormalizedOffer, notes: list[str], pending: list[str]) -> Point | None:
-        if parcels is None or not offer.cadastral_ref:
+        if not offer.cadastral_ref:
+            return None
+        province = province_code(offer)
+        key = foral_key(province, offer.cadastral_ref)
+        if key is not None:
+            return at_foral(offer, *key, notes, pending)
+        if province in FORAL:
+            notes.append(f"{offer.cadastral_ref}: forma de referencia del catastro de "
+                         f"{SERVICES[province].territory} que no se conoce")
+            return None
+        if parcels is None:
             return None
         return at_parcel(offer, offer.cadastral_ref, notes, pending)
+
+    def by_navarra(offer: NormalizedOffer, municipality: str, rural: tuple[str, str],
+                   notes: list[str], pending: list[str]) -> Point | None:
+        if foral is None or municipalities is None:
+            return None
+        try:
+            codes = {c for c in municipalities(municipality) if c.startswith("31")}
+        except (httpx.HTTPError, json.JSONDecodeError) as exc:
+            pending.append(f"CartoCiudad no responde al buscar el municipio: {failure(exc)}")
+            return None
+        if len(codes) != 1:
+            notes.append(f"{municipality}: {len(codes)} municipios de Navarra con ese nombre")
+            return None
+        return at_foral(offer, "31", navarra_key(codes.pop(), *rural), notes, pending)
 
     def by_polygon(offer: NormalizedOffer, notes: list[str], pending: list[str]) -> Point | None:
         rural = polygon_and_parcel(offer.address or "")
         province = offer.province or stated_province(offer.municipality)
         municipality = municipality_name(offer.municipality or "")
-        if parcels is None or rustic is None or rural is None or not province or not municipality:
+        if rural is None or not province or not municipality:
             return None
+        code = covered.provinces.code(province)
+        if code == NAVARRA.province:
+            return by_navarra(offer, municipality, rural, notes, pending)
+        if code in FORAL or parcels is None or rustic is None:
+            return None  # el polígono y parcela de los catastros vascos no está comprobado
         try:
             ref = rustic(province, municipality, *rural)
         except CatastroUnavailable as exc:

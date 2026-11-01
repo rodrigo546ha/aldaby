@@ -22,7 +22,7 @@ from housefinder.db.sections import (
     stable_vintages,
     upsert_source,
 )
-from housefinder.geo import catastro
+from housefinder.geo import catastro, foral
 from housefinder.geo.cartociudad import (
     ATTRIBUTION,
     FIND_URL,
@@ -109,6 +109,29 @@ def locate_parcel(
     else:
         from_cache = True
     return Location(cached.lon, cached.lat, cadastral_ref, cached.matched, cached.match_type,
+                    cached.cadastral_ref, from_cache)
+
+
+def locate_foral_parcel(
+    conn: Connection, province: str, key: str, finder: Callable[[str, str], Parcel]
+) -> Location:
+    """Punto de una parcela de un catastro foral (ADR-0032), con la misma caché."""
+    service = foral.SERVICES[province]
+    query = f"foral:{province}:{key}"
+    cached = get_cached(conn, query, CACHE_MAX_AGE)
+    if cached is None:
+        found = finder(province, key)
+        cached = CachedGeocode(found.lon, found.lat, "parcela", found.address, None,
+                               found.parcel_ref)
+        upsert_source(conn, SourceRecord(service.source_id, service.name, service.url,
+                                         service.attribution, datetime.now(UTC),
+                                         f"Condiciones: {service.conditions}"))
+        put_cached(conn, query, cached, service.source_id)
+        conn.commit()
+        from_cache = False
+    else:
+        from_cache = True
+    return Location(cached.lon, cached.lat, key, cached.matched, cached.match_type,
                     cached.cadastral_ref, from_cache)
 
 
