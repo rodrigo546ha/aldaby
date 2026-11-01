@@ -22,6 +22,7 @@ from housefinder.api.deps import (
 )
 from housefinder.api.figures import FigureOut, figure_out
 from housefinder.api.search import RentalAdviceOut, advice_out
+from housefinder.branding import service as branding
 from housefinder.crypto.envelope import KeyProvider
 from housefinder.db.connection import Connection
 from housefinder.db.profiles import latest_profile_id
@@ -125,7 +126,8 @@ def offer_plan_pdf(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client
                    book: ParamBookDep, rules: RuleBookDep) -> Response:
     """El plan en PDF con su anexo de fuentes (ADR-0026). No se guarda: lleva datos personales."""
     plan = _plan(db, keys, org, client, book, rules, offer_id)[1]
-    html = plan_html(plan, plan_sources(db, plan, rules, book), date.today())
+    html = plan_html(plan, plan_sources(db, plan, rules, book), date.today(),
+                     branding.load(db, org))
     try:
         pdf = plan_pdf(html)
     except OSError as exc:  # faltan pango o cairo

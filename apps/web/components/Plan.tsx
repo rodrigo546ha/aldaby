@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { components } from "../lib/api-types";
 import { formatValue, label } from "../lib/format";
+import { BrandHeader, useBranding } from "./Branding";
 import { FigureView } from "./FigureView";
 
 type PlanOut = components["schemas"]["PlanOut"];
@@ -19,6 +20,7 @@ const STAGES: Record<string, string> = {
 const MORTGAGE: Record<string, string> = { fija: "la fija", variable: "la variable" };
 
 export function Plan({ offerId }: { offerId: string }) {
+  const [brand, brandVersion] = useBranding();
   const [plan, setPlan] = useState<PlanOut | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -40,6 +42,7 @@ export function Plan({ offerId }: { offerId: string }) {
   if (!plan) return <p className="empty">Calculando tu plan…</p>;
   return (
     <div className="plan">
+      <BrandHeader brand={brand} version={brandVersion} />
       <section className="plan-head">
         <h2>{plan.title ?? (plan.kind === "enlace" ? "Oferta pegada" : "Lote del BOE")}</h2>
         <span className={plan.passes ? "status pass" : "status fail"}>

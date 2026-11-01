@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from housefinder.api import (
     auth,
     boe,
+    branding,
     clients,
     offers,
     plans,
@@ -28,6 +29,7 @@ app.include_router(search.router)
 app.include_router(plans.router)
 app.include_router(auth.router)
 app.include_router(clients.router)
+app.include_router(branding.router)
 
 
 @app.get("/health")

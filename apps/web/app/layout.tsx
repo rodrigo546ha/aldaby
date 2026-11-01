@@ -21,6 +21,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Link href="/busqueda">Búsqueda</Link>
           <Link href="/ofertas">Ofertas</Link>
           <Link href="/anuncios">Anuncios del BOE</Link>
+          <Link href="/marca">Marca</Link>
           <ClientPicker />
           <Account />
         </nav>

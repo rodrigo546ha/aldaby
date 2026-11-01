@@ -228,3 +228,12 @@ button.link { background: none; border: none; padding: 0; color: var(--muted); t
 .client-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .client-list li { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .client-actions { margin-left: auto; display: flex; gap: 12px; }
+
+.brand-header { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--line); }
+.brand-header p { margin: 0; }
+.brand-line { display: flex; gap: 16px; align-items: center; }
+.brand-logo { max-height: 64px; max-width: 220px; background: #fff; padding: 4px; border-radius: 4px; }
+.brand-name { font-weight: 700; font-size: 1.1rem; }
+.branding { display: flex; flex-direction: column; gap: 16px; max-width: 640px; }
+.branding-form { display: flex; flex-direction: column; gap: 12px; }
+.branding textarea { font: inherit; }

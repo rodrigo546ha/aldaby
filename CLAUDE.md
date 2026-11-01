@@ -86,6 +86,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/profiles.py        organizaciones y perfiles (solo bytes cifrados)
     db/accounts.py        cuentas, enlaces de contraseña y sesiones (solo hashes de tokens)
     db/clients.py         clientes de un profesional (nombre cifrado, ADR-0029)
+    db/branding.py        marca del profesional (ADR-0030)
+    branding/             marca del profesional: color con contraste y logotipo reescrito con Pillow (ADR-0030)
     accounts/             cuentas con argon2id, sesiones y altas por el administrador (ADR-0028)
     db/interviews.py      entrevistas de perfil (solo bytes cifrados)
     crypto/               cifrado de sobre AES-256-GCM y claves maestras (ADR-0011)

@@ -39,7 +39,10 @@ ALLOWED_INTERNAL = {
     "plans": {"core", "db", "engines", "params", "planning", "plans", "profiles", "regulation",
               "search", "valuation"},
     # PDF del plan (F6.8): el plan, las fuentes de reglas, parámetros y datos
-    "reports": {"core", "db", "params", "planning", "plans", "regulation", "reports"},
+    "reports": {"branding", "core", "db", "params", "planning", "plans", "regulation",
+                "reports"},
+    # Marca del profesional (F7.3, ADR-0030)
+    "branding": {"branding", "core", "db"},
     # Cuentas y sesiones (F7.1, ADR-0028)
     "accounts": {"accounts", "core", "db"},
     # Evaluaciones (F6.9): el asesor, la extracción y el plan, con el perfil de desarrollo
@@ -57,7 +60,9 @@ ALLOWED_EXTERNAL = {"ingestion": {"httpx", "pypdf", "xlrd"}, "geo": {"httpx"}, "
                     # Solo documents/ lee PDF y hace OCR (ADR-0021)
                     "documents": {"pypdf", "pypdfium2", "pytesseract", "PIL"},
                     # Solo reports/ genera PDF (ADR-0026)
-                    "reports": {"weasyprint"}}
+                    "reports": {"weasyprint"},
+                    # El logotipo del profesional se reescribe con Pillow (ADR-0030)
+                    "branding": {"PIL"}}
 
 
 def _imports(path: Path) -> set[str]:

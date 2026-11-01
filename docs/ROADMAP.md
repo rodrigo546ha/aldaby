@@ -353,7 +353,11 @@ umbral fijado en F0, y cada estimación con su rango.
       selector en la barra y página `/clientes` (alta, cambio y borrado definitivo con sus
       perfiles). Las ofertas y las rentas esperadas son del profesional y se evalúan con el
       perfil del cliente activo.
-- [ ] F7.3 Planes con la marca del profesional.
+- [x] F7.3 Planes con la marca del profesional.
+      *Hecho (ADR-0030):* nombre comercial, contacto, color con contraste comprobado (4,5:1 sobre
+      blanco), presentación y logotipo PNG o JPEG reescrito con Pillow (sin SVG), en la página
+      `/marca`. Sale en la cabecera del PDF y de `/plan`, con una línea discreta al pie: «Cifras
+      calculadas con HouseFinder, con las fuentes del anexo».
 - [ ] F7.4 Avisos legales y consentimiento de tratamiento de datos.
 - [ ] F7.5 Despliegue en AWS con copias de seguridad y monitorización básica.
 - [ ] F7.6 Piloto de 4 semanas con 3–5 profesionales y sesión de feedback semanal.

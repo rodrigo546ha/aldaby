@@ -66,3 +66,31 @@ def test_pdf(searchable, plan):  # noqa: F811
         html = plan_html(plan, plan_sources(conn, plan, rules(), book()), TODAY)
     pdf = plan_pdf(html)
     assert pdf.startswith(b"%PDF") and len(pdf) > 10_000
+
+
+@pytest.mark.db
+def test_plan_con_la_marca_del_profesional(searchable, plan):  # noqa: F811
+    import io
+
+    from PIL import Image
+
+    from housefinder.branding.service import Branding
+    from housefinder.reports.pdf import plan_html, plan_sources
+
+    logo = io.BytesIO()
+    Image.new("RGB", (60, 20), (31, 95, 139)).save(logo, format="PNG")
+    brand = Branding("Asesoría <Ana>", "ana@ejemplo.es", "#1f5f8b",
+                     "Primer párrafo.\n\nSegundo <b>párrafo</b>.", logo.getvalue())
+    with psycopg.connect(searchable) as conn:
+        sources = plan_sources(conn, plan, rules(), book())
+    html = plan_html(plan, sources, TODAY, brand)
+    assert "Asesoría &lt;Ana&gt;" in html and "<Ana>" not in html  # escapado
+    assert "Segundo &lt;b&gt;párrafo&lt;/b&gt;." in html
+    assert "color: #1f5f8b" in html and "data:image/png;base64," in html
+    assert "Cifras calculadas con HouseFinder, con las fuentes del anexo" in html
+    plain = plan_html(plan, sources, TODAY)
+    assert "class='brand-name'" not in plain and "Cifras calculadas con HouseFinder" not in plain
+    weasyprint_or_skip()
+    from housefinder.reports.pdf import plan_pdf
+
+    assert plan_pdf(html).startswith(b"%PDF")

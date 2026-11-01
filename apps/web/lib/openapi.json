@@ -1503,6 +1503,141 @@
         }
       }
     },
+    "/branding": {
+      "get": {
+        "tags": [
+          "marca"
+        ],
+        "summary": "Get Branding",
+        "operationId": "get_branding_branding_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandingOut"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "marca"
+        ],
+        "summary": "Put Branding",
+        "operationId": "put_branding_branding_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrandingIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandingOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/branding/logo": {
+      "get": {
+        "tags": [
+          "marca"
+        ],
+        "summary": "Get Logo",
+        "operationId": "get_logo_branding_logo_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "image/png": {}
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "marca"
+        ],
+        "summary": "Put Logo",
+        "operationId": "put_logo_branding_logo_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandingOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "marca"
+        ],
+        "summary": "Delete Logo",
+        "operationId": "delete_logo_branding_logo_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandingOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -1965,6 +2100,121 @@
           "attribution"
         ],
         "title": "AuctionNoticeOut"
+      },
+      "BrandingIn": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "contact": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "intro": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intro"
+          }
+        },
+        "type": "object",
+        "title": "BrandingIn"
+      },
+      "BrandingOut": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "contact": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "intro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intro"
+          },
+          "has_logo": {
+            "type": "boolean",
+            "title": "Has Logo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "display_name",
+          "contact",
+          "color",
+          "intro",
+          "has_logo"
+        ],
+        "title": "BrandingOut"
       },
       "BuyerRequest": {
         "properties": {
@@ -3061,6 +3311,20 @@
           "password"
         ],
         "title": "LoginIn"
+      },
+      "LogoIn": {
+        "properties": {
+          "content_base64": {
+            "type": "string",
+            "maxLength": 2796218,
+            "title": "Content Base64"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content_base64"
+        ],
+        "title": "LogoIn"
       },
       "LotFieldOut": {
         "properties": {

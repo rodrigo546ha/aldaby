@@ -6,10 +6,12 @@ programa y la hoja de ruta. La explicación del asesor no va: el mismo plan da e
 
 from __future__ import annotations
 
+import base64
 from collections.abc import Iterable
 from datetime import date
 from html import escape
 
+from housefinder.branding.service import Branding
 from housefinder.core.figures import Figure
 from housefinder.db.connection import Connection
 from housefinder.db.sections import sources_by_id
@@ -59,15 +61,24 @@ td.formula { color: #444; font-size: 8.5pt; }
 .small { font-size: 8pt; color: #555; }
 .url { font-size: 7.5pt; color: #555; word-break: break-all; }
 ol.sources li { margin-bottom: 3pt; }
+.brand { display: flex; gap: 12pt; align-items: center; padding-bottom: 8pt; margin-bottom: 10pt;
+         border-bottom: 2px solid #ccc; }
+.brand-logo { max-height: 18mm; max-width: 60mm; }
+.brand-name { font-size: 12pt; font-weight: bold; margin: 0; }
+.brand-intro { margin: 0 0 6pt; }
 tr, li { break-inside: avoid; }
 """
 
 
-def plan_html(plan: FullPlan, sources: SourceCatalog, today: date) -> str:
+def plan_html(plan: FullPlan, sources: SourceCatalog, today: date,
+              brand: Branding | None = None) -> str:
     title = plan.title or ("Oferta pegada" if plan.kind == "enlace" else "Lote del BOE")
+    branded = brand is not None and not brand.empty
     parts = [
         "<!doctype html><html lang='es'><head><meta charset='utf-8'>",
-        f"<title>Plan · {escape(title)}</title><style>{CSS}</style></head><body>",
+        f"<title>Plan · {escape(title)}</title><style>{CSS}{_brand_css(brand)}</style>"
+        "</head><body>",
+        *(_brand_header(brand) if branded and brand else []),
         "<h1>Tu plan de inversión</h1>",
         f"<p class='meta'>{escape(title)}"
         + (" · subasta" if plan.auction else "")
@@ -136,6 +147,36 @@ def plan_html(plan: FullPlan, sources: SourceCatalog, today: date) -> str:
                      f"{escape(entry.title)}{prov}. {escape(entry.detail)}{url}</li>")
     parts.append("</ol></body></html>")
     return "".join(parts)
+
+
+def _brand_css(brand: Branding | None) -> str:
+    """El color del profesional en títulos y líneas, y la línea de HouseFinder al pie
+    (ADR-0030). El color ya viene comprobado (#rrggbb con contraste)."""
+    if brand is None or brand.empty:
+        return ""
+    css = ('@page { @bottom-left { content: "Cifras calculadas con HouseFinder, con las fuentes '
+           'del anexo"; } }')
+    if brand.color:
+        css += (f"h1, h2, h3, .brand-name {{ color: {brand.color}; }} "
+                f"h2, .brand {{ border-color: {brand.color}; }}")
+    return css
+
+
+def _brand_header(brand: Branding) -> list[str]:
+    parts = ["<div class='brand'>"]
+    if brand.logo_png:
+        encoded = base64.b64encode(brand.logo_png).decode()
+        parts.append(f"<img class='brand-logo' alt='' src='data:image/png;base64,{encoded}'>")
+    parts.append("<div>")
+    if brand.display_name:
+        parts.append(f"<p class='brand-name'>{escape(brand.display_name)}</p>")
+    if brand.contact:
+        parts.append(f"<p class='small'>{escape(brand.contact)}</p>")
+    parts.append("</div></div>")
+    if brand.intro:
+        paragraphs = [p for p in brand.intro.split("\n\n") if p.strip()]
+        parts += [f"<p class='brand-intro'>{escape(p)}</p>" for p in paragraphs]
+    return parts
 
 
 def plan_sources(conn: Connection, plan: FullPlan, rules: RuleBook,
