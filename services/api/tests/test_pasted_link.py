@@ -360,7 +360,7 @@ def test_un_punto_fuera_de_la_zona_o_de_otro_municipio_no_ubica(migrated_databas
         # El punto de Murcia no cae en ninguna sección cargada.
         assert locate(offer(f"Carretera M-119 21 {uuid4()}", None)) == Unlocated(
             "CartoCiudad la sitúa fuera de las secciones cargadas: CALLE ALCALA HENARES 119, "
-            "30720 Santiago de la Ribera", retry=False)
+            "30720 Santiago de la Ribera", retry=True)
         # Dentro de la zona, pero la localidad encontrada no es el municipio de la oferta.
         assert not isinstance(locate(offer(f"Calle Mayor 1 {uuid4()}", "Alcalá de Henares")),
                               Point)

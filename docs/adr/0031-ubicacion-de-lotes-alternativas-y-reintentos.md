@@ -35,9 +35,10 @@ repetía la extracción con el LLM. Comprobado el 2026-11-01 con peticiones real
    (error HTTP, red, respuesta que no es JSON), la oferta se queda sin ubicar y se sigue con la
    siguiente vía y con el resto del lote.
 4. **El motivo se guarda en la oferta** (`offers.location_issue`, migración 0018) junto con si
-   merece otro intento (`location_retry`): sí si un servicio falló o la oferta es de una provincia
-   sin secciones cargadas; no si ninguna vía la encuentra. Al ubicarla, se borra. El informe de
-   `extract_offers` lo lista en `unlocated`.
+   merece otro intento (`location_retry`): sí si un servicio falló, si la oferta es de una
+   provincia sin secciones cargadas o si su punto cae fuera de ellas (se ubicará cuando se
+   carguen; la consulta queda en la caché y el reintento no pide nada fuera); no si ninguna vía la
+   encuentra. Al ubicarla, se borra. El informe de `extract_offers` lo lista en `unlocated`.
 5. **Reintento sin LLM.** Al empezar, `extract_offers` vuelve a ubicar los lotes con
    `location_retry`, a partir de lo ya extraído, sin pasar otra vez por el modelo.
 6. **La zona son las secciones cargadas.** Un lote cuya provincia, según

@@ -103,30 +103,30 @@ def offer_locator(
     covered = zone or load_zone(conn)
 
     def at_parcel(offer: NormalizedOffer, ref: str, notes: list[str],
-                  failures: list[str]) -> Point | None:
+                  pending: list[str]) -> Point | None:
         assert parcels is not None
         try:
             found = locate_parcel(conn, ref, parcels)
         except CatastroUnavailable as exc:
-            failures.append(str(exc))
+            pending.append(str(exc))
             return None
         except ParcelNotFound as exc:
             notes.append(f"{ref}: {exc}")
             return None
         if not _covered(conn, found.lon, found.lat):
-            notes.append(f"la parcela {ref} cae fuera de las secciones cargadas")
+            pending.append(f"la parcela {ref} cae fuera de las secciones cargadas")
             return None
         if offer.municipality and not parcel_in_municipality(offer.municipality, found.matched):
             notes.append(f"la parcela {ref} es de otro municipio: {found.matched}")
             return None
         return Point(found.lon, found.lat, "catastro")
 
-    def by_parcel(offer: NormalizedOffer, notes: list[str], failures: list[str]) -> Point | None:
+    def by_parcel(offer: NormalizedOffer, notes: list[str], pending: list[str]) -> Point | None:
         if parcels is None or not offer.cadastral_ref:
             return None
-        return at_parcel(offer, offer.cadastral_ref, notes, failures)
+        return at_parcel(offer, offer.cadastral_ref, notes, pending)
 
-    def by_polygon(offer: NormalizedOffer, notes: list[str], failures: list[str]) -> Point | None:
+    def by_polygon(offer: NormalizedOffer, notes: list[str], pending: list[str]) -> Point | None:
         rural = polygon_and_parcel(offer.address or "")
         province = offer.province or stated_province(offer.municipality)
         municipality = municipality_name(offer.municipality or "")
@@ -135,14 +135,14 @@ def offer_locator(
         try:
             ref = rustic(province, municipality, *rural)
         except CatastroUnavailable as exc:
-            failures.append(str(exc))
+            pending.append(str(exc))
             return None
         except ParcelNotFound as exc:
             notes.append(f"polígono {rural[0]}, parcela {rural[1]}: {exc}")
             return None
-        return at_parcel(offer, ref, notes, failures)
+        return at_parcel(offer, ref, notes, pending)
 
-    def by_address(offer: NormalizedOffer, notes: list[str], failures: list[str]) -> Point | None:
+    def by_address(offer: NormalizedOffer, notes: list[str], pending: list[str]) -> Point | None:
         if not offer.address:
             return None
         try:
@@ -154,10 +154,10 @@ def offer_locator(
             notes.append(f"CartoCiudad: {exc}")
             return None
         except (httpx.HTTPError, json.JSONDecodeError) as exc:
-            failures.append(f"CartoCiudad no responde: {failure(exc)}")
+            pending.append(f"CartoCiudad no responde: {failure(exc)}")
             return None
         if not _covered(conn, found.lon, found.lat):
-            notes.append(f"CartoCiudad la sitúa fuera de las secciones cargadas: {found.matched}")
+            pending.append(f"CartoCiudad la sitúa fuera de las secciones cargadas: {found.matched}")
             return None
         if offer.municipality and not same_municipality(offer.municipality, found.matched):
             notes.append(f"CartoCiudad la sitúa en otro municipio: {found.matched}")
@@ -169,14 +169,16 @@ def offer_locator(
         if province is not None:
             return Unlocated(f"provincia sin secciones cargadas: «{province}»", retry=True)
         notes: list[str] = []
-        failures: list[str] = []
+        # Lo que otro intento puede resolver: un servicio que no responde, o un punto fuera de las
+        # secciones cargadas (se ubica cuando se carguen; la consulta ya queda en la caché).
+        pending: list[str] = []
         for way in (by_parcel, by_polygon, by_address):
-            point = way(offer, notes, failures)
+            point = way(offer, notes, pending)
             if point is not None:
                 return point
-        if not notes and not failures:
+        if not notes and not pending:
             return None
-        return Unlocated("; ".join(failures + notes), retry=bool(failures))
+        return Unlocated("; ".join(pending + notes), retry=bool(pending))
 
     return locate
 
