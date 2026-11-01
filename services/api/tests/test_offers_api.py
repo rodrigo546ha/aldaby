@@ -43,7 +43,9 @@ LISTING = ListingExtraction(
 
 
 @pytest.fixture
-def client(migrated_database: str):
+def client(migrated_database: str, monkeypatch):
+    # El flujo de ofertas con la organización local de desarrollo; el acceso, en test_access.py
+    monkeypatch.setenv("HOUSEFINDER_DEV_ORG", "1")
     pages: dict[str, httpx.Response] = {}
 
     def handler(request: httpx.Request) -> httpx.Response:

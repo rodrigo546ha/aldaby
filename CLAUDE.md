@@ -84,6 +84,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     jobs/                 worker, reintentos, programaciones, alertas y tipos de trabajo
     db/review_tasks.py    tareas de revisión de la vigilancia normativa
     db/profiles.py        organizaciones y perfiles (solo bytes cifrados)
+    db/accounts.py        cuentas, enlaces de contraseña y sesiones (solo hashes de tokens)
+    accounts/             cuentas con argon2id, sesiones y altas por el administrador (ADR-0028)
     db/interviews.py      entrevistas de perfil (solo bytes cifrados)
     crypto/               cifrado de sobre AES-256-GCM y claves maestras (ADR-0011)
     profiles/             perfil del inversor: modelo que se redacta, almacén cifrado y entrevista
@@ -160,6 +162,7 @@ make ipc-alquiler  # componente de alquiler del IPC del INE por comunidad, mensu
 make supuestos # supuestos del plan: tipos del BdE y del INE, Catastro, EPF y reglas del IBI (ADR-0022)
 make backtest  # backtesting del modelo de renta y precio (F5.6)
 make evaluar   # evaluaciones con el modelo de .env frente a la línea base (BASE=1 la guarda)
+                 # cuentas de la beta: `python -m housefinder.accounts alta correo --organizacion …`
 make worker    # worker de la cola; encolar con `python -m housefinder.jobs enqueue …`
 make schedules # aplica data/jobs/programaciones.yaml (trabajos diarios; el Makefile lee .env)
 make worker-install  # worker siempre en marcha en este Mac (launchd); logs: make worker-logs

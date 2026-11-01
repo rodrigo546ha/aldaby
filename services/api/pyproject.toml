@@ -20,6 +20,8 @@ dependencies = [
   "xlrd>=2.0",
   # PDF del plan desde HTML (ADR-0026); necesita pango: brew install pango
   "weasyprint>=66",
+  # Contraseñas de las cuentas de la beta con argon2id (ADR-0028)
+  "argon2-cffi>=23.1",
 ]
 
 [project.optional-dependencies]

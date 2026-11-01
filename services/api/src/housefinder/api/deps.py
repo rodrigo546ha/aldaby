@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable, Iterator
 from functools import lru_cache
 from typing import Annotated
 from uuid import UUID
 
 import httpx
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 
+from housefinder.accounts.service import Session, session
 from housefinder.agent.llm import LLMClient, llm_from_env
 from housefinder.crypto.envelope import KeyProvider, provider_from_env
 from housefinder.db.connection import Connection, DatabaseUnavailable, connect
@@ -36,9 +38,13 @@ ParamBookDep = Annotated[ParamBook, Depends(get_param_book)]
 RuleBookDep = Annotated[RuleBook, Depends(get_rule_book)]
 
 
+API_ROLE = "housefinder_api"  # sin privilegios de propietario: le aplica Row-Level Security
+
+
 def get_db() -> Iterator[Connection]:
     try:
         with connect() as conn:
+            conn.execute(f"SET ROLE {API_ROLE}")  # ADR-0028: las políticas por organización
             yield conn
     except DatabaseUnavailable as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
@@ -53,11 +59,29 @@ DbDep = Annotated[Connection, Depends(get_db)]
 GeocoderDep = Annotated[Callable[[str], Geocoded], Depends(get_geocoder)]
 
 DEV_ORG = "Desarrollo local"
+SESSION_COOKIE = "hf_sesion"
 
 
-def get_org(db: DbDep) -> UUID:
-    """Organización de quien llama. Hasta la autenticación (G8), una local de desarrollo."""
-    org_id = get_or_create_organization(db, DEV_ORG, "particular")
+def get_session(request: Request, db: DbDep) -> Session | None:
+    """La sesión de la cookie, si sigue vigente (ADR-0028)."""
+    current = session(db, request.cookies.get(SESSION_COOKIE))
+    db.commit()  # la sesión se alarga
+    return current
+
+
+SessionDep = Annotated[Session | None, Depends(get_session)]
+
+
+def get_org(db: DbDep, current: SessionDep) -> UUID:
+    """Organización de quien llama: la de su sesión, nunca la que diga el cliente. Sin sesión,
+    401, salvo en el Mac con `HOUSEFINDER_DEV_ORG=1` (la organización local de desarrollo)."""
+    if current is not None:
+        org_id = current.org_id
+    elif os.environ.get("HOUSEFINDER_DEV_ORG") == "1":
+        org_id = get_or_create_organization(db, DEV_ORG, "particular")
+    else:
+        raise HTTPException(status_code=401, detail="Inicia sesión para seguir")
+    db.execute("SELECT set_config('app.org_id', %s, false)", (str(org_id),))
     db.commit()
     return org_id
 

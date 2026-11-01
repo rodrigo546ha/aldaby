@@ -339,7 +339,14 @@ umbral fijado en F0, y cada estimación con su rango.
 
 **Tareas**
 
-- [ ] F7.1 Cuentas, inicio de sesión y separación de datos por cliente.
+- [x] F7.1 Cuentas, inicio de sesión y separación de datos por cliente.
+      *Hecho (ADR-0028):* cuentas con correo y contraseña (argon2id), dadas de alta por el
+      administrador con un enlace de un solo uso para elegir la contraseña
+      (`python -m housefinder.accounts alta …`). Sesión en cookie `HttpOnly` con su hash en la
+      base y freno de intentos. La organización sale de la sesión y Row-Level Security de
+      PostgreSQL la impone también en la base (rol `housefinder_api`). Páginas `/acceso` y
+      `/acceso/contrasena`; en el Mac, `HOUSEFINDER_DEV_ORG=1` trabaja sin cuenta. Despliegue
+      decidido para F7.5: un Hetzner GEX45 con todo dentro.
 - [ ] F7.2 Gestión de varios perfiles de cliente por profesional.
 - [ ] F7.3 Planes con la marca del profesional.
 - [ ] F7.4 Avisos legales y consentimiento de tratamiento de datos.

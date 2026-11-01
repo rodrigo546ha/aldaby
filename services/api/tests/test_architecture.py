@@ -40,6 +40,8 @@ ALLOWED_INTERNAL = {
               "search", "valuation"},
     # PDF del plan (F6.8): el plan, las fuentes de reglas, parámetros y datos
     "reports": {"core", "db", "params", "planning", "plans", "regulation", "reports"},
+    # Cuentas y sesiones (F7.1, ADR-0028)
+    "accounts": {"accounts", "core", "db"},
     # Evaluaciones (F6.9): el asesor, la extracción y el plan, con el perfil de desarrollo
     "evaluations": {"advisor", "agent", "core", "crypto", "db", "evaluations", "params", "plans",
                     "profiles", "regulation", "search"},

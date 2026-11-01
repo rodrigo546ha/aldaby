@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { Account } from "../components/Access";
 import "./globals.css";
 
 export const metadata = {
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Link href="/busqueda">Búsqueda</Link>
           <Link href="/ofertas">Ofertas</Link>
           <Link href="/anuncios">Anuncios del BOE</Link>
+          <Account />
         </nav>
         {children}
       </body>

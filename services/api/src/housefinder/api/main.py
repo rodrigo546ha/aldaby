@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from housefinder.api import (
+    auth,
     boe,
     offers,
     plans,
@@ -24,6 +25,7 @@ app.include_router(valuation.router)
 app.include_router(profiles.router)
 app.include_router(search.router)
 app.include_router(plans.router)
+app.include_router(auth.router)
 
 
 @app.get("/health")
