@@ -185,6 +185,11 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       (`docs/research/f4-filtro-seccion-v.md`). Volumen: `docs/research/f4-volumen-boe.md`.
 - [ ] F4.5 Servicers (Solvia, Servihabitat, Aliseda, Altamira, Hipoges): revisar términos de uso de
       cada web, ADR por servicer y contacto comercial para acuerdo.
+      *Estado (2026-11-02):* términos leídos (`docs/research/f4-5-servicers.md`). Ninguno permite
+      reutilizar su web sin autorización escrita ni publica API o feed; sus programas de prescriptor
+      cobran comisión y romperían la independencia. Propuesta: acuerdo de datos sin comisión
+      (ADR-0036, sin decidir) y correo a cada uno (`docs/research/borrador-correo-servicers.md`).
+      *Pendiente:* que Rodrigo decida el ADR y envíe los correos; Sareb, Haya y Casaktua sin leer.
 - [x] F4.6 Normalización y deduplicación por referencia catastral y geolocalización: interfaz
       `Channel`, lo recibido siempre guardado con sus versiones, inmueble por referencia catastral o
       a menos de 30 m con superficie a ±5 %, y sección censal asignada. Ubicación por referencia
