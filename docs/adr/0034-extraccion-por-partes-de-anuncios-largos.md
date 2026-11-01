@@ -55,6 +55,19 @@ Hay además dos fallos de la comprobación:
    primera finca que tiene referencia catastral (o, si ninguna la tiene, dirección), y con el
    municipio, el precio y la garantía del primero que los da. Todo se comprueba después en el
    tramo del lote. Lo propuesto se guarda sin juntar.
+6. **La fila de precios no empieza un lote.** En 31848 cada lote acaba con su fila de la tabla
+   de precios («Lote 1 2ª subasta… 86,12 euros»). Una línea «Lote…» que repite el número del lote
+   abierto no empieza otro: el precio queda dentro del tramo del lote, y una parte lleva seis
+   lotes y no tres con sus filas. Si hay varios elementos con la etiqueta del mismo encabezado
+   (uno por parcela), son el mismo lote y se juntan como las fincas. Sin encabezados «Lote…»,
+   dos elementos con la misma etiqueta siguen sin tramo (ADR-0033).
+7. **Un lote que el modelo se salta se pide otra vez.** Si ninguna etiqueta de la respuesta
+   empieza un párrafo del tramo de un lote, se le pide ese lote solo, con el preámbulo, una vez.
+   De la respuesta vale lo que es de ese lote. Los lotes pedidos otra vez van al final, para que
+   los demás no cambien de número. Lo propuesto guarda cada respuesta con el número del lote.
+8. **Lo propuesto con otro corte se extrae de nuevo.** Si las reglas de corte cambian y lo
+   propuesto ya no tiene tantas partes como el anuncio, `recheck` no lo puede comprobar: el
+   anuncio cuenta como fallido y se vuelve a extraer con el LLM.
 
 Con todo esto, cada valor sigue saliendo de un texto literal del anuncio, dentro del tramo de su
 lote.

@@ -25,6 +25,7 @@ from uuid import UUID
 from housefinder.agent.extraction import (
     CheckedDocument,
     CheckedLot,
+    ProposalMismatch,
     extract,
     recheck_document,
 )
@@ -79,7 +80,11 @@ def extract_pending(
             conn.commit()
     if recheck:
         for announcement, proposed in with_proposals(conn, channel, only):
-            checked = recheck_document(announcement_text(announcement), proposed)
+            try:
+                checked = recheck_document(announcement_text(announcement), proposed)
+            except ProposalMismatch:  # se partió con otras reglas: se extrae otra vez con el LLM
+                report.failed += 1
+                continue
             _store(conn, channel, announcement, checked, locate, links, report)
     else:
         for announcement in pending_announcements(conn, channel, limit, only):

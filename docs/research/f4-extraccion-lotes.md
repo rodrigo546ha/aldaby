@@ -77,6 +77,24 @@ Lo que se ha visto:
   y 7: el modelo no dio la referencia de ninguna de sus fincas, y la dirección nombra varias
   parcelas, que el paso de polígono y parcela no acepta a propósito (ADR-0031).
 - **Asturias (31848)**: el texto tiene 34 líneas «Lote…», 17 lotes y 17 filas de la tabla de
-  precios («Lote 1 2ª subasta…»). Las filas también son encabezados y pueden cerrar el tramo de un
-  lote antes de su precio. Sin revisar.
-- **31747**: 13 líneas «Lote…» y 9 lotes. Sin revisar si faltan lotes.
+  precios («Lote 1 2ª subasta…»). Las filas cerraban el tramo del lote antes de su precio, y el
+  modelo sacó los lotes de varias parcelas una vez por parcela, con la misma etiqueta.
+- **31747 (Aldeadávila de la Ribera)**: 13 lotes; el modelo se saltó del 8 al 11 en su parte.
+
+## Asturias y Aldeadávila (2026-11-01)
+Con las decisiones 6 a 8 de ADR-0034 (la fila de precios no empieza un lote, los elementos del
+mismo encabezado se juntan, el lote que el modelo se salta se pide otra vez), más dos arreglos
+pequeños, los dos anuncios se volvieron a extraer:
+
+| Anuncio | Lotes | Ubicados | Con precio | Tiempo |
+| --- | --- | --- | --- | --- |
+| 31848 (Asturias) | 17 (antes 17, 4 sin etiqueta) | 17 (antes 12) | 11 (antes 0) | 19 min |
+| 31747 (Aldeadávila) | 13 (antes 9) | 13 (antes 8) | 12 | 15 min |
+
+- «Cangas de Narcea» en el anuncio es «CANGAS DEL NARCEA» en el Catastro: al comparar
+  municipios, «del» cuenta como «de».
+- En el lote 12 de 31747 el modelo juntó las referencias de sus fincas en una cita de varias
+  líneas que no es seguida en el documento: vale la primera, con su línea.
+- En 31848 faltan los precios de los lotes 9 a 14: el modelo no los da (no es la comprobación).
+
+En toda la base, 181 de 202 lotes ubicados.

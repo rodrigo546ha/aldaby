@@ -3,6 +3,7 @@ parcelas de la TGSS en Alcalá de Henares) y un LLM falso: el LLM solo propone; 
 quedan son los que están escritos en la fuente."""
 
 import json
+import re
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
@@ -16,12 +17,14 @@ from housefinder.agent.extraction import (
     PART_LIMIT,
     DocumentExtraction,
     LotExtraction,
+    ProposalMismatch,
     Quoted,
     check_document,
     check_field,
     document_parts,
     extract,
     heading_starts,
+    lot_part,
     recheck_document,
 )
 from housefinder.agent.llm import (
@@ -176,10 +179,25 @@ def test_sin_etiqueta_no_hay_tramo_y_el_lote_se_rechaza():
 
 
 def test_dos_lotes_con_la_misma_etiqueta_se_rechazan_los_dos():
+    """Sin encabezados «Lote…» no se sabe cuál de los dos es el bueno (ADR-0033)."""
+    text = "Se venden:\n1.- Piso en la calle Mayor, 3. Precio: 100.000 €.\n" \
+           "2.- Piso en la calle Real, 5. Precio: 200.000 €."
+    twins = [lot(label=q("1.-", "1.-"), price=q(price, f"Precio: {shown} €"))
+             for price, shown in [("100000", "100.000"), ("200000", "200.000")]]
+    raw = DocumentExtraction(is_correction=False, corrected_reference=NONE, lots=twins)
+    assert all(checked.value("price") is None for checked in check_document(text, raw).lots)
+
+
+def test_dos_elementos_del_mismo_lote_son_un_lote():
+    """El modelo saca un elemento por parcela con la misma etiqueta del lote (BOE-B-2026-31848).
+    Con encabezados «Lote…», el párrafo de la etiqueta dice de qué lote es: se juntan."""
     twin = lot(label=q("Lote 1", "Lote 1: Urbana"),
-               price=q("25802189", "El tipo de licitación es 25.802.189 €"))
+               price=q("6778639", "El tipo de licitación es 6.778.639 €"))  # el del lote 2
     raw = DocumentExtraction(is_correction=False, corrected_reference=NONE, lots=[LOT_1, twin])
-    assert all(checked.value("price") is None for checked in check_document(TEXT, raw).lots)
+    checked = check_document(TEXT, raw)
+    assert len(checked.lots) == 1
+    assert checked.lots[0].value("price") == Decimal("25802189")
+    assert checked.lots[0].value("cadastral_ref") == "7744401VK6874N0001FJ"
 
 
 def test_un_solo_lote_usa_todo_el_documento():
@@ -408,6 +426,64 @@ def test_las_fincas_que_el_modelo_saca_aparte_se_juntan_en_su_lote():
     assert len(checked.proposed["lots"]) == 4  # lo propuesto, tal como llegó
 
 
+ASTURIAS = (FIXTURES / "texto-BOE-B-2026-31848.txt").read_text()
+SALAMANCA = (FIXTURES / "texto-BOE-B-2026-31747.txt").read_text()
+
+
+def test_la_fila_de_precios_no_empieza_otro_lote():
+    """En 31848 cada lote acaba con su fila de la tabla de precios («Lote 1 2ª subasta…»): no es
+    un lote nuevo, y el precio queda dentro del tramo del lote."""
+    assert sum(len(part.split("LOTE Nº ")) - 1 for part in document_parts(ASTURIAS)) == 17
+    assert len(document_parts(ASTURIAS)) == 4  # antes, 6: las filas contaban como lotes
+    first = lot(label=q("LOTE Nº 1", "LOTE Nº 1: SEGUNDA, TERCERA Y CUARTA SUBASTA."),
+                price=q("86.12", "Lote 1 2ª subasta 3ª subasta 4ª subasta Tipo de licitación "
+                                 "86,12 euros"))
+    second = lot(label=q("LOTE Nº 2", "LOTE Nº 2: SEGUNDA, TERCERA Y CUARTA SUBASTA."))
+    checked = check_document(document_parts(ASTURIAS)[0], DocumentExtraction(
+        is_correction=False, corrected_reference=NONE, lots=[first, second]))
+    assert checked.lots[0].value("price") == Decimal("86.12")
+
+
+def test_un_lote_que_el_modelo_se_salta_se_pide_otra_vez():
+    """En 31747 el modelo devolvió el lote 7 de su parte y se saltó del 8 al 11. Se le pide cada
+    uno otra vez, solo con el preámbulo; de la respuesta vale lo que es de ese lote."""
+    numbers = [int(n) for n in re.findall(r"^LOTE Nº (\d+):", SALAMANCA, re.MULTILINE)]
+
+    def respond(instructions, document, output):
+        here = [int(n) for n in re.findall(r"^LOTE Nº (\d+):", document, re.MULTILINE)]
+        given = [n for n in here if len(here) == 1 or not 8 <= n <= 11]
+        lots = [lot(label=q(f"LOTE Nº {n}:", f"LOTE Nº {n}:")) for n in given]
+        if len(here) == 1:  # y un lote de otra parte, que no vale
+            lots.append(lot(label=q("LOTE Nº 1:", "LOTE Nº 1:")))
+        return DocumentExtraction(is_correction=False, corrected_reference=NONE, lots=lots)
+
+    llm = FakeLLMClient(respond)
+    checked = extract(llm, SALAMANCA)
+    assert numbers == list(range(1, 14))
+    assert len(llm.calls) == len(document_parts(SALAMANCA)) + 4
+    labels = [x.value("label") for x in checked.lots]
+    assert sorted(labels, key=lambda label: int(label[8:-1])) == [
+        f"LOTE Nº {n}:" for n in numbers]
+    assert labels[-4:] == ["LOTE Nº 8:", "LOTE Nº 9:", "LOTE Nº 10:", "LOTE Nº 11:"]
+    again = recheck_document(SALAMANCA, checked.proposed)  # sin el LLM
+    assert [x.as_dict() for x in again.lots] == [x.as_dict() for x in checked.lots]
+    # Lo propuesto con otras reglas de corte no se puede volver a comprobar: se extrae otra vez.
+    with pytest.raises(ProposalMismatch):
+        recheck_document(SALAMANCA, {**checked.proposed, "parts": checked.proposed["parts"][1:]})
+
+
+def test_varias_referencias_en_una_cita_vale_la_primera():
+    """En 31747 el modelo juntó las referencias de las fincas del lote 12 en un valor y en una
+    cita de varias líneas que no es seguida en el documento."""
+    part = lot_part(SALAMANCA, 11)
+    twelve = lot(label=q("LOTE Nº 12:", "LOTE Nº 12:"), cadastral_ref=q(
+        "37014A514013730000BY, 37014A514013550000BD",
+        "Referencia Catastral: 37014A514013730000BY.\nReferencia Catastral: 37014A514013550000BD."))
+    checked = check_document(part, DocumentExtraction(
+        is_correction=False, corrected_reference=NONE, lots=[twelve]))
+    assert checked.lots[0].value("cadastral_ref") == "37014A514013730000BY"
+
+
 def test_cada_parte_se_extrae_y_se_comprueba_contra_su_texto():
     def respond(instructions, document, output):
         n = next(n for n in range(1, 10) if f"LOTE Nº {n}." in document)
@@ -586,9 +662,10 @@ def test_una_extraccion_nueva_actualiza_retira_y_no_toca_lo_confirmado(migrated_
 
     pending_again(migrated_database)
     run_boe_v(migrated_database, boe_client(), date(2026, 10, 28), days=1)
+    stray = lot(label=q("Lote 3", "Lote 3"))  # un lote que el anuncio no tiene
     only_first = DocumentExtraction(is_correction=False, corrected_reference=NONE,
-                                    lots=[LOT_1, LOT_2, LOT_2.model_copy()])
-    # Tres lotes la primera vez (el tercero, un duplicado del modelo, sin tramo).
+                                    lots=[LOT_1, LOT_2, stray])
+    # Tres lotes la primera vez (el tercero, inventado por el modelo, sin tramo).
     extract_boe_v(migrated_database, boe_client(), FakeLLMClient(lambda *a: only_first),
                   geocoder=geocoded)
     with psycopg.connect(migrated_database, autocommit=True) as conn:

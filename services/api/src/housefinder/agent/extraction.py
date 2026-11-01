@@ -21,6 +21,7 @@ import unicodedata
 from collections import Counter
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
+from itertools import accumulate
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -41,9 +42,10 @@ HEADING = re.compile(
     r"|\d+(?:\.\d+)*\s*(?:[.:)–-]|$)"
     r"|(?:uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)\)",
     re.IGNORECASE)
-# Encabezado de un lote propiamente dicho («Lote nº 2.-», «LOTE ÚNICO»). Si el documento los
-# tiene, los demás encabezados («1.1», «Finca 1:») son fincas de un lote: no cierran su tramo.
-LOT_HEADING = re.compile(r"lotes?\b\W*(?:n(?:º|°|o|úm(?:ero)?)?\.?\s*)?(?:\d|[uú]nico\b)",
+# Encabezado de un lote propiamente dicho («Lote nº 2.-», «LOTE ÚNICO»), con su número. Si el
+# documento los tiene, los demás encabezados («1.1», «Finca 1:») son fincas de un lote: no cierran
+# su tramo.
+LOT_HEADING = re.compile(r"lotes?\b\W*(?:n(?:º|°|o|úm(?:ero)?)?\.?\s*)?(\d+|[uú]nico\b)",
                          re.IGNORECASE)
 # Anuncios largos por partes (ADR-0034): lo que cabe en la ventana del modelo local (16.384
 # tokens) con las instrucciones, el esquema y la respuesta, que crece con cada lote.
@@ -262,11 +264,13 @@ def check_listing(document: str, raw: ListingExtraction) -> CheckedListing:
 
 def extract(llm: LLMClient, document: str) -> CheckedDocument:
     """Extrae los lotes con el LLM y deja solo lo que la evidencia respalda. Un anuncio largo va
-    por partes (ADR-0034)."""
-    parts = document_parts(document)
-    raws = [llm.structured(instructions=INSTRUCTIONS, document=part, output=DocumentExtraction)
-            for part in parts]
-    return check_parts(parts, raws)
+    por partes, y un lote que el modelo se salta se le pide otra vez, solo (ADR-0034)."""
+    def ask(part: str) -> DocumentExtraction:
+        return llm.structured(instructions=INSTRUCTIONS, document=part, output=DocumentExtraction)
+
+    raws = [ask(part) for part in document_parts(document)]
+    retries = {i: ask(lot_part(document, i)) for i in missing_lots(document, raws)}
+    return check_parts(document, raws, retries)
 
 
 def document_parts(document: str, max_chars: int = PART_CHARS,
@@ -275,22 +279,54 @@ def document_parts(document: str, max_chars: int = PART_CHARS,
     que va antes del primer lote) y lotes enteros, como mucho `max_lots`. Un lote que no cabe va
     solo y, si pasa de `PART_LIMIT`, sin el final: el del último lote son las condiciones comunes
     del pliego. Si el documento cabe, o no tiene encabezados de lote, va entero."""
-    if len(document) <= max_chars:
-        return [document]
-    lines = document.split("\n")
-    starts = [i for i, line in enumerate(lines) if LOT_HEADING.match(_normalize(line))]
-    if len(starts) < 2:
-        return [document]
-    preamble = "\n".join(lines[:starts[0]])
-    blocks = ["\n".join(lines[a:b]) for a, b in zip(starts, [*starts[1:], len(lines)],
-                                                     strict=True)]
-    groups: list[list[str]] = [[]]
-    for block in blocks:
-        size = len(preamble) + sum(len(b) + 1 for b in groups[-1]) + len(block)
+    return [part for part, _ in _parts(document, max_chars, max_lots)]
+
+
+def _parts(document: str, max_chars: int, max_lots: int) -> list[tuple[str, list[int]]]:
+    """Cada parte con los números de orden de sus lotes en el documento."""
+    preamble, blocks = _blocks(document)
+    if len(document) <= max_chars or not blocks:
+        return [(document, list(range(len(blocks))))]
+    groups: list[list[int]] = [[]]
+    for i, block in enumerate(blocks):
+        size = len(preamble) + sum(len(blocks[j]) + 1 for j in groups[-1]) + len(block)
         if groups[-1] and (len(groups[-1]) == max_lots or size > max_chars):
             groups.append([])
-        groups[-1].append(block)
-    return [_cut("\n".join([preamble, *group]), PART_LIMIT) for group in groups]
+        groups[-1].append(i)
+    return [(_cut("\n".join([preamble, *(blocks[i] for i in group)]), PART_LIMIT), group)
+            for group in groups]
+
+
+def lot_part(document: str, index: int) -> str:
+    """El preámbulo y el lote `index` solo: lo que se le vuelve a pedir al modelo."""
+    preamble, blocks = _blocks(document)
+    return _cut("\n".join([preamble, blocks[index]]), PART_LIMIT)
+
+
+def _blocks(document: str) -> tuple[str, list[str]]:
+    """El preámbulo y el texto de cada lote; ningún lote si el documento no tiene dos."""
+    lines = document.split("\n")
+    starts = _lot_lines(lines)
+    if len(starts) < 2:
+        return document, []
+    ends = [*starts[1:], len(lines)]
+    return "\n".join(lines[:starts[0]]), ["\n".join(lines[a:b])
+                                           for a, b in zip(starts, ends, strict=True)]
+
+
+def _lot_lines(lines: list[str]) -> list[int]:
+    """Las líneas que empiezan un lote. La que repite el número del lote abierto no empieza otro:
+    es su fila de la tabla de precios («Lote 1 2ª subasta…», BOE-B-2026-31848)."""
+    starts: list[int] = []
+    current: str | None = None
+    for i, line in enumerate(lines):
+        found = LOT_HEADING.match(_normalize(line))
+        if found is None:
+            continue
+        if _fold(found.group(1)) != current:
+            starts.append(i)
+        current = _fold(found.group(1))
+    return starts
 
 
 def _cut(text: str, limit: int) -> str:
@@ -301,9 +337,33 @@ def _cut(text: str, limit: int) -> str:
     return text[:end if end > 0 else limit]
 
 
-def check_parts(parts: list[str], raws: list[DocumentExtraction]) -> CheckedDocument:
-    """Cada parte se comprueba contra su texto; los lotes se juntan en orden."""
+def missing_lots(document: str, raws: list[DocumentExtraction],
+                 max_chars: int = PART_CHARS, max_lots: int = PART_LOTS) -> list[int]:
+    """Los lotes del documento (por su número de orden) en los que el modelo no puso ningún
+    elemento: ninguna etiqueta suya empieza un párrafo del tramo del lote."""
+    parts = _parts(document, max_chars, max_lots)
+    covered: set[int] = set()
+    for (part, group), raw in zip(parts, raws, strict=True):
+        source = _normalize(part)
+        _, lot_starts = _paragraph_starts(part)
+        for lot in _unwrapped(source, raw).lots:
+            anchor = _lot_anchor(source, part, lot)
+            if anchor is not None and lot_starts.index(anchor[0]) < len(group):
+                covered.add(group[lot_starts.index(anchor[0])])
+    return [i for i in sorted({i for _, group in parts for i in group}) if i not in covered]
+
+
+def check_parts(document: str, raws: list[DocumentExtraction],
+                retries: dict[int, DocumentExtraction] | None = None,
+                max_chars: int = PART_CHARS, max_lots: int = PART_LOTS) -> CheckedDocument:
+    """Cada parte se comprueba contra su texto; los lotes se juntan en orden. Los lotes pedidos
+    otra vez van al final, para que los demás no cambien de número; de cada respuesta solo vale
+    lo que es de su lote."""
+    parts = document_parts(document, max_chars, max_lots)
+    retries = retries or {}
     checked = [check_document(part, raw) for part, raw in zip(parts, raws, strict=True)]
+    checked += [check_document(lot_part(document, i), _in_lot(lot_part(document, i), raw))
+                for i, raw in retries.items()]
     if len(checked) == 1:
         return checked[0]
     return CheckedDocument(
@@ -311,8 +371,21 @@ def check_parts(parts: list[str], raws: list[DocumentExtraction]) -> CheckedDocu
         corrected_reference=checked[0].corrected_reference,
         lots=[lot for c in checked for lot in c.lots],
         proposed={"parts": [raw.model_dump() for raw in raws],
-                  "part_chars": PART_CHARS, "part_lots": PART_LOTS},
+                  "retries": [{"lot": i, "raw": raw.model_dump()} for i, raw in retries.items()],
+                  "part_chars": max_chars, "part_lots": max_lots},
     )
+
+
+def _in_lot(part: str, raw: DocumentExtraction) -> DocumentExtraction:
+    """De lo que el modelo devuelve para un lote pedido otra vez, solo los elementos de ese lote."""
+    source = _normalize(part)
+    lots = [lot for lot in _unwrapped(source, raw).lots
+            if _lot_anchor(source, part, lot) is not None]
+    return raw.model_copy(update={"lots": lots})
+
+
+class ProposalMismatch(ValueError):
+    """Lo propuesto se partió con otras reglas de corte: hay que volver a extraerlo con el LLM."""
 
 
 def recheck_document(document: str, proposed: dict[str, Any]) -> CheckedDocument:
@@ -320,7 +393,12 @@ def recheck_document(document: str, proposed: dict[str, Any]) -> CheckedDocument
     if "parts" not in proposed:
         return check_document(document, DocumentExtraction.model_validate(proposed))
     parts = document_parts(document, proposed["part_chars"], proposed["part_lots"])
-    return check_parts(parts, [DocumentExtraction.model_validate(p) for p in proposed["parts"]])
+    if len(parts) != len(proposed["parts"]):
+        raise ProposalMismatch(f"{len(proposed['parts'])} partes propuestas y {len(parts)} ahora")
+    retries = {r["lot"]: DocumentExtraction.model_validate(r["raw"])
+               for r in proposed.get("retries", [])}
+    return check_parts(document, [DocumentExtraction.model_validate(p) for p in proposed["parts"]],
+                       retries, proposed["part_chars"], proposed["part_lots"])
 
 
 def check_document(document: str, raw: DocumentExtraction) -> CheckedDocument:
@@ -389,43 +467,43 @@ def heading_starts(document: str) -> list[int]:
 
 
 def _paragraph_starts(document: str) -> tuple[list[int], list[int]]:
-    """Las posiciones de todos los encabezados y las de los encabezados «Lote…»."""
-    starts, lot_starts, position = [], [], 0
-    for line in document.split("\n"):
-        text = _normalize(line)
-        if not text:
-            continue
-        if HEADING.match(text):
-            starts.append(position)
-        if LOT_HEADING.match(text):
-            lot_starts.append(position)
-        position += len(text) + 1
-    return starts, lot_starts
+    """Las posiciones de todos los encabezados y las de los que empiezan un lote."""
+    texts = [text for text in (_normalize(line) for line in document.split("\n")) if text]
+    positions = list(accumulate((len(text) + 1 for text in texts[:-1]), initial=0))
+    starts = [p for p, text in zip(positions, texts, strict=True) if HEADING.match(text)]
+    return starts, [positions[i] for i in _lot_lines(texts)]
+
+
+def _lot_anchor(source: str, document: str, lot: LotExtraction) -> tuple[int, int] | None:
+    """El comienzo del lote en cuyo tramo empieza un párrafo con la etiqueta de `lot`, y el de
+    ese párrafo; None si la etiqueta no empieza ningún párrafo de un lote."""
+    starts, lot_starts = _paragraph_starts(document)
+    label = _normalize(lot.label.evidence or "")
+    at = next((s for s in starts if label and source.startswith(label, s)), None)
+    key = None if at is None else max((s for s in lot_starts if s <= at), default=None)
+    return None if key is None or at is None else (key, at)
 
 
 def _fincas_joined(source: str, document: str, raw: DocumentExtraction) -> DocumentExtraction:
     """Las fincas que el modelo saca como lotes aparte («9.1», «9.2»), juntas en el lote en cuyo
     tramo están (ADR-0034). Un lote es lo que se subasta junto. Se juntan los elementos cuya
-    etiqueta empieza un párrafo del mismo tramo «Lote…», si como mucho uno es el propio lote."""
-    starts, lot_starts = _paragraph_starts(document)
+    etiqueta empieza un párrafo del mismo tramo «Lote…», si los que son el propio lote empiezan
+    todos el mismo párrafo."""
+    _, lot_starts = _paragraph_starts(document)
     if not lot_starts:
         return raw
-
-    def lot_of(lot: LotExtraction) -> int | None:
-        label = _normalize(lot.label.evidence or "")
-        at = next((s for s in starts if label and source.startswith(label, s)), None)
-        return None if at is None else max((s for s in lot_starts if s <= at), default=None)
-
     groups: dict[int, list[LotExtraction]] = {}
+    at: dict[int, int] = {}  # dónde empieza el párrafo de la etiqueta de cada elemento
     order: list[LotExtraction | int] = []
     for lot in raw.lots:
-        key = lot_of(lot)
-        if key is None:
+        anchor = _lot_anchor(source, document, lot)
+        if anchor is None:
             order.append(lot)
             continue
-        if key not in groups:
-            order.append(key)
-        groups.setdefault(key, []).append(lot)
+        at[id(lot)] = anchor[1]
+        if anchor[0] not in groups:
+            order.append(anchor[0])
+        groups.setdefault(anchor[0], []).append(lot)
     lots: list[LotExtraction] = []
     for item in order:
         if isinstance(item, LotExtraction):
@@ -433,7 +511,8 @@ def _fincas_joined(source: str, document: str, raw: DocumentExtraction) -> Docum
             continue
         group = groups[item]
         heads = [lot for lot in group if LOT_HEADING.match(_normalize(lot.label.evidence or ""))]
-        if len(group) == 1 or len(heads) > 1:
+        # Varias etiquetas del mismo encabezado son el mismo lote (una por parcela, en 31848).
+        if len(group) == 1 or len({at[id(head)] for head in heads}) > 1:
             lots.extend(group)
             continue
         span = (item, next((s for s in lot_starts if s > item), len(source)))
@@ -553,9 +632,25 @@ def _unwrapped(source: str, raw: DocumentExtraction) -> DocumentExtraction:
 
     lots = [lot.model_copy(update={
         **{name: fix(getattr(lot, name)) for name in ("label", *FIELD_KINDS)},
+        "cadastral_ref": _first_ref(source, fix(lot.cadastral_ref)),
         "property_type_evidence": quote(lot.property_type_evidence)}) for lot in raw.lots]
     return raw.model_copy(update={"lots": lots,
                                   "corrected_reference": fix(raw.corrected_reference)})
+
+
+def _first_ref(source: str, quoted: Quoted) -> Quoted:
+    """Las referencias de las fincas de un lote, juntas en un valor («A, B, C») y en una cita de
+    varias líneas que no es seguida en el documento (BOE-B-2026-31747): la primera, con la línea
+    de la cita que la tiene, si esa línea está en el documento."""
+    if not quoted.value or not quoted.evidence or _normalize(quoted.evidence) in source:
+        return quoted
+    first = re.split(r"[,;]", quoted.value)[0].strip()
+    ref = REF_SEPARATORS.sub("", first).upper()
+    for line in quoted.evidence.split("\n"):
+        text = _normalize(line)
+        if text and text in source and ref in REF_SEPARATORS.sub("", text).upper():
+            return Quoted(value=first, evidence=line.strip())
+    return quoted
 
 
 def _without_span(quoted: Quoted) -> CheckedField:

@@ -299,8 +299,8 @@ def parcel_in_municipality(expected: str, address: str | None) -> bool:
     municipio, antes de la provincia entre paréntesis."""
     if not address:
         return False
-    place = _fold(IN_PARENS.sub("", address))
-    wanted = _fold(municipality_name(expected))
+    place = _place(IN_PARENS.sub("", address))
+    wanted = _place(municipality_name(expected))
     return bool(wanted) and re.search(rf"(?<!\w){re.escape(wanted)}$", place) is not None
 
 
@@ -312,9 +312,15 @@ def same_municipality(expected: str, matched: str | None) -> bool:
     """
     if not matched or "," not in matched:
         return False
-    place = _fold(matched.split(",", 1)[1])
-    wanted = _fold(municipality_name(expected))
+    place = _place(matched.split(",", 1)[1])
+    wanted = _place(municipality_name(expected))
     return bool(wanted) and re.search(rf"(?<!\w){re.escape(wanted)}(?!\w)", place) is not None
+
+
+def _place(name: str) -> str:
+    """El nombre para compararlo: sin mayúsculas ni tildes, y «del» como «de» («Cangas de
+    Narcea», como lo escribe un anuncio, es «CANGAS DEL NARCEA» en el Catastro)."""
+    return re.sub(r"\bdel\b", "de", _fold(name))
 
 
 def _province(name: str) -> str:

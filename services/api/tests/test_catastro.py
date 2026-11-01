@@ -113,6 +113,9 @@ def test_peticion_por_poligono_y_parcela():
     ("Madrid", "CR CAMARMA 21 ALCALA DE HENARES (MADRID)", False),  # la provincia no cuenta
     ("Alcalá de Henares", "CL ALCALA DE HENARES 3 MADRID (MADRID)", False),  # la calle tampoco
     ("Madrid", None, False),
+    # BOE-B-2026-31848: el anuncio dice «Cangas de Narcea».
+    ("Cangas de Narcea", "Polígono 1 Parcela 96 CALDEVILLA DE RENGOS. CANGAS DEL NARCEA "
+                         "(ASTURIAS)", True),
 ])
 def test_municipio_de_la_direccion_catastral(expected, address, same):
     assert parcel_in_municipality(expected, address) is same
