@@ -12,12 +12,14 @@ import pytest
 from conftest import add_section
 
 from housefinder.agent.extraction import (
+    NO_SPAN,
     DocumentExtraction,
     LotExtraction,
     Quoted,
     check_document,
     check_field,
     extract,
+    heading_starts,
 )
 from housefinder.agent.llm import (
     FakeLLMClient,
@@ -254,6 +256,92 @@ def test_configuracion_sin_valores_por_defecto(monkeypatch):
     assert isinstance(client, OpenAICompatibleLLMClient) and client.model == "qwen3:8b"
 
 
+# --- Anuncios reales que se quedaban sin ubicar (ADR-0033) -------------------------------------
+
+EVALUATION = Path(__file__).parents[1] / "data" / "evaluation" / "anuncios"
+
+
+def real(external_id: str) -> str:
+    return (EVALUATION / f"boe-{external_id}.txt").read_text()
+
+
+def test_encabezados_de_lote_al_principio_de_parrafo():
+    text = real("BOE-B-2026-32279")
+    source = " ".join(text.split())
+    starts = heading_starts(text)
+    assert [source[s:s + 11] for s in starts] == ["Lote nº 1.-", "Lote nº 2.-", "Lote nº 3.-"]
+    huelva = real("BOE-B-2026-35250")
+    assert [" ".join(huelva.split())[s:s + 5] for s in heading_starts(huelva)] == [
+        "Uno) ", "Dos) ", "Tres)", "Cuatr"]
+
+
+def test_sin_etiqueta_literal_el_tramo_es_el_del_encabezado_de_sus_citas():
+    """qwen3 escribía «El texto menciona 'Lote nº 4'…» o «Lote 4» por «Lote nº 4:»: el lote
+    perdía su tramo y, con él, todos sus datos (BOE-B-2026-32776)."""
+    text = real("BOE-B-2026-32776")
+    fourth = lot(
+        label=q("Lote 4", "El texto menciona el Lote nº 4 como una parcela"),
+        property_type="rustica", property_type_evidence="Lote nº 4: RÚSTICA",
+        address=q("Parcela 90 del polígono 7", "Lote nº 4: RÚSTICA: Parcela 90 del polígono 7"),
+        municipality=q("Gualchos", "en el término de Gualchos"),
+        cadastral_ref=q("18095A007000900000IT", "Referencia catastral 18095A007000900000IT."),
+        price=q("1685.80", "El tipo de licitación será de 1.685,80 €"),
+    )
+    first = lot(
+        label=q("Lote nº 1", "Lote nº 1:"),
+        municipality=q("Santa Fe", "término de Santa Fe"),
+        price=q("74761.43", "El tipo de licitación será de 74.761,43 €"),
+    )
+    checked = check_document(text, DocumentExtraction(
+        is_correction=False, corrected_reference=NONE, lots=[first, fourth]))
+    assert checked.lots[1].value("cadastral_ref") == "18095A007000900000IT"
+    assert checked.lots[1].value("price") == Decimal("1685.80")
+    assert checked.lots[1].value("address") == "Parcela 90 del polígono 7"
+    # El lote 1 acaba en el encabezado del lote 2, no en el del lote 4: su precio está ahí.
+    assert checked.lots[0].value("price") == Decimal("74761.43")
+    assert checked.proposed["lots"][1]["label"]["value"] == "Lote 4"
+
+
+def test_citas_de_ubicacion_de_dos_lotes_distintos_no_dan_tramo():
+    text = real("BOE-B-2026-32776")
+    mixed = lot(
+        label=q("Lote 9", "El lote nueve"),
+        address=q("Parcela 90 del polígono 7", "Parcela 90 del polígono 7"),  # lote 4
+        cadastral_ref=q("18142A032003170000YM", "Referencia catastral 18142A032003170000YM"),  # 3
+    )
+    other = lot(label=q("Lote nº 1", "Lote nº 1:"))
+    checked = check_document(text, DocumentExtraction(
+        is_correction=False, corrected_reference=NONE, lots=[other, mixed]))
+    assert checked.lots[1].fields["cadastral_ref"].reason == NO_SPAN
+
+
+def test_direccion_compuesta_de_partes_de_la_cita():
+    evidence = "1. Antigua casa-cuartel de la Guardia Civil en CACÍN (Granada), Plaza Cuartel, 6."
+    source = real("BOE-B-2026-35361")
+    assert check_field(source, q("Plaza Cuartel 6, Cacín", evidence), "text").status == \
+        "verificado"
+    # Una palabra que no está en la cita no vale, aunque el resto sí.
+    assert check_field(source, q("Plaza del Cuartel 6, Cacín", evidence), "text").reason == \
+        "el texto no está en la cita"
+
+
+@pytest.mark.parametrize("external_id, value, evidence, ref", [
+    ("BOE-B-2026-35250", "21026A0 0400061 0000", "Referencia catastral 21026A0 0400061 0000.",
+     "21026A004000610000"),  # sin los dos caracteres de control
+    ("BOE-B-2026-33450", "2006983/9728140/0439/9E",
+     "• Planta semisótano: 2006983/9728140/0439/9E, con una superficie de 403,18 m2.",
+     "2006983972814004399E"),  # Gipuzkoa, con barras
+])
+def test_referencias_con_espacios_o_barras(external_id, value, evidence, ref):
+    checked = check_field(real(external_id), q(value, evidence), "cadastral")
+    assert (checked.status, checked.value) == ("verificado", ref)
+
+
+def test_una_referencia_tiene_que_tener_cifras():
+    assert check_field("Referencia catastral: PARCELARIA", q("PARCELARIA", "Referencia "
+                       "catastral: PARCELARIA"), "cadastral").status == "rechazado"
+
+
 # --- De punta a punta contra la base -----------------------------------------------------------
 
 psycopg = pytest.importorskip("psycopg")
@@ -384,3 +472,60 @@ def test_un_500_de_cartociudad_no_tumba_la_extraccion_y_el_lote_se_reintenta_sin
         # Sin ubicar otra vez: la búsqueda inversa lee los lotes ubicados de la misma base.
         conn.execute("UPDATE offers SET property_id = NULL, location_source = NULL "
                      "WHERE external_id LIKE 'BOE-B-2026-35273#%'")
+
+
+@pytest.mark.db
+def test_una_extraccion_nueva_actualiza_retira_y_no_toca_lo_confirmado(migrated_database: str):
+    """Antes, volver a extraer un anuncio no cambiaba sus lotes: `upsert_offer` solo actualiza el
+    título y lo recibido (ADR-0033)."""
+    from housefinder.offers.run import extract_boe_v, run_boe_v
+
+    pending_again(migrated_database)
+    run_boe_v(migrated_database, boe_client(), date(2026, 10, 28), days=1)
+    only_first = DocumentExtraction(is_correction=False, corrected_reference=NONE,
+                                    lots=[LOT_1, LOT_2, LOT_2.model_copy()])
+    # Tres lotes la primera vez (el tercero, un duplicado del modelo, sin tramo).
+    extract_boe_v(migrated_database, boe_client(), FakeLLMClient(lambda *a: only_first),
+                  geocoder=geocoded)
+    with psycopg.connect(migrated_database, autocommit=True) as conn:
+        conn.execute("UPDATE offers SET extraction_status = 'pendiente' "
+                     "WHERE external_id = 'BOE-B-2026-35273'")
+        conn.execute("UPDATE offers SET extraction_status = 'confirmada' "
+                     "WHERE external_id = 'BOE-B-2026-35273#2'")
+    better = lot(label=q("Lote 1", "Lote 1: Urbana"),
+                 price=q("25802189", "El tipo de licitación es 25.802.189 €"))
+    report = extract_boe_v(migrated_database, boe_client(),
+                           FakeLLMClient(lambda *a: DocumentExtraction(
+                               is_correction=False, corrected_reference=NONE, lots=[better])),
+                           geocoder=geocoded)
+    assert report["retired"] == 1  # el #3; el #2 está confirmado y no se toca
+    with psycopg.connect(migrated_database, autocommit=True) as conn:
+        rows = {r[0]: r[1:] for r in conn.execute(
+            "SELECT external_id, extraction_status, cadastral_ref, property_id IS NULL "
+            "FROM offers WHERE external_id LIKE 'BOE-B-2026-35273#%'").fetchall()}
+        conn.execute("UPDATE offers SET extraction_status = 'extraida' "
+                     "WHERE external_id = 'BOE-B-2026-35273#2'")
+    # El #1 sin referencia ya: se desenlaza para volver a ubicarlo (aquí, sin dirección, no puede).
+    assert rows["BOE-B-2026-35273#1"] == ("extraida", None, True)
+    assert rows["BOE-B-2026-35273#2"][0] == "confirmada"
+    assert rows["BOE-B-2026-35273#3"] == ("retirada", None, True)
+
+
+@pytest.mark.db
+def test_volver_a_comprobar_sin_el_llm_lo_que_propuso_el_modelo(migrated_database: str):
+    from housefinder.offers.run import extract_boe_v, run_boe_v
+
+    pending_again(migrated_database)
+    run_boe_v(migrated_database, boe_client(), date(2026, 10, 28), days=1)
+    extract_boe_v(migrated_database, boe_client(), FakeLLMClient(lambda *a: EXTRACTION),
+                  geocoder=geocoded)
+    no_llm = FakeLLMClient(lambda *a: (_ for _ in ()).throw(AssertionError("sin LLM")))
+    again = extract_boe_v(migrated_database, boe_client(), no_llm, geocoder=geocoded,
+                          only=["BOE-B-2026-35273"], recheck=True)
+    assert (again["announcements"], again["lots"], again["rejected_fields"]) == (1, 2, 2)
+    with psycopg.connect(migrated_database, autocommit=True) as conn:
+        proposed = conn.execute("SELECT extracted->'proposed'->'lots'->1->'deposit'->>'value' "
+                                "FROM offers WHERE external_id = 'BOE-B-2026-35273'").fetchone()
+        conn.execute("UPDATE offers SET property_id = NULL, location_source = NULL "
+                     "WHERE external_id LIKE 'BOE-B-2026-35273#%'")
+    assert proposed == ("340000",)  # la garantía inventada se guarda como propuesta, no como dato

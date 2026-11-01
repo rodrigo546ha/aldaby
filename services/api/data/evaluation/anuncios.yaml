@@ -233,3 +233,184 @@
       built_area_m2: [48713, 53700, null]
       price: 6778639
       deposit: 338931.95
+
+# Anuncios reales de la sección V que se quedaron sin ubicar (2026-11-01, ADR-0033): etiquetas
+# que el modelo no copia literalmente, direcciones que junta con el municipio, referencias con
+# espacios o barras. Lo que el texto no dice de un lote (la provincia que solo es la de la
+# Delegación, la superficie en letras) admite quedar vacío.
+
+- id: boe-granada-rusticas
+  file: anuncios/boe-BOE-B-2026-32776.txt
+  kind: boe
+  lots:
+    - label: Lote nº 1
+      property_type: rustica
+      address: [pago de Barrasa, null]
+      municipality: Santa Fe
+      province: [Granada, null]
+      cadastral_ref: [18178A016000850000XI, 18178A016000860000XJ, 18178A016000910000XS,
+                      18178A016000940000XH, null]
+      built_area_m2: [null]
+      price: 74761.43
+      deposit: 3738.07
+    - label: Lote nº 2
+      property_type: rustica
+      address: [Pago de Taramay, null]
+      municipality: Almuñécar
+      province: [Granada, null]
+      cadastral_ref: [18018A026003450000EA, 002204100VF46G0001BT, null]
+      built_area_m2: [78, 222, 300, null]
+      price: 34051.60
+      deposit: 1702.58
+    - label: Lote nº 3
+      property_type: rustica
+      address: [null]
+      municipality: Motril
+      province: [Granada, null]
+      cadastral_ref: 18142A032003170000YM
+      built_area_m2: [null]
+      price: 5299
+      deposit: 264.95
+    - label: Lote nº 4
+      property_type: rustica
+      address: [Parcela 90 del polígono 7, pago de La Riajana, null]
+      municipality: Gualchos
+      province: [Granada, null]
+      cadastral_ref: 18095A007000900000IT
+      built_area_m2: [null]
+      price: 1685.80
+      deposit: 84.29
+    - label: Lote nº 5
+      property_type: rustica
+      address: [paraje Alberquillas, null]
+      municipality: Güejar Sierra
+      province: [Granada, null]
+      cadastral_ref: [18096A004001140000SW, 18096A004001150000SA, null]
+      built_area_m2: [null]
+      price: 3712.50
+      deposit: 185.63
+
+- id: boe-badajoz-lotes
+  file: anuncios/boe-BOE-B-2026-32279.txt
+  kind: boe
+  lots:
+    - label: Lote nº 1
+      property_type: [vivienda, edificio]
+      address: calle Juan Carlos I
+      municipality: Magacela
+      province: [Badajoz, null]
+      cadastral_ref: 2889408TJ6028N0001IU
+      built_area_m2: [52, null]
+      price: [11039.80, 9383.83, 7976.26]
+      deposit: 650
+    - label: Lote nº 2
+      property_type: rustica
+      address: [polígono 9 parcela 89, null]
+      municipality: Villagonzalo
+      province: Badajoz
+      cadastral_ref: 06151A009000890000PU
+      built_area_m2: [null]
+      price: [36640, 31144, 26472.40, 22501.54]
+      deposit: 1832
+    - label: Lote nº 3
+      property_type: rustica
+      address: [paraje Moñigueros, "polígono ciento cuatro, parcela siete", null]
+      municipality: Campillo de Llerena
+      province: [Badajoz, null]
+      cadastral_ref: [06029A006000170000GO, 06029A006000180000GK, null]
+      built_area_m2: [null]
+      price: [1785, 1517.25, 1289.66, 1096.21]
+      deposit: 89.25
+
+- id: boe-cuarteles
+  file: anuncios/boe-BOE-B-2026-35361.txt
+  kind: boe
+  lots:
+    - label: ["1.", null]
+      property_type: [edificio, vivienda, otro]
+      address: Plaza Cuartel, 6
+      municipality: Cacín
+      province: Granada
+      price: 82161.23
+      deposit: 4804.75
+    - label: ["2.", null]
+      property_type: [edificio, vivienda, otro]
+      address: Calle Real, 54
+      municipality: Alcolea del Pinar
+      province: Guadalajara
+      price: 339532
+      deposit: 16976.60
+    - label: ["3.", null]
+      property_type: [edificio, vivienda, otro]
+      address: Callejuela del Cuartel, 2
+      municipality: Frechilla
+      province: Palencia
+      price: 53320.68
+      deposit: 3291.40
+
+- id: boe-huelva-tercera
+  file: anuncios/boe-BOE-B-2026-35250.txt
+  kind: boe
+  lots:
+    - label: Uno)
+      property_type: [suelo, otro]
+      address: Playa del Sur, 2
+      municipality: Punta Umbría
+      province: Huelva
+      cadastral_ref: 3302202PB7230S0001YO
+      built_area_m2: [9630, 10596.10, null]
+      price: 1675522.65
+    - label: Dos)
+      property_type: [vivienda, edificio, suelo, otro]
+      address: [General Prim n° 34, "General Prim, 34"]
+      municipality: Trigueros
+      province: Huelva
+      cadastral_ref: 1401434PB9410S0001ZS
+      built_area_m2: [105, 36, null]
+      price: 11716.98
+    - label: Tres)
+      property_type: rustica
+      address: [Paraje Barranca, null]
+      municipality: Cortelazor
+      province: Huelva
+      cadastral_ref: [21026A004000610000, null]
+      built_area_m2: [null]
+      price: 5034.50
+    - label: Cuatro)
+      property_type: rustica
+      address: [Paraje Huerta Castillejos, null]
+      municipality: Cortelazor
+      province: Huelva
+      cadastral_ref: [21026A004000300000, null]
+      built_area_m2: [null]
+      price: 1828.18
+
+- id: boe-marin
+  file: anuncios/boe-BOE-B-2026-31752.txt
+  kind: boe
+  lots:
+    - label: [lote único, null]
+      property_type: [edificio, local, vivienda, otro]
+      address: Avenida de Ourense número 86
+      municipality: Marín
+      province: [Pontevedra, null]
+      cadastral_ref: 5441307NG2954S0001QR
+      built_area_m2: [null]
+      floor: [null]
+      price: 61296
+      deposit: 3064.80
+
+- id: boe-donostia-local
+  file: anuncios/boe-BOE-B-2026-33450.txt
+  kind: boe
+  lots:
+    - label: [null]
+      property_type: local
+      address: avenida de Navarra nº 20
+      municipality: [Donostia/San Sebastián, San Sebastián, Donostia]
+      province: Gipuzkoa
+      cadastral_ref: [2006983972814004399E, 2006983972814004398T, null]
+      built_area_m2: [403.18, 348.10, 751.28, null]
+      floor: [planta semisótano y baja, semisótano, baja, null]
+      price: 1150989
+      deposit: 57549.45

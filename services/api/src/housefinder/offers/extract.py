@@ -8,6 +8,11 @@ usuario lo confirme. Si el modelo declina o la salida no vale, el anuncio sigue 
 Un lote que no se pudo ubicar por un fallo de un servicio o porque su provincia no tenía secciones
 cargadas se vuelve a ubicar al empezar la siguiente vez, con lo ya extraído y sin el LLM
 (ADR-0031).
+
+Lo que propone el modelo se guarda en el anuncio (`proposed`): si cambian las reglas de la
+comprobación, `recheck` vuelve a comprobarlo sin el LLM. Una extracción nueva de un anuncio
+actualiza sus lotes sin confirmar y retira los que ya no encuentra; los confirmados no se tocan
+(ADR-0033).
 """
 
 from __future__ import annotations
@@ -17,7 +22,13 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from housefinder.agent.extraction import CheckedDocument, CheckedLot, extract
+from housefinder.agent.extraction import (
+    CheckedDocument,
+    CheckedLot,
+    DocumentExtraction,
+    check_document,
+    extract,
+)
 from housefinder.agent.llm import LLMClient, LLMOutputError
 from housefinder.db.connection import Connection
 from housefinder.db.offers import (
@@ -27,7 +38,10 @@ from housefinder.db.offers import (
     lots_to_relocate,
     mark_extracted,
     pending_announcements,
+    refresh_lot,
+    retire_lots,
     upsert_offer,
+    with_proposals,
 )
 from housefinder.offers.ingest import IngestReport, Locator, locate_and_link
 from housefinder.offers.model import NormalizedOffer, RawItem
@@ -41,6 +55,7 @@ class ExtractionReport:
     rejected_fields: int = 0
     failed: int = 0  # el modelo declinó o la salida no valía: siguen pendientes
     retried: int = 0  # lotes de otras veces que se volvieron a ubicar, sin el LLM
+    retired: int = 0  # lotes que una extracción nueva del anuncio ya no encuentra
     located: int = 0
     properties_new: int = 0
     properties_matched: int = 0
@@ -52,52 +67,70 @@ class ExtractionReport:
 
 def extract_pending(
     conn: Connection, llm: LLMClient, channel: str, locate: Locator, limit: int = 20,
-    only: list[str] | None = None,
+    only: list[str] | None = None, recheck: bool = False,
 ) -> ExtractionReport:
+    """Extrae los anuncios pendientes. Con `recheck`, en lugar de eso vuelve a comprobar, sin el
+    LLM, lo que el modelo propuso para los anuncios ya extraídos."""
     report = ExtractionReport()
     links = IngestReport()
-    if only is None:
+    if only is None and not recheck:
         for pending in lots_to_relocate(conn, channel):
             _locate(conn, pending.id, relocated_offer(pending), locate, links, report)
             report.retried += 1
             conn.commit()
-    for announcement in pending_announcements(conn, channel, limit, only):
-        document = announcement_text(announcement)
-        try:
-            checked = extract(llm, document)
-        except LLMOutputError:
-            report.failed += 1
-            continue
-        report.announcements += 1
-        report.rejected_fields += checked.rejected
-        if checked.is_correction:
-            # Una corrección no trae lotes nuevos (F4.4): si el canal no la reconoció por el
-            # título, la detecta el LLM y no se crean lotes duplicados.
-            report.corrections += 1
-            mark_extracted(conn, announcement.id, document_summary(checked))
-            conn.commit()
-            continue
-        for index, lot in enumerate(checked.lots, start=1):
-            offer = lot_offer(announcement, lot, index)
-            row = OfferRow(
-                channel=channel, external_id=offer.external_id, kind="lote", title=offer.title,
-                url=offer.url, published_on=offer.published_on, description=None,
-                asking_price=None, auction_min_bid=offer.auction_min_bid,
-                deposit_required=offer.deposit_required, address=offer.address,
-                cadastral_ref=offer.cadastral_ref, built_area_m2=offer.built_area_m2,
-                extraction_status="extraida", source_id=announcement.source_id,
-                parent_id=announcement.id, extracted=offer.extracted,
-            )
-            raw = {"anuncio": announcement.external_id, "lote": index}
-            result = upsert_offer(conn, row, raw, RawItem("", "", None, raw).sha256)
-            _locate(conn, result.offer_id, offer, locate, links, report)
-            report.lots += 1
-        mark_extracted(conn, announcement.id, document_summary(checked))
-        conn.commit()
+    if recheck:
+        for announcement, proposed in with_proposals(conn, channel, only):
+            checked = check_document(announcement_text(announcement),
+                                     DocumentExtraction.model_validate(proposed))
+            _store(conn, channel, announcement, checked, locate, links, report)
+    else:
+        for announcement in pending_announcements(conn, channel, limit, only):
+            try:
+                checked = extract(llm, announcement_text(announcement))
+            except LLMOutputError:
+                report.failed += 1
+                continue
+            _store(conn, channel, announcement, checked, locate, links, report)
     report.located = links.located
     report.properties_new = links.properties_new
     report.properties_matched = links.properties_matched
     return report
+
+
+def _store(conn: Connection, channel: str, announcement: PendingAnnouncement,
+           checked: CheckedDocument, locate: Locator, links: IngestReport,
+           report: ExtractionReport) -> None:
+    report.announcements += 1
+    report.rejected_fields += checked.rejected
+    if checked.is_correction:
+        # Una corrección no trae lotes nuevos (F4.4): si el canal no la reconoció por el
+        # título, la detecta el LLM y no se crean lotes duplicados.
+        report.corrections += 1
+        mark_extracted(conn, announcement.id, document_summary(checked))
+        conn.commit()
+        return
+    kept: list[str] = []
+    for index, lot in enumerate(checked.lots, start=1):
+        offer = lot_offer(announcement, lot, index)
+        row = OfferRow(
+            channel=channel, external_id=offer.external_id, kind="lote", title=offer.title,
+            url=offer.url, published_on=offer.published_on, description=None,
+            asking_price=None, auction_min_bid=offer.auction_min_bid,
+            deposit_required=offer.deposit_required, address=offer.address,
+            cadastral_ref=offer.cadastral_ref, built_area_m2=offer.built_area_m2,
+            extraction_status="extraida", source_id=announcement.source_id,
+            parent_id=announcement.id, extracted=offer.extracted,
+        )
+        raw = {"anuncio": announcement.external_id, "lote": index}
+        result = upsert_offer(conn, row, raw, RawItem("", "", None, raw).sha256)
+        if not result.created:
+            refresh_lot(conn, result.offer_id, row)
+        _locate(conn, result.offer_id, offer, locate, links, report)
+        kept.append(offer.external_id)
+        report.lots += 1
+    report.retired += retire_lots(conn, announcement.id, kept)
+    mark_extracted(conn, announcement.id, document_summary(checked))
+    conn.commit()
 
 
 def _locate(conn: Connection, offer_id: UUID, offer: NormalizedOffer, locate: Locator,
@@ -163,6 +196,7 @@ def document_summary(checked: CheckedDocument) -> dict[str, Any]:
         "is_correction": checked.is_correction,
         "corrected_reference": checked.corrected_reference.as_dict(),
         "rejected_fields": checked.rejected,
+        "proposed": checked.proposed,
     }
 
 

@@ -195,6 +195,10 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       los fallos y los lotes de provincias sin secciones; la zona son las secciones cargadas.
       Secciones de 2025 de toda España cargadas; País Vasco y Navarra, con su catastro foral
       (ADR-0032).
+      Extracción de lotes más fiable (ADR-0033): tramos por los encabezados del anuncio, citas
+      compuestas y referencias con espacios o barras; de 148 a 207 campos correctos de 274 en el
+      banco (`docs/research/f4-extraccion-lotes.md`). Una extracción nueva actualiza los lotes y
+      retira los que ya no encuentra; `extract_offers` con `recheck` vuelve a comprobar sin el LLM.
 - [x] F4.7 Trabajos programados con reintentos y alertas de fallo (ADR-0010): cola en PostgreSQL con
       `SKIP LOCKED`, esperas de 1 minuto a 1 hora, programaciones por intervalo, alertas en el log
       `housefinder.alertas`; `make worker`. Primeros tipos: `ine_sections` e `ine_adrh`.

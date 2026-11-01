@@ -224,6 +224,66 @@ def pending_announcements(
     return [PendingAnnouncement(*r) for r in rows]
 
 
+def with_proposals(
+    conn: psycopg.Connection, channel: str, only: list[str] | None = None
+) -> list[tuple[PendingAnnouncement, dict[str, Any]]]:
+    """Anuncios ya extraídos con lo que propuso el modelo guardado, para volver a comprobarlo sin
+    el LLM (ADR-0033)."""
+    rows = conn.execute(
+        """
+        SELECT id, external_id, title, url, published_on, raw, source_id, extracted->'proposed'
+        FROM offers
+        WHERE channel = %s AND kind = 'anuncio' AND extraction_status = 'extraida'
+          AND jsonb_typeof(extracted->'proposed') = 'object'
+          AND (%s::text[] IS NULL OR external_id = ANY(%s::text[]))
+        ORDER BY published_on, external_id
+        """,
+        (channel, only, only),
+    ).fetchall()
+    return [(PendingAnnouncement(*r[:7]), r[7]) for r in rows]
+
+
+def refresh_lot(conn: psycopg.Connection, offer_id: UUID, lot: OfferRow) -> None:
+    """Lo que da una extracción nueva del anuncio, si el lote no está confirmado (ADR-0033). Si
+    cambia lo que lo ubica, se desenlaza para volver a ubicarlo."""
+    conn.execute(
+        """
+        UPDATE offers SET
+            title = %(title)s, auction_min_bid = %(bid)s, deposit_required = %(deposit)s,
+            built_area_m2 = %(area)s, extracted = %(extracted)s, extraction_status = 'extraida',
+            address = %(address)s, cadastral_ref = %(ref)s,
+            property_id = CASE WHEN moved THEN NULL ELSE property_id END,
+            location_source = CASE WHEN moved THEN NULL ELSE location_source END,
+            location_issue = CASE WHEN moved THEN NULL ELSE location_issue END,
+            location_retry = CASE WHEN moved THEN false ELSE location_retry END
+        FROM (SELECT address IS DISTINCT FROM %(address)s
+                     OR cadastral_ref IS DISTINCT FROM %(ref)s AS moved
+              FROM offers WHERE id = %(id)s) AS change
+        WHERE id = %(id)s AND extraction_status IN ('extraida', 'retirada')
+        """,
+        {"title": lot.title, "bid": lot.auction_min_bid, "deposit": lot.deposit_required,
+         "area": lot.built_area_m2, "address": lot.address, "ref": lot.cadastral_ref,
+         "extracted": Jsonb(lot.extracted) if lot.extracted is not None else None,
+         "id": offer_id},
+    )
+
+
+def retire_lots(conn: psycopg.Connection, announcement_id: UUID, kept: list[str]) -> int:
+    """Retira los lotes sin confirmar que la extracción nueva del anuncio ya no encuentra."""
+    rows = conn.execute(
+        """
+        UPDATE offers SET extraction_status = 'retirada', property_id = NULL,
+                          location_source = NULL, location_retry = false,
+                          location_issue = 'una extracción nueva del anuncio ya no lo encuentra'
+        WHERE parent_id = %s AND kind = 'lote' AND extraction_status = 'extraida'
+          AND NOT (external_id = ANY(%s::text[]))
+        RETURNING id
+        """,
+        (announcement_id, kept),
+    ).fetchall()
+    return len(rows)
+
+
 def mark_extracted(conn: psycopg.Connection, offer_id: UUID, extracted: dict[str, Any]) -> None:
     conn.execute(
         "UPDATE offers SET extraction_status = 'extraida', extracted = %s WHERE id = %s",
@@ -476,7 +536,7 @@ def lots_of(conn: psycopg.Connection, announcement_id: UUID) -> list[LotRow]:
         SELECT l.id, l.external_id, l.title, l.extraction_status, l.extracted,
                l.location_source, p.section_code, p.municipality
         FROM offers l LEFT JOIN properties p ON p.id = l.property_id
-        WHERE l.parent_id = %s ORDER BY l.external_id
+        WHERE l.parent_id = %s AND l.extraction_status <> 'retirada' ORDER BY l.external_id
         """,
         (announcement_id,),
     ).fetchall()

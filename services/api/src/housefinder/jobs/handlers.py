@@ -39,7 +39,7 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
 
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
             return extract_boe_v(conninfo, client, llm_from_env(), int(payload.get("limit", 20)),
-                                 only=payload.get("ids"))
+                                 only=payload.get("ids"), recheck=bool(payload.get("recheck")))
 
     def price_index(payload: dict[str, Any]) -> dict[str, Any]:
         return ine_ipv.load(str(payload.get("region", "13")), conninfo)

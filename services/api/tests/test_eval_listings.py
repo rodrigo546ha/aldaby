@@ -36,8 +36,8 @@ def perfect_document(lots: list[dict[str, Any]]) -> CheckedDocument:
 
 def test_el_juego_se_carga_entero():
     cases = load_cases()
-    assert len(cases) == 16
-    assert sum(c.kind == "boe" for c in cases) == 4
+    assert len(cases) == 22
+    assert sum(c.kind == "boe" for c in cases) == 10
     assert all(c.text.strip() for c in cases)
 
 

@@ -107,10 +107,12 @@ def extract_boe_v(
     rustic: RusticFinder | None = None,
     municipalities: Callable[[str], frozenset[str]] | None = None,
     foral: Callable[[str, str], Parcel] | None = None,
+    recheck: bool = False,
 ) -> dict[str, Any]:
     """Extrae los lotes de hasta `limit` anuncios pendientes del BOE (ADR-0013); con `only`,
     solo esos (BOE-B-…). Antes, vuelve a ubicar los lotes que esperaban otro intento (ADR-0031);
-    `unlocated` lista los que se quedan sin ubicar, con el motivo."""
+    `unlocated` lista los que se quedan sin ubicar, con el motivo. Con `recheck`, vuelve a comprobar
+    sin el LLM lo que el modelo propuso para los anuncios ya extraídos (ADR-0033)."""
     with connect(conninfo) as conn:
         locate = offer_locator(conn, geocoder or (lambda address: geocode(client, address)),
                                parcels or (lambda ref: find_parcel(client, ref)),
@@ -119,7 +121,7 @@ def extract_boe_v(
                                    lambda name: municipality_codes(client, name)),
                                foral=foral or (
                                    lambda province, key: find_foral_parcel(client, province, key)))
-        return extract_pending(conn, llm, boe_v.NAME, locate, limit, only).as_dict()
+        return extract_pending(conn, llm, boe_v.NAME, locate, limit, only, recheck).as_dict()
 
 
 def extract_pasted(conninfo: str, llm: LLMClient, offer_id: UUID) -> dict[str, Any]:

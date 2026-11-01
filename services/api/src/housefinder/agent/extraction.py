@@ -3,10 +3,12 @@
 El LLM devuelve cada campo con una cita literal del documento. Después, sin LLM:
 1. la cita tiene que estar en el documento (espacios normalizados);
 2. si hay varios lotes, la cita tiene que estar en el tramo de su lote: desde su etiqueta («Lote 2»)
-   hasta la etiqueta del lote siguiente (ADR-0014);
+   hasta la etiqueta del lote siguiente o el siguiente encabezado de lote del documento (ADR-0014).
+   Si la etiqueta no vale, el tramo es el del encabezado en el que caen todas sus citas de
+   ubicación (ADR-0033);
 3. el valor tiene que salir de la cita: un importe o una superficie es uno de los números de la
-   cita; una referencia catastral está en la cita con su formato; un texto está en ella como
-   palabras enteras.
+   cita; una referencia catastral está en la cita, sin contar espacios, puntos ni barras; cada
+   parte de un texto separada por comas está en ella como palabras seguidas.
 Lo que no pasa se descarta con su motivo. Ninguna cifra que quede es inventada: está en la fuente,
 en la parte que habla de ese lote.
 """
@@ -16,7 +18,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 from typing import Any, Literal
 
@@ -28,7 +30,17 @@ PropertyType = Literal[
     "vivienda", "local", "oficina", "garaje", "trastero", "edificio", "suelo", "rustica", "otro"
 ]
 NUMBER_IN_TEXT = re.compile(r"\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?")
-CADASTRAL_REF = re.compile(r"^(?:[0-9A-Z]{14}|[0-9A-Z]{20})$")
+# 14, 18 o 20 caracteres de la Dirección General; 8 a 20 de los catastros forales (ADR-0032).
+CADASTRAL_REF = re.compile(r"^(?=(?:\D*\d){5})[0-9A-Z]{8,20}$")
+REF_SEPARATORS = re.compile(r"[\s./-]")
+# Encabezado de un lote al principio de un párrafo: «Lote nº 2.-», «LOTE ÚNICO», «Finca 1:»,
+# «1.», «1.1», «Dos)». Solo sirve para cerrar tramos y para el tramo de reserva: no crea lotes.
+HEADING = re.compile(
+    r"(?:lotes?|fincas?)\b\W*(?:n(?:º|°|o|úm(?:ero)?)?\.?\s*)?(?:\d|[uú]nico\b)"
+    r"|\d+(?:\.\d+)*\s*(?:[.:)–-]|$)"
+    r"|(?:uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)\)",
+    re.IGNORECASE)
+LOCATION_FIELDS = ("address", "cadastral_ref", "municipality")
 NO_SPAN = "no se sabe qué tramo del documento es de este lote"
 PLACEHOLDERS = {"value", "valor"}  # el modelo escribe el nombre del campo en vez del dato
 
@@ -47,13 +59,17 @@ class Quoted(BaseModel):
 
 
 class LotExtraction(BaseModel):
-    label: Quoted = Field(description="Nombre del lote tal como aparece (Lote 1, 1., etc.)")
+    label: Quoted = Field(description="Encabezado del lote copiado tal como aparece al principio "
+                                      "de su párrafo (Lote nº 1.-, LOTE ÚNICO, Dos), 1.)")
     property_type: PropertyType
     property_type_evidence: str | None = Field(description="Cita literal que indica el tipo")
-    address: Quoted = Field(description="Dirección del inmueble (no la de una oficina o registro)")
+    address: Quoted = Field(description="Calle y número, paraje, o polígono y parcela del "
+                                        "inmueble, copiados del documento (no la dirección de "
+                                        "una oficina o un registro)")
     municipality: Quoted
     province: Quoted
-    cadastral_ref: Quoted = Field(description="Referencia catastral de 14 o 20 caracteres")
+    cadastral_ref: Quoted = Field(description="Referencia catastral tal como aparece (puede "
+                                              "llevar espacios o barras)")
     built_area_m2: Quoted = Field(description="Superficie en m²")
     floor: Quoted = Field(description="Planta o piso")
     price: Quoted = Field(description="Precio de venta o tipo de licitación (euros)")
@@ -71,8 +87,13 @@ class DocumentExtraction(BaseModel):
 INSTRUCTIONS = """Eres un extractor de datos de anuncios de venta de inmuebles en España.
 Del documento, extrae cada inmueble o lote que se vende o subasta. Para cada campo:
 - copia en `evidence` el fragmento EXACTO del documento del que sale el valor, sin reescribirlo;
+  nunca una frase tuya sobre el documento («El texto menciona…»);
 - si el documento no da el dato, deja value y evidence a null; no lo deduzcas ni lo calcules;
+- en `label`, copia el encabezado del lote tal como empieza su párrafo («Lote nº 2.-», «Dos)»,
+  «1.»), el mismo texto en value y en evidence;
 - la dirección es la del inmueble, nunca la de la oficina, el registro o el lugar de la subasta;
+  copia la calle y el número (o el paraje, o el polígono y la parcela) como están escritos, y
+  deja el municipio y la provincia para sus campos;
 - en `value` escribe el dato (25802189, Madrid), nunca la palabra «value» ni la cita entera;
 - los números van sin separador de miles y con punto decimal.
 No inventes lotes: si el documento no vende inmuebles, devuelve una lista vacía."""
@@ -176,6 +197,9 @@ class CheckedDocument:
     is_correction: bool
     corrected_reference: CheckedField
     lots: list[CheckedLot]
+    # Lo que propuso el modelo, sin comprobar: con ello se puede volver a comprobar sin el LLM
+    # cuando cambian las reglas de la comprobación (ADR-0033).
+    proposed: dict[str, Any] = field(default_factory=dict)
 
     @property
     def rejected(self) -> int:
@@ -233,7 +257,8 @@ def extract(llm: LLMClient, document: str) -> CheckedDocument:
 def check_document(document: str, raw: DocumentExtraction) -> CheckedDocument:
     source = _normalize(document)
     lots = []
-    for lot, span in zip(raw.lots, lot_spans(source, raw.lots), strict=True):
+    spans = lot_spans(source, raw.lots, heading_starts(document))
+    for lot, span in zip(raw.lots, spans, strict=True):
         if span is None:
             fields = {name: _without_span(getattr(lot, name)) for name in FIELD_KINDS}
             lots.append(CheckedLot(None, fields))
@@ -247,27 +272,34 @@ def check_document(document: str, raw: DocumentExtraction) -> CheckedDocument:
         is_correction=raw.is_correction,
         corrected_reference=check_field(source, raw.corrected_reference, "text"),
         lots=lots,
+        proposed=raw.model_dump(),
     )
 
 
-def lot_spans(source: str, lots: list[LotExtraction]) -> list[Span | None]:
+def lot_spans(source: str, lots: list[LotExtraction],
+              headings: list[int] | None = None) -> list[Span | None]:
     """Tramo del documento (normalizado) de cada lote, o None si no se puede saber.
 
     Con un solo lote, todo el documento. Con varios, cada lote empieza donde está la cita de su
-    etiqueta y acaba donde empieza el siguiente; el último llega hasta el final, incluidas las
-    condiciones comunes. Un lote sin etiqueta verificada, o con la misma posición que otro, no
-    tiene tramo.
+    etiqueta y acaba donde empieza el siguiente lote o el siguiente encabezado de lote del
+    documento (`headings`); el último llega hasta el final, incluidas las condiciones comunes.
+    Si la etiqueta no vale (el modelo no la copia literal), el tramo es el del encabezado en el que
+    caen todas sus citas de ubicación. Dos lotes con el mismo comienzo no tienen tramo.
     """
     whole = (0, len(source))
     if len(lots) == 1:
         return [whole]
+    marks = sorted(set(headings or []))
     anchors: list[int | None] = []
     for lot in lots:
         label = check_field(source, lot.label, "text", whole)
         position = source.find(_normalize(lot.label.evidence or ""))
-        anchors.append(position if label.status == "verificado" and position >= 0 else None)
+        if label.status == "verificado" and position >= 0:
+            anchors.append(position)
+        else:
+            anchors.append(_heading_of(source, lot, marks))
     taken = Counter(a for a in anchors if a is not None)
-    starts = sorted(taken)
+    starts = sorted(set(taken) | set(marks))
     spans: list[Span | None] = []
     for anchor in anchors:
         if anchor is None or taken[anchor] > 1:
@@ -275,6 +307,35 @@ def lot_spans(source: str, lots: list[LotExtraction]) -> list[Span | None]:
             continue
         spans.append((anchor, next((s for s in starts if s > anchor), len(source))))
     return spans
+
+
+def heading_starts(document: str) -> list[int]:
+    """Posiciones, en el documento normalizado, de los párrafos que empiezan por un encabezado de
+    lote. Los párrafos son las líneas del documento."""
+    starts, position = [], 0
+    for line in document.split("\n"):
+        text = _normalize(line)
+        if not text:
+            continue
+        if HEADING.match(text):
+            starts.append(position)
+        position += len(text) + 1
+    return starts
+
+
+def _heading_of(source: str, lot: LotExtraction, marks: list[int]) -> int | None:
+    """El encabezado cuyo tramo contiene todas las citas de ubicación del lote que están en el
+    documento; None si no hay ninguna o caen en tramos distintos."""
+    segments = [(start, next((m for m in marks if m > start), len(source))) for start in marks]
+    found: set[int] | None = None
+    for name in LOCATION_FIELDS:
+        quoted: Quoted = getattr(lot, name)
+        evidence = _normalize(quoted.evidence or "")
+        if not (quoted.value or "").strip() or not evidence or evidence not in source:
+            continue
+        hits = {start for start, end in segments if _within(source, evidence, (start, end))}
+        found = hits if found is None else found & hits
+    return next(iter(found)) if found is not None and len(found) == 1 else None
 
 
 def check_field(
@@ -304,15 +365,30 @@ def check_field(
                                 "el número no aparece en la cita")
         return CheckedField(value, quoted.evidence, "verificado")
     if kind == "cadastral":
-        ref = re.sub(r"\s", "", quoted.value).upper()
-        if not CADASTRAL_REF.match(ref) or ref not in re.sub(r"\s", "", evidence).upper():
+        ref = REF_SEPARATORS.sub("", quoted.value).upper()
+        if not CADASTRAL_REF.match(ref) or ref not in REF_SEPARATORS.sub("", evidence).upper():
             return CheckedField(None, quoted.evidence, "rechazado",
                                 "la referencia catastral no está en la cita o no es válida")
         return CheckedField(ref, quoted.evidence, "verificado")
     value_text = _normalize(quoted.value)
-    if not re.search(rf"(?<!\w){re.escape(_fold(value_text))}(?!\w)", _fold(evidence)):
+    if not _text_in(value_text, evidence):
         return CheckedField(None, quoted.evidence, "rechazado", "el texto no está en la cita")
     return CheckedField(value_text, quoted.evidence, "verificado")
+
+
+def _text_in(value: str, evidence: str) -> bool:
+    """Cada parte del valor separada por comas está en la cita como palabras seguidas, sin
+    contar mayúsculas, tildes ni signos: «Plaza Cuartel 6, Cacín» sale de «en CACÍN (Granada),
+    Plaza Cuartel, 6». Ninguna palabra del valor queda fuera de la cita."""
+    words = _words(evidence)
+    parts = [part for part in (_words(p) for p in value.split(",")) if part]
+    return bool(parts) and all(
+        any(words[i:i + len(part)] == part for i in range(len(words) - len(part) + 1))
+        for part in parts)
+
+
+def _words(text: str) -> list[str]:
+    return re.findall(r"\w+", _fold(text))
 
 
 def _without_span(quoted: Quoted) -> CheckedField:
