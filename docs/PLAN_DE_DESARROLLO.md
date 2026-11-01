@@ -85,15 +85,15 @@ pendiente de ADR**; hoy la deduplicación es por referencia catastral y distanci
 
 | Pieza | Ahora (local) | Desde F7 |
 | --- | --- | --- |
-| Web | `make web` (Next.js) | Por decidir |
-| Motores y API | `make api` (FastAPI) | Por decidir |
-| Trabajos | `make worker-install` (launchd) | Por decidir |
-| Base de datos | PostgreSQL + PostGIS en Docker | Por decidir |
-| Modelos | `qwen3:14b` en Ollama (Homebrew) | Servidor propio en la UE (ADR-0014) |
-| Claves | Clave maestra en fichero local (ADR-0011) | Gestor de claves (ADR-0011 dice AWS KMS) |
+| Web | `make web` (Next.js) | Hetzner GEX45 con Docker Compose y Caddy (ADR-0028) |
+| Motores y API | `make api` (FastAPI) | El mismo servidor (ADR-0028) |
+| Trabajos | `make worker-install` (launchd) | El mismo servidor (ADR-0028) |
+| Base de datos | PostgreSQL + PostGIS en Docker | El mismo servidor, con copia diaria cifrada fuera (ADR-0028) |
+| Modelos | `qwen3:14b` en Ollama (Homebrew) | Ollama en la GPU del mismo servidor (24 GB, ADR-0028) |
+| Claves | Clave maestra en fichero local (ADR-0011) | Fichero en el servidor, sin KMS en la beta (ADR-0028) |
 
-Lo documentado hoy para F7 es AWS (ADR-0011, PLAN_DISENO y F7.5). **Propuesta de este plan,
-pendiente de ADR antes de F7:** web y API en Vercel Pro (funciones en `fra1`), base en Supabase en
+**Decidido en ADR-0028 (2026-11-01):** un solo Hetzner GEX45 en la UE con todo dentro, lo más
+barato con GPU. Lo que sigue era la propuesta anterior, descartada: web y API en Vercel Pro (funciones en `fra1`), base en Supabase en
 la UE y un servidor GPU privado en la UE con vLLM, TEI y Caddy, con el orquestador junto a los
 modelos y el progreso en la base. El orquestador no iría en funciones de Vercel porque tienen
 límite de duración (300 s en Hobby, hasta 800 s en Pro) y un plan completo puede superarlo. El ADR
@@ -125,6 +125,7 @@ GPU alquilada, no en este Mac.
 cd ~/Documents/housefinder
 cp .env.example .env
 make setup        # entorno Python y dependencias web
+brew install tesseract tesseract-lang   # OCR de escaneos y fotos (ADR-0021)
 make db           # PostgreSQL + PostGIS en Docker
 make test         # motores en verde
 ```

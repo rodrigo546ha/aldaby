@@ -47,10 +47,21 @@ def test_el_agente_lista_valora_y_explica_con_marcadores(database, org):  # noqa
     assert all(c.get("descripcion") for c in valued)  # el glosario cubre toda la valoración
     assert listed[0]["oferta_id"] == str(offer_id) and listed[0]["ubicada"] is True
     assert listed[0]["municipio"] == "Villaprueba"  # el usuario dice «la de Villaprueba»
+    assert listed[0]["marcador"] == f"{{{{oferta:{offer_id.hex[:8]}}}}}"  # para nombrarla
     cited = [s.figure for s in answer.segments if isinstance(s, FigureSegment)]
     assert [(f.key, str(f.value)) for f in cited] == [("offer.asking_price", "400000"),
                                                       ("offer.asking_gap", "-0.0817")]
     assert any("no es un margen de negociación" in n for n in answer.notes)
+
+
+def test_un_identificador_mal_dice_de_donde_sacarlo(database, org):  # noqa: F811
+    llm = FakeLLMClient(turns=[call("zona_de_oferta", {"oferta_id": "Getafe"}, "c1"),
+                               ChatTurn("No sé cuál es.")])
+    with psycopg.connect(database) as conn:
+        ask(conn, BOOK, llm, org, "¿Cómo es la zona de la de Getafe?")
+    error = json.loads(llm.chats[-1][-1]["content"])["error"]
+    assert error == ("Argumentos no válidos: oferta_id (Identificador de la oferta, de "
+                     "ofertas_guardadas)")
 
 
 def test_oferta_ajena_o_sin_datos(database, org):  # noqa: F811
@@ -67,5 +78,6 @@ def test_oferta_ajena_o_sin_datos(database, org):  # noqa: F811
     errors = [json.loads(m["content"])["error"] for m in llm.chats[-1] if m["role"] == "tool"]
     assert errors[0] == "No existe esa oferta entre las del usuario"
     assert "garaje" in errors[1]
-    assert errors[2] == "Argumentos no válidos: horizonte_anos"  # opción fuera de la lista
+    assert errors[2] == ("Argumentos no válidos: horizonte_anos (Años de los escenarios de "
+                         "revalorización)")  # opción fuera de la lista
     assert answer.figures == {}

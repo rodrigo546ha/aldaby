@@ -48,6 +48,7 @@ def test_texto_con_marcadores_validos():
     ("Te quedan {{fig:cashflow.monthly_after_tax}} al mes.", "unidad_repetida"),
     ("Desde **{{fig:valuation.price_m2:low}}** €/m².", "unidad_repetida"),
     ("Un {{fig:valuation.price_m2}} ratio.", "unidad_repetida"),
+    ("Te deja {{fig:cashflow.monthly_after_tax}} cada mes.", "unidad_repetida"),
     ("Te quedan {{fig: cashflow.monthly_after_tax}}.", "marcador_mal_escrito"),
     ("Te quedan {fig:cashflow.monthly_after_tax}}.", "marcador_mal_escrito"),
     ("{{cifra:cashflow.monthly_after_tax}}", "marcador_mal_escrito"),
@@ -79,3 +80,26 @@ def test_cada_numero_es_un_problema():
 def test_sin_numeros_para_lo_que_el_modelo_no_puede_citar():
     assert without_numbers("Atlas del INE, año 2024, sección 2806501011 (+6,6 %)") == (
         "Atlas del INE, año …, sección … (+… %)")
+
+
+def test_clave_desconocida_sugiere_la_mas_parecida():
+    figures = {**FIGURES,
+               "oferta_a1.offer.gross_yield_at_asking": FIGURES["cashflow.monthly_after_tax"],
+               "oferta_a1.valuation.appreciation_optimistic": FIGURES["valuation.price_m2"]}
+    wrong_path = check_text("{{fig:oferta_a1.valuation.gross_yield_at_asking}}", figures)
+    assert wrong_path[0].message.endswith("¿Querías decir «oferta_a1.offer.gross_yield_at_asking»?")
+    spanish = check_text("{{fig:oferta_a1.valuation.appreciation_optimista}}", figures)
+    assert spanish[0].message.endswith("«oferta_a1.valuation.appreciation_optimistic»?")
+    invented = check_text("{{fig:renta.estimada}}", figures)
+    assert invented[0].message == "La cifra «renta.estimada» no está en el plan."
+
+
+def test_marcador_de_oferta():
+    from housefinder.agent.references import OfferSegment
+
+    offers = {"a1b2c3d4": "BOE-B-2026-35273 · Lote 1"}
+    text = "La primera es {{oferta:a1b2c3d4}}, con {{fig:cashflow.monthly_after_tax}}."
+    parts = segments(text, FIGURES, offers)
+    assert parts[1] == OfferSegment("a1b2c3d4", "BOE-B-2026-35273 · Lote 1")  # la web lo escribe
+    assert check_text("Mira {{oferta:deadbeef}}.", FIGURES, offers)[0].kind == "oferta_desconocida"
+    assert check_text("Mira {{oferta:Getafe}}.", FIGURES, offers)[0].kind == "marcador_mal_escrito"

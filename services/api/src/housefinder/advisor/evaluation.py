@@ -6,7 +6,11 @@ tras el reintento), por qué falló y cuánto tardó. El significado del texto s
 lo guarda junto a cada resultado.
 
 Las preguntas hablan de «la oferta de {municipio}»: se rellenan con una oferta confirmada y ubicada
-de la organización de desarrollo.
+de la organización de desarrollo. Las de búsqueda, tipo de alquiler y plan necesitan el perfil
+confirmado (F6.9): sin él se saltan.
+
+De cada texto mostrado se cuentan además los dígitos fuera de marcadores (cero por construcción,
+ADR-0012) y las contradicciones de sentido (`agent.sense`, ADR-0027).
 """
 
 from __future__ import annotations
@@ -16,13 +20,15 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from housefinder.agent.loop import AgentAnswer
-from housefinder.agent.references import FigureSegment
+from housefinder.agent.references import FigureSegment, OfferSegment, TextSegment
+from housefinder.agent.sense import contradictions
 
 
 @dataclass(frozen=True)
 class Case:
     question: str
     tools: frozenset[str]  # herramientas que tiene que pedir para contestar
+    needs_profile: bool = False
 
 
 CASES = (
@@ -34,6 +40,12 @@ CASES = (
          "piden?", frozenset({"valorar_oferta"})),
     Case("¿Cómo es la zona de mi oferta de {municipio}?", frozenset({"zona_de_oferta"})),
     Case("¿Qué ofertas tengo guardadas?", frozenset({"ofertas_guardadas"})),
+    # F6.9: búsqueda, tipo de alquiler y plan completo, con el perfil del usuario
+    Case("¿Qué ofertas me encajan?", frozenset({"buscar_ofertas"}), needs_profile=True),
+    Case("¿Cómo me conviene alquilar la oferta de {municipio}? ¿La gestiono yo o la delego?",
+         frozenset({"recomendar_alquiler"}), needs_profile=True),
+    Case("Explícame mi plan completo para la oferta de {municipio}.",
+         frozenset({"plan_completo"}), needs_profile=True),
 )
 
 
@@ -46,6 +58,8 @@ class Result:
     failure: str | None
     seconds: float
     text: str  # el texto con las cifras como [clave], o los problemas si no se muestra
+    invented: int = 0  # dígitos fuera de marcadores en el texto mostrado (tiene que ser cero)
+    contradictions: tuple[str, ...] = ()  # reglas de sentido que no cumple
 
 
 def run_cases(answer: Callable[[str], AgentAnswer], cases: Sequence[Case],
@@ -57,10 +71,14 @@ def run_cases(answer: Callable[[str], AgentAnswer], cases: Sequence[Case],
         reply = answer(question)
         seconds = time.monotonic() - start
         worked = {s.tool for s in reply.steps if s.ok}
+        parts = reply.segments or []
         results.append(Result(
             question=question, tools_ok=case.tools <= worked, shown=reply.segments is not None,
             first_try=reply.segments is not None and not reply.rejected,
-            failure=reply.failure, seconds=round(seconds, 1), text=_text(reply)))
+            failure=reply.failure, seconds=round(seconds, 1), text=_text(reply),
+            invented=sum(ch.isdigit() for p in parts if isinstance(p, TextSegment)
+                         for ch in p.text),
+            contradictions=tuple(c.rule for c in contradictions(parts))))
     return results
 
 
@@ -71,11 +89,14 @@ def summary(results: Sequence[Result]) -> str:
     return (f"herramientas correctas {sum(r.tools_ok for r in results)}/{n} · "
             f"texto mostrado {sum(r.shown for r in results)}/{n} · "
             f"a la primera {sum(r.first_try for r in results)}/{n} · "
+            f"cifras fuera de marcadores {sum(r.invented for r in results)} · "
+            f"contradicciones {sum(len(r.contradictions) for r in results)} · "
             f"tiempo medio {sum(r.seconds for r in results) / n:.0f} s")
 
 
 def _text(reply: AgentAnswer) -> str:
     if reply.segments is None:
         return " | ".join(p for problems in reply.rejected for p in problems) or "(sin texto)"
-    return "".join(f"[{s.figure.key}]" if isinstance(s, FigureSegment) else s.text
+    return "".join(f"[{s.figure.key}]" if isinstance(s, FigureSegment)
+                   else f"[oferta {s.label}]" if isinstance(s, OfferSegment) else s.text
                    for s in reply.segments)

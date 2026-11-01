@@ -99,6 +99,24 @@ def euribor_12m_path(book: ParamBook, on: date) -> Euribor12mPath:
     )
 
 
+@dataclass(frozen=True)
+class OfficialEuribor:
+    year: int
+    month: int
+    value: Decimal  # tanto por uno
+    source: SourceRef
+
+
+def official_anchor(book: ParamBook, on: date) -> OfficialEuribor:
+    """El Euríbor a un año oficial que ancla la trayectoria vigente en `on` (su mes y valor)."""
+    round_param = book.resolve(ROUND_KIND, TERRITORY, on)
+    if round_param is None:
+        raise LookupError(f"No hay ronda de trayectoria del Euríbor vigente el {on}")
+    year, month = anchor_month(to_date(_get(round_param.params, "cut_off", round_param.id)))
+    anchor = _anchor(book, year, month)
+    return OfficialEuribor(year, month, _percent(anchor.params, "value", anchor.id), anchor.ref)
+
+
 def _anchor(book: ParamBook, year: int, month: int) -> Param:
     label = f"{year}-{month:02d}"
     for param in book.of_kind(ANCHOR_KIND):

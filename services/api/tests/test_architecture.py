@@ -24,18 +24,45 @@ ALLOWED_INTERNAL = {
     "jobs": {"agent", "core", "db", "ingestion", "jobs", "offers", "watch"},
     "watch": {"core", "db", "ingestion", "watch"},
     "crypto": {"core", "crypto"},
-    "profiles": {"core", "crypto", "db", "profiles"},
+    "profiles": {"agent", "core", "crypto", "db", "profiles"},  # extracción de la entrevista
     "offers": {"agent", "core", "db", "geo", "ingestion", "offers", "territory"},
     "valuation": {"core", "db", "engines", "params", "valuation"},
     "agent": {"agent", "core"},
-    "advisor": {"advisor", "agent", "core", "db", "params", "territory", "valuation"},
+    "advisor": {"advisor", "agent", "core", "crypto", "db", "params", "plans", "profiles",
+                "regulation", "search", "territory", "valuation"},
+    "documents": {"core", "documents"},
+    # Orquesta la búsqueda inversa (F6.5): valoración, supuestos y el plan de planning/
+    # engines solo por los tipos (MortgageTerms, la comparación del plan completo)
+    "search": {"core", "db", "engines", "params", "planning", "profiles", "regulation", "search",
+               "valuation"},
+    # Plan completo (F6.7): el camino de la búsqueda más estrés, pendientes, argumentos y pasos
+    "plans": {"core", "db", "engines", "params", "planning", "plans", "profiles", "regulation",
+              "search", "valuation"},
+    # PDF del plan (F6.8): el plan, las fuentes de reglas, parámetros y datos
+    "reports": {"branding", "core", "db", "params", "planning", "plans", "regulation",
+                "reports"},
+    # Marca del profesional (F7.3, ADR-0030)
+    "branding": {"branding", "core", "db"},
+    # Cuentas y sesiones (F7.1, ADR-0028)
+    "accounts": {"accounts", "core", "db"},
+    # Evaluaciones (F6.9): el asesor, la extracción y el plan, con el perfil de desarrollo
+    "evaluations": {"advisor", "agent", "core", "crypto", "db", "evaluations", "params", "plans",
+                    "profiles", "regulation", "search"},
 }
-FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi"}
+FORBIDDEN_EXTERNAL = {"anthropic", "boto3", "botocore", "httpx", "requests", "openai", "fastapi",
+                      "pypdf", "pypdfium2", "pytesseract", "PIL", "xlrd", "weasyprint"}
 # Solo db/ habla con la base de datos (ADR-0008).
 DB_DRIVERS = {"psycopg", "psycopg_pool"}
 # Solo la ingesta descarga datos de la red.
-ALLOWED_EXTERNAL = {"ingestion": {"httpx"}, "geo": {"httpx"}, "jobs": {"httpx"},
-                    "watch": {"httpx"}, "offers": {"httpx"}, "agent": {"httpx"}}
+# La ingesta lee además PDF y Excel antiguos de fuentes públicas (ADR-0022).
+ALLOWED_EXTERNAL = {"ingestion": {"httpx", "pypdf", "xlrd"}, "geo": {"httpx"}, "jobs": {"httpx"},
+                    "watch": {"httpx"}, "offers": {"httpx"}, "agent": {"httpx"},
+                    # Solo documents/ lee PDF y hace OCR (ADR-0021)
+                    "documents": {"pypdf", "pypdfium2", "pytesseract", "PIL"},
+                    # Solo reports/ genera PDF (ADR-0026)
+                    "reports": {"weasyprint"},
+                    # El logotipo del profesional se reescribe con Pillow (ADR-0030)
+                    "branding": {"PIL"}}
 
 
 def _imports(path: Path) -> set[str]:

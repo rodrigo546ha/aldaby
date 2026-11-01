@@ -34,15 +34,17 @@ def get_or_create_organization(conn: psycopg.Connection, name: str, kind: str) -
 
 
 def insert_profile(
-    conn: psycopg.Connection, profile_id: UUID, org_id: UUID, owner_id: str, sealed: SealedRow
+    conn: psycopg.Connection, profile_id: UUID, org_id: UUID, client_id: UUID, owner_id: str,
+    sealed: SealedRow
 ) -> None:
     conn.execute(
         """
-        INSERT INTO user_profiles (id, org_id, owner_id, data_enc, dek_enc, key_id, enc_version)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO user_profiles (id, org_id, client_id, owner_id, data_enc, dek_enc, key_id,
+                                   enc_version)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """,
-        (profile_id, org_id, owner_id, sealed.data_enc, sealed.dek_enc, sealed.key_id,
-         sealed.version),
+        (profile_id, org_id, client_id, owner_id, sealed.data_enc, sealed.dek_enc,
+         sealed.key_id, sealed.version),
     )
 
 
@@ -97,3 +99,21 @@ def replace_wrapped_key(
 def assert_row(row: object) -> None:
     if row is None:
         raise RuntimeError("La inserción no devolvió fila")
+
+
+def latest_profile_id(conn: psycopg.Connection, org_id: UUID,
+                      client_id: UUID | None = None) -> UUID | None:
+    """El perfil vigente de un cliente: el último que confirmó (ADR-0029). Sin cliente, el más
+    reciente de la organización (las órdenes de terminal)."""
+    if client_id is None:
+        row = conn.execute(
+            "SELECT id FROM user_profiles WHERE org_id = %s ORDER BY updated_at DESC LIMIT 1",
+            (org_id,),
+        ).fetchone()
+    else:
+        row = conn.execute(
+            "SELECT id FROM user_profiles WHERE org_id = %s AND client_id = %s "
+            "ORDER BY updated_at DESC LIMIT 1",
+            (org_id, client_id),
+        ).fetchone()
+    return row[0] if row else None

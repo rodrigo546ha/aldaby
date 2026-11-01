@@ -133,6 +133,10 @@ class RentalInput:
     maintenance_reserve_rate: Decimal
     situation: RentalFacts  # hechos del contrato para la reducción del IRPF
     contract_date: date  # fecha de celebración: fija la reducción y el ejercicio fiscal
+    # False: no es alquiler de vivienda (temporada, turístico…) y no hay reducción; las
+    # fuentes citan la regla del régimen que lo dice (ADR-0024)
+    housing_lease: bool = True
+    housing_lease_sources: tuple[SourceRef, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -315,6 +319,8 @@ def simulate(
         include_pending=include_pending,
         allow_unverified=allow_unverified,
         income=income,
+        housing_lease=rental.housing_lease,
+        housing_lease_sources=rental.housing_lease_sources,
     )
     investment = InvestmentInputs(
         price=prop.price,

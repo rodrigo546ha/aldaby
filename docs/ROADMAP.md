@@ -267,24 +267,67 @@ umbral fijado en F0, y cada estimación con su rango.
       Banco del agente (`python -m housefinder.advisor evaluar`): con las mismas cinco preguntas,
       `qwen3:8b` no pidió ninguna herramienta y `qwen3:14b` acertó en cuatro
       (`docs/research/f6-0-banco-agente.md`).
-- [ ] F6.2 Perfilado conversacional que produce un perfil estructurado y validado.
-- [ ] F6.3 Lectura de documentos del usuario (nómina, extracto, declaración) con confirmación manual.
+- [x] F6.2 Perfilado conversacional que produce un perfil estructurado y validado.
+      *Hecho (ADR-0020):* preguntas fijas por campo (`profiles/interview.py`); el modelo solo saca
+      de cada respuesta lo que dice, con cita literal comprobada (`agent/profiling.py`), y el código
+      hace las cuentas (catorce pagas, edad, comunidad). Confirmación campo a campo en `/perfil` y
+      perfil guardado cifrado; la entrevista también, para retomarla (`profile_interviews`).
+      Base imponible y tipo marginal no se preguntan: vendrán de los documentos (F6.3).
+- [x] F6.3 Lectura de documentos del usuario (nómina, extracto, declaración) con confirmación manual.
+      *Hecho (ADR-0021):* PDF con texto (`pypdf`), escaneos y fotos con OCR local (Tesseract en
+      español) y texto pegado (`documents/reader.py`). El usuario dice qué documento es; el modelo
+      saca sus campos con cita y etiqueta comprobadas (`agent/documents.py`) y el código hace las
+      cuentas (pagas, una cuota por concepto). El documento no se guarda: solo los campos con su
+      cita, en la entrevista cifrada, con IBAN y DNI tapados. Se sube desde `/perfil`.
 - [x] F6.4 Herramientas del agente: llama a los motores, nunca calcula.
       *Hecho (ADR-0019):* `agent/loop.py` (bucle con herramientas, texto comprobado con ADR-0012 y
       un reintento) y `advisor/tools.py`: ofertas guardadas, valoración de una oferta y zona de una
       oferta. Las herramientas reciben referencias, nunca números. Prueba en terminal:
       `python -m housefinder.advisor preguntar "…"`. El plan completo de una oferta, en F6.7.
-- [ ] F6.5 Búsqueda inversa: puntuación de ofertas según el resultado esperado para el perfil y sus
+- [x] F6.5 Búsqueda inversa: puntuación de ofertas según el resultado esperado para el perfil y sus
       restricciones (cash flow mínimo, riesgo, gestión).
-- [ ] F6.6 Recomendación de tipo de alquiler y de gestión activa o pasiva según la ubicación.
-- [ ] F6.7 Plan completo: capacidad, hipoteca, cash flow, estrés, escenarios legales, argumentos
+      *Hecho (ADR-0022, ADR-0023):* el plan del usuario en cada oferta con supuestos estimados de
+      fuentes públicas (Banco de España, Catastro, Hacienda, EPF); restricciones por capacidad,
+      ahorro y cash flow mínimo en el estrés de su riesgo, y orden por su objetivo
+      (`planning/ranking.py`, `search/service.py`). `GET /search`, página `/busqueda` y
+      herramienta del agente `buscar_ofertas` con el marcador `{{oferta:id}}`. Vacío, gestión,
+      gastos de compra y venta y gran tenedor los pone el usuario: no tienen fuente oficial.
+- [x] F6.6 Recomendación de tipo de alquiler y de gestión activa o pasiva según la ubicación.
+      *Hecho (ADR-0024):* por cada tipo (habitual, temporada, habitaciones, turístico), si se
+      puede ejercer en el municipio, los requisitos que suman Estado, comunidad y ayuntamiento y
+      si tiene la reducción del IRPF (dato de la regla, `irpf_reduction`). Cifras del habitual
+      con el SERPAVI; de los demás, con la renta que espera el usuario en cada oferta (no hay
+      fuente pública: `docs/research/f6-6-rentas-otros-tipos.md`). Gestión pasiva si el tipo
+      exige dedicación o la vivienda está fuera de su comunidad, con lo que cuesta delegar
+      (`planning/rental_advice.py`, `search/rental.py`). Escenario con las reglas pendientes y
+      zona tensionada. En cada oferta de `/busqueda` y en la herramienta `recomendar_alquiler`.
+- [x] F6.7 Plan completo: capacidad, hipoteca, cash flow, estrés, escenarios legales, argumentos
       para no comprar y hoja de ruta de compra.
-      *Base hecha (ADR-0012):* el texto del agente nombra las cifras con marcadores
+      *Hecho (ADR-0025):* `plans/service.py` calcula el plan de una oferta al abrirlo, por el
+      camino de la búsqueda, con fija frente a variable (variable estimada con el Banco de España
+      y el Euríbor oficial), estrés con la renta baja de la zona y plan con las reglas pendientes.
+      Argumentos para no comprar con reglas fijas sobre las cifras (`planning/arguments.py`) y
+      hasta tres del asesor sin números (`agent/plan_arguments.py`). Hoja de ruta como datos con
+      su fuente, sin verificar (`data/plan/hoja_de_ruta.yaml`). Página `/plan/[oferta]` y botón
+      para que el asesor lo explique con la herramienta `plan_completo`.
+      *Base (ADR-0012):* el texto del agente nombra las cifras con marcadores
       `{{fig:clave}}`; `agent/references.py` rechaza dígitos fuera de marcadores y claves que no
       están en el plan, y lo convierte en segmentos que formatea la web.
-- [ ] F6.8 Exportación a PDF con todas las fuentes citadas.
-- [ ] F6.9 Evaluaciones automáticas: extracción de anuncios, ausencia de cifras inventadas en el
+- [x] F6.8 Exportación a PDF con todas las fuentes citadas.
+      *Hecho (ADR-0026):* WeasyPrint en la API (`reports/`): el plan completo en HTML con cada
+      cifra, su fórmula y notas numeradas a un anexo con cada fuente una vez (norma con su enlace
+      y si está verificada, parámetro, datos con licencia y fecha, supuestos en palabras). Sin la
+      explicación del asesor y sin guardarlo: `GET /plans/offers/{id}/pdf` con `no-store` y enlace
+      «Descargar PDF» en `/plan`. En el Mac necesita pango de Homebrew (`PDF_LIBS` del Makefile).
+- [x] F6.9 Evaluaciones automáticas: extracción de anuncios, ausencia de cifras inventadas en el
       texto del agente y coherencia del plan.
+      *Hecho (ADR-0027):* juego etiquetado de doce anuncios sintéticos y cuatro del BOE
+      (`data/evaluation/`), banco del asesor ampliado con búsqueda, alquiler y plan, con dígitos
+      fuera de marcadores y contradicciones de sentido (`agent/sense.py`), y reglas de coherencia
+      del plan que se avisan en el propio plan (`plans/coherence.py`). `make evaluar` compara con
+      la línea base guardada. La primera pasada destapó que qwen3 escribía «value» en vez del
+      dato: con la corrección, la extracción pasa de 57 a 102 campos de 141 y el asesor acierta
+      las herramientas 8/8 (`docs/research/f6-9-evaluaciones.md`).
 
 **Criterio de salida.** Los 10 planes manuales de F0 se reproducen con la herramienta en menos de
 10 minutos cada uno, y ninguna cifra del texto del agente falta en los `Figure` del plan.
@@ -297,9 +340,25 @@ umbral fijado en F0, y cada estimación con su rango.
 
 **Tareas**
 
-- [ ] F7.1 Cuentas, inicio de sesión y separación de datos por cliente.
-- [ ] F7.2 Gestión de varios perfiles de cliente por profesional.
-- [ ] F7.3 Planes con la marca del profesional.
+- [x] F7.1 Cuentas, inicio de sesión y separación de datos por cliente.
+      *Hecho (ADR-0028):* cuentas con correo y contraseña (argon2id), dadas de alta por el
+      administrador con un enlace de un solo uso para elegir la contraseña
+      (`python -m housefinder.accounts alta …`). Sesión en cookie `HttpOnly` con su hash en la
+      base y freno de intentos. La organización sale de la sesión y Row-Level Security de
+      PostgreSQL la impone también en la base (rol `housefinder_api`). Páginas `/acceso` y
+      `/acceso/contrasena`; en el Mac, `HOUSEFINDER_DEV_ORG=1` trabaja sin cuenta. Despliegue
+      decidido para F7.5: un Hetzner GEX45 con todo dentro.
+- [x] F7.2 Gestión de varios perfiles de cliente por profesional.
+      *Hecho (ADR-0029):* tabla `clients` con el nombre cifrado; perfiles y entrevistas son de un
+      cliente. El cliente activo va en una cookie que la API valida contra la organización, con
+      selector en la barra y página `/clientes` (alta, cambio y borrado definitivo con sus
+      perfiles). Las ofertas y las rentas esperadas son del profesional y se evalúan con el
+      perfil del cliente activo.
+- [x] F7.3 Planes con la marca del profesional.
+      *Hecho (ADR-0030):* nombre comercial, contacto, color con contraste comprobado (4,5:1 sobre
+      blanco), presentación y logotipo PNG o JPEG reescrito con Pillow (sin SVG), en la página
+      `/marca`. Sale en la cabecera del PDF y de `/plan`, con una línea discreta al pie: «Cifras
+      calculadas con HouseFinder, con las fuentes del anexo».
 - [ ] F7.4 Avisos legales y consentimiento de tratamiento de datos.
 - [ ] F7.5 Despliegue en AWS con copias de seguridad y monitorización básica.
 - [ ] F7.6 Piloto de 4 semanas con 3–5 profesionales y sesión de feedback semanal.

@@ -38,6 +38,8 @@ Reglas para escribir (obligatorias):
   usar {{fig:clave:low}}, {{fig:clave:high}} o {{fig:clave:range}}.
 - Si una cifra no la ha devuelto ninguna herramienta, no la menciones.
 - Nombra cada cifra por lo que dice su «descripcion», no por su clave.
+- Para nombrar una oferta usa su «marcador» ({{oferta:id}}), tal cual lo da la herramienta; no
+  copies su título ni te inventes un identificador.
 - No escribas la unidad detrás del marcador (€, %, años, al mes…): la cifra se muestra ya con la
   suya. Escribe «la renta sería de {{fig:clave}}», no «{{fig:clave}} € al mes».
 - En las fórmulas y los avisos, «…» es un número que no puedes citar: no lo sustituyas ni lo
@@ -64,6 +66,9 @@ class ToolResult:
     scope: str | None = None  # prefijo de las claves, si la misma cifra existe para varias cosas
     keys: dict[str, str] = field(default_factory=dict)  # clave del Figure → clave para el modelo
     descriptions: dict[str, str] = field(default_factory=dict)  # clave del Figure → qué es
+    # Varias ofertas en un resultado: clave para el modelo → cifra, ya con su prefijo (F6.5)
+    keyed: dict[str, Figure] = field(default_factory=dict)
+    offers: dict[str, str] = field(default_factory=dict)  # identificador corto → título
 
 
 @dataclass(frozen=True)
@@ -92,6 +97,7 @@ class AgentAnswer:
     failure: Failure | None = None
     detail: str | None = None  # error del servidor del modelo, para diagnosticar
     rejected: list[list[str]] = field(default_factory=list)  # problemas de cada texto rechazado
+    offers: dict[str, str] = field(default_factory=dict)  # ofertas que se pueden nombrar
 
 
 def run_agent(
@@ -103,6 +109,7 @@ def run_agent(
     messages: list[Message] = [{"role": "system", "content": instructions + FIGURE_RULES},
                                {"role": "user", "content": question}]
     figures: dict[str, Figure] = {}
+    offers: dict[str, str] = {}
     notes: list[str] = []
     steps: list[Step] = []
     retries = RETRIES
@@ -110,7 +117,7 @@ def run_agent(
 
     def answer(parts: list[Segment] | None, failure: Failure | None,
                detail: str | None = None) -> AgentAnswer:
-        return AgentAnswer(parts, figures, notes, steps, failure, detail, rejected)
+        return AgentAnswer(parts, figures, notes, steps, failure, detail, rejected, offers)
 
     for _ in range(max_steps):
         try:
@@ -132,14 +139,14 @@ def run_agent(
         if turn.tool_calls:
             for call in turn.tool_calls:
                 content, ok = _execute(by_name.get(call.name), call.name, call.arguments,
-                                       figures, notes)
+                                       figures, notes, offers)
                 steps.append(Step(call.name, ok))
                 messages.append(tool_message(call.id, content))
             continue
         text = turn.content or ""
-        problems = check_text(text, figures)
+        problems = check_text(text, figures, offers)
         if not problems:
-            return answer(segments(text, figures), None)
+            return answer(segments(text, figures, offers), None)
         rejected.append([p.message for p in problems])
         if retries == 0:
             return answer(None, "texto_rechazado")
@@ -156,7 +163,7 @@ def run_agent(
 
 
 def _execute(tool: Tool | None, name: str, raw: str, figures: dict[str, Figure],
-             notes: list[str]) -> tuple[str, bool]:
+             notes: list[str], offers: dict[str, str]) -> tuple[str, bool]:
     """Ejecuta una llamada. Devuelve el contenido para el modelo y si funcionó."""
     if tool is None:
         return _error(f"No existe la herramienta «{name}»"), False
@@ -164,15 +171,16 @@ def _execute(tool: Tool | None, name: str, raw: str, figures: dict[str, Figure],
         arguments = tool.arguments.model_validate_json(raw or "{}")
     except ValidationError as exc:
         fields = sorted({".".join(str(p) for p in e["loc"]) or "argumentos" for e in exc.errors()})
-        return _error(f"Argumentos no válidos: {', '.join(fields)}"), False
+        described = ", ".join(_field_help(tool, f) for f in fields)
+        return _error(f"Argumentos no válidos: {described}"), False
     try:
         result = tool.run(arguments)
     except ToolFailed as exc:
         return _error(str(exc)), False
     shown = []
-    for figure in result.figures:
-        key = result.keys.get(figure.key, figure.key)
-        key = f"{result.scope}.{key}" if result.scope else key
+    named = [(f"{result.scope}.{result.keys.get(f.key, f.key)}" if result.scope
+              else result.keys.get(f.key, f.key), f) for f in result.figures]
+    for key, figure in [*named, *result.keyed.items()]:
         figures[key] = figure
         entry = {"clave": key, "valor": str(figure.value), "unidad": figure.unit,
                  "rango": [str(figure.low), str(figure.high)] if figure.low is not None else None}
@@ -181,9 +189,17 @@ def _execute(tool: Tool | None, name: str, raw: str, figures: dict[str, Figure],
         entry["formula"] = without_numbers(figure.formula)
         shown.append(entry)
     notes.extend(n for n in result.notes if n not in notes)
+    offers.update(result.offers)
     return json.dumps({"cifras": shown, "datos": result.facts,
                        "avisos": [without_numbers(n) for n in result.notes]},
                       ensure_ascii=False, default=str), True
+
+
+def _field_help(tool: Tool, name: str) -> str:
+    """El campo con su descripción del esquema: con qwen3, `oferta_id` llegaba como «Getafe» y,
+    sin saber de dónde sacar el identificador, el modelo se rendía."""
+    field = tool.arguments.model_fields.get(name)
+    return f"{name} ({field.description})" if field and field.description else name
 
 
 def _error(message: str) -> str:

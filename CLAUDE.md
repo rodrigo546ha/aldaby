@@ -66,6 +66,15 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
                           contracción de la renta (ADR-0018)
     planning/simulate.py  simulación de punta a punta: el único camino de cálculo del plan (D4)
     planning/scenarios.py escenarios normativos: comparación con / sin reglas pendientes
+    planning/ranking.py   búsqueda inversa: restricciones por riesgo y orden por objetivo (ADR-0023)
+    planning/arguments.py argumentos para no comprar: reglas fijas sobre las cifras (ADR-0025)
+    planning/rental_advice.py  tipo de alquiler y gestión recomendados (ADR-0024)
+    search/               búsqueda inversa: el plan del usuario en cada oferta (ADR-0023) y su
+                          tipo de alquiler y gestión (rental.py, ADR-0024)
+    plans/                plan completo de una oferta y hoja de ruta de compra (ADR-0025)
+    reports/              PDF del plan con anexo de fuentes; solo aquí weasyprint (ADR-0026)
+    plans/coherence.py    reglas de coherencia del plan; un fallo se avisa en el plan (ADR-0027)
+    evaluations/          extracción contra el juego etiquetado, banco del asesor y línea base (ADR-0027)
     db/migrate.py         ejecutor de migraciones (ADR-0008); solo db/ importa psycopg
     db/sections.py        fuentes (`sources`) y secciones censales; sección de un punto
     db/indicators.py      indicadores por sección y cartografía (renta, demografía)
@@ -75,8 +84,15 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     jobs/                 worker, reintentos, programaciones, alertas y tipos de trabajo
     db/review_tasks.py    tareas de revisión de la vigilancia normativa
     db/profiles.py        organizaciones y perfiles (solo bytes cifrados)
+    db/accounts.py        cuentas, enlaces de contraseña y sesiones (solo hashes de tokens)
+    db/clients.py         clientes de un profesional (nombre cifrado, ADR-0029)
+    db/branding.py        marca del profesional (ADR-0030)
+    branding/             marca del profesional: color con contraste y logotipo reescrito con Pillow (ADR-0030)
+    accounts/             cuentas con argon2id, sesiones y altas por el administrador (ADR-0028)
+    db/interviews.py      entrevistas de perfil (solo bytes cifrados)
     crypto/               cifrado de sobre AES-256-GCM y claves maestras (ADR-0011)
-    profiles/             perfil del inversor: modelo que se redacta y almacén cifrado
+    profiles/             perfil del inversor: modelo que se redacta, almacén cifrado, entrevista
+                          con preguntas fijas (interview.py, ADR-0020) y clientes (clients.py, ADR-0029)
     db/offers.py          ofertas, versiones de lo recibido e inmuebles (deduplicación)
     offers/               canales de oferta (interfaz Channel), ingesta, ubicación y deduplicación
     offers/channels/      canales: BOE sección V (anuncios) y sección IV (avisos de subastas judiciales, ADR-0017)
@@ -85,10 +101,16 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     offers/pasted.py      enlace o texto pegado: oferta privada, extracción en la cola y confirmación
     agent/llm.py          cliente del LLM (modelo abierto en servidor propio, API compatible con OpenAI) y cliente falso (ADR-0014); solo agent/ llama al LLM
     agent/extraction.py   extracción con cita literal comprobada: ninguna cifra extraída es inventada
+    agent/documents.py    campos de nómina, declaración y extracto con cita y etiqueta comprobadas (ADR-0021)
+    agent/profiling.py    datos del perfil en la respuesta libre, con cita comprobada (ADR-0020)
+    agent/plan_arguments.py  argumentos del asesor para no comprar, sin números (ADR-0025)
+    agent/sense.py        contradicciones de sentido junto a los marcadores del asesor (ADR-0027)
     agent/references.py   el agente escribe marcadores {{fig:clave}}, no cifras: comprobación y segmentos (ADR-0012)
     agent/loop.py         bucle del agente con herramientas; el texto final se comprueba con references (ADR-0019)
     advisor/              herramientas del agente sobre los motores (solo lectura, argumentos sin números),
                           glosario de cifras para el modelo, banco de preguntas (evaluation.py) y CLI
+    documents/            texto de un documento del usuario: PDF, escaneo o foto con OCR local; solo aquí
+                          pypdf, pypdfium2 y pytesseract (ADR-0021)
     watch/                vigilancia del BOE y del BOCM: filtros, lectura y tareas (F2.6)
     geo/cartociudad.py    geocodificador de CartoCiudad (ADR-0009); solo geo/ e ingestion/ usan la red
     geo/catastro.py       centroide de una parcela por referencia catastral (Catastro, ADR-0016)
@@ -96,7 +118,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     territory/            sección, renta, población y tendencias de una dirección como Figure
     valuation/            renta y precio estimados de un inmueble como Figure con rango (ADR-0018)
                           y escenarios de revalorización (scenarios.py, F5.5); valoración de
-                          una oferta confirmada frente a lo que pide (offer.py, F5.4)
+                          una oferta confirmada frente a lo que pide (offer.py, F5.4); supuestos del
+                          plan desde fuentes públicas (assumptions.py, ADR-0022)
     ingestion/boe.py      sumario diario del BOE (esquema comprobado con sumarios reales)
     ingestion/bocm.py     sumarios del BOCM (RSS y XML de cada boletín)
     ingestion/ine_sections.py  cartografía de secciones del INE (API OGC Features, CC BY 4.0)
@@ -106,12 +129,18 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     ingestion/valor_tasado.py  valor tasado de la vivienda libre por municipio (Ministerio, vía Comunidad de Madrid)
     ingestion/ine_ipv.py  índice de precios de vivienda del INE por comunidad, trimestral
     ingestion/ine_ipc_alquiler.py  componente de alquiler del IPC del INE por comunidad, mensual
+    ingestion/bde_tipos.py, ine_hipotecas.py, catastro_urbana.py, ine_epf.py, hacienda_ibi.py
+                          fuentes de los supuestos del plan (ADR-0022); hacienda_ibi genera reglas
     db/references.py      referencias de alquiler y de precio (market_references)
     api/main.py           aplicación FastAPI; un router por dominio (simulate, territory, offers, boe, valuation)
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
   data/watch/             filtros de la vigilancia del BOE y del BOCM
   data/jobs/              programaciones diarias de la cola (ADR-0010)
+  data/profiles/          comunidades autónomas por código INE, para la residencia del perfil
+  data/territory/         provincia → comunidad autónoma (códigos INE)
+  data/plan/              hoja de ruta de compra: pasos con su fuente, sin verificar (ADR-0025)
+  data/evaluation/        juego etiquetado de anuncios (sintéticos y BOE) y línea base de las evaluaciones
   data/offers/            sedes de partidos judiciales para los avisos de subastas (sin verificar)
                           y relación de provincias del INE (provincias.yaml, ADR-0020)
   tests/                  pytest; un test por regla de negocio
@@ -124,7 +153,8 @@ docs/                     ROADMAP, ARCHITECTURE, DATA_SOURCES, ADRs y plantillas
 ## Comandos
 
 ```bash
-make setup     # entorno Python (.venv) y dependencias web
+make setup     # entorno Python (.venv) y dependencias web; OCR: brew install tesseract tesseract-lang;
+               # PDF del plan: brew install pango (ADR-0026)
 make db        # PostgreSQL + PostGIS en Docker (127.0.0.1:5442) y migraciones pendientes
 make migrate   # solo las migraciones pendientes (DATABASE_URL)
 make sections  # carga las secciones censales del INE (YEAR=2025 PROVINCE=28)
@@ -133,7 +163,10 @@ make serpavi   # carga las referencias de alquiler del SERPAVI 2011–2024 (PROV
 make valor-tasado FICHERO=…  # valor tasado por municipio: CSV descargado a mano (su portal prohíbe el acceso automático)
 make ipv       # índice de precios de vivienda del INE por comunidad (REGION=13)
 make ipc-alquiler  # componente de alquiler del IPC del INE por comunidad, mensual (REGION=13)
+make supuestos # supuestos del plan: tipos del BdE y del INE, Catastro, EPF y reglas del IBI (ADR-0022)
 make backtest  # backtesting del modelo de renta y precio (F5.6)
+make evaluar   # evaluaciones con el modelo de .env frente a la línea base (BASE=1 la guarda)
+                 # cuentas de la beta: `python -m housefinder.accounts alta correo --organizacion …`
 make worker    # worker de la cola; encolar con `python -m housefinder.jobs enqueue …`
 make schedules # aplica data/jobs/programaciones.yaml (trabajos diarios; el Makefile lee .env)
 make worker-install  # worker siempre en marcha en este Mac (launchd); logs: make worker-logs

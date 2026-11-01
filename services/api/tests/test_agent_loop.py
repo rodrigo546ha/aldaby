@@ -202,3 +202,27 @@ def test_chat_argumentos_como_objeto_y_respuestas_malas():
         http, _ = server(bad)
         with pytest.raises(LLMOutputError):
             OpenAICompatibleLLMClient("http://llm.test/v1", "m", client=http).chat([], [])
+
+
+def test_varias_ofertas_en_un_resultado_y_su_marcador():
+    from housefinder.agent.references import OfferSegment
+
+    cash = Figure("cashflow.monthly_after_tax", D("120"), "EUR/mes", "x")
+    class NoArgs(BaseModel):
+        pass
+
+    search = Tool("buscar", "Buscar", NoArgs, lambda _a: ToolResult(
+        keyed={"oferta_a1b2c3d4.cashflow.monthly_after_tax": cash},
+        offers={"a1b2c3d4": "Piso en Getafe"},
+        facts={"ofertas": [{"marcador": "{{oferta:a1b2c3d4}}", "puesto": 1}]}))
+    llm = FakeLLMClient(turns=[
+        call("{}", name="buscar"),
+        ChatTurn("La mejor es {{oferta:a1b2c3d4}}: te deja "
+                 "{{fig:oferta_a1b2c3d4.cashflow.monthly_after_tax}}."),
+    ])
+    answer = run_agent(llm, "x", "¿Qué me encaja?", [search])
+    assert answer.failure is None
+    assert answer.segments[1] == OfferSegment("a1b2c3d4", "Piso en Getafe")
+    assert answer.offers == {"a1b2c3d4": "Piso en Getafe"}
+    shown = json.loads(llm.chats[1][-1]["content"])["cifras"][0]
+    assert shown["clave"] == "oferta_a1b2c3d4.cashflow.monthly_after_tax"

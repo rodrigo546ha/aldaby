@@ -1,0 +1,1562 @@
+# Generado por `python -m housefinder.ingestion.hacienda_ibi --year 2026 --region MADRID --ccaa 13` (ADR-0022): no editar a mano.
+# Tipo del IBI urbano por municipio, Ministerio de Hacienda. Sin verificar.
+- id: ibi-28002-2026
+  kind: tipo_ibi
+  territory: ES-13-28002
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0055
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Ajalvir: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2003.'
+- id: ibi-28004-2026
+  kind: tipo_ibi
+  territory: ES-13-28004
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0065
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Álamo (El): tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28005-2026
+  kind: tipo_ibi
+  territory: ES-13-28005
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0041
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Alcalá de Henares: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28006-2026
+  kind: tipo_ibi
+  territory: ES-13-28006
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Alcobendas: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2014.'
+- id: ibi-28007-2026
+  kind: tipo_ibi
+  territory: ES-13-28007
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004872
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Alcorcón: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28008-2026
+  kind: tipo_ibi
+  territory: ES-13-28008
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0079
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Aldea del Fresno: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28009-2026
+  kind: tipo_ibi
+  territory: ES-13-28009
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0065
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Algete: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2015.'
+- id: ibi-28010-2026
+  kind: tipo_ibi
+  territory: ES-13-28010
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.005
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Alpedrete: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28012-2026
+  kind: tipo_ibi
+  territory: ES-13-28012
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0056
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Anchuelo: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2003.'
+- id: ibi-28013-2026
+  kind: tipo_ibi
+  territory: ES-13-28013
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0044
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Aranjuez: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2008.'
+- id: ibi-28014-2026
+  kind: tipo_ibi
+  territory: ES-13-28014
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0044
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Arganda del Rey: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2005.'
+- id: ibi-28015-2026
+  kind: tipo_ibi
+  territory: ES-13-28015
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0047
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Arroyomolinos: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2005.'
+- id: ibi-28017-2026
+  kind: tipo_ibi
+  territory: ES-13-28017
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0059
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Batres: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28018-2026
+  kind: tipo_ibi
+  territory: ES-13-28018
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0048
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Becerril de la Sierra: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28019-2026
+  kind: tipo_ibi
+  territory: ES-13-28019
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0046
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Belmonte de Tajo: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2014.'
+- id: ibi-28022-2026
+  kind: tipo_ibi
+  territory: ES-13-28022
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Boadilla del Monte: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2004.'
+- id: ibi-28023-2026
+  kind: tipo_ibi
+  territory: ES-13-28023
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Boalo (El): tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2017.'
+- id: ibi-28027-2026
+  kind: tipo_ibi
+  territory: ES-13-28027
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00659
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Buitrago del Lozoya: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2003.'
+- id: ibi-28028-2026
+  kind: tipo_ibi
+  territory: ES-13-28028
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0066
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Bustarviejo: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2000.'
+- id: ibi-28030-2026
+  kind: tipo_ibi
+  territory: ES-13-28030
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0057
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Cabrera (La): tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28031-2026
+  kind: tipo_ibi
+  territory: ES-13-28031
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0055
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Cadalso de los Vidrios: tipo del IBI urbano 2026 según el Ministerio de
+    Hacienda (Oficina Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28032-2026
+  kind: tipo_ibi
+  territory: ES-13-28032
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00475
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Camarma de Esteruelas: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28033-2026
+  kind: tipo_ibi
+  territory: ES-13-28033
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0045
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Campo Real: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2003.'
+- id: ibi-28035-2026
+  kind: tipo_ibi
+  territory: ES-13-28035
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0045
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Carabaña: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2000.'
+- id: ibi-28036-2026
+  kind: tipo_ibi
+  territory: ES-13-28036
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0047
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Casarrubuelos: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28037-2026
+  kind: tipo_ibi
+  territory: ES-13-28037
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Cenicientos: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28038-2026
+  kind: tipo_ibi
+  territory: ES-13-28038
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0045
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Cercedilla: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2004.'
+- id: ibi-28040-2026
+  kind: tipo_ibi
+  territory: ES-13-28040
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004154
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Ciempozuelos: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28041-2026
+  kind: tipo_ibi
+  territory: ES-13-28041
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Cobeña: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28042-2026
+  kind: tipo_ibi
+  territory: ES-13-28042
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.005
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Colmenar del Arroyo: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28043-2026
+  kind: tipo_ibi
+  territory: ES-13-28043
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0055
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Colmenar de Oreja: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28044-2026
+  kind: tipo_ibi
+  territory: ES-13-28044
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0052
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Colmenarejo: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28045-2026
+  kind: tipo_ibi
+  territory: ES-13-28045
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0044
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Colmenar Viejo: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28046-2026
+  kind: tipo_ibi
+  territory: ES-13-28046
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0056
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Collado Mediano: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2010.'
+- id: ibi-28047-2026
+  kind: tipo_ibi
+  territory: ES-13-28047
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Collado Villalba: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2010.'
+- id: ibi-28049-2026
+  kind: tipo_ibi
+  territory: ES-13-28049
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Coslada: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2010.'
+- id: ibi-28050-2026
+  kind: tipo_ibi
+  territory: ES-13-28050
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00505
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Cubas de la Sagra: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28051-2026
+  kind: tipo_ibi
+  territory: ES-13-28051
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00594
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Chapinería: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28052-2026
+  kind: tipo_ibi
+  territory: ES-13-28052
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0065
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Chinchón: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2000.'
+- id: ibi-28053-2026
+  kind: tipo_ibi
+  territory: ES-13-28053
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Daganzo de Arriba: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2024.'
+- id: ibi-28054-2026
+  kind: tipo_ibi
+  territory: ES-13-28054
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0053
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Escorial (El): tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2004.'
+- id: ibi-28055-2026
+  kind: tipo_ibi
+  territory: ES-13-28055
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Estremera: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28056-2026
+  kind: tipo_ibi
+  territory: ES-13-28056
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Fresnedillas de la Oliva: tipo del IBI urbano 2026 según el Ministerio de
+    Hacienda (Oficina Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28057-2026
+  kind: tipo_ibi
+  territory: ES-13-28057
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0049
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Fresno de Torote: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28058-2026
+  kind: tipo_ibi
+  territory: ES-13-28058
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Fuenlabrada: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2010.'
+- id: ibi-28059-2026
+  kind: tipo_ibi
+  territory: ES-13-28059
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Fuente el Saz de Jarama: tipo del IBI urbano 2026 según el Ministerio de
+    Hacienda (Oficina Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28060-2026
+  kind: tipo_ibi
+  territory: ES-13-28060
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00428
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Fuentidueña de Tajo: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28061-2026
+  kind: tipo_ibi
+  territory: ES-13-28061
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0051
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Galapagar: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2012.'
+- id: ibi-28065-2026
+  kind: tipo_ibi
+  territory: ES-13-28065
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0041
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Getafe: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28066-2026
+  kind: tipo_ibi
+  territory: ES-13-28066
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0042
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Griñón: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28067-2026
+  kind: tipo_ibi
+  territory: ES-13-28067
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Guadalix de la Sierra: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28068-2026
+  kind: tipo_ibi
+  territory: ES-13-28068
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00462
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Guadarrama: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2005.'
+- id: ibi-28072-2026
+  kind: tipo_ibi
+  territory: ES-13-28072
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0061
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Hoyo de Manzanares: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2003.'
+- id: ibi-28073-2026
+  kind: tipo_ibi
+  territory: ES-13-28073
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Humanes de Madrid: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28074-2026
+  kind: tipo_ibi
+  territory: ES-13-28074
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Leganés: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2014.'
+- id: ibi-28075-2026
+  kind: tipo_ibi
+  territory: ES-13-28075
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.005
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Loeches: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28080-2026
+  kind: tipo_ibi
+  territory: ES-13-28080
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Majadahonda: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2008.'
+- id: ibi-28082-2026
+  kind: tipo_ibi
+  territory: ES-13-28082
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006602
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Manzanares el Real: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2000.'
+- id: ibi-28083-2026
+  kind: tipo_ibi
+  territory: ES-13-28083
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00467
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Meco: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2007.'
+- id: ibi-28084-2026
+  kind: tipo_ibi
+  territory: ES-13-28084
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.005
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Mejorada del Campo: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2004.'
+- id: ibi-28085-2026
+  kind: tipo_ibi
+  territory: ES-13-28085
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0055
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Miraflores de la Sierra: tipo del IBI urbano 2026 según el Ministerio de
+    Hacienda (Oficina Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28086-2026
+  kind: tipo_ibi
+  territory: ES-13-28086
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0053
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Molar (El): tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2005.'
+- id: ibi-28087-2026
+  kind: tipo_ibi
+  territory: ES-13-28087
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00525
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Molinos (Los): tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28089-2026
+  kind: tipo_ibi
+  territory: ES-13-28089
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Moraleja de Enmedio: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28090-2026
+  kind: tipo_ibi
+  territory: ES-13-28090
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004559
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Moralzarzal: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28092-2026
+  kind: tipo_ibi
+  territory: ES-13-28092
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0049
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Móstoles: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2012.'
+- id: ibi-28093-2026
+  kind: tipo_ibi
+  territory: ES-13-28093
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0054
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Navacerrada: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2010.'
+- id: ibi-28094-2026
+  kind: tipo_ibi
+  territory: ES-13-28094
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0053
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Navalafuente: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2005.'
+- id: ibi-28095-2026
+  kind: tipo_ibi
+  territory: ES-13-28095
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0048
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Navalagamella: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28096-2026
+  kind: tipo_ibi
+  territory: ES-13-28096
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0065
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Navalcarnero: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28099-2026
+  kind: tipo_ibi
+  territory: ES-13-28099
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0051
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Navas del Rey: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28102-2026
+  kind: tipo_ibi
+  territory: ES-13-28102
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.008
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Orusco de Tajuña: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2026.'
+- id: ibi-28104-2026
+  kind: tipo_ibi
+  territory: ES-13-28104
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Paracuellos de Jarama: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2007.'
+- id: ibi-28106-2026
+  kind: tipo_ibi
+  territory: ES-13-28106
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00433
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Parla: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28108-2026
+  kind: tipo_ibi
+  territory: ES-13-28108
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Pedrezuela: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2004.'
+- id: ibi-28109-2026
+  kind: tipo_ibi
+  territory: ES-13-28109
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0051
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Pelayos de la Presa: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28110-2026
+  kind: tipo_ibi
+  territory: ES-13-28110
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.005
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Perales de Tajuña: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 1995.'
+- id: ibi-28113-2026
+  kind: tipo_ibi
+  territory: ES-13-28113
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0062
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Pinto: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2016.'
+- id: ibi-28115-2026
+  kind: tipo_ibi
+  territory: ES-13-28115
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00425
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Pozuelo de Alarcón: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28116-2026
+  kind: tipo_ibi
+  territory: ES-13-28116
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Pozuelo del Rey: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28119-2026
+  kind: tipo_ibi
+  territory: ES-13-28119
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.005666
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Quijorna: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2019.'
+- id: ibi-28120-2026
+  kind: tipo_ibi
+  territory: ES-13-28120
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0043
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Rascafría: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28123-2026
+  kind: tipo_ibi
+  territory: ES-13-28123
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0057
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Rivas-Vaciamadrid: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2011.'
+- id: ibi-28125-2026
+  kind: tipo_ibi
+  territory: ES-13-28125
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0061
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Robledo de Chavela: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28127-2026
+  kind: tipo_ibi
+  territory: ES-13-28127
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Rozas de Madrid (Las): tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28129-2026
+  kind: tipo_ibi
+  territory: ES-13-28129
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0048
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'San Agustín del Guadalix: tipo del IBI urbano 2026 según el Ministerio de
+    Hacienda (Oficina Virtual EELL), última revisión catastral 2010.'
+- id: ibi-28130-2026
+  kind: tipo_ibi
+  territory: ES-13-28130
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0042
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'San Fernando de Henares: tipo del IBI urbano 2026 según el Ministerio de
+    Hacienda (Oficina Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28131-2026
+  kind: tipo_ibi
+  territory: ES-13-28131
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00502
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'San Lorenzo de El Escorial: tipo del IBI urbano 2026 según el Ministerio
+    de Hacienda (Oficina Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28132-2026
+  kind: tipo_ibi
+  territory: ES-13-28132
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00475
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'San Martín de la Vega: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2011.'
+- id: ibi-28133-2026
+  kind: tipo_ibi
+  territory: ES-13-28133
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0053
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'San Martín de Valdeiglesias: tipo del IBI urbano 2026 según el Ministerio
+    de Hacienda (Oficina Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28134-2026
+  kind: tipo_ibi
+  territory: ES-13-28134
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00547
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'San Sebastián de los Reyes: tipo del IBI urbano 2026 según el Ministerio
+    de Hacienda (Oficina Virtual EELL), última revisión catastral 2008.'
+- id: ibi-28135-2026
+  kind: tipo_ibi
+  territory: ES-13-28135
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0052
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Santa María de la Alameda: tipo del IBI urbano 2026 según el Ministerio
+    de Hacienda (Oficina Virtual EELL), última revisión catastral 2026.'
+- id: ibi-28136-2026
+  kind: tipo_ibi
+  territory: ES-13-28136
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0052
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Santorcaz: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2003.'
+- id: ibi-28137-2026
+  kind: tipo_ibi
+  territory: ES-13-28137
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004836
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Santos de la Humosa (Los): tipo del IBI urbano 2026 según el Ministerio
+    de Hacienda (Oficina Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28140-2026
+  kind: tipo_ibi
+  territory: ES-13-28140
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Serranillos del Valle: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2011.'
+- id: ibi-28141-2026
+  kind: tipo_ibi
+  territory: ES-13-28141
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0055
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Sevilla la Nueva: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2005.'
+- id: ibi-28144-2026
+  kind: tipo_ibi
+  territory: ES-13-28144
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Soto del Real: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28145-2026
+  kind: tipo_ibi
+  territory: ES-13-28145
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Talamanca de Jarama: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2005.'
+- id: ibi-28146-2026
+  kind: tipo_ibi
+  territory: ES-13-28146
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006975
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Tielmes: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28147-2026
+  kind: tipo_ibi
+  territory: ES-13-28147
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00622
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Titulcia: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28148-2026
+  kind: tipo_ibi
+  territory: ES-13-28148
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00525
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Torrejón de Ardoz: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28149-2026
+  kind: tipo_ibi
+  territory: ES-13-28149
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0046
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Torrejón de la Calzada: tipo del IBI urbano 2026 según el Ministerio de
+    Hacienda (Oficina Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28150-2026
+  kind: tipo_ibi
+  territory: ES-13-28150
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Torrejón de Velasco: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28151-2026
+  kind: tipo_ibi
+  territory: ES-13-28151
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Torrelaguna: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2000.'
+- id: ibi-28152-2026
+  kind: tipo_ibi
+  territory: ES-13-28152
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0049
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Torrelodones: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28153-2026
+  kind: tipo_ibi
+  territory: ES-13-28153
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Torremocha de Jarama: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28154-2026
+  kind: tipo_ibi
+  territory: ES-13-28154
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Torres de la Alameda: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2005.'
+- id: ibi-28156-2026
+  kind: tipo_ibi
+  territory: ES-13-28156
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0053
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Valdeavero: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28157-2026
+  kind: tipo_ibi
+  territory: ES-13-28157
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0061
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Valdelaguna: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28158-2026
+  kind: tipo_ibi
+  territory: ES-13-28158
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0065
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Valdemanco: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28160-2026
+  kind: tipo_ibi
+  territory: ES-13-28160
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Valdemorillo: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2009.'
+- id: ibi-28161-2026
+  kind: tipo_ibi
+  territory: ES-13-28161
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00522
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Valdemoro: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2012.'
+- id: ibi-28162-2026
+  kind: tipo_ibi
+  territory: ES-13-28162
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0044
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Valdeolmos-Alalpardo: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2000.'
+- id: ibi-28164-2026
+  kind: tipo_ibi
+  territory: ES-13-28164
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Valdetorres de Jarama: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2004.'
+- id: ibi-28165-2026
+  kind: tipo_ibi
+  territory: ES-13-28165
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0042
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Valdilecha: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2012.'
+- id: ibi-28167-2026
+  kind: tipo_ibi
+  territory: ES-13-28167
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0048
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Velilla de San Antonio: tipo del IBI urbano 2026 según el Ministerio de
+    Hacienda (Oficina Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28168-2026
+  kind: tipo_ibi
+  territory: ES-13-28168
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0047
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Vellón (El): tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2004.'
+- id: ibi-28169-2026
+  kind: tipo_ibi
+  territory: ES-13-28169
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00563
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Venturada: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2003.'
+- id: ibi-28171-2026
+  kind: tipo_ibi
+  territory: ES-13-28171
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.00467
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Villa del Prado: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2004.'
+- id: ibi-28172-2026
+  kind: tipo_ibi
+  territory: ES-13-28172
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Villalbilla: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28174-2026
+  kind: tipo_ibi
+  territory: ES-13-28174
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0061
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Villamanta: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2013.'
+- id: ibi-28175-2026
+  kind: tipo_ibi
+  territory: ES-13-28175
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0046
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Villamantilla: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2006.'
+- id: ibi-28176-2026
+  kind: tipo_ibi
+  territory: ES-13-28176
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0047
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Villanueva de la Cañada: tipo del IBI urbano 2026 según el Ministerio de
+    Hacienda (Oficina Virtual EELL), última revisión catastral 2005.'
+- id: ibi-28177-2026
+  kind: tipo_ibi
+  territory: ES-13-28177
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0061
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Villanueva del Pardillo: tipo del IBI urbano 2026 según el Ministerio de
+    Hacienda (Oficina Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28179-2026
+  kind: tipo_ibi
+  territory: ES-13-28179
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.006
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Villar del Olmo: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2001.'
+- id: ibi-28180-2026
+  kind: tipo_ibi
+  territory: ES-13-28180
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0051
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Villarejo de Salvanés: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28181-2026
+  kind: tipo_ibi
+  territory: ES-13-28181
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Villaviciosa de Odón: tipo del IBI urbano 2026 según el Ministerio de Hacienda
+    (Oficina Virtual EELL), última revisión catastral 2005.'
+- id: ibi-28183-2026
+  kind: tipo_ibi
+  territory: ES-13-28183
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0054
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Zarzalejo: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2003.'
+- id: ibi-28901-2026
+  kind: tipo_ibi
+  territory: ES-13-28901
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.0052
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Lozoyuela-Navas-Sieteiglesias: tipo del IBI urbano 2026 según el Ministerio
+    de Hacienda (Oficina Virtual EELL), última revisión catastral 2002.'
+- id: ibi-28903-2026
+  kind: tipo_ibi
+  territory: ES-13-28903
+  effective_from: '2026-01-01'
+  effective_to: '2026-12-31'
+  status: vigente
+  verified: false
+  params:
+    rate: 0.004
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMADRID%2FMadrid.pdf
+  notes: 'Tres Cantos: tipo del IBI urbano 2026 según el Ministerio de Hacienda (Oficina
+    Virtual EELL), última revisión catastral 2010.'

@@ -481,3 +481,92 @@ def lots_of(conn: psycopg.Connection, announcement_id: UUID) -> list[LotRow]:
         (announcement_id,),
     ).fetchall()
     return [LotRow(*r) for r in rows]
+
+
+@dataclass(frozen=True)
+class SearchCandidate:
+    """Una oferta que la búsqueda inversa puede intentar puntuar (F6.5)."""
+
+    offer_id: UUID
+    kind: str  # 'enlace' (del usuario) o 'lote' (del BOE)
+    title: str | None
+    url: str | None
+    asking_price: Decimal | None
+    auction_min_bid: Decimal | None
+    built_area_m2: Decimal | None
+    lon: float
+    lat: float
+    section_code: str
+    extracted: dict[str, Any] | None
+
+
+_CANDIDATES = """
+    SELECT o.id, o.kind, o.title, o.url, o.asking_price, o.auction_min_bid,
+           coalesce(o.built_area_m2, p.built_area_m2),
+           ST_X(p.location::geometry), ST_Y(p.location::geometry), p.section_code, o.extracted
+    FROM offers o JOIN properties p ON p.id = o.property_id
+    WHERE p.location IS NOT NULL AND p.section_code IS NOT NULL
+      AND ((o.org_id = %s AND o.kind = 'enlace' AND o.extraction_status = 'confirmada')
+           OR (o.org_id IS NULL AND o.kind = 'lote' AND o.corrects_id IS NULL))
+"""
+
+
+def search_candidates(conn: psycopg.Connection, org_id: UUID) -> list[SearchCandidate]:
+    """Ofertas ubicadas con sección: las confirmadas del usuario y los lotes del BOE (públicos).
+    Lo que no se puede puntuar (otro tipo, sin precio) lo decide quien llama, con su motivo."""
+    rows = conn.execute(_CANDIDATES + " ORDER BY o.first_seen", (org_id,)).fetchall()
+    return [SearchCandidate(*r) for r in rows]
+
+
+def search_candidate(conn: psycopg.Connection, org_id: UUID,
+                     offer_id: UUID) -> SearchCandidate | None:
+    """Una oferta de la búsqueda del usuario (para su plan completo)."""
+    row = conn.execute(_CANDIDATES + " AND o.id = %s", (org_id, offer_id)).fetchone()
+    return SearchCandidate(*row) if row else None
+
+
+def searchable_offer(conn: psycopg.Connection, offer_id: UUID, org_id: UUID) -> bool:
+    """Si la búsqueda del usuario puede ver la oferta: suya y confirmada, o un lote del BOE."""
+    row = conn.execute(
+        """
+        SELECT 1 FROM offers
+        WHERE id = %s AND ((org_id = %s AND kind = 'enlace' AND extraction_status = 'confirmada')
+                           OR (org_id IS NULL AND kind = 'lote'))
+        """,
+        (offer_id, org_id),
+    ).fetchone()
+    return row is not None
+
+
+def rent_expectations(conn: psycopg.Connection, org_id: UUID) -> dict[UUID, dict[str, Decimal]]:
+    """Lo que el usuario espera sacar de cada oferta por tipo de alquiler (ADR-0024)."""
+    rows = conn.execute(
+        "SELECT offer_id, rental_type, monthly_income FROM offer_rent_expectations "
+        "WHERE org_id = %s",
+        (org_id,),
+    ).fetchall()
+    result: dict[UUID, dict[str, Decimal]] = {}
+    for offer_id, rental_type, income in rows:
+        result.setdefault(offer_id, {})[rental_type] = income
+    return result
+
+
+def set_rent_expectation(conn: psycopg.Connection, org_id: UUID, offer_id: UUID,
+                         rental_type: str, monthly_income: Decimal | None) -> None:
+    """Guarda la renta esperada de un tipo; None la borra."""
+    if monthly_income is None:
+        conn.execute(
+            "DELETE FROM offer_rent_expectations "
+            "WHERE org_id = %s AND offer_id = %s AND rental_type = %s",
+            (org_id, offer_id, rental_type),
+        )
+        return
+    conn.execute(
+        """
+        INSERT INTO offer_rent_expectations (org_id, offer_id, rental_type, monthly_income)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (org_id, offer_id, rental_type)
+        DO UPDATE SET monthly_income = EXCLUDED.monthly_income, updated_at = now()
+        """,
+        (org_id, offer_id, rental_type, monthly_income),
+    )

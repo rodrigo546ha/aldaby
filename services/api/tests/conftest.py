@@ -68,3 +68,16 @@ def add_section(conninfo: str, code: str, lon: float, lat: float, size: float = 
     with psycopg.connect(conninfo) as conn:
         upsert_sections(conn, [SectionRow(code, code[:5], geometry)], vintage, None)
         conn.commit()
+
+
+def add_client(conn, org_id):
+    """Cliente de prueba de una organización (ADR-0029). El nombre cifrado no se lee aquí."""
+    from uuid import uuid4
+
+    client_id = uuid4()
+    conn.execute(
+        "INSERT INTO clients (id, org_id, name_enc, dek_enc, key_id, enc_version) "
+        "VALUES (%s, %s, %s, %s, 'prueba', 1)",
+        (client_id, org_id, b"cifrado", b"cifrado"),
+    )
+    return client_id

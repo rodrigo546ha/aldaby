@@ -52,6 +52,16 @@ def upsert_source(conn: psycopg.Connection, source: SourceRecord) -> None:
     )
 
 
+def sources_by_id(conn: psycopg.Connection, ids: list[str]) -> dict[str, SourceRecord]:
+    """Las fuentes de datos guardadas con esos identificadores (el anexo del PDF, ADR-0026)."""
+    rows = conn.execute(
+        "SELECT id, name, url, license, fetched_at, notes FROM sources WHERE id = ANY(%s)",
+        (ids,),
+    ).fetchall()
+    return {r[0]: SourceRecord(r[0], r[1], r[2] or "", r[3] or "", r[4], r[5] or "")
+            for r in rows}
+
+
 def upsert_sections(
     conn: psycopg.Connection, rows: Iterable[SectionRow], vintage: int, source_id: str
 ) -> int:

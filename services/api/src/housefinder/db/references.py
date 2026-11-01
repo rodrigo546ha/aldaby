@@ -241,3 +241,49 @@ def annual_mean_of_months(
     if row is None or row[0] != 12:
         return None
     return Decimal(row[1])
+
+
+# --- Lecturas para los supuestos del plan (ADR-0022) --------------------------------------------
+
+
+@dataclass(frozen=True)
+class SeriesPoint:
+    year: int
+    month: int
+    value: Decimal
+    source_id: str
+
+
+def national_series(conn: psycopg.Connection, measure: str, typology: str) -> list[SeriesPoint]:
+    """Serie mensual nacional en orden de fecha (tipos del Banco de España o del INE)."""
+    rows = conn.execute(
+        """
+        SELECT year, month, value, source_id FROM market_references
+        WHERE level = 'pais' AND code = 'ES' AND measure = %s AND typology = %s AND month > 0
+        ORDER BY year, month
+        """,
+        (measure, typology),
+    ).fetchall()
+    return [SeriesPoint(r[0], r[1], Decimal(r[2]), r[3]) for r in rows]
+
+
+@dataclass(frozen=True)
+class LatestValue:
+    year: int
+    value: Decimal
+    source_id: str
+
+
+def latest_values(
+    conn: psycopg.Connection, level: str, code: str, measures: Iterable[str]
+) -> dict[str, LatestValue]:
+    """El último año de cada medida de una zona (Catastro por municipio, EPF por comunidad)."""
+    rows = conn.execute(
+        """
+        SELECT DISTINCT ON (measure) measure, year, value, source_id FROM market_references
+        WHERE level = %s AND code = %s AND measure = ANY(%s) AND quarter = 0 AND month = 0
+        ORDER BY measure, year DESC
+        """,
+        (level, code, list(measures)),
+    ).fetchall()
+    return {r[0]: LatestValue(r[1], Decimal(r[2]), r[3]) for r in rows}

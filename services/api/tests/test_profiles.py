@@ -7,6 +7,7 @@ import logging
 import os
 
 import pytest
+from conftest import add_client
 
 from housefinder.crypto.envelope import DecryptionError, LocalKeyProvider
 from housefinder.profiles.model import ProfileError, UserProfile
@@ -71,7 +72,7 @@ def test_guardar_y_leer(conn, org):
     from housefinder.profiles.store import load, save, save_new
 
     k = keys("k1")
-    profile_id = save_new(conn, k, org, "usuario-1", UserProfile.parse(DATA))
+    profile_id = save_new(conn, k, org, add_client(conn, org), UserProfile.parse(DATA))
     assert load(conn, k, profile_id, org).net_monthly_income == UserProfile.parse(
         DATA).net_monthly_income
     raw = conn.execute("SELECT data_enc, dek_enc FROM user_profiles WHERE id = %s",
@@ -89,7 +90,7 @@ def test_otra_organizacion_no_lo_ve(conn, org):
     from housefinder.profiles.store import ProfileNotFound, load, save_new
 
     k = keys("k1")
-    profile_id = save_new(conn, k, org, "usuario-1", UserProfile.parse(DATA))
+    profile_id = save_new(conn, k, org, add_client(conn, org), UserProfile.parse(DATA))
     other = create_organization(conn, "Otra", "profesional")
     with pytest.raises(ProfileNotFound):
         load(conn, k, profile_id, other)
@@ -100,8 +101,8 @@ def test_copiar_el_cifrado_a_otra_fila_no_sirve(conn, org):
     from housefinder.profiles.store import load, save_new
 
     k = keys("k1")
-    victim = save_new(conn, k, org, "usuario-1", UserProfile.parse(DATA))
-    attacker = save_new(conn, k, org, "usuario-2",
+    victim = save_new(conn, k, org, add_client(conn, org), UserProfile.parse(DATA))
+    attacker = save_new(conn, k, org, add_client(conn, org),
                         UserProfile.parse({**DATA, "net_monthly_income": "1"}))
     conn.execute(
         "UPDATE user_profiles SET data_enc = v.data_enc, dek_enc = v.dek_enc "
@@ -116,7 +117,7 @@ def test_rotacion_de_la_clave_maestra(conn, org):
 
     old = os.urandom(32)
     k1 = LocalKeyProvider({"rot-1": old}, "rot-1")
-    profile_id = save_new(conn, k1, org, "usuario-1", UserProfile.parse(DATA))
+    profile_id = save_new(conn, k1, org, add_client(conn, org), UserProfile.parse(DATA))
     new = os.urandom(32)
     both = LocalKeyProvider({"rot-1": old, "rot-2": new}, "rot-2")
     report = rotate(conn, both)
@@ -134,7 +135,7 @@ def test_un_flujo_completo_no_deja_datos_en_los_logs(conn, org, caplog):
     log = logging.getLogger("housefinder.prueba")
     k = keys("k1")
     profile = UserProfile.parse(DATA)
-    profile_id = save_new(conn, k, org, "usuario-1", profile)
+    profile_id = save_new(conn, k, org, add_client(conn, org), profile)
     log.info("guardado %s %r", profile, profile)
     loaded = load(conn, k, profile_id, org)
     log.debug("leído %s", loaded)

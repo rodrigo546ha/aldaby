@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi
+.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler supuestos backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi evaluar
 
 # Configuración local (copia de .env.example, fuera de git): LLM, base de datos, claves…
 -include .env
@@ -9,6 +9,10 @@ VENV := .venv/bin
 HOUSEFINDER_DB_PORT ?= 5442
 DATABASE_URL ?= postgresql://housefinder:housefinder@127.0.0.1:$(HOUSEFINDER_DB_PORT)/housefinder
 export HOUSEFINDER_DB_PORT DATABASE_URL
+
+# WeasyPrint (PDF del plan, ADR-0026) carga pango y cairo de Homebrew. macOS no pasa DYLD_* a
+# través de /bin/sh, así que va delante de cada orden que puede generar un PDF.
+PDF_LIBS := $(if $(wildcard /opt/homebrew/lib/libpango-1.0.dylib),DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib,)
 
 setup:
 	cd services/api && $(PYTHON) -m venv .venv && $(VENV)/pip install -e ".[dev]"
@@ -51,6 +55,17 @@ ipc-alquiler:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_ipc_alquiler --region $(REGION)
 
 # Backtesting del modelo de renta y precio (F5.6)
+# Supuestos del plan desde fuentes públicas (ADR-0022): tipos del Banco de España y del INE,
+# estadísticas del Catastro, gasto de la vivienda de la EPF y reglas del IBI de Hacienda.
+CATASTRO_YEAR ?= 2026
+IBI_YEAR ?= 2026
+supuestos:
+	cd services/api && $(VENV)/python -m housefinder.ingestion.bde_tipos
+	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_hipotecas
+	cd services/api && $(VENV)/python -m housefinder.ingestion.catastro_urbana --year $(CATASTRO_YEAR) --province $(PROVINCE)
+	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_epf
+	cd services/api && $(VENV)/python -m housefinder.ingestion.hacienda_ibi --year $(IBI_YEAR) --region MADRID --ccaa $(REGION)
+
 backtest:
 	cd services/api && $(VENV)/python -m housefinder.valuation.backtest --province $(PROVINCE) --region $(REGION)
 
@@ -86,7 +101,12 @@ worker-logs:
 	tail -n 50 -f $(WORKER_LOGS)/worker.log
 
 test:
-	cd services/api && $(VENV)/python -m pytest -q
+	cd services/api && $(PDF_LIBS) $(VENV)/python -m pytest -q
+
+# Evaluaciones con el modelo de .env (ADR-0027): extracción, asesor y coherencia del plan.
+# Compara con data/evaluation/linea_base.json; BASE=1 guarda la nueva línea base.
+evaluar:
+	cd services/api && $(PDF_LIBS) $(VENV)/python -m housefinder.evaluations $(if $(BASE),--guardar-base,)
 
 lint:
 	cd services/api && $(VENV)/ruff check src tests
@@ -95,7 +115,7 @@ rules-check:
 	cd services/api && $(VENV)/python -m housefinder.regulation.check
 
 api:
-	cd services/api && $(VENV)/uvicorn housefinder.api.main:app --reload --app-dir src
+	cd services/api && $(PDF_LIBS) $(VENV)/uvicorn housefinder.api.main:app --reload --app-dir src
 
 web:
 	cd apps/web && npm run dev

@@ -11,6 +11,17 @@ dependencies = [
   "pyyaml>=6.0",
   "psycopg[binary]>=3.2",
   "cryptography>=43",
+  # Documentos del usuario (ADR-0021): PDF con texto, páginas escaneadas a imagen y OCR local
+  "pypdf>=5.0",
+  "pypdfium2>=4.30",
+  "pytesseract>=0.3.13",
+  "pillow>=10.4",
+  # Excel antiguo (.xls) de las estadísticas del Catastro (ADR-0022)
+  "xlrd>=2.0",
+  # PDF del plan desde HTML (ADR-0026); necesita pango: brew install pango
+  "weasyprint>=66",
+  # Contraseñas de las cuentas de la beta con argon2id (ADR-0028)
+  "argon2-cffi>=23.1",
 ]
 
 [project.optional-dependencies]

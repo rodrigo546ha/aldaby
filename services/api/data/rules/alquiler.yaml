@@ -34,12 +34,13 @@
   verified: false
   params:
     regime: "Arrendamiento de vivienda (LAU, art. 2 y título II): necesidad permanente de vivienda del arrendatario"
+    irpf_reduction: true
     requirements:
       - code: plazo-minimo-y-prorrogas
         description: "Plazo mínimo y prórrogas de los arts. 9 y 10 de la LAU"
         source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a9
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a2
-  notes: "Redacción del art. 2 anterior al RDL 29/2026 (la vigente tras derogarse el RDL 26/2026)."
+  notes: "Redacción del art. 2 anterior al RDL 29/2026 (la vigente tras derogarse el RDL 26/2026). irpf_reduction: art. 23.2 de la Ley 35/2006 (BOE-A-2006-20764), «arrendamiento de bienes inmuebles destinados a vivienda»."
 
 - id: alquiler-habitual-rdl-29-2026
   kind: regimen_alquiler_habitual
@@ -50,6 +51,7 @@
   verified: false
   params:
     regime: "Arrendamiento de vivienda habitual (LAU, art. 2.1, redacción del RDL 29/2026), incluido el arrendamiento parcial de una habitación"
+    irpf_reduction: true
     requirements:
       - code: plazo-minimo-y-prorrogas
         description: "Plazo mínimo y prórrogas de los arts. 9 y 10 de la LAU"
@@ -69,12 +71,13 @@
   verified: false
   params:
     regime: "Uso distinto del de vivienda (LAU, art. 3.2): arrendamiento por temporada, sin el régimen de vivienda"
+    irpf_reduction: false
     requirements:
       - code: registro-unico-arrendamientos
         description: "Número del Registro Único de Arrendamientos antes de anunciarlo en plataformas en línea (alquiler de corta duración, turístico o no)"
         source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2024-26931
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a3
-  notes: "Art. 3.2 anterior al RDL 29/2026: «los arrendamientos de fincas urbanas celebrados por temporada, sea ésta de verano o cualquier otra»."
+  notes: "Art. 3.2 anterior al RDL 29/2026: «los arrendamientos de fincas urbanas celebrados por temporada, sea ésta de verano o cualquier otra». irpf_reduction false: uso distinto del de vivienda, fuera del art. 23.2 de la Ley 35/2006 (por verificar con la doctrina de la DGT)."
 
 - id: alquiler-temporada-rdl-29-2026
   kind: regimen_alquiler_temporada
@@ -85,6 +88,7 @@
   verified: false
   params:
     regime: "Vivienda temporal (LAU, arts. 2.3 y 9 bis, redacción del RDL 29/2026); el uso distinto del de vivienda excluye el alojamiento u hospedaje"
+    irpf_reduction: false
     requirements:
       - code: causa-justificada-desplazamiento
         description: "El arrendatario está temporalmente desplazado de su domicilio habitual por causa justificada y acreditable"
@@ -112,6 +116,7 @@
   params:
     regime: "No regulado expresamente en la LAU anterior al RDL 29/2026 (su art. 2 exige necesidad permanente de vivienda); régimen por confirmar en la consulta legal (F0.6)"
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003#a2
+  notes: "irpf_reduction sin decir: la reducción del art. 23.2 de la Ley 35/2006 para habitaciones queda por confirmar en la consulta legal (F0.6); el plan la calcula sin ella (ADR-0024)."
 
 - id: alquiler-habitaciones-rdl-29-2026
   kind: regimen_alquiler_habitaciones
@@ -122,6 +127,7 @@
   verified: false
   params:
     regime: "Arrendamiento de vivienda habitual (LAU, art. 2.1, redacción del RDL 29/2026): incluye el arrendamiento parcial de una habitación o estancia"
+    irpf_reduction: true
     requirements:
       - code: plazo-minimo-y-prorrogas
         description: "Plazo mínimo y prórrogas de los arts. 9 y 10 de la LAU"
@@ -141,6 +147,8 @@
   verified: false
   params:
     regime: "Vivienda de uso turístico (LAU, art. 5.e), sujeta a la normativa turística autonómica"
+    irpf_reduction: false
+    tax_note: "Se calcula como rendimiento del capital inmobiliario. Si se prestan servicios propios de la hostelería, es actividad económica y lleva IVA: no se modela."
     requirements:
       - code: aprobacion-previa-comunidad
         description: "Aprobación expresa y previa de la comunidad de propietarios: 3/5 de los propietarios que representen 3/5 de las cuotas (LPH, arts. 7.3 y 17.12)"
@@ -149,6 +157,7 @@
         description: "Número del Registro Único de Arrendamientos antes de anunciarla en plataformas en línea"
         source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2024-26931
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1960-10906
+  notes: "irpf_reduction false: no es arrendamiento destinado a vivienda (art. 23.2 de la Ley 35/2006; por verificar con la doctrina de la DGT)."
 
 # Comunidad de Madrid (Decreto 79/2014, modificado por el Decreto 27/2026). Requisitos tal como los
 # publica la sede electrónica (consultada el 2026-10-28, actualizada el 08/10/2026).

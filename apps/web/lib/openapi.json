@@ -373,7 +373,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmIn"
+                "$ref": "#/components/schemas/housefinder__api__offers__ConfirmIn"
               }
             }
           }
@@ -695,6 +695,949 @@
         }
       }
     },
+    "/profile/regions": {
+      "get": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Regions",
+        "description": "Comunidades autónomas para corregir la residencia (`data/profiles/comunidades.yaml`).",
+        "operationId": "regions_profile_regions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RegionOut"
+                  },
+                  "type": "array",
+                  "title": "Response Regions Profile Regions Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/interviews": {
+      "post": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Start Interview",
+        "operationId": "start_interview_profile_interviews_post",
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/interviews/current": {
+      "get": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Current Interview",
+        "operationId": "current_interview_profile_interviews_current_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/interviews/{interview_id}": {
+      "get": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Get Interview",
+        "operationId": "get_interview_profile_interviews__interview_id__get",
+        "parameters": [
+          {
+            "name": "interview_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interview Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Discard",
+        "operationId": "discard_profile_interviews__interview_id__delete",
+        "parameters": [
+          {
+            "name": "interview_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interview Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/interviews/{interview_id}/answers": {
+      "post": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Answer",
+        "operationId": "answer_profile_interviews__interview_id__answers_post",
+        "parameters": [
+          {
+            "name": "interview_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interview Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/interviews/{interview_id}/documents": {
+      "post": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Add Document",
+        "description": "Lee el documento en memoria, extrae sus campos y lo descarta (ADR-0021).",
+        "operationId": "add_document_profile_interviews__interview_id__documents_post",
+        "parameters": [
+          {
+            "name": "interview_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interview Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/interviews/{interview_id}/confirm": {
+      "post": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Confirm",
+        "operationId": "confirm_profile_interviews__interview_id__confirm_post",
+        "parameters": [
+          {
+            "name": "interview_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Interview Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/housefinder__api__profiles__ConfirmIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/current": {
+      "get": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Current Profile",
+        "operationId": "current_profile_profile_current_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/current/search": {
+      "put": {
+        "tags": [
+          "perfil"
+        ],
+        "summary": "Set Search Assumptions",
+        "description": "Cambia solo los supuestos de búsqueda del perfil confirmado.",
+        "operationId": "set_search_assumptions_profile_current_search_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchAssumptionsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": [
+          "búsqueda"
+        ],
+        "summary": "Reverse Search",
+        "operationId": "reverse_search_search_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search/offers/{offer_id}/rent": {
+      "put": {
+        "tags": [
+          "búsqueda"
+        ],
+        "summary": "Save Rent Expectation",
+        "operationId": "save_rent_expectation_search_offers__offer_id__rent_put",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RentExpectationIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plans/offers/{offer_id}": {
+      "get": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Offer Plan",
+        "operationId": "offer_plan_plans_offers__offer_id__get",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plans/offers/{offer_id}/pdf": {
+      "get": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Offer Plan Pdf",
+        "description": "El plan en PDF con su anexo de fuentes (ADR-0026). No se guarda: lleva datos personales.",
+        "operationId": "offer_plan_pdf_plans_offers__offer_id__pdf_get",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plans/offers/{offer_id}/explanation": {
+      "post": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Explanation",
+        "operationId": "explanation_plans_offers__offer_id__explanation_post",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplanationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "acceso"
+        ],
+        "summary": "Login",
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "acceso"
+        ],
+        "summary": "Logout",
+        "operationId": "logout_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "acceso"
+        ],
+        "summary": "Me",
+        "operationId": "me_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/password": {
+      "post": {
+        "tags": [
+          "acceso"
+        ],
+        "summary": "Choose Password",
+        "description": "Elegir o restablecer la contraseña con el enlace de un solo uso del administrador.",
+        "operationId": "choose_password_auth_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients": {
+      "get": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "List Clients",
+        "operationId": "list_clients_clients_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClientOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Clients Clients Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "Create Client",
+        "description": "Da de alta un cliente y lo deja activo.",
+        "operationId": "create_client_clients_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/active": {
+      "put": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "Choose Client",
+        "operationId": "choose_client_clients_active_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActiveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/{client_id}": {
+      "delete": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "Delete Client",
+        "description": "Borrado definitivo del cliente, sus perfiles y su entrevista (derecho de supresión).",
+        "operationId": "delete_client_clients__client_id__delete",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Client Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/branding": {
+      "get": {
+        "tags": [
+          "marca"
+        ],
+        "summary": "Get Branding",
+        "operationId": "get_branding_branding_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandingOut"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "marca"
+        ],
+        "summary": "Put Branding",
+        "operationId": "put_branding_branding_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrandingIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandingOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/branding/logo": {
+      "get": {
+        "tags": [
+          "marca"
+        ],
+        "summary": "Get Logo",
+        "operationId": "get_logo_branding_logo_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "image/png": {}
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "marca"
+        ],
+        "summary": "Put Logo",
+        "operationId": "put_logo_branding_logo_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandingOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "marca"
+        ],
+        "summary": "Delete Logo",
+        "operationId": "delete_logo_branding_logo_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandingOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -720,6 +1663,20 @@
   },
   "components": {
     "schemas": {
+      "ActiveIn": {
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_id"
+        ],
+        "title": "ActiveIn"
+      },
       "AffordabilityRequest": {
         "properties": {
           "net_monthly_income": {
@@ -995,6 +1952,65 @@
         ],
         "title": "AnnouncementOut"
       },
+      "AnswerIn": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "AnswerIn"
+      },
+      "AnswerOut": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question",
+          "text"
+        ],
+        "title": "AnswerOut"
+      },
+      "ArgumentOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "figure_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Figure Keys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "text",
+          "figure_keys"
+        ],
+        "title": "ArgumentOut"
+      },
       "AuctionNoticeOut": {
         "properties": {
           "portal_id": {
@@ -1084,6 +2100,121 @@
           "attribution"
         ],
         "title": "AuctionNoticeOut"
+      },
+      "BrandingIn": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "contact": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "intro": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intro"
+          }
+        },
+        "type": "object",
+        "title": "BrandingIn"
+      },
+      "BrandingOut": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "contact": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "intro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intro"
+          },
+          "has_logo": {
+            "type": "boolean",
+            "title": "Has Logo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "display_name",
+          "contact",
+          "color",
+          "intro",
+          "has_logo"
+        ],
+        "title": "BrandingOut"
       },
       "BuyerRequest": {
         "properties": {
@@ -1200,6 +2331,74 @@
         ],
         "title": "BuyerRequest"
       },
+      "ChangeOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "base": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "scenario": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "delta": {
+            "$ref": "#/components/schemas/FigureOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "base",
+          "scenario",
+          "delta"
+        ],
+        "title": "ChangeOut"
+      },
+      "ClientIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ClientIn"
+      },
+      "ClientOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "has_profile": {
+            "type": "boolean",
+            "title": "Has Profile"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "has_profile",
+          "active"
+        ],
+        "title": "ClientOut"
+      },
       "ComparisonOut": {
         "properties": {
           "labels": {
@@ -1226,44 +2425,19 @@
         ],
         "title": "ComparisonOut"
       },
-      "ConfirmIn": {
+      "ConfirmOut": {
         "properties": {
-          "operation": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "venta",
-                  "alquiler",
-                  "desconocida"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Operation"
-          },
-          "values": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "type": "object",
-            "title": "Values"
+          "profile_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Profile Id"
           }
         },
         "type": "object",
         "required": [
-          "values"
+          "profile_id"
         ],
-        "title": "ConfirmIn"
+        "title": "ConfirmOut"
       },
       "CorrectionOut": {
         "properties": {
@@ -1322,6 +2496,171 @@
         ],
         "title": "CorrectionOut"
       },
+      "DocumentIn": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "nomina",
+              "declaracion",
+              "extracto"
+            ],
+            "title": "Kind"
+          },
+          "content_base64": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 13981017
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Base64",
+            "description": "PDF, JPG o PNG en base64"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text",
+            "description": "O el texto pegado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "DocumentIn"
+      },
+      "DocumentOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "nomina",
+              "declaracion",
+              "extracto"
+            ],
+            "title": "Kind"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "method",
+          "fields",
+          "truncated"
+        ],
+        "title": "DocumentOut"
+      },
+      "DraftFieldOut": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "respuesta",
+                  "calculado",
+                  "usuario",
+                  "documento"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "texto",
+              "ratio",
+              "eur",
+              "bool"
+            ],
+            "title": "Kind",
+            "default": "texto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "label",
+          "required",
+          "value"
+        ],
+        "title": "DraftFieldOut"
+      },
       "ExitRequest": {
         "properties": {
           "appreciation_rate": {
@@ -1368,6 +2707,57 @@
           "sale_cost_rate"
         ],
         "title": "ExitRequest"
+      },
+      "ExplanationOut": {
+        "properties": {
+          "segments": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SegmentOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segments"
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "extra_arguments": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Extra Arguments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "segments",
+          "failure",
+          "notes",
+          "extra_arguments"
+        ],
+        "title": "ExplanationOut"
       },
       "FieldOut": {
         "properties": {
@@ -1628,6 +3018,91 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "InterviewOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "en_curso",
+              "confirmada"
+            ],
+            "title": "Status"
+          },
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/AnswerOut"
+            },
+            "type": "array",
+            "title": "Answers"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/DraftFieldOut"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "issues": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Issues"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentOut"
+            },
+            "type": "array",
+            "title": "Documents"
+          },
+          "next_question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuestionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete",
+            "description": "Están todos los obligatorios: se puede confirmar"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "answers",
+          "fields",
+          "issues",
+          "documents",
+          "next_question",
+          "complete",
+          "profile_id"
+        ],
+        "title": "InterviewOut"
+      },
       "InvestmentRequest": {
         "properties": {
           "buyer": {
@@ -1817,6 +3292,40 @@
         ],
         "title": "LocationOut"
       },
+      "LoginIn": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 320,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 1024,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginIn"
+      },
+      "LogoIn": {
+        "properties": {
+          "content_base64": {
+            "type": "string",
+            "maxLength": 2796218,
+            "title": "Content Base64"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content_base64"
+        ],
+        "title": "LogoIn"
+      },
       "LotFieldOut": {
         "properties": {
           "name": {
@@ -1983,6 +3492,24 @@
           "location_attribution"
         ],
         "title": "LotOut"
+      },
+      "MeOut": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "MeOut"
       },
       "OfferOut": {
         "properties": {
@@ -2294,6 +3821,192 @@
         ],
         "title": "OfferValuationOut"
       },
+      "PasswordIn": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Token"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 1024,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "password"
+        ],
+        "title": "PasswordIn"
+      },
+      "PlanOut": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Offer Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "auction": {
+            "type": "boolean",
+            "title": "Auction"
+          },
+          "passes": {
+            "type": "boolean",
+            "title": "Passes"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/housefinder__api__plans__SectionOut"
+            },
+            "type": "array",
+            "title": "Sections"
+          },
+          "advice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RentalAdviceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "arguments": {
+            "items": {
+              "$ref": "#/components/schemas/ArgumentOut"
+            },
+            "type": "array",
+            "title": "Arguments"
+          },
+          "roadmap": {
+            "items": {
+              "$ref": "#/components/schemas/StepOut"
+            },
+            "type": "array",
+            "title": "Roadmap"
+          },
+          "pending_changes": {
+            "items": {
+              "$ref": "#/components/schemas/ChangeOut"
+            },
+            "type": "array",
+            "title": "Pending Changes"
+          },
+          "cheapest_mortgage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cheapest Mortgage"
+          },
+          "safest_mortgage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safest Mortgage"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "offer_id",
+          "kind",
+          "title",
+          "url",
+          "auction",
+          "passes",
+          "reasons",
+          "sections",
+          "advice",
+          "arguments",
+          "roadmap",
+          "pending_changes",
+          "cheapest_mortgage",
+          "safest_mortgage",
+          "notes"
+        ],
+        "title": "PlanOut"
+      },
+      "ProfileOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "values": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Values",
+            "description": "Valor de cada campo del perfil confirmado"
+          },
+          "missing_search": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Search",
+            "description": "Supuestos de búsqueda sin valor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "values",
+          "missing_search"
+        ],
+        "title": "ProfileOut"
+      },
       "PropertyRequest": {
         "properties": {
           "price": {
@@ -2452,6 +4165,129 @@
         ],
         "title": "PropertyRequest"
       },
+      "QuestionOut": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "text"
+        ],
+        "title": "QuestionOut"
+      },
+      "RegionOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "title": "RegionOut"
+      },
+      "RentExpectationIn": {
+        "properties": {
+          "rental_type": {
+            "type": "string",
+            "enum": [
+              "temporada",
+              "habitaciones",
+              "turistico"
+            ],
+            "title": "Rental Type"
+          },
+          "monthly_income": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100000.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Income"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rental_type"
+        ],
+        "title": "RentExpectationIn",
+        "description": "Lo que el usuario espera sacar al mes con un tipo sin renta pública; null lo borra."
+      },
+      "RentalAdviceOut": {
+        "properties": {
+          "recommended": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "types": {
+            "items": {
+              "$ref": "#/components/schemas/RentalTypeOut"
+            },
+            "type": "array",
+            "title": "Types"
+          },
+          "scenario": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Scenario"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommended",
+          "reasons",
+          "types",
+          "scenario",
+          "notes"
+        ],
+        "title": "RentalAdviceOut"
+      },
       "RentalFacts": {
         "properties": {
           "contract": {
@@ -2600,6 +4436,106 @@
         ],
         "title": "RentalRequest"
       },
+      "RentalTypeOut": {
+        "properties": {
+          "rental_type": {
+            "type": "string",
+            "title": "Rental Type"
+          },
+          "allowed": {
+            "type": "boolean",
+            "title": "Allowed"
+          },
+          "regime": {
+            "type": "string",
+            "title": "Regime"
+          },
+          "requirements": {
+            "items": {
+              "$ref": "#/components/schemas/RequirementOut"
+            },
+            "type": "array",
+            "title": "Requirements"
+          },
+          "irpf_reduction": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Irpf Reduction"
+          },
+          "rule_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rule Ids"
+          },
+          "management": {
+            "type": "string",
+            "title": "Management"
+          },
+          "management_reason": {
+            "type": "string",
+            "title": "Management Reason"
+          },
+          "figures": {
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "array",
+            "title": "Figures"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rental_type",
+          "allowed",
+          "regime",
+          "requirements",
+          "irpf_reduction",
+          "rule_ids",
+          "management",
+          "management_reason",
+          "figures",
+          "notes"
+        ],
+        "title": "RentalTypeOut"
+      },
+      "RequirementOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "description",
+          "source_url"
+        ],
+        "title": "RequirementOut"
+      },
       "ScenarioChangeOut": {
         "properties": {
           "key": {
@@ -2654,28 +4590,262 @@
         ],
         "title": "ScenarioOut"
       },
-      "SectionOut": {
+      "ScoredOut": {
         "properties": {
-          "code": {
+          "offer_id": {
             "type": "string",
-            "title": "Code"
+            "format": "uuid",
+            "title": "Offer Id"
           },
-          "municipality": {
+          "kind": {
             "type": "string",
-            "title": "Municipality"
+            "title": "Kind"
           },
-          "vintage": {
-            "type": "integer",
-            "title": "Vintage"
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "auction": {
+            "type": "boolean",
+            "title": "Auction"
+          },
+          "passes": {
+            "type": "boolean",
+            "title": "Passes"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "metric": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "figures": {
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "array",
+            "title": "Figures"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "advice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RentalAdviceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
         "required": [
-          "code",
-          "municipality",
-          "vintage"
+          "offer_id",
+          "kind",
+          "title",
+          "url",
+          "auction",
+          "passes",
+          "reasons",
+          "metric",
+          "figures",
+          "notes",
+          "advice"
         ],
-        "title": "SectionOut"
+        "title": "ScoredOut"
+      },
+      "SearchAssumptionsIn": {
+        "properties": {
+          "values": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Values",
+            "description": "Supuestos de búsqueda (ADR-0022)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "values"
+        ],
+        "title": "SearchAssumptionsIn"
+      },
+      "SearchOut": {
+        "properties": {
+          "ranked": {
+            "items": {
+              "$ref": "#/components/schemas/ScoredOut"
+            },
+            "type": "array",
+            "title": "Ranked"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/SkippedOut"
+            },
+            "type": "array",
+            "title": "Skipped"
+          },
+          "market": {
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "array",
+            "title": "Market"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ranked",
+          "skipped",
+          "market",
+          "notes"
+        ],
+        "title": "SearchOut"
+      },
+      "SegmentOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "figure",
+              "offer"
+            ],
+            "title": "Kind"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "figure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "part": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part"
+          },
+          "offer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offer"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "SegmentOut"
+      },
+      "SkippedOut": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Offer Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "offer_id",
+          "title",
+          "reason"
+        ],
+        "title": "SkippedOut"
       },
       "SourceOut": {
         "properties": {
@@ -2700,13 +4870,51 @@
         ],
         "title": "SourceOut"
       },
+      "StepOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "stage": {
+            "type": "string",
+            "title": "Stage"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "stage",
+          "title",
+          "detail",
+          "source_url",
+          "verified"
+        ],
+        "title": "StepOut"
+      },
       "TerritoryResponse": {
         "properties": {
           "location": {
             "$ref": "#/components/schemas/LocationOut"
           },
           "section": {
-            "$ref": "#/components/schemas/SectionOut"
+            "$ref": "#/components/schemas/housefinder__api__territory__SectionOut"
           },
           "figures": {
             "additionalProperties": {
@@ -2886,6 +5094,109 @@
           "attribution"
         ],
         "title": "ValuationResponse"
+      },
+      "housefinder__api__offers__ConfirmIn": {
+        "properties": {
+          "operation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "venta",
+                  "alquiler",
+                  "desconocida"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "values": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Values"
+          }
+        },
+        "type": "object",
+        "required": [
+          "values"
+        ],
+        "title": "ConfirmIn"
+      },
+      "housefinder__api__plans__SectionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "figures": {
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "array",
+            "title": "Figures"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "figures"
+        ],
+        "title": "SectionOut"
+      },
+      "housefinder__api__profiles__ConfirmIn": {
+        "properties": {
+          "values": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Values",
+            "description": "Valor de cada campo, corregido o no"
+          }
+        },
+        "type": "object",
+        "required": [
+          "values"
+        ],
+        "title": "ConfirmIn"
+      },
+      "housefinder__api__territory__SectionOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "municipality": {
+            "type": "string",
+            "title": "Municipality"
+          },
+          "vintage": {
+            "type": "integer",
+            "title": "Vintage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "municipality",
+          "vintage"
+        ],
+        "title": "SectionOut"
       }
     }
   }

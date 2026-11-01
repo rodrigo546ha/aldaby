@@ -147,15 +147,25 @@ def tax_params(
     include_pending: bool = False,
     allow_unverified: bool = False,
     income: IncomeTaxProfile | None = None,
+    housing_lease: bool = True,
+    housing_lease_sources: tuple[SourceRef, ...] = (),
 ) -> TaxParams:
     """Parámetros fiscales del alquiler para el motor de cash flow.
 
     Con `income` (perfil de `income_tax_profile`), el impuesto es la cuota incremental
     (ADR-0007). Sin él, `marginal_rate` es un supuesto del usuario: citarlo en
     `marginal_rate_sources` como `assumption`.
+
+    `housing_lease=False`: la renta no es de alquiler de vivienda (temporada, turístico…) y no
+    tiene la reducción del art. 23.2; `housing_lease_sources` cita la regla que lo dice
+    (ADR-0024).
     """
-    reduction = rental_reduction(book, territory, contract_date, situation, include_pending,
-                                 allow_unverified)
+    reduction_value = Decimal(0)
+    reduction_sources: tuple[SourceRef, ...] = housing_lease_sources
+    if housing_lease:
+        reduction = rental_reduction(book, territory, contract_date, situation,
+                                     include_pending, allow_unverified)
+        reduction_value, reduction_sources = reduction.reduction, (reduction.rule.ref,)
     depreciation_rule = _rule(book, "amortizacion_inmueble_alquiler", territory,
                               contract_date, include_pending, allow_unverified)
     limit_rule = _rule(book, "limite_intereses_reparacion", territory, contract_date,
@@ -165,10 +175,10 @@ def tax_params(
         raise TypeError(f"{limit_rule.id}: se esperaba un límite de intereses y reparación")
     return TaxParams(
         marginal_rate=marginal_rate,
-        rental_income_reduction=reduction.reduction,
+        rental_income_reduction=reduction_value,
         depreciation_rate=_rate(depreciation_rule),
         interest_repair_carryforward_years=limit.carryforward_years,
-        sources=(reduction.rule.ref, depreciation_rule.ref, limit_rule.ref,
+        sources=(*reduction_sources, depreciation_rule.ref, limit_rule.ref,
                  *marginal_rate_sources),
         income_tax=income,
     )
@@ -290,6 +300,10 @@ class RentalRegimeResult:
     allowed: bool  # False si algún nivel lo prohíbe
     requirements: tuple[RegimeRequirement, ...]  # de todos los niveles, del estatal al municipal
     rules: tuple[Rule, ...]
+    # Reducción del art. 23.2 del IRPF: la del nivel más específico que lo dice; None, por
+    # confirmar (ADR-0024)
+    irpf_reduction: bool | None = None
+    tax_notes: tuple[str, ...] = ()
 
 
 def rental_regime(
@@ -333,6 +347,9 @@ def rental_regime(
         allowed=all(regime.allowed for regime in regimes),
         requirements=requirements,
         rules=tuple(rules),
+        irpf_reduction=next((r.irpf_reduction for r in reversed(regimes)
+                             if r.irpf_reduction is not None), None),
+        tax_notes=tuple(r.tax_note for r in regimes if r.tax_note),
     )
 
 

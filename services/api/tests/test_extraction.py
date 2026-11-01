@@ -100,6 +100,10 @@ def test_lo_inventado_se_descarta_con_su_motivo():
         (q("1290109.45", "1.290.109,45 €"), "number", "verificado"),
         (q("1290109", "1.290.109,45 €"), "number", "rechazado"),  # sin los céntimos, no
         (q("doce mil", "12.000 €"), "number", "rechazado"),
+        # F6.9: qwen3 escribe el número como en el anuncio o el nombre del campo
+        (q("12.000 €", "12.000 €"), "number", "verificado"),
+        (q("value", "y 12.000 €"), "number", "verificado"),
+        (q("value", "por 1.290.109,45 € y 12.000 €"), "number", "rechazado"),  # dos números
         (q("7744401VK6874N0001FJ", "es 7744401VK6874N0001FJ"), "cadastral", "verificado"),
         (q("7744401VK6874N", "es 7744401VK6874N0001FJ"), "cadastral", "verificado"),  # parcela
         (q("XXXX", "es XXXX"), "cadastral", "rechazado"),

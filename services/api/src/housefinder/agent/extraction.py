@@ -30,6 +30,7 @@ PropertyType = Literal[
 NUMBER_IN_TEXT = re.compile(r"\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?")
 CADASTRAL_REF = re.compile(r"^(?:[0-9A-Z]{14}|[0-9A-Z]{20})$")
 NO_SPAN = "no se sabe qué tramo del documento es de este lote"
+PLACEHOLDERS = {"value", "valor"}  # el modelo escribe el nombre del campo en vez del dato
 
 Span = tuple[int, int]  # [inicio, fin) en el documento normalizado
 
@@ -72,6 +73,7 @@ Del documento, extrae cada inmueble o lote que se vende o subasta. Para cada cam
 - copia en `evidence` el fragmento EXACTO del documento del que sale el valor, sin reescribirlo;
 - si el documento no da el dato, deja value y evidence a null; no lo deduzcas ni lo calcules;
 - la dirección es la del inmueble, nunca la de la oficina, el registro o el lugar de la subasta;
+- en `value` escribe el dato (25802189, Madrid), nunca la palabra «value» ni la cita entera;
 - los números van sin separador de miles y con punto decimal.
 No inventes lotes: si el documento no vende inmuebles, devuelve una lista vacía."""
 
@@ -108,6 +110,7 @@ El documento es el texto de la página de un anuncio (un portal o una agencia). 
 inmueble anunciado, no los de otros anuncios recomendados ni los de la agencia. Para cada campo:
 - copia en `evidence` el fragmento EXACTO del documento del que sale el valor, sin reescribirlo;
 - si el documento no da el dato, deja value y evidence a null; no lo deduzcas ni lo calcules;
+- en `value` escribe el dato (235000, Getafe, 2ª), nunca la palabra «value» ni la cita entera;
 - los números van sin separador de miles y con punto decimal."""
 
 
@@ -293,7 +296,7 @@ def check_field(
         return CheckedField(None, quoted.evidence, "rechazado",
                             "la cita no está en el tramo de su lote")
     if kind == "number":
-        value = _plain_number(quoted.value)
+        value = _plain_number(quoted.value) or _from_quote(quoted.value, evidence)
         if value is None:
             return CheckedField(None, quoted.evidence, "rechazado", "valor no numérico")
         if value not in _numbers(evidence):
@@ -347,6 +350,20 @@ def _numbers(text: str) -> set[Decimal]:
         except InvalidOperation:
             continue
     return found
+
+
+def _from_quote(value: str, evidence: str) -> Decimal | None:
+    """El número cuando el modelo no lo da limpio (F6.9): con qwen3 llegaban «235.000 €» o la
+    palabra «value» con la cifra solo en la cita. Vale el único número del valor escrito a la
+    española o, si el valor es solo el nombre del campo, el único número de la cita. Un valor en
+    palabras («doce mil») sigue sin valer."""
+    if any(c.isdigit() for c in value):
+        found = _numbers(value)
+    elif value.strip().lower() in PLACEHOLDERS:
+        found = _numbers(evidence)
+    else:
+        return None
+    return next(iter(found)) if len(found) == 1 else None
 
 
 def _plain_number(value: str) -> Decimal | None:

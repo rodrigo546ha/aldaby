@@ -231,6 +231,423 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/profile/regions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Regions
+         * @description Comunidades autónomas para corregir la residencia (`data/profiles/comunidades.yaml`).
+         */
+        get: operations["regions_profile_regions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/interviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Interview */
+        post: operations["start_interview_profile_interviews_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/interviews/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Current Interview */
+        get: operations["current_interview_profile_interviews_current_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/interviews/{interview_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Interview */
+        get: operations["get_interview_profile_interviews__interview_id__get"];
+        put?: never;
+        post?: never;
+        /** Discard */
+        delete: operations["discard_profile_interviews__interview_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/interviews/{interview_id}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer */
+        post: operations["answer_profile_interviews__interview_id__answers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/interviews/{interview_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Document
+         * @description Lee el documento en memoria, extrae sus campos y lo descarta (ADR-0021).
+         */
+        post: operations["add_document_profile_interviews__interview_id__documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/interviews/{interview_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm */
+        post: operations["confirm_profile_interviews__interview_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Current Profile */
+        get: operations["current_profile_profile_current_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profile/current/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Search Assumptions
+         * @description Cambia solo los supuestos de búsqueda del perfil confirmado.
+         */
+        put: operations["set_search_assumptions_profile_current_search_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reverse Search */
+        get: operations["reverse_search_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search/offers/{offer_id}/rent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Rent Expectation */
+        put: operations["save_rent_expectation_search_offers__offer_id__rent_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/offers/{offer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Offer Plan */
+        get: operations["offer_plan_plans_offers__offer_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/offers/{offer_id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Offer Plan Pdf
+         * @description El plan en PDF con su anexo de fuentes (ADR-0026). No se guarda: lleva datos personales.
+         */
+        get: operations["offer_plan_pdf_plans_offers__offer_id__pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/offers/{offer_id}/explanation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Explanation */
+        post: operations["explanation_plans_offers__offer_id__explanation_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Login */
+        post: operations["login_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Logout */
+        post: operations["logout_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Choose Password
+         * @description Elegir o restablecer la contraseña con el enlace de un solo uso del administrador.
+         */
+        post: operations["choose_password_auth_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Clients */
+        get: operations["list_clients_clients_get"];
+        put?: never;
+        /**
+         * Create Client
+         * @description Da de alta un cliente y lo deja activo.
+         */
+        post: operations["create_client_clients_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Choose Client */
+        put: operations["choose_client_clients_active_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{client_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Client
+         * @description Borrado definitivo del cliente, sus perfiles y su entrevista (derecho de supresión).
+         */
+        delete: operations["delete_client_clients__client_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/branding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Branding */
+        get: operations["get_branding_branding_get"];
+        /** Put Branding */
+        put: operations["put_branding_branding_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/branding/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Logo */
+        get: operations["get_logo_branding_logo_get"];
+        /** Put Logo */
+        put: operations["put_logo_branding_logo_put"];
+        post?: never;
+        /** Delete Logo */
+        delete: operations["delete_logo_branding_logo_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -252,6 +669,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActiveIn */
+        ActiveIn: {
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+        };
         /** AffordabilityRequest */
         AffordabilityRequest: {
             /** Net Monthly Income */
@@ -325,6 +750,27 @@ export interface components {
             /** Corrections */
             corrections: number;
         };
+        /** AnswerIn */
+        AnswerIn: {
+            /** Text */
+            text: string;
+        };
+        /** AnswerOut */
+        AnswerOut: {
+            /** Question */
+            question: string;
+            /** Text */
+            text: string;
+        };
+        /** ArgumentOut */
+        ArgumentOut: {
+            /** Code */
+            code: string;
+            /** Text */
+            text: string;
+            /** Figure Keys */
+            figure_keys: string[];
+        };
         /** AuctionNoticeOut */
         AuctionNoticeOut: {
             /** Portal Id */
@@ -343,6 +789,30 @@ export interface components {
             boe_url: string | null;
             /** Attribution */
             attribution: string;
+        };
+        /** BrandingIn */
+        BrandingIn: {
+            /** Display Name */
+            display_name?: string | null;
+            /** Contact */
+            contact?: string | null;
+            /** Color */
+            color?: string | null;
+            /** Intro */
+            intro?: string | null;
+        };
+        /** BrandingOut */
+        BrandingOut: {
+            /** Display Name */
+            display_name: string | null;
+            /** Contact */
+            contact: string | null;
+            /** Color */
+            color: string | null;
+            /** Intro */
+            intro: string | null;
+            /** Has Logo */
+            has_logo: boolean;
         };
         /** BuyerRequest */
         BuyerRequest: {
@@ -381,6 +851,33 @@ export interface components {
              */
             savings_base: number | string;
         };
+        /** ChangeOut */
+        ChangeOut: {
+            /** Key */
+            key: string;
+            base: components["schemas"]["FigureOut"];
+            scenario: components["schemas"]["FigureOut"];
+            delta: components["schemas"]["FigureOut"];
+        };
+        /** ClientIn */
+        ClientIn: {
+            /** Name */
+            name: string;
+        };
+        /** ClientOut */
+        ClientOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Has Profile */
+            has_profile: boolean;
+            /** Active */
+            active: boolean;
+        };
         /** ComparisonOut */
         ComparisonOut: {
             /** Labels */
@@ -390,14 +887,13 @@ export interface components {
             /** Lowest Stressed Payment */
             lowest_stressed_payment: string;
         };
-        /** ConfirmIn */
-        ConfirmIn: {
-            /** Operation */
-            operation?: ("venta" | "alquiler" | "desconocida") | null;
-            /** Values */
-            values: {
-                [key: string]: string | null;
-            };
+        /** ConfirmOut */
+        ConfirmOut: {
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
         };
         /** CorrectionOut */
         CorrectionOut: {
@@ -411,6 +907,64 @@ export interface components {
             title: string | null;
             /** Paragraphs */
             paragraphs: string[];
+        };
+        /** DocumentIn */
+        DocumentIn: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "nomina" | "declaracion" | "extracto";
+            /**
+             * Content Base64
+             * @description PDF, JPG o PNG en base64
+             */
+            content_base64?: string | null;
+            /**
+             * Text
+             * @description O el texto pegado
+             */
+            text?: string | null;
+        };
+        /** DocumentOut */
+        DocumentOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "nomina" | "declaracion" | "extracto";
+            /** Method */
+            method: string;
+            /** Fields */
+            fields: string[];
+            /** Truncated */
+            truncated: boolean;
+        };
+        /** DraftFieldOut */
+        DraftFieldOut: {
+            /** Field */
+            field: string;
+            /** Label */
+            label: string;
+            /** Required */
+            required: boolean;
+            /** Value */
+            value: string | string[] | null;
+            /** Evidence */
+            evidence?: string | null;
+            /** Source */
+            source?: ("respuesta" | "calculado" | "usuario" | "documento") | null;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /**
+             * Kind
+             * @default texto
+             * @enum {string}
+             */
+            kind: "texto" | "ratio" | "eur" | "bool";
         };
         /** ExitRequest */
         ExitRequest: {
@@ -429,6 +983,17 @@ export interface components {
              * @default 10
              */
             horizon_years: number;
+        };
+        /** ExplanationOut */
+        ExplanationOut: {
+            /** Segments */
+            segments: components["schemas"]["SegmentOut"][] | null;
+            /** Failure */
+            failure: string | null;
+            /** Notes */
+            notes: string[];
+            /** Extra Arguments */
+            extra_arguments: string[];
         };
         /** FieldOut */
         FieldOut: {
@@ -491,6 +1056,35 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** InterviewOut */
+        InterviewOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "en_curso" | "confirmada";
+            /** Answers */
+            answers: components["schemas"]["AnswerOut"][];
+            /** Fields */
+            fields: components["schemas"]["DraftFieldOut"][];
+            /** Issues */
+            issues: string[];
+            /** Documents */
+            documents: components["schemas"]["DocumentOut"][];
+            next_question: components["schemas"]["QuestionOut"] | null;
+            /**
+             * Complete
+             * @description Están todos los obligatorios: se puede confirmar
+             */
+            complete: boolean;
+            /** Profile Id */
+            profile_id: string | null;
+        };
         /** InvestmentRequest */
         InvestmentRequest: {
             buyer: components["schemas"]["BuyerRequest"];
@@ -548,6 +1142,18 @@ export interface components {
             /** Cadastral Ref */
             cadastral_ref: string | null;
         };
+        /** LoginIn */
+        LoginIn: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
+        };
+        /** LogoIn */
+        LogoIn: {
+            /** Content Base64 */
+            content_base64: string;
+        };
         /** LotFieldOut */
         LotFieldOut: {
             /** Name */
@@ -592,6 +1198,13 @@ export interface components {
             municipality: string | null;
             /** Location Attribution */
             location_attribution: string | null;
+        };
+        /** MeOut */
+        MeOut: {
+            /** Email */
+            email: string;
+            /** Role */
+            role: string;
         };
         /** OfferOut */
         OfferOut: {
@@ -694,6 +1307,68 @@ export interface components {
             /** Attribution */
             attribution: string[];
         };
+        /** PasswordIn */
+        PasswordIn: {
+            /** Token */
+            token: string;
+            /** Password */
+            password: string;
+        };
+        /** PlanOut */
+        PlanOut: {
+            /**
+             * Offer Id
+             * Format: uuid
+             */
+            offer_id: string;
+            /** Kind */
+            kind: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string | null;
+            /** Auction */
+            auction: boolean;
+            /** Passes */
+            passes: boolean;
+            /** Reasons */
+            reasons: string[];
+            /** Sections */
+            sections: components["schemas"]["housefinder__api__plans__SectionOut"][];
+            advice: components["schemas"]["RentalAdviceOut"] | null;
+            /** Arguments */
+            arguments: components["schemas"]["ArgumentOut"][];
+            /** Roadmap */
+            roadmap: components["schemas"]["StepOut"][];
+            /** Pending Changes */
+            pending_changes: components["schemas"]["ChangeOut"][];
+            /** Cheapest Mortgage */
+            cheapest_mortgage: string | null;
+            /** Safest Mortgage */
+            safest_mortgage: string | null;
+            /** Notes */
+            notes: string[];
+        };
+        /** ProfileOut */
+        ProfileOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Values
+             * @description Valor de cada campo del perfil confirmado
+             */
+            values: {
+                [key: string]: unknown;
+            };
+            /**
+             * Missing Search
+             * @description Supuestos de búsqueda sin valor
+             */
+            missing_search: string[];
+        };
         /** PropertyRequest */
         PropertyRequest: {
             /** Price */
@@ -743,6 +1418,46 @@ export interface components {
              * @enum {string}
              */
             deed_agreement: "ley" | "comprador" | "vendedor";
+        };
+        /** QuestionOut */
+        QuestionOut: {
+            /** Field */
+            field: string;
+            /** Text */
+            text: string;
+        };
+        /** RegionOut */
+        RegionOut: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+        };
+        /**
+         * RentExpectationIn
+         * @description Lo que el usuario espera sacar al mes con un tipo sin renta pública; null lo borra.
+         */
+        RentExpectationIn: {
+            /**
+             * Rental Type
+             * @enum {string}
+             */
+            rental_type: "temporada" | "habitaciones" | "turistico";
+            /** Monthly Income */
+            monthly_income?: number | string | null;
+        };
+        /** RentalAdviceOut */
+        RentalAdviceOut: {
+            /** Recommended */
+            recommended: string | null;
+            /** Reasons */
+            reasons: string[];
+            /** Types */
+            types: components["schemas"]["RentalTypeOut"][];
+            /** Scenario */
+            scenario: string[];
+            /** Notes */
+            notes: string[];
         };
         /**
          * RentalFacts
@@ -810,6 +1525,38 @@ export interface components {
              */
             contract_date: string;
         };
+        /** RentalTypeOut */
+        RentalTypeOut: {
+            /** Rental Type */
+            rental_type: string;
+            /** Allowed */
+            allowed: boolean;
+            /** Regime */
+            regime: string;
+            /** Requirements */
+            requirements: components["schemas"]["RequirementOut"][];
+            /** Irpf Reduction */
+            irpf_reduction: boolean | null;
+            /** Rule Ids */
+            rule_ids: string[];
+            /** Management */
+            management: string;
+            /** Management Reason */
+            management_reason: string;
+            /** Figures */
+            figures: components["schemas"]["FigureOut"][];
+            /** Notes */
+            notes: string[];
+        };
+        /** RequirementOut */
+        RequirementOut: {
+            /** Code */
+            code: string;
+            /** Description */
+            description: string;
+            /** Source Url */
+            source_url: string;
+        };
         /** ScenarioChangeOut */
         ScenarioChangeOut: {
             /** Key */
@@ -827,14 +1574,81 @@ export interface components {
             /** New Rules */
             new_rules: components["schemas"]["SourceOut"][];
         };
-        /** SectionOut */
-        SectionOut: {
-            /** Code */
-            code: string;
-            /** Municipality */
-            municipality: string;
-            /** Vintage */
-            vintage: number;
+        /** ScoredOut */
+        ScoredOut: {
+            /**
+             * Offer Id
+             * Format: uuid
+             */
+            offer_id: string;
+            /** Kind */
+            kind: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string | null;
+            /** Auction */
+            auction: boolean;
+            /** Passes */
+            passes: boolean;
+            /** Reasons */
+            reasons: string[];
+            metric: components["schemas"]["FigureOut"] | null;
+            /** Figures */
+            figures: components["schemas"]["FigureOut"][];
+            /** Notes */
+            notes: string[];
+            advice: components["schemas"]["RentalAdviceOut"] | null;
+        };
+        /** SearchAssumptionsIn */
+        SearchAssumptionsIn: {
+            /**
+             * Values
+             * @description Supuestos de búsqueda (ADR-0022)
+             */
+            values: {
+                [key: string]: unknown;
+            };
+        };
+        /** SearchOut */
+        SearchOut: {
+            /** Ranked */
+            ranked: components["schemas"]["ScoredOut"][];
+            /** Skipped */
+            skipped: components["schemas"]["SkippedOut"][];
+            /** Market */
+            market: components["schemas"]["FigureOut"][];
+            /** Notes */
+            notes: string[];
+        };
+        /** SegmentOut */
+        SegmentOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "text" | "figure" | "offer";
+            /** Text */
+            text?: string | null;
+            figure?: components["schemas"]["FigureOut"] | null;
+            /** Part */
+            part?: string | null;
+            /** Offer */
+            offer?: string | null;
+            /** Label */
+            label?: string | null;
+        };
+        /** SkippedOut */
+        SkippedOut: {
+            /**
+             * Offer Id
+             * Format: uuid
+             */
+            offer_id: string;
+            /** Title */
+            title: string | null;
+            /** Reason */
+            reason: string;
         };
         /** SourceOut */
         SourceOut: {
@@ -845,10 +1659,25 @@ export interface components {
             /** Provisional */
             provisional: boolean;
         };
+        /** StepOut */
+        StepOut: {
+            /** Id */
+            id: string;
+            /** Stage */
+            stage: string;
+            /** Title */
+            title: string;
+            /** Detail */
+            detail: string;
+            /** Source Url */
+            source_url: string;
+            /** Verified */
+            verified: boolean;
+        };
         /** TerritoryResponse */
         TerritoryResponse: {
             location: components["schemas"]["LocationOut"];
-            section: components["schemas"]["SectionOut"];
+            section: components["schemas"]["housefinder__api__territory__SectionOut"];
             /** Figures */
             figures: {
                 [key: string]: components["schemas"]["FigureOut"];
@@ -905,6 +1734,43 @@ export interface components {
             notes: string[];
             /** Attribution */
             attribution: string[];
+        };
+        /** ConfirmIn */
+        housefinder__api__offers__ConfirmIn: {
+            /** Operation */
+            operation?: ("venta" | "alquiler" | "desconocida") | null;
+            /** Values */
+            values: {
+                [key: string]: string | null;
+            };
+        };
+        /** SectionOut */
+        housefinder__api__plans__SectionOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Figures */
+            figures: components["schemas"]["FigureOut"][];
+        };
+        /** ConfirmIn */
+        housefinder__api__profiles__ConfirmIn: {
+            /**
+             * Values
+             * @description Valor de cada campo, corregido o no
+             */
+            values: {
+                [key: string]: unknown;
+            };
+        };
+        /** SectionOut */
+        housefinder__api__territory__SectionOut: {
+            /** Code */
+            code: string;
+            /** Municipality */
+            municipality: string;
+            /** Vintage */
+            vintage: number;
         };
     };
     responses: never;
@@ -1162,7 +2028,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ConfirmIn"];
+                "application/json": components["schemas"]["housefinder__api__offers__ConfirmIn"];
             };
         };
         responses: {
@@ -1308,6 +2174,771 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    regions_profile_regions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegionOut"][];
+                };
+            };
+        };
+    };
+    start_interview_profile_interviews_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewOut"];
+                };
+            };
+        };
+    };
+    current_interview_profile_interviews_current_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewOut"];
+                };
+            };
+        };
+    };
+    get_interview_profile_interviews__interview_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                interview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discard_profile_interviews__interview_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                interview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    answer_profile_interviews__interview_id__answers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                interview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_document_profile_interviews__interview_id__documents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                interview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_profile_interviews__interview_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                interview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["housefinder__api__profiles__ConfirmIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    current_profile_profile_current_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+        };
+    };
+    set_search_assumptions_profile_current_search_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchAssumptionsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reverse_search_search_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+        };
+    };
+    save_rent_expectation_search_offers__offer_id__rent_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RentExpectationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offer_plan_plans_offers__offer_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offer_plan_pdf_plans_offers__offer_id__pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    explanation_plans_offers__offer_id__explanation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplanationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    login_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    logout_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    me_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeOut"];
+                };
+            };
+        };
+    };
+    choose_password_auth_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_clients_clients_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientOut"][];
+                };
+            };
+        };
+    };
+    create_client_clients_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    choose_client_clients_active_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActiveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_client_clients__client_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_branding_branding_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandingOut"];
+                };
+            };
+        };
+    };
+    put_branding_branding_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrandingIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_logo_branding_logo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": unknown;
+                };
+            };
+        };
+    };
+    put_logo_branding_logo_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogoIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_logo_branding_logo_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandingOut"];
                 };
             };
         };
