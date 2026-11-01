@@ -1,14 +1,20 @@
 """Geocodificador de CartoCiudad (ADR-0009), sin red: respuestas con la forma de `find`."""
 
+import json
+from pathlib import Path
+
 import httpx
 import pytest
 
 from housefinder.geo.cartociudad import (
+    CANDIDATES_URL,
     AddressNotFound,
     AddressTooVague,
     geocode,
+    municipality_codes,
     normalize,
     parse_find,
+    parse_municipalities,
 )
 
 PORTAL = {
@@ -67,3 +73,33 @@ def test_sin_comillas_dobles_ni_barras_invertidas():
     with pytest.raises(AddressNotFound):
         geocode(client, 'parcela 14, paraje: "Camino de Galleguillos", Sahagún\\ (León)')
     assert seen[0].url.params["q"] == "parcela 14, paraje: Camino de Galleguillos, Sahagún (León)"
+
+
+# Respuestas reales de `candidates` del 2026-11-01.
+CANDIDATES = Path(__file__).parent / "fixtures" / "cartociudad"
+
+
+def test_codigo_ine_de_un_municipio_por_cualquiera_de_sus_nombres():
+    castellon = json.loads((CANDIDATES / "candidates-castellon-de-la-plana.json").read_text())
+    assert parse_municipalities(castellon, "Castellón de la Plana") == {"12040"}
+    assert parse_municipalities(castellon, "castello de la plana") == {"12040"}
+    # Solo el nombre exacto: ni el «Cortijo Gerona» de Luque, ni Girona, ni Gironella.
+    gerona = json.loads((CANDIDATES / "candidates-gerona.json").read_text())
+    assert parse_municipalities(gerona, "Gerona") == frozenset()
+    assert parse_municipalities(gerona, "Girona") == {"17079"}
+
+
+def test_peticion_de_candidatos():
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, content=(CANDIDATES / "candidates-gerona.json").read_bytes())
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    assert municipality_codes(client, 'Girona"') == {"17079"}
+    assert str(seen[0].url).startswith(CANDIDATES_URL)
+    assert dict(seen[0].url.params) == {"q": "Girona", "limit": "10"}
+    down = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(500)))
+    with pytest.raises(httpx.HTTPStatusError):
+        municipality_codes(down, "Girona")

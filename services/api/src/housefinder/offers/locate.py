@@ -99,8 +99,27 @@ def offer_locator(
     parcels: Callable[[str], Parcel] | None = None,
     rustic: RusticFinder | None = None,
     zone: Zone | None = None,
+    municipalities: Callable[[str], frozenset[str]] | None = None,
 ) -> Locator:
     covered = zone or load_zone(conn)
+
+    def in_municipality(name: str, lon: float, lat: float, named: bool,
+                        pending: list[str]) -> bool:
+        """El municipio de la oferta: por el nombre que da el servicio o, si no casa (nombres
+        bilingües: «Castellón de la Plana» y «CASTELLO DE LA PLANA»), por el código INE de la
+        sección del punto entre los de los lugares que se llaman como dice la oferta."""
+        if named:
+            return True
+        vintage = latest_vintage(conn)
+        hit = section_at(conn, lon, lat, vintage) if vintage is not None else None
+        if municipalities is None or hit is None:
+            return False
+        try:
+            codes = municipalities(municipality_name(name))
+        except (httpx.HTTPError, json.JSONDecodeError) as exc:
+            pending.append(f"CartoCiudad no responde al comprobar el municipio: {failure(exc)}")
+            return False
+        return hit.municipality in codes
 
     def at_parcel(offer: NormalizedOffer, ref: str, notes: list[str],
                   pending: list[str]) -> Point | None:
@@ -116,7 +135,9 @@ def offer_locator(
         if not _covered(conn, found.lon, found.lat):
             pending.append(f"la parcela {ref} cae fuera de las secciones cargadas")
             return None
-        if offer.municipality and not parcel_in_municipality(offer.municipality, found.matched):
+        if offer.municipality and not in_municipality(
+                offer.municipality, found.lon, found.lat,
+                parcel_in_municipality(offer.municipality, found.matched), pending):
             notes.append(f"la parcela {ref} es de otro municipio: {found.matched}")
             return None
         return Point(found.lon, found.lat, "catastro")
@@ -159,7 +180,9 @@ def offer_locator(
         if not _covered(conn, found.lon, found.lat):
             pending.append(f"CartoCiudad la sitúa fuera de las secciones cargadas: {found.matched}")
             return None
-        if offer.municipality and not same_municipality(offer.municipality, found.matched):
+        if offer.municipality and not in_municipality(
+                offer.municipality, found.lon, found.lat,
+                same_municipality(offer.municipality, found.matched), pending):
             notes.append(f"CartoCiudad la sitúa en otro municipio: {found.matched}")
             return None
         return Point(found.lon, found.lat, "cartociudad")

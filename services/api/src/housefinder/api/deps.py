@@ -17,7 +17,7 @@ from housefinder.crypto.envelope import KeyProvider, provider_from_env
 from housefinder.db.clients import client_ids, client_in_org
 from housefinder.db.connection import Connection, DatabaseUnavailable, connect
 from housefinder.db.profiles import get_or_create_organization
-from housefinder.geo.cartociudad import Geocoded, geocode
+from housefinder.geo.cartociudad import Geocoded, geocode, municipality_codes
 from housefinder.geo.catastro import Parcel, find_parcel
 from housefinder.offers.link import Resolver, link_client, system_resolve
 from housefinder.params.book import ParamBook, default_params_dir
@@ -92,6 +92,11 @@ def get_parcel_finder() -> Iterator[Callable[[str], Parcel]]:
         yield lambda ref: find_parcel(client, ref)
 
 
+def get_municipality_finder() -> Iterator[Callable[[str], frozenset[str]]]:
+    with httpx.Client(headers={"User-Agent": "HouseFinder/0.1 (datos abiertos)"}) as client:
+        yield lambda name: municipality_codes(client, name)
+
+
 def get_scenario_finder(book: ParamBookDep) -> Callable[[str, int, bool], AppreciationReport]:
     """Escenarios de revalorización de un municipio; abre la base solo si se piden."""
 
@@ -133,6 +138,8 @@ LLMDep = Annotated[LLMClient, Depends(get_llm)]
 ScenarioFinderDep = Annotated[
     Callable[[str, int, bool], AppreciationReport], Depends(get_scenario_finder)]
 ParcelFinderDep = Annotated[Callable[[str], Parcel], Depends(get_parcel_finder)]
+MunicipalityFinderDep = Annotated[Callable[[str], frozenset[str]],
+                                  Depends(get_municipality_finder)]
 LinkClientDep = Annotated[httpx.Client, Depends(get_link_client)]
 ResolverDep = Annotated[Resolver, Depends(get_resolver)]
 

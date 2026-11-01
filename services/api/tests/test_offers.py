@@ -333,3 +333,45 @@ def test_finca_rustica_por_poligono_y_parcela_del_catastro(conn, database):
     assert (point.lon, point.lat, point.source) == (-5.0541759331776, 42.3052703074663,
                                                     "catastro")
     assert asked == [("León", "Sahagún", "501", "14")]
+
+
+@pytest.mark.db
+def test_el_municipio_con_otro_nombre_se_reconoce_por_su_codigo_ine(conn, database):
+    """BOE-B-2026-35111: la oferta dice «Castellón de la Plana» y el Catastro, «CASTELLO DE LA
+    PLANA». El municipio de la sección del punto (12040) es el que CartoCiudad da para el nombre
+    de la oferta."""
+    from conftest import add_section
+
+    from housefinder.geo.catastro import Parcel
+    from housefinder.offers.ingest import Unlocated
+    from housefinder.offers.locate import offer_locator
+
+    add_section(database, "1204001001", -0.0450, 39.9800)
+    castello = Parcel(-0.0450, 39.9800, "1991501YK5219S",
+                      "CL RIO EBRO 33 CASTELLO DE LA PLANA (CASTELLÓN)")
+    asked: list[str] = []
+
+    def municipalities(name):
+        asked.append(name)
+        return frozenset({"12040"}) if name == "Castellón de la Plana" else frozenset()
+
+    def geocoder(address):
+        raise AssertionError("ya la ubica el Catastro")
+
+    conn.execute("DELETE FROM geocode_cache WHERE query = 'rc:1991501YK5219S'")
+    locate = offer_locator(conn, geocoder, lambda ref: castello, municipalities=municipalities)
+    point = locate(offer("j1", cadastral_ref="1991501YK5219S0001GF",
+                         municipality="Castellón de la Plana"))
+    assert point == Point(-0.0450, 39.9800, "catastro")
+    # Otro municipio de verdad (Utiel frente a Requena) sigue sin aceptarse.
+    assert locate(offer("j2", cadastral_ref="1991501YK5219S0001GF", municipality="Utiel")
+                  ) == Unlocated("la parcela 1991501YK5219S0001GF es de otro municipio: "
+                                 "CL RIO EBRO 33 CASTELLO DE LA PLANA (CASTELLÓN)", retry=False)
+    assert asked == ["Castellón de la Plana", "Utiel"]
+    # Si CartoCiudad no responde al comprobarlo, se reintentará.
+    down = offer_locator(conn, geocoder, lambda ref: castello,
+                         municipalities=lambda name: (_ for _ in ()).throw(
+                             httpx.ConnectError("sin red")))
+    missed = down(offer("j3", cadastral_ref="1991501YK5219S0001GF",
+                        municipality="Castellón de la Plana"))
+    assert missed.retry is True

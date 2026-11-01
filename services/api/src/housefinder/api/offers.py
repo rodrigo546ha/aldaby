@@ -34,6 +34,7 @@ from .deps import (
     DbDep,
     GeocoderDep,
     LinkClientDep,
+    MunicipalityFinderDep,
     OrgDep,
     ParamBookDep,
     ParcelFinderDep,
@@ -143,10 +144,11 @@ def get_offer(offer_id: UUID, db: DbDep, org: OrgDep) -> OfferOut:
 
 @router.post("/{offer_id}/confirm")
 def post_confirm(offer_id: UUID, body: ConfirmIn, db: DbDep, org: OrgDep,
-                 geocoder: GeocoderDep, parcels: ParcelFinderDep) -> OfferOut:
+                 geocoder: GeocoderDep, parcels: ParcelFinderDep,
+                 municipalities: MunicipalityFinderDep) -> OfferOut:
     try:
         done = confirm(db, org, offer_id, body.values, body.operation,
-                       offer_locator(db, geocoder, parcels))
+                       offer_locator(db, geocoder, parcels, municipalities=municipalities))
     except ConfirmationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     if not done:

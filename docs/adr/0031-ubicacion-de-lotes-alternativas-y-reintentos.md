@@ -41,7 +41,14 @@ repetía la extracción con el LLM. Comprobado el 2026-11-01 con peticiones real
    encuentra. Al ubicarla, se borra. El informe de `extract_offers` lo lista en `unlocated`.
 5. **Reintento sin LLM.** Al empezar, `extract_offers` vuelve a ubicar los lotes con
    `location_retry`, a partir de lo ya extraído, sin pasar otra vez por el modelo.
-6. **La zona son las secciones cargadas.** Un lote cuya provincia, según
+6. **El municipio, también por su código.** Si el nombre que da el servicio no casa con el de la
+   oferta, se acepta cuando el municipio INE de la sección del punto es uno de los que
+   `candidates` de CartoCiudad da para ese nombre, solo de tipo municipio o núcleo y con el
+   nombre exacto en alguna de sus lenguas: «Castellón de la Plana» es `12040`, «Castelló de la
+   Plana/Castellón de la Plana». «Gerona» no casa con nada («Cortijo Gerona», Girona y Gironella
+   salen por parecido). Una resolución equivocada solo puede rechazar, nunca aceptar un punto de
+   otro municipio.
+7. **La zona son las secciones cargadas.** Un lote cuya provincia, según
    `data/offers/provincias.yaml` (relación de provincias del INE), no tiene secciones cargadas no
    se manda a ningún servicio: su punto se descartaría igual. Si el nombre no está en esa relación
    («Vizcaya» en lugar de «Bizkaia»), no se descarta: decide la cartografía después de ubicarlo.
@@ -71,5 +78,5 @@ repetía la extracción con el LLM. Comprobado el 2026-11-01 con peticiones real
     municipio extraído es el del Registro de la Propiedad: el Catastro manda y no se acepta;
   - **País Vasco y Navarra** tienen catastros forales: la Dirección General del Catastro no tiene
     sus referencias. Ubicarlos por referencia pide los servicios de cada hacienda foral (otro ADR);
-  - nombres bilingües: «Castellón de la Plana» frente a «Castelló de la Plana» del Catastro no se
-    reconocen como el mismo municipio (pendiente).
+  - los nombres bilingües («Castellón de la Plana» frente a «CASTELLO DE LA PLANA» del Catastro)
+    se reconocen por el código INE (punto 6).

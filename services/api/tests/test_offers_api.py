@@ -16,6 +16,7 @@ from housefinder.api.deps import (
     get_db,
     get_geocoder,
     get_link_client,
+    get_municipality_finder,
     get_parcel_finder,
     get_resolver,
 )
@@ -70,6 +71,7 @@ def client(migrated_database: str, monkeypatch):
     app.dependency_overrides[get_resolver] = lambda: (lambda host, port: ["93.184.216.34"])
     app.dependency_overrides[get_geocoder] = lambda: geocoder
     app.dependency_overrides[get_parcel_finder] = lambda: no_parcels
+    app.dependency_overrides[get_municipality_finder] = lambda: (lambda name: frozenset())
     try:
         yield TestClient(app), pages
     finally:
