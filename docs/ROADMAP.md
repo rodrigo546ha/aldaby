@@ -199,6 +199,8 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       compuestas y referencias con espacios o barras; de 148 a 207 campos correctos de 274 en el
       banco (`docs/research/f4-extraccion-lotes.md`). Una extracción nueva actualiza los lotes y
       retira los que ya no encuentra; `extract_offers` con `recheck` vuelve a comprobar sin el LLM.
+      Anuncios largos por partes de lotes enteros (ADR-0034): no cabían en la ventana del modelo,
+      que solo veía los últimos lotes; las fincas de un lote no cierran su tramo.
 - [x] F4.7 Trabajos programados con reintentos y alertas de fallo (ADR-0010): cola en PostgreSQL con
       `SKIP LOCKED`, esperas de 1 minuto a 1 hora, programaciones por intervalo, alertas en el log
       `housefinder.alertas`; `make worker`. Primeros tipos: `ine_sections` e `ine_adrh`.

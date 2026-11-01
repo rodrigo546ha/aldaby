@@ -25,9 +25,8 @@ from uuid import UUID
 from housefinder.agent.extraction import (
     CheckedDocument,
     CheckedLot,
-    DocumentExtraction,
-    check_document,
     extract,
+    recheck_document,
 )
 from housefinder.agent.llm import LLMClient, LLMOutputError
 from housefinder.db.connection import Connection
@@ -80,8 +79,7 @@ def extract_pending(
             conn.commit()
     if recheck:
         for announcement, proposed in with_proposals(conn, channel, only):
-            checked = check_document(announcement_text(announcement),
-                                     DocumentExtraction.model_validate(proposed))
+            checked = recheck_document(announcement_text(announcement), proposed)
             _store(conn, channel, announcement, checked, locate, links, report)
     else:
         for announcement in pending_announcements(conn, channel, limit, only):

@@ -5,7 +5,8 @@ El LLM devuelve cada campo con una cita literal del documento. Después, sin LLM
 2. si hay varios lotes, la cita tiene que estar en el tramo de su lote: desde su etiqueta («Lote 2»)
    hasta la etiqueta del lote siguiente o el siguiente encabezado de lote del documento (ADR-0014).
    Si la etiqueta no vale, el tramo es el del encabezado en el que caen todas sus citas de
-   ubicación (ADR-0033);
+   ubicación (ADR-0033). Si el documento tiene encabezados «Lote…», las fincas de dentro no cierran
+   el tramo; y un anuncio largo se extrae por partes con lotes enteros (ADR-0034);
 3. el valor tiene que salir de la cita: un importe o una superficie es uno de los números de la
    cita; una referencia catastral está en la cita, sin contar espacios, puntos ni barras; cada
    parte de un texto separada por comas está en ella como palabras seguidas.
@@ -40,6 +41,16 @@ HEADING = re.compile(
     r"|\d+(?:\.\d+)*\s*(?:[.:)–-]|$)"
     r"|(?:uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)\)",
     re.IGNORECASE)
+# Encabezado de un lote propiamente dicho («Lote nº 2.-», «LOTE ÚNICO»). Si el documento los
+# tiene, los demás encabezados («1.1», «Finca 1:») son fincas de un lote: no cierran su tramo.
+LOT_HEADING = re.compile(r"lotes?\b\W*(?:n(?:º|°|o|úm(?:ero)?)?\.?\s*)?(?:\d|[uú]nico\b)",
+                         re.IGNORECASE)
+# Anuncios largos por partes (ADR-0034): lo que cabe en la ventana del modelo local (16.384
+# tokens) con las instrucciones, el esquema y la respuesta, que crece con cada lote.
+QUOTED_IN = re.compile(r"'([^']+)'|\"([^\"]+)\"")  # sobre el texto normalizado
+PART_CHARS = 12_000
+PART_LOTS = 6
+PART_LIMIT = 20_000  # una parte nunca pasa de aquí (como agent/documents.py)
 LOCATION_FIELDS = ("address", "cadastral_ref", "municipality")
 NO_SPAN = "no se sabe qué tramo del documento es de este lote"
 PLACEHOLDERS = {"value", "valor"}  # el modelo escribe el nombre del campo en vez del dato
@@ -94,6 +105,7 @@ Del documento, extrae cada inmueble o lote que se vende o subasta. Para cada cam
 - la dirección es la del inmueble, nunca la de la oficina, el registro o el lugar de la subasta;
   copia la calle y el número (o el paraje, o el polígono y la parcela) como están escritos, y
   deja el municipio y la provincia para sus campos;
+- un lote que agrupa varias fincas es un solo elemento, con la ubicación de su primera finca;
 - en `value` escribe el dato (25802189, Madrid), nunca la palabra «value» ni la cita entera;
 - los números van sin separador de miles y con punto decimal.
 No inventes lotes: si el documento no vende inmuebles, devuelve una lista vacía."""
@@ -249,13 +261,72 @@ def check_listing(document: str, raw: ListingExtraction) -> CheckedListing:
 
 
 def extract(llm: LLMClient, document: str) -> CheckedDocument:
-    """Extrae los lotes con el LLM y deja solo lo que la evidencia respalda."""
-    raw = llm.structured(instructions=INSTRUCTIONS, document=document, output=DocumentExtraction)
-    return check_document(document, raw)
+    """Extrae los lotes con el LLM y deja solo lo que la evidencia respalda. Un anuncio largo va
+    por partes (ADR-0034)."""
+    parts = document_parts(document)
+    raws = [llm.structured(instructions=INSTRUCTIONS, document=part, output=DocumentExtraction)
+            for part in parts]
+    return check_parts(parts, raws)
+
+
+def document_parts(document: str, max_chars: int = PART_CHARS,
+                   max_lots: int = PART_LOTS) -> list[str]:
+    """El documento en partes que caben en la ventana del modelo: cada una con el preámbulo (lo
+    que va antes del primer lote) y lotes enteros, como mucho `max_lots`. Un lote que no cabe va
+    solo y, si pasa de `PART_LIMIT`, sin el final: el del último lote son las condiciones comunes
+    del pliego. Si el documento cabe, o no tiene encabezados de lote, va entero."""
+    if len(document) <= max_chars:
+        return [document]
+    lines = document.split("\n")
+    starts = [i for i, line in enumerate(lines) if LOT_HEADING.match(_normalize(line))]
+    if len(starts) < 2:
+        return [document]
+    preamble = "\n".join(lines[:starts[0]])
+    blocks = ["\n".join(lines[a:b]) for a, b in zip(starts, [*starts[1:], len(lines)],
+                                                     strict=True)]
+    groups: list[list[str]] = [[]]
+    for block in blocks:
+        size = len(preamble) + sum(len(b) + 1 for b in groups[-1]) + len(block)
+        if groups[-1] and (len(groups[-1]) == max_lots or size > max_chars):
+            groups.append([])
+        groups[-1].append(block)
+    return [_cut("\n".join([preamble, *group]), PART_LIMIT) for group in groups]
+
+
+def _cut(text: str, limit: int) -> str:
+    """El texto hasta el último salto de línea antes de `limit`."""
+    if len(text) <= limit:
+        return text
+    end = text.rfind("\n", 0, limit)
+    return text[:end if end > 0 else limit]
+
+
+def check_parts(parts: list[str], raws: list[DocumentExtraction]) -> CheckedDocument:
+    """Cada parte se comprueba contra su texto; los lotes se juntan en orden."""
+    checked = [check_document(part, raw) for part, raw in zip(parts, raws, strict=True)]
+    if len(checked) == 1:
+        return checked[0]
+    return CheckedDocument(
+        is_correction=checked[0].is_correction,
+        corrected_reference=checked[0].corrected_reference,
+        lots=[lot for c in checked for lot in c.lots],
+        proposed={"parts": [raw.model_dump() for raw in raws],
+                  "part_chars": PART_CHARS, "part_lots": PART_LOTS},
+    )
+
+
+def recheck_document(document: str, proposed: dict[str, Any]) -> CheckedDocument:
+    """Vuelve a comprobar sin el LLM lo que propuso el modelo (ADR-0033), partido como entonces."""
+    if "parts" not in proposed:
+        return check_document(document, DocumentExtraction.model_validate(proposed))
+    parts = document_parts(document, proposed["part_chars"], proposed["part_lots"])
+    return check_parts(parts, [DocumentExtraction.model_validate(p) for p in proposed["parts"]])
 
 
 def check_document(document: str, raw: DocumentExtraction) -> CheckedDocument:
     source = _normalize(document)
+    proposed = raw.model_dump()
+    raw = _unwrapped(source, raw)
     lots = []
     spans = lot_spans(source, raw.lots, heading_starts(document))
     for lot, span in zip(raw.lots, spans, strict=True):
@@ -272,7 +343,7 @@ def check_document(document: str, raw: DocumentExtraction) -> CheckedDocument:
         is_correction=raw.is_correction,
         corrected_reference=check_field(source, raw.corrected_reference, "text"),
         lots=lots,
-        proposed=raw.model_dump(),
+        proposed=proposed,
     )
 
 
@@ -311,16 +382,19 @@ def lot_spans(source: str, lots: list[LotExtraction],
 
 def heading_starts(document: str) -> list[int]:
     """Posiciones, en el documento normalizado, de los párrafos que empiezan por un encabezado de
-    lote. Los párrafos son las líneas del documento."""
-    starts, position = [], 0
+    lote. Los párrafos son las líneas del documento. Si hay encabezados «Lote…», solo cuentan
+    ellos: los demás son las fincas de cada lote (ADR-0034)."""
+    starts, lot_starts, position = [], [], 0
     for line in document.split("\n"):
         text = _normalize(line)
         if not text:
             continue
         if HEADING.match(text):
             starts.append(position)
+        if LOT_HEADING.match(text):
+            lot_starts.append(position)
         position += len(text) + 1
-    return starts
+    return lot_starts or starts
 
 
 def _heading_of(source: str, lot: LotExtraction, marks: list[int]) -> int | None:
@@ -389,6 +463,26 @@ def _text_in(value: str, evidence: str) -> bool:
 
 def _words(text: str) -> list[str]:
     return re.findall(r"\w+", _fold(text))
+
+
+def _unwrapped(source: str, raw: DocumentExtraction) -> DocumentExtraction:
+    """Las citas que el modelo envuelve en una frase suya («The text states 'municipio de
+    UTIEL'»), reducidas al fragmento entre comillas que sí está en el documento (ADR-0034)."""
+    def quote(evidence: str | None) -> str | None:
+        if not evidence or _normalize(evidence) in source:
+            return evidence
+        inner = [a or b for a, b in QUOTED_IN.findall(_normalize(evidence))]
+        found = [q for q in inner if q.strip() and q in source]
+        return max(found, key=len) if found else evidence
+
+    def fix(quoted: Quoted) -> Quoted:
+        return Quoted(value=quoted.value, evidence=quote(quoted.evidence))
+
+    lots = [lot.model_copy(update={
+        **{name: fix(getattr(lot, name)) for name in ("label", *FIELD_KINDS)},
+        "property_type_evidence": quote(lot.property_type_evidence)}) for lot in raw.lots]
+    return raw.model_copy(update={"lots": lots,
+                                  "corrected_reference": fix(raw.corrected_reference)})
 
 
 def _without_span(quoted: Quoted) -> CheckedField:

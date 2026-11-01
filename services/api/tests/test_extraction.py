@@ -13,13 +13,16 @@ from conftest import add_section
 
 from housefinder.agent.extraction import (
     NO_SPAN,
+    PART_LIMIT,
     DocumentExtraction,
     LotExtraction,
     Quoted,
     check_document,
     check_field,
+    document_parts,
     extract,
     heading_starts,
+    recheck_document,
 )
 from housefinder.agent.llm import (
     FakeLLMClient,
@@ -340,6 +343,85 @@ def test_referencias_con_espacios_o_barras(external_id, value, evidence, ref):
 def test_una_referencia_tiene_que_tener_cifras():
     assert check_field("Referencia catastral: PARCELARIA", q("PARCELARIA", "Referencia "
                        "catastral: PARCELARIA"), "cadastral").status == "rechazado"
+
+
+# --- Anuncios largos (ADR-0034) ------------------------------------------------------------------
+
+# Nueve lotes de fincas rústicas en El Frasno (Zaragoza), 80.107 caracteres: no cabía en la
+# ventana del modelo, que solo veía el final y devolvía los lotes 8 y 9.
+FRASNO = (FIXTURES / "texto-BOE-B-2026-32775.txt").read_text()
+
+
+def test_un_anuncio_largo_va_por_partes_con_lotes_enteros():
+    parts = document_parts(FRASNO)
+    assert len(parts) == 9 and all(len(p) <= PART_LIMIT for p in parts)
+    preamble = FRASNO[:FRASNO.index("LOTE Nº 1.")]
+    for n, part in enumerate(parts, start=1):
+        assert part.startswith(preamble)  # el título y las condiciones de antes de los lotes
+        assert f"LOTE Nº {n}." in part and f"LOTE Nº {n + 1}." not in part
+    # Con lotes cortos, varios por parte, como mucho `max_lots`.
+    lots = "\n".join(f"Lote {n}.- Finca en calle Mayor {n}.\n" + "x" * 100 for n in range(1, 8))
+    short = document_parts("Anuncio\n" + lots, max_chars=500, max_lots=3)
+    assert [p.count("Lote ") for p in short] == [3, 3, 1]
+    assert document_parts("Anuncio corto\nLote 1.- uno\nLote 2.- dos") == [
+        "Anuncio corto\nLote 1.- uno\nLote 2.- dos"]
+
+
+def test_las_fincas_de_un_lote_no_cierran_su_tramo():
+    part = document_parts(FRASNO)[0]
+    source = " ".join(part.split())
+    assert [source[s:s + 10] for s in heading_starts(part)] == ["LOTE Nº 1."]  # no «1.1», «1.2»
+    first = lot(
+        label=q("LOTE Nº 1", "LOTE Nº 1. Expediente 2026 050 00038."),
+        property_type="rustica", property_type_evidence="Finca rústica situada en Inogés",
+        municipality=q("El Frasno", "perteneciente al término municipal de El Frasno"),
+        cadastral_ref=q("50111A109000090000BO", "su referencia catastral es la "
+                                                "50111A109000090000BO"),  # finca 1.1
+    )
+    second = lot(label=q("LOTE Nº 2", "LOTE Nº 2. Expediente 2026 050 00039."))
+    checked = check_document(FRASNO, DocumentExtraction(
+        is_correction=False, corrected_reference=NONE, lots=[first, second]))
+    # El tramo del lote 1 llega hasta el lote 2, con sus once fincas dentro.
+    assert checked.lots[0].value("cadastral_ref") == "50111A109000090000BO"
+    assert checked.lots[0].value("municipality") == "El Frasno"
+
+
+def test_cada_parte_se_extrae_y_se_comprueba_contra_su_texto():
+    def respond(instructions, document, output):
+        n = next(n for n in range(1, 10) if f"LOTE Nº {n}." in document)
+        label = f"LOTE Nº {n}."
+        # El lote 2 cita el 1: está en el documento, pero no en su parte.
+        ref = "50111A109000090000BO" if n in (1, 2) else None
+        return DocumentExtraction(is_correction=False, corrected_reference=NONE, lots=[lot(
+            label=q(label, label), property_type="rustica",
+            cadastral_ref=q(ref, ref) if ref else NONE)])
+
+    llm = FakeLLMClient(respond)
+    checked = extract(llm, FRASNO)
+    assert len(llm.calls) == 9 and len(checked.lots) == 9
+    assert checked.lots[0].value("cadastral_ref") == "50111A109000090000BO"
+    assert checked.lots[1].fields["cadastral_ref"].reason == "la cita no está en el documento"
+    assert len(checked.proposed["parts"]) == 9
+    again = recheck_document(FRASNO, checked.proposed)  # sin el LLM, partido igual
+    assert [lot.as_dict() for lot in again.lots] == [lot.as_dict() for lot in checked.lots]
+
+
+def test_la_cita_envuelta_en_una_frase_del_modelo():
+    """qwen3 escribía «The text states 'municipio de UTIEL'»: vale el fragmento entre comillas
+    que está en el documento; el valor se sigue comprobando contra él (BOE-B-2026-32556)."""
+    text = "Lote 49.- Finca rústica en el municipio de UTIEL, polígono 36, parcela 251."
+    raw = DocumentExtraction(is_correction=False, corrected_reference=NONE, lots=[lot(
+        municipality=q("Utiel", "The text states 'municipio de UTIEL'"),
+        address=q("polígono 36, parcela 251", "El texto dice «polígono 36, parcela 251»"),
+        price=q("1000", "The text states 'municipio de UTIEL'"))])
+    checked = check_document(text, raw).lots[0]
+    assert checked.value("municipality") == "Utiel"
+    assert checked.fields["municipality"].evidence == "municipio de UTIEL"
+    assert checked.value("address") == "polígono 36, parcela 251"
+    assert checked.fields["price"].reason == "el número no aparece en la cita"
+    # Lo propuesto se guarda tal como llegó.
+    assert check_document(text, raw).proposed["lots"][0]["municipality"]["evidence"] == \
+        "The text states 'municipio de UTIEL'"
 
 
 # --- De punta a punta contra la base -----------------------------------------------------------

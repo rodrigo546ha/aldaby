@@ -39,4 +39,19 @@ cuatro, parcela siete») se añadieron como respuestas aceptadas.
 - `property_type`: el modelo pone «local» a casi todo o su cita no está en el tramo.
 - Referencias dentro de tablas aplanadas (Marín: «… PONTEVEDRA 2 5441307NG2954S0001QR»).
 - Tiempo: un anuncio de cinco lotes tarda unos 15 minutos sin GPU. `LLM_TIMEOUT_S` pasa a 1800 en
-  `.env.example`; con anuncios más largos, la opción es una llamada por lote (ADR-0033).
+  `.env.example`.
+
+## Nueva extracción de los 16 anuncios (2026-11-01)
+Los 16 anuncios con lotes sin ubicar se volvieron a extraer con las reglas de ADR-0033. Antes
+estaban ubicados 26 de 62 lotes; después, 33 de 59 (cinco retirados). Lo que queda sin ubicar:
+
+| Causa | Lotes | Anuncios |
+| --- | --- | --- |
+| Anuncio largo: el modelo solo ve el final o su salida no es válida | 15 | 32556, 32775, 32777, 31848 |
+| CartoCiudad no encuentra un paraje o una partida rural | 6 | 32279, 32776, 33450, 33521, 35361 (2) |
+| Rechazo correcto: la referencia es de otro municipio o CartoCiudad lo sitúa en otro | 2 | 33611 (Requena), 35111 (Segorbe → Xixona) |
+| Cita del modelo que no está en el documento | 2 | 32776#1, 34188 (Salamanca) |
+| Referencia de Gipuzkoa con una forma que no se conoce | 1 | 33449 (`82950960147121N`) |
+
+Los anuncios largos eran el hueco grande: seis anuncios con unos 175 lotes en el texto y 15
+extraídos. Ver ADR-0034.
