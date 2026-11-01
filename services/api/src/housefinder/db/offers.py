@@ -245,7 +245,7 @@ def with_proposals(
 
 def refresh_lot(conn: psycopg.Connection, offer_id: UUID, lot: OfferRow) -> None:
     """Lo que da una extracción nueva del anuncio, si el lote no está confirmado (ADR-0033). Si
-    cambia lo que lo ubica, se desenlaza para volver a ubicarlo."""
+    cambia lo que lo ubica, o si estaba retirado, se desenlaza para volver a ubicarlo."""
     conn.execute(
         """
         UPDATE offers SET
@@ -257,7 +257,8 @@ def refresh_lot(conn: psycopg.Connection, offer_id: UUID, lot: OfferRow) -> None
             location_issue = CASE WHEN moved THEN NULL ELSE location_issue END,
             location_retry = CASE WHEN moved THEN false ELSE location_retry END
         FROM (SELECT address IS DISTINCT FROM %(address)s
-                     OR cadastral_ref IS DISTINCT FROM %(ref)s AS moved
+                     OR cadastral_ref IS DISTINCT FROM %(ref)s
+                     OR extraction_status = 'retirada' AS moved
               FROM offers WHERE id = %(id)s) AS change
         WHERE id = %(id)s AND extraction_status IN ('extraida', 'retirada')
         """,

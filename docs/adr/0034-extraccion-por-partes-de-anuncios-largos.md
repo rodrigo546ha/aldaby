@@ -48,6 +48,13 @@ Hay además dos fallos de la comprobación:
 4. **Cita entre comillas.** Si una cita no está en el documento, vale el fragmento más largo
    entre comillas que sí está. El valor se sigue comprobando contra ese fragmento, y lo propuesto
    se guarda tal como llegó.
+5. **Las fincas sueltas se juntan en su lote.** Aunque las instrucciones lo piden, qwen3 sacó El
+   Frasno como 67 lotes: cada «LOTE Nº n.» y cada una de sus fincas («9.1», «9.2»…). Antes de
+   comprobar, los elementos cuya etiqueta empieza un párrafo del mismo tramo «Lote…» se juntan en
+   uno, si como mucho uno de ellos es el propio lote. El lote se queda con la ubicación de la
+   primera finca que tiene referencia catastral (o, si ninguna la tiene, dirección), y con el
+   municipio, el precio y la garantía del primero que los da. Todo se comprueba después en el
+   tramo del lote. Lo propuesto se guarda sin juntar.
 
 Con todo esto, cada valor sigue saliendo de un texto literal del anuncio, dentro del tramo de su
 lote.
@@ -69,3 +76,9 @@ lote.
   cabe en la ventana.
 - Comprobado sin LLM sobre lo que el modelo ya había propuesto: los lotes con dirección o
   referencia pasan de 25 a 30 (32556: de 0 a 3; 32775: de 0 a 2).
+- Extraídos de nuevo por partes (2026-11-01), los seis anuncios dan 154 lotes, y 138 están
+  ubicados: 34259, 20 de 20; 31747, 8 de 9; 31848, 12 de 17; 32777, 45 de 48; 32556, 48 de 51;
+  32775, 5 de 9 (los 67 elementos del modelo, juntados). Cada parte tarda de 2 a 6 minutos con
+  qwen3:14b.
+- Un lote retirado que una extracción nueva vuelve a encontrar se desenlaza para ubicarlo de
+  nuevo: antes conservaba el aviso de retirado.

@@ -326,7 +326,7 @@ def recheck_document(document: str, proposed: dict[str, Any]) -> CheckedDocument
 def check_document(document: str, raw: DocumentExtraction) -> CheckedDocument:
     source = _normalize(document)
     proposed = raw.model_dump()
-    raw = _unwrapped(source, raw)
+    raw = _fincas_joined(source, document, _unwrapped(source, raw))
     lots = []
     spans = lot_spans(source, raw.lots, heading_starts(document))
     for lot, span in zip(raw.lots, spans, strict=True):
@@ -384,6 +384,12 @@ def heading_starts(document: str) -> list[int]:
     """Posiciones, en el documento normalizado, de los párrafos que empiezan por un encabezado de
     lote. Los párrafos son las líneas del documento. Si hay encabezados «Lote…», solo cuentan
     ellos: los demás son las fincas de cada lote (ADR-0034)."""
+    starts, lot_starts = _paragraph_starts(document)
+    return lot_starts or starts
+
+
+def _paragraph_starts(document: str) -> tuple[list[int], list[int]]:
+    """Las posiciones de todos los encabezados y las de los encabezados «Lote…»."""
     starts, lot_starts, position = [], [], 0
     for line in document.split("\n"):
         text = _normalize(line)
@@ -394,7 +400,74 @@ def heading_starts(document: str) -> list[int]:
         if LOT_HEADING.match(text):
             lot_starts.append(position)
         position += len(text) + 1
-    return lot_starts or starts
+    return starts, lot_starts
+
+
+def _fincas_joined(source: str, document: str, raw: DocumentExtraction) -> DocumentExtraction:
+    """Las fincas que el modelo saca como lotes aparte («9.1», «9.2»), juntas en el lote en cuyo
+    tramo están (ADR-0034). Un lote es lo que se subasta junto. Se juntan los elementos cuya
+    etiqueta empieza un párrafo del mismo tramo «Lote…», si como mucho uno es el propio lote."""
+    starts, lot_starts = _paragraph_starts(document)
+    if not lot_starts:
+        return raw
+
+    def lot_of(lot: LotExtraction) -> int | None:
+        label = _normalize(lot.label.evidence or "")
+        at = next((s for s in starts if label and source.startswith(label, s)), None)
+        return None if at is None else max((s for s in lot_starts if s <= at), default=None)
+
+    groups: dict[int, list[LotExtraction]] = {}
+    order: list[LotExtraction | int] = []
+    for lot in raw.lots:
+        key = lot_of(lot)
+        if key is None:
+            order.append(lot)
+            continue
+        if key not in groups:
+            order.append(key)
+        groups.setdefault(key, []).append(lot)
+    lots: list[LotExtraction] = []
+    for item in order:
+        if isinstance(item, LotExtraction):
+            lots.append(item)
+            continue
+        group = groups[item]
+        heads = [lot for lot in group if LOT_HEADING.match(_normalize(lot.label.evidence or ""))]
+        if len(group) == 1 or len(heads) > 1:
+            lots.extend(group)
+            continue
+        span = (item, next((s for s in lot_starts if s > item), len(source)))
+        fincas = [lot for lot in group if all(lot is not head for head in heads)]
+        lots.append(_joined(source, span, [*heads, *fincas]))
+    return raw.model_copy(update={"lots": lots})
+
+
+def _joined(source: str, span: Span, group: list[LotExtraction]) -> LotExtraction:
+    """El lote (el primero del grupo) con la ubicación de la primera finca que tiene referencia
+    catastral, o si no la tiene ninguna, dirección. El municipio, el precio y la garantía son los
+    del primero que los da. Todo se comprueba después en el tramo del lote, como siempre."""
+    def ok(lot: LotExtraction, name: str) -> bool:
+        return check_field(source, getattr(lot, name), FIELD_KINDS[name], span).status \
+            == "verificado"
+
+    def first(name: str, among: list[LotExtraction]) -> Quoted:
+        return next((getattr(lot, name) for lot in among if ok(lot, name)), getattr(base, name))
+
+    base = group[0]
+    place = next((lot for lot in group if ok(lot, "cadastral_ref")), None) or \
+        next((lot for lot in group if ok(lot, "address")), base)
+    typed = next((lot for lot in group if lot.property_type_evidence and _within(
+        source, _normalize(lot.property_type_evidence), span)), base)
+    return base.model_copy(update={
+        "address": first("address", [place, *group]),
+        "cadastral_ref": place.cadastral_ref,
+        "municipality": first("municipality", [place, *group]),
+        "province": first("province", [place, *group]),
+        "price": first("price", group),
+        "deposit": first("deposit", group),
+        "property_type": typed.property_type,
+        "property_type_evidence": typed.property_type_evidence,
+    })
 
 
 def _heading_of(source: str, lot: LotExtraction, marks: list[int]) -> int | None:

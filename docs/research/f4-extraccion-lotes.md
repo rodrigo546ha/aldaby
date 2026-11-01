@@ -55,3 +55,28 @@ estaban ubicados 26 de 62 lotes; después, 33 de 59 (cinco retirados). Lo que qu
 
 Los anuncios largos eran el hueco grande: seis anuncios con unos 175 lotes en el texto y 15
 extraídos. Ver ADR-0034.
+
+## Anuncios largos por partes (2026-11-01)
+Con ADR-0034, los seis anuncios largos se volvieron a extraer por partes. De los 16 anuncios de
+arriba, están ubicados 126 de 152 lotes (antes, 33 de 59). En toda la base, 171 de 198 lotes.
+
+| Anuncio | Lotes | Ubicados | Tiempo |
+| --- | --- | --- | --- |
+| 34259 | 20 | 20 | 18 min |
+| 31747 | 9 | 8 | 12 min |
+| 31848 (Asturias) | 17 | 12 | 17 min |
+| 32777 (Lugo) | 48 | 45 | 47 min |
+| 32556 (Valencia) | 51 | 48 | 55 min |
+| 32775 (El Frasno) | 9 | 5 | 43 min |
+
+Lo que se ha visto:
+
+- **El Frasno salió como 67 lotes**: el modelo sacó cada finca («9.1», «9.2»…) como un lote,
+  pese a las instrucciones, y desalineó algunas (la «9.1» con los datos de la 9.2). Ahora se
+  juntan en su lote antes de comprobar (ADR-0034, decisión 5). Quedan sin ubicar los lotes 1, 2, 6
+  y 7: el modelo no dio la referencia de ninguna de sus fincas, y la dirección nombra varias
+  parcelas, que el paso de polígono y parcela no acepta a propósito (ADR-0031).
+- **Asturias (31848)**: el texto tiene 34 líneas «Lote…», 17 lotes y 17 filas de la tabla de
+  precios («Lote 1 2ª subasta…»). Las filas también son encabezados y pueden cerrar el tramo de un
+  lote antes de su precio. Sin revisar.
+- **31747**: 13 líneas «Lote…» y 9 lotes. Sin revisar si faltan lotes.

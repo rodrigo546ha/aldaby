@@ -386,6 +386,28 @@ def test_las_fincas_de_un_lote_no_cierran_su_tramo():
     assert checked.lots[0].value("municipality") == "El Frasno"
 
 
+def test_las_fincas_que_el_modelo_saca_aparte_se_juntan_en_su_lote():
+    """qwen3 sacó El Frasno como 67 lotes: cada «LOTE Nº n.» y cada una de sus fincas («9.1»,
+    «9.2»…). Un lote es lo que se subasta junto: las fincas van en él, con la ubicación de la
+    primera que tiene referencia catastral (ADR-0034)."""
+    eighth = lot(label=q("LOTE Nº 8", "LOTE Nº 8. Expediente 2026 050 00045."))
+    ninth = lot(label=q("LOTE Nº 9", "LOTE Nº 9. Expediente 2026 050 00046."),
+                municipality=q("El Frasno", "perteneciente al término municipal de El Frasno"),
+                address=q("Inogés", "situadas en Inogés"))  # del encabezado: no ubica una finca
+    fincas = [lot(label=q(label, label), property_type="rustica",
+                  property_type_evidence="Finca rústica situada en Inogés",
+                  cadastral_ref=q(ref, f"su referencia catastral es la {ref}"))
+              for label, ref in [("9.1", "50111A101001020000BF"),
+                                 ("9.2", "50111A101001300000BQ")]]
+    checked = check_document(FRASNO, DocumentExtraction(
+        is_correction=False, corrected_reference=NONE, lots=[eighth, ninth, *fincas]))
+    assert [x.value("label") for x in checked.lots] == ["LOTE Nº 8", "LOTE Nº 9"]
+    assert checked.lots[1].value("cadastral_ref") == "50111A101001020000BF"  # la finca 9.1
+    assert checked.lots[1].value("municipality") == "El Frasno"
+    assert checked.lots[1].property_type == "rustica"
+    assert len(checked.proposed["lots"]) == 4  # lo propuesto, tal como llegó
+
+
 def test_cada_parte_se_extrae_y_se_comprueba_contra_su_texto():
     def respond(instructions, document, output):
         n = next(n for n in range(1, 10) if f"LOTE Nº {n}." in document)
@@ -591,6 +613,18 @@ def test_una_extraccion_nueva_actualiza_retira_y_no_toca_lo_confirmado(migrated_
     assert rows["BOE-B-2026-35273#1"] == ("extraida", None, True)
     assert rows["BOE-B-2026-35273#2"][0] == "confirmada"
     assert rows["BOE-B-2026-35273#3"] == ("retirada", None, True)
+
+    # Una extracción más que lo vuelve a encontrar: el #3 vuelve, sin el aviso de retirado.
+    with psycopg.connect(migrated_database, autocommit=True) as conn:
+        conn.execute("UPDATE offers SET extraction_status = 'pendiente' "
+                     "WHERE external_id = 'BOE-B-2026-35273'")
+    extract_boe_v(migrated_database, boe_client(), FakeLLMClient(lambda *a: only_first),
+                  geocoder=geocoded)
+    with psycopg.connect(migrated_database) as conn:
+        back = conn.execute("SELECT extraction_status, location_issue FROM offers "
+                            "WHERE external_id = 'BOE-B-2026-35273#3'").fetchone()
+    assert back[0] == "extraida"
+    assert back[1] != "una extracción nueva del anuncio ya no lo encuentra"
 
 
 @pytest.mark.db
