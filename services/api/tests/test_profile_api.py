@@ -5,6 +5,7 @@ import os
 from uuid import uuid4
 
 import pytest
+from conftest import add_client
 from fastapi.testclient import TestClient
 
 from housefinder.agent.extraction import Quoted
@@ -61,6 +62,8 @@ def setup(migrated_database: str):
     keys = LocalKeyProvider({"prueba": os.urandom(32)}, "prueba")
     with psycopg.connect(migrated_database) as conn:
         orgs = [create_organization(conn, f"Perfil {uuid4()}", "particular") for _ in range(2)]
+        for org in orgs:  # un cliente en cada una: la API lo usa sin elegirlo (ADR-0029)
+            add_client(conn, org)
         conn.commit()
     current = {"org": orgs[0]}
 

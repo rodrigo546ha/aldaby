@@ -136,9 +136,13 @@ def test_api_del_plan(searchable, org):  # noqa: F811
                                      get_llm: lambda: llm})
     try:
         client = TestClient(app)
+        assert client.get(f"/plans/offers/{offer}").status_code == 409  # sin cliente
+        with psycopg.connect(searchable) as conn:
+            client_of(conn, org)
+            conn.commit()
         assert client.get(f"/plans/offers/{offer}").status_code == 404  # sin perfil
         with psycopg.connect(searchable) as conn:
-            store.save_new(conn, keys, org, "local", profile())
+            store.save_new(conn, keys, org, client_of(conn, org), profile())
             conn.commit()
         plan = client.get(f"/plans/offers/{offer}").json()
         assert plan["sections"][0]["id"] == "capacidad"
@@ -159,3 +163,11 @@ def test_api_del_plan(searchable, org):  # noqa: F811
         assert explained["extra_arguments"] == []  # el modelo falso no responde
     finally:
         app.dependency_overrides.clear()
+
+
+def client_of(conn, org):  # noqa: F811
+    """El único cliente de la organización de prueba (ADR-0029): la API lo usa sin elegirlo."""
+    from conftest import add_client
+
+    row = conn.execute("SELECT id FROM clients WHERE org_id = %s", (org,)).fetchone()
+    return row[0] if row else add_client(conn, org)

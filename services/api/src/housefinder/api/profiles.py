@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from housefinder.agent.documents import DocumentKind, extract_document
 from housefinder.agent.llm import LLMOutputError
 from housefinder.agent.profiling import extract_answer
-from housefinder.api.deps import DbDep, KeysDep, LLMDep, OrgDep
+from housefinder.api.deps import ClientDep, DbDep, KeysDep, LLMDep, OrgDep
 from housefinder.db.profiles import latest_profile_id
 from housefinder.documents.reader import (
     MAX_BYTES,
@@ -106,15 +106,16 @@ def regions() -> list[RegionOut]:
 
 
 @router.post("/interviews", response_model=InterviewOut, status_code=201)
-def start_interview(db: DbDep, keys: KeysDep, org: OrgDep) -> InterviewOut:
-    started = iv.start(db, keys, org, OWNER)
+def start_interview(db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep) -> InterviewOut:
+    started = iv.start(db, keys, org, client, OWNER)
     db.commit()
     return _out(started)
 
 
 @router.get("/interviews/current", response_model=InterviewOut)
-def current_interview(db: DbDep, keys: KeysDep, org: OrgDep) -> InterviewOut:
-    found = iv.current(db, keys, org)
+def current_interview(db: DbDep, keys: KeysDep, org: OrgDep,
+                      client: ClientDep) -> InterviewOut:
+    found = iv.current(db, keys, org, client)
     if found is None:
         raise HTTPException(status_code=404, detail="No hay ninguna entrevista en curso")
     return _out(found)
@@ -203,16 +204,16 @@ class SearchAssumptionsIn(BaseModel):
 
 
 @router.get("/current", response_model=ProfileOut)
-def current_profile(db: DbDep, keys: KeysDep, org: OrgDep) -> ProfileOut:
-    profile_id, profile = _latest(db, keys, org)
+def current_profile(db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep) -> ProfileOut:
+    profile_id, profile = _latest(db, keys, org, client)
     return _profile_out(profile_id, profile)
 
 
 @router.put("/current/search", response_model=ProfileOut)
 def set_search_assumptions(body: SearchAssumptionsIn, db: DbDep, keys: KeysDep,
-                           org: OrgDep) -> ProfileOut:
+                           org: OrgDep, client: ClientDep) -> ProfileOut:
     """Cambia solo los supuestos de búsqueda del perfil confirmado."""
-    profile_id, profile = _latest(db, keys, org)
+    profile_id, profile = _latest(db, keys, org, client)
     current = profile.model_dump(mode="json")
     wanted = {k: v for k, v in body.values.items() if k in iv.SEARCH_FIELDS}
     try:
@@ -224,8 +225,8 @@ def set_search_assumptions(body: SearchAssumptionsIn, db: DbDep, keys: KeysDep,
     return _profile_out(profile_id, updated)
 
 
-def _latest(db: DbDep, keys: KeysDep, org: OrgDep) -> tuple[UUID, UserProfile]:
-    profile_id = latest_profile_id(db, org)
+def _latest(db: DbDep, keys: KeysDep, org: OrgDep, client: UUID) -> tuple[UUID, UserProfile]:
+    profile_id = latest_profile_id(db, org, client)
     if profile_id is None:
         raise HTTPException(status_code=404, detail="Todavía no hay un perfil confirmado")
     return profile_id, store.load(db, keys, profile_id, org)

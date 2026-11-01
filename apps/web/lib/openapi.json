@@ -1256,6 +1256,253 @@
         }
       }
     },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "acceso"
+        ],
+        "summary": "Login",
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "acceso"
+        ],
+        "summary": "Logout",
+        "operationId": "logout_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "acceso"
+        ],
+        "summary": "Me",
+        "operationId": "me_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/password": {
+      "post": {
+        "tags": [
+          "acceso"
+        ],
+        "summary": "Choose Password",
+        "description": "Elegir o restablecer la contraseña con el enlace de un solo uso del administrador.",
+        "operationId": "choose_password_auth_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients": {
+      "get": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "List Clients",
+        "operationId": "list_clients_clients_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClientOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Clients Clients Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "Create Client",
+        "description": "Da de alta un cliente y lo deja activo.",
+        "operationId": "create_client_clients_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClientIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/active": {
+      "put": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "Choose Client",
+        "operationId": "choose_client_clients_active_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActiveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/{client_id}": {
+      "delete": {
+        "tags": [
+          "clientes"
+        ],
+        "summary": "Delete Client",
+        "description": "Borrado definitivo del cliente, sus perfiles y su entrevista (derecho de supresión).",
+        "operationId": "delete_client_clients__client_id__delete",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Client Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -1281,6 +1528,20 @@
   },
   "components": {
     "schemas": {
+      "ActiveIn": {
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_id"
+        ],
+        "title": "ActiveIn"
+      },
       "AffordabilityRequest": {
         "properties": {
           "net_monthly_income": {
@@ -1844,6 +2105,49 @@
           "delta"
         ],
         "title": "ChangeOut"
+      },
+      "ClientIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ClientIn"
+      },
+      "ClientOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "has_profile": {
+            "type": "boolean",
+            "title": "Has Profile"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "has_profile",
+          "active"
+        ],
+        "title": "ClientOut"
       },
       "ComparisonOut": {
         "properties": {
@@ -2738,6 +3042,26 @@
         ],
         "title": "LocationOut"
       },
+      "LoginIn": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 320,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 1024,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginIn"
+      },
       "LotFieldOut": {
         "properties": {
           "name": {
@@ -2904,6 +3228,24 @@
           "location_attribution"
         ],
         "title": "LotOut"
+      },
+      "MeOut": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "MeOut"
       },
       "OfferOut": {
         "properties": {
@@ -3214,6 +3556,26 @@
           "attribution"
         ],
         "title": "OfferValuationOut"
+      },
+      "PasswordIn": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Token"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 1024,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "password"
+        ],
+        "title": "PasswordIn"
       },
       "PlanOut": {
         "properties": {

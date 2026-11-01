@@ -152,6 +152,7 @@ class Interview:
     status: Literal["en_curso", "confirmada"]
     state: State
     profile_id: UUID | None
+    client_id: UUID
 
     @property
     def next_question(self) -> Question | None:
@@ -404,12 +405,14 @@ def associated_data(interview_id: UUID, org_id: UUID) -> bytes:
     return f"{TABLE}:{interview_id}:{org_id}".encode()
 
 
-def start(conn: Connection, keys: KeyProvider, org_id: UUID, owner_id: str) -> Interview:
+def start(conn: Connection, keys: KeyProvider, org_id: UUID, client_id: UUID,
+          owner_id: str = "local") -> Interview:
+    """Una entrevista nueva para un cliente (ADR-0029)."""
     interview_id = uuid4()
     state = State()
-    insert_interview(conn, interview_id, org_id, owner_id,
+    insert_interview(conn, interview_id, org_id, client_id, owner_id,
                      _row(_seal(state, interview_id, org_id, keys)))
-    return Interview(interview_id, "en_curso", state, None)
+    return Interview(interview_id, "en_curso", state, None, client_id)
 
 
 def load(conn: Connection, keys: KeyProvider, interview_id: UUID, org_id: UUID) -> Interview:
@@ -419,8 +422,9 @@ def load(conn: Connection, keys: KeyProvider, interview_id: UUID, org_id: UUID) 
     return _open(row, interview_id, org_id, keys)
 
 
-def current(conn: Connection, keys: KeyProvider, org_id: UUID) -> Interview | None:
-    interview_id = latest_open_interview(conn, org_id)
+def current(conn: Connection, keys: KeyProvider, org_id: UUID,
+            client_id: UUID) -> Interview | None:
+    interview_id = latest_open_interview(conn, org_id, client_id)
     return load(conn, keys, interview_id, org_id) if interview_id else None
 
 
@@ -436,7 +440,7 @@ def answer(conn: Connection, keys: KeyProvider, interview_id: UUID, org_id: UUID
     checked = extract(question.text, text)
     state = apply_answer(interview.state, question.field, text, checked, today)
     update_interview(conn, interview_id, org_id, _row(_seal(state, interview_id, org_id, keys)))
-    return Interview(interview_id, "en_curso", state, None)
+    return Interview(interview_id, "en_curso", state, None, interview.client_id)
 
 
 def add_document(conn: Connection, keys: KeyProvider, interview_id: UUID, org_id: UUID,
@@ -448,7 +452,7 @@ def add_document(conn: Connection, keys: KeyProvider, interview_id: UUID, org_id
         raise InterviewClosed(str(interview_id))
     state = apply_document(interview.state, extract(kind, text), method, today)
     update_interview(conn, interview_id, org_id, _row(_seal(state, interview_id, org_id, keys)))
-    return Interview(interview_id, "en_curso", state, None)
+    return Interview(interview_id, "en_curso", state, None, interview.client_id)
 
 
 def confirm(conn: Connection, keys: KeyProvider, interview_id: UUID, org_id: UUID,
@@ -458,7 +462,7 @@ def confirm(conn: Connection, keys: KeyProvider, interview_id: UUID, org_id: UUI
     if interview.status != "en_curso":
         raise InterviewClosed(str(interview_id))
     profile = to_profile(values)
-    profile_id = store.save_new(conn, keys, org_id, owner_id, profile)
+    profile_id = store.save_new(conn, keys, org_id, interview.client_id, profile, owner_id)
     mark_confirmed(conn, interview_id, org_id, profile_id)
     return profile_id
 
@@ -473,7 +477,7 @@ def _open(row: InterviewRow, interview_id: UUID, org_id: UUID, keys: KeyProvider
     sealed = Sealed(row.sealed.data_enc, row.sealed.dek_enc, row.sealed.key_id,
                     row.sealed.version)
     state = State.from_json(open_sealed(sealed, associated_data(interview_id, org_id), keys))
-    return Interview(interview_id, row.status, state, row.profile_id)
+    return Interview(interview_id, row.status, state, row.profile_id, row.client_id)
 
 
 def _seal(state: State, interview_id: UUID, org_id: UUID, keys: KeyProvider) -> Sealed:

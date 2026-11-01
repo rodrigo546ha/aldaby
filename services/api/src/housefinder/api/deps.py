@@ -14,6 +14,7 @@ from fastapi import Depends, HTTPException, Request
 from housefinder.accounts.service import Session, session
 from housefinder.agent.llm import LLMClient, llm_from_env
 from housefinder.crypto.envelope import KeyProvider, provider_from_env
+from housefinder.db.clients import client_ids, client_in_org
 from housefinder.db.connection import Connection, DatabaseUnavailable, connect
 from housefinder.db.profiles import get_or_create_organization
 from housefinder.geo.cartociudad import Geocoded, geocode
@@ -134,3 +135,32 @@ ScenarioFinderDep = Annotated[
 ParcelFinderDep = Annotated[Callable[[str], Parcel], Depends(get_parcel_finder)]
 LinkClientDep = Annotated[httpx.Client, Depends(get_link_client)]
 ResolverDep = Annotated[Resolver, Depends(get_resolver)]
+
+
+CLIENT_COOKIE = "hf_cliente"
+
+
+def active_client(request: Request, db: Connection, org: UUID) -> UUID | None:
+    """El cliente de la cookie si es de la organización; si no, el único que tenga (ADR-0029)."""
+    raw = request.cookies.get(CLIENT_COOKIE)
+    try:
+        wanted = UUID(raw) if raw else None
+    except ValueError:
+        wanted = None
+    if wanted is not None and client_in_org(db, wanted, org):
+        return wanted
+    ids = client_ids(db, org)
+    return ids[0] if len(ids) == 1 else None
+
+
+def get_client(request: Request, db: DbDep, org: OrgDep) -> UUID:
+    """Cliente activo del profesional: perfil, búsqueda, plan y asesor trabajan con él."""
+    client = active_client(request, db, org)
+    if client is None:
+        detail = ("Elige un cliente en la barra de arriba" if client_ids(db, org)
+                  else "Crea primero un cliente en Clientes")
+        raise HTTPException(status_code=409, detail=detail)
+    return client
+
+
+ClientDep = Annotated[UUID, Depends(get_client)]

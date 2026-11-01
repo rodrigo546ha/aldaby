@@ -11,7 +11,15 @@ from pydantic import BaseModel
 
 from housefinder.advisor.tools import explain_plan
 from housefinder.agent.references import FigureSegment, OfferSegment, Segment
-from housefinder.api.deps import DbDep, KeysDep, LLMDep, OrgDep, ParamBookDep, RuleBookDep
+from housefinder.api.deps import (
+    ClientDep,
+    DbDep,
+    KeysDep,
+    LLMDep,
+    OrgDep,
+    ParamBookDep,
+    RuleBookDep,
+)
 from housefinder.api.figures import FigureOut, figure_out
 from housefinder.api.search import RentalAdviceOut, advice_out
 from housefinder.crypto.envelope import KeyProvider
@@ -91,9 +99,9 @@ class ExplanationOut(BaseModel):
 
 
 @router.get("/offers/{offer_id}", response_model=PlanOut)
-def offer_plan(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, book: ParamBookDep,
-               rules: RuleBookDep) -> PlanOut:
-    plan = _plan(db, keys, org, book, rules, offer_id)[1]
+def offer_plan(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
+               book: ParamBookDep, rules: RuleBookDep) -> PlanOut:
+    plan = _plan(db, keys, org, client, book, rules, offer_id)[1]
     return PlanOut(
         offer_id=plan.offer_id, kind=plan.kind, title=plan.title, url=plan.url,
         auction=plan.auction, passes=plan.verdict.passes, reasons=list(plan.verdict.reasons),
@@ -113,10 +121,10 @@ def offer_plan(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, book: Para
 
 @router.get("/offers/{offer_id}/pdf", response_class=Response,
             responses={200: {"content": {"application/pdf": {}}}})
-def offer_plan_pdf(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, book: ParamBookDep,
-                   rules: RuleBookDep) -> Response:
+def offer_plan_pdf(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
+                   book: ParamBookDep, rules: RuleBookDep) -> Response:
     """El plan en PDF con su anexo de fuentes (ADR-0026). No se guarda: lleva datos personales."""
-    plan = _plan(db, keys, org, book, rules, offer_id)[1]
+    plan = _plan(db, keys, org, client, book, rules, offer_id)[1]
     html = plan_html(plan, plan_sources(db, plan, rules, book), date.today())
     try:
         pdf = plan_pdf(html)
@@ -130,9 +138,9 @@ def offer_plan_pdf(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, book: 
 
 
 @router.post("/offers/{offer_id}/explanation", response_model=ExplanationOut)
-def explanation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, book: ParamBookDep,
-                rules: RuleBookDep, llm: LLMDep) -> ExplanationOut:
-    profile, plan = _plan(db, keys, org, book, rules, offer_id)
+def explanation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
+                book: ParamBookDep, rules: RuleBookDep, llm: LLMDep) -> ExplanationOut:
+    profile, plan = _plan(db, keys, org, client, book, rules, offer_id)
     explained = explain_plan(db, book, llm, org, plan, profile, rules)
     answer = explained.answer
     return ExplanationOut(
@@ -141,9 +149,9 @@ def explanation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, book: Par
         extra_arguments=explained.extra_arguments)
 
 
-def _plan(db: Connection, keys: KeyProvider, org: UUID, book: ParamBook, rules: RuleBook,
-          offer_id: UUID) -> tuple[UserProfile, FullPlan]:
-    profile_id = latest_profile_id(db, org)
+def _plan(db: Connection, keys: KeyProvider, org: UUID, client: UUID, book: ParamBook,
+          rules: RuleBook, offer_id: UUID) -> tuple[UserProfile, FullPlan]:
+    profile_id = latest_profile_id(db, org, client)
     if profile_id is None:
         raise HTTPException(status_code=404, detail="Confirma primero tu perfil en /perfil")
     profile = store.load(db, keys, profile_id, org)

@@ -40,10 +40,12 @@ def associated_data(profile_id: UUID, org_id: UUID) -> bytes:
 
 
 def save_new(
-    conn: Connection, keys: KeyProvider, org_id: UUID, owner_id: str, profile: UserProfile
+    conn: Connection, keys: KeyProvider, org_id: UUID, client_id: UUID, profile: UserProfile,
+    owner_id: str = "local",
 ) -> UUID:
+    """Una versión nueva del perfil de un cliente (ADR-0029)."""
     profile_id = uuid4()
-    insert_profile(conn, profile_id, org_id, owner_id,
+    insert_profile(conn, profile_id, org_id, client_id, owner_id,
                    _row(_seal(profile, profile_id, org_id, keys)))
     return profile_id
 

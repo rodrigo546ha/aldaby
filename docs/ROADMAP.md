@@ -347,7 +347,12 @@ umbral fijado en F0, y cada estimación con su rango.
       PostgreSQL la impone también en la base (rol `housefinder_api`). Páginas `/acceso` y
       `/acceso/contrasena`; en el Mac, `HOUSEFINDER_DEV_ORG=1` trabaja sin cuenta. Despliegue
       decidido para F7.5: un Hetzner GEX45 con todo dentro.
-- [ ] F7.2 Gestión de varios perfiles de cliente por profesional.
+- [x] F7.2 Gestión de varios perfiles de cliente por profesional.
+      *Hecho (ADR-0029):* tabla `clients` con el nombre cifrado; perfiles y entrevistas son de un
+      cliente. El cliente activo va en una cookie que la API valida contra la organización, con
+      selector en la barra y página `/clientes` (alta, cambio y borrado definitivo con sus
+      perfiles). Las ofertas y las rentas esperadas son del profesional y se evalúan con el
+      perfil del cliente activo.
 - [ ] F7.3 Planes con la marca del profesional.
 - [ ] F7.4 Avisos legales y consentimiento de tratamiento de datos.
 - [ ] F7.5 Despliegue en AWS con copias de seguridad y monitorización básica.

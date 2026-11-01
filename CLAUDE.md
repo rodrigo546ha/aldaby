@@ -85,11 +85,12 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/review_tasks.py    tareas de revisión de la vigilancia normativa
     db/profiles.py        organizaciones y perfiles (solo bytes cifrados)
     db/accounts.py        cuentas, enlaces de contraseña y sesiones (solo hashes de tokens)
+    db/clients.py         clientes de un profesional (nombre cifrado, ADR-0029)
     accounts/             cuentas con argon2id, sesiones y altas por el administrador (ADR-0028)
     db/interviews.py      entrevistas de perfil (solo bytes cifrados)
     crypto/               cifrado de sobre AES-256-GCM y claves maestras (ADR-0011)
-    profiles/             perfil del inversor: modelo que se redacta, almacén cifrado y entrevista
-                          con preguntas fijas (interview.py, ADR-0020)
+    profiles/             perfil del inversor: modelo que se redacta, almacén cifrado, entrevista
+                          con preguntas fijas (interview.py, ADR-0020) y clientes (clients.py, ADR-0029)
     db/offers.py          ofertas, versiones de lo recibido e inmuebles (deduplicación)
     offers/               canales de oferta (interfaz Channel), ingesta, ubicación y deduplicación
     offers/channels/      canales: BOE sección V (anuncios) y sección IV (avisos de subastas judiciales, ADR-0017)

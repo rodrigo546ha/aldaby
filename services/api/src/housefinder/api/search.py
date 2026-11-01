@@ -10,7 +10,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from housefinder.api.deps import DbDep, KeysDep, OrgDep, ParamBookDep, RuleBookDep
+from housefinder.api.deps import ClientDep, DbDep, KeysDep, OrgDep, ParamBookDep, RuleBookDep
 from housefinder.api.figures import FigureOut, figure_out
 from housefinder.db.offers import searchable_offer, set_rent_expectation
 from housefinder.db.profiles import latest_profile_id
@@ -76,9 +76,9 @@ class SearchOut(BaseModel):
 
 
 @router.get("", response_model=SearchOut)
-def reverse_search(db: DbDep, keys: KeysDep, org: OrgDep, book: ParamBookDep,
-                   rules: RuleBookDep) -> SearchOut:
-    profile_id = latest_profile_id(db, org)
+def reverse_search(db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
+                   book: ParamBookDep, rules: RuleBookDep) -> SearchOut:
+    profile_id = latest_profile_id(db, org, client)
     if profile_id is None:
         raise HTTPException(status_code=404, detail="Confirma primero tu perfil en /perfil")
     profile = store.load(db, keys, profile_id, org)

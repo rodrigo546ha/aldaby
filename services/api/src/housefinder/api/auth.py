@@ -18,7 +18,7 @@ from housefinder.accounts.service import (
     log_out,
     set_password,
 )
-from housefinder.api.deps import SESSION_COOKIE, DbDep, SessionDep
+from housefinder.api.deps import CLIENT_COOKIE, SESSION_COOKIE, DbDep, SessionDep
 
 router = APIRouter(prefix="/auth", tags=["acceso"])
 
@@ -47,7 +47,7 @@ def login(body: LoginIn, db: DbDep, response: Response) -> MeOut:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
     db.commit()
     response.set_cookie(SESSION_COOKIE, token, max_age=SESSION_DAYS * 86400, httponly=True,
-                        secure=_secure(), samesite="lax", path="/")
+                        secure=secure_cookies(), samesite="lax", path="/")
     return MeOut(email=opened.email, role=opened.role)
 
 
@@ -56,6 +56,7 @@ def logout(request: Request, db: DbDep, response: Response) -> None:
     log_out(db, request.cookies.get(SESSION_COOKIE))
     db.commit()
     response.delete_cookie(SESSION_COOKIE, path="/")
+    response.delete_cookie(CLIENT_COOKIE, path="/")  # el cliente activo era de esta cuenta
 
 
 @router.get("/me", response_model=MeOut)
@@ -77,6 +78,6 @@ def choose_password(body: PasswordIn, db: DbDep) -> None:
     db.commit()
 
 
-def _secure() -> bool:
+def secure_cookies() -> bool:
     """`Secure` siempre, salvo apagado a propósito en local (`HOUSEFINDER_COOKIE_SECURE=0`)."""
     return os.environ.get("HOUSEFINDER_COOKIE_SECURE") != "0"

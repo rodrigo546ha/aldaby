@@ -205,15 +205,19 @@ def test_api_de_busqueda(searchable, org):
                                      get_param_book: book, get_rule_book: rules})
     try:
         client = TestClient(app)
+        assert client.get("/search").status_code == 409  # sin cliente
+        with psycopg.connect(searchable) as conn:
+            client_of(conn, org)
+            conn.commit()
         assert client.get("/search").status_code == 404  # sin perfil confirmado
         offer = confirmed_offer(searchable, org, "venta", "150000")
         with psycopg.connect(searchable) as conn:
-            store.save_new(conn, keys, org, "local", profile(vacancy_rate=None))
+            store.save_new(conn, keys, org, client_of(conn, org), profile(vacancy_rate=None))
             conn.commit()
         missing = client.get("/search")
         assert missing.status_code == 422 and "meses vacío" in missing.json()["detail"][0]
         with psycopg.connect(searchable) as conn:
-            store.save_new(conn, keys, org, "local", profile())
+            store.save_new(conn, keys, org, client_of(conn, org), profile())
             conn.commit()
         found = client.get("/search").json()
         assert [r["offer_id"] for r in found["ranked"]] == [str(offer)]
@@ -304,3 +308,11 @@ def test_herramienta_de_tipo_de_alquiler(searchable, org):
     shown = json.dumps(sent["datos"]["tipos"], ensure_ascii=False)
     assert not any(ch.isdigit() for ch in shown), shown
     assert all("descripcion" in c for c in sent["cifras"])
+
+
+def client_of(conn, org):
+    """El único cliente de la organización de prueba (ADR-0029): la API lo usa sin elegirlo."""
+    from conftest import add_client
+
+    row = conn.execute("SELECT id FROM clients WHERE org_id = %s", (org,)).fetchone()
+    return row[0] if row else add_client(conn, org)
