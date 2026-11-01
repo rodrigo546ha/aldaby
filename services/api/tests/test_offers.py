@@ -8,15 +8,18 @@ import json
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
+from uuid import uuid4
 
 import httpx
 import pytest
 
+from housefinder.geo.cartociudad import AddressNotFound
 from housefinder.offers.channels.boe_v import BoeSectionV, is_property_sale, parse_announcement
 from housefinder.offers.ingest import Point
 from housefinder.offers.model import NormalizedOffer, RawItem
 
 FIXTURES = Path(__file__).parent / "fixtures" / "boe"
+CATASTRO = Path(__file__).parent / "fixtures" / "catastro"
 ANNOUNCEMENT = (FIXTURES / "anuncio-BOE-B-2026-35273.xml").read_bytes()
 
 
@@ -195,6 +198,10 @@ def test_canal_boe_seccion_v_de_punta_a_punta(database):
     assert "citar la fuente" in row[3]
 
 
+
+# --- Sin ubicar, con su motivo; zona según las secciones cargadas (ADR-0020) -------------------
+
+
 def cartociudad_down() -> httpx.Client:
     """CartoCiudad devuelve un 500, como el 2026-10-30 con una parcela de Sahagún (León)."""
     return httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(500)))
@@ -203,36 +210,46 @@ def cartociudad_down() -> httpx.Client:
 @pytest.mark.db
 def test_un_500_de_cartociudad_deja_la_oferta_sin_ubicar_con_su_motivo(conn):
     from housefinder.geo.cartociudad import geocode
+    from housefinder.offers.ingest import Unlocated
     from housefinder.offers.locate import offer_locator
 
     client = cartociudad_down()
-    misses: list[tuple[str, str]] = []
-    locate = offer_locator(conn, lambda address: geocode(client, address),
-                           on_miss=lambda o, reason: misses.append((o.external_id, reason)))
-    assert locate(offer("e1", address="Calle Mayor 1, Madrid", municipality="Madrid")) is None
-    assert misses == [("e1", "CartoCiudad no responde: HTTP 500")]
+    locate = offer_locator(conn, lambda address: geocode(client, address))
+    assert locate(offer("e1", address=f"Calle Mayor 1 {uuid4()}, Madrid", municipality="Madrid")
+                  ) == Unlocated("CartoCiudad no responde: HTTP 500", retry=True)
+    # Lo que no se encuentra no se reintenta.
+    missing = offer_locator(conn, lambda address: (_ for _ in ()).throw(AddressNotFound("no")))
+    assert missing(offer("e2", address=f"Calle Inexistente {uuid4()}")) == Unlocated(
+        "CartoCiudad no encuentra la dirección", retry=False)
 
 
-def test_fuera_de_la_zona_no_se_pregunta_al_catastro_ni_a_cartociudad():
+@pytest.mark.db
+def test_el_motivo_se_guarda_en_la_oferta_y_se_borra_al_ubicarla(conn):
+    from housefinder.offers.ingest import Unlocated
+
+    ingest_one(conn, [offer("e3", address="Calle Mayor 1, Madrid")], "e3",
+               locate=lambda o: Unlocated("CartoCiudad no responde: HTTP 500", retry=True))
+    query = "SELECT location_issue, location_retry FROM offers WHERE external_id = 'e3'"
+    assert conn.execute(query).fetchone() == ("CartoCiudad no responde: HTTP 500", True)
+    ingest_one(conn, [offer("e3", address="Calle Mayor 1, Madrid")], "e3",
+               locate=lambda o: Point(-3.3955, 40.6055, "cartociudad"))
+    assert conn.execute(query).fetchone() == (None, False)
+
+
+def test_fuera_de_la_zona_no_se_pregunta_a_ningun_servicio():
+    from housefinder.offers.ingest import Unlocated
     from housefinder.offers.locate import Zone, offer_locator
 
-    asked: list[str] = []
-
-    def service(query):
-        asked.append(query)
+    def service(*query):
         raise AssertionError("no se tenía que preguntar")
 
-    misses: list[tuple[str, str]] = []
-    locate = offer_locator(None, service, service, lambda o, r: misses.append((o.external_id, r)),
-                           zone=Zone.of(["Madrid"]))
+    locate = offer_locator(None, service, service, service, zone=Zone(frozenset({"28"})))
     address = "parcela 14, polígono 501. Municipio: Sahagún (León), Sahagún (León), León"
-    assert locate(offer("f1", address=address, municipality="Sahagún (León)",
-                        province="León", cadastral_ref="24137A501000140000XX")) is None
+    expected = Unlocated("provincia sin secciones cargadas: «León»", retry=True)
+    assert locate(offer("f1", address=address, municipality="Sahagún (León)", province="León",
+                        cadastral_ref="24142A50100014")) == expected
     # Sin provincia, la del paréntesis del municipio.
-    assert locate(offer("f2", address=address, municipality="Sahagún (León)")) is None
-    assert asked == []
-    assert misses == [("f1", "fuera de la zona cubierta: provincia «León»"),
-                      ("f2", "fuera de la zona cubierta: provincia «León»")]
+    assert locate(offer("f2", address=address, municipality="Sahagún (León)")) == expected
 
 
 @pytest.mark.parametrize("province, municipality, outside", [
@@ -241,18 +258,78 @@ def test_fuera_de_la_zona_no_se_pregunta_al_catastro_ni_a_cartociudad():
     ("Comunidad de Madrid", "Alcalá de Henares (Madrid)", None),
     (None, "Alcalá de Henares (MADRID)", None),
     (None, None, None),  # no lo dice: se intenta y decide la cartografía
+    ("Vizcaya", None, None),  # no está en la relación del INE (Bizkaia): no se descarta
     ("León", "Sahagún", "León"),
     ("Toledo", "Seseña (Toledo)", "Toledo"),
+    ("A Coruña", None, "A Coruña"),  # «Coruña, A» en la relación
+    ("Alacant", None, "Alacant"),  # «Alicante/Alacant»
+    (None, "Sahagún (León)", None),  # con León cargada
 ])
 def test_provincia_de_la_oferta_frente_a_la_zona(province, municipality, outside):
     from housefinder.offers.locate import Zone
 
-    zone = Zone.of(["Madrid"])
+    loaded = {"28", "24"} if municipality == "Sahagún (León)" else {"28"}
+    zone = Zone(frozenset(loaded))
     assert zone.outside(offer("g", province=province, municipality=municipality)) == outside
 
 
-def test_la_zona_por_defecto_es_la_de_las_secciones_cargadas():
+def test_relacion_de_provincias_del_ine():
+    from housefinder.offers.locate import load_provinces
+
+    provinces = load_provinces()
+    assert len(set(provinces.codes.values())) == 52
+    assert [provinces.code(n) for n in ("León", "LEON", "Illes Balears", "Balears",
+                                        "Araba", "Álava", "Coruña", "Ceuta")] == [
+        "24", "24", "07", "07", "01", "01", "15", "51"]
+
+
+@pytest.mark.db
+def test_la_zona_son_las_provincias_con_secciones_cargadas(conn):
     from housefinder.offers.locate import load_zone
 
-    assert load_zone().outside(offer("h", province="Madrid")) is None
-    assert load_zone().outside(offer("h", province="León")) == "León"
+    zone = load_zone(conn)
+    assert "28" in zone.loaded
+    assert zone.outside(offer("h", province="Madrid")) is None
+    assert zone.outside(offer("h", province="Soria")) == "Soria"
+
+
+@pytest.mark.parametrize("text, found", [
+    ("parcela 14, polígono 501. Municipio: Sahagún (León)", ("501", "14")),
+    ("Finca rústica, Polígono nº 7, Parcela n.º 123, paraje La Vega", ("7", "123")),
+    ("POLIGONO 12 PARCELA 5", ("12", "5")),
+    ("parcelas 14 y 15 del polígono 501", None),  # varias parcelas: no se elige una
+    ("parcela urbana en la calle Mayor 3", None),
+    ("polígono industrial Las Mercedes, nave 4", None),
+])
+def test_poligono_y_parcela_de_una_finca_rustica(text, found):
+    from housefinder.offers.locate import polygon_and_parcel
+
+    assert polygon_and_parcel(text) == found
+
+
+@pytest.mark.db
+def test_finca_rustica_por_poligono_y_parcela_del_catastro(conn, database):
+    from conftest import add_section
+
+    from housefinder.geo.catastro import parse_cpmrc
+    from housefinder.offers.locate import offer_locator
+
+    cpmrc = json.loads((CATASTRO / "cpmrc-24142A50100014.json").read_text())
+    add_section(database, "2413901001", -5.0542, 42.3053)
+    asked: list[tuple[str, ...]] = []
+
+    def rustic(*query):
+        asked.append(query)
+        return "24142A50100014"
+
+    def geocoder(address):
+        raise AssertionError("una finca rústica no se manda a CartoCiudad")
+
+    conn.execute("DELETE FROM geocode_cache WHERE query = 'rc:24142A50100014'")
+    locate = offer_locator(conn, geocoder, lambda ref: parse_cpmrc(cpmrc), rustic)
+    point = locate(offer("i1", municipality="Sahagún (León)", province="León", address=(
+        'parcela 14, polígono 501. Municipio: Sahagún (León), secano, paraje: "Camino de '
+        'Galleguillos", Sahagún (León), León')))
+    assert (point.lon, point.lat, point.source) == (-5.0541759331776, 42.3052703074663,
+                                                    "catastro")
+    assert asked == [("León", "Sahagún", "501", "14")]

@@ -92,6 +92,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     watch/                vigilancia del BOE y del BOCM: filtros, lectura y tareas (F2.6)
     geo/cartociudad.py    geocodificador de CartoCiudad (ADR-0009); solo geo/ e ingestion/ usan la red
     geo/catastro.py       centroide de una parcela por referencia catastral (Catastro, ADR-0016)
+                          y referencia de una finca rústica por polígono y parcela (ADR-0020)
     territory/            sección, renta, población y tendencias de una dirección como Figure
     valuation/            renta y precio estimados de un inmueble como Figure con rango (ADR-0018)
                           y escenarios de revalorización (scenarios.py, F5.5); valoración de
@@ -112,7 +113,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   data/watch/             filtros de la vigilancia del BOE y del BOCM
   data/jobs/              programaciones diarias de la cola (ADR-0010)
   data/offers/            sedes de partidos judiciales para los avisos de subastas (sin verificar)
-                          y zona cubierta (zona.yaml): un lote de otra provincia no se ubica
+                          y relación de provincias del INE (provincias.yaml, ADR-0020)
   tests/                  pytest; un test por regla de negocio
   tests/fixtures/planes/  prueba de oro: planes de F0 anonimizados (los reales, en private/)
 db/migrations/            SQL de PostgreSQL + PostGIS (NNNN_nombre.sql; no se editan una vez aplicadas)

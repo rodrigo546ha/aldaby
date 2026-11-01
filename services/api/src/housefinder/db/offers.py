@@ -88,9 +88,47 @@ def link_offer(
     conn: psycopg.Connection, offer_id: UUID, property_id: UUID, location_source: str
 ) -> None:
     conn.execute(
-        "UPDATE offers SET property_id = %s, location_source = %s WHERE id = %s",
+        """
+        UPDATE offers SET property_id = %s, location_source = %s, location_issue = NULL,
+                          location_retry = false
+        WHERE id = %s
+        """,
         (property_id, location_source, offer_id),
     )
+
+
+def mark_unlocated(conn: psycopg.Connection, offer_id: UUID, issue: str, retry: bool) -> None:
+    """Por qué la oferta se quedó sin ubicar y si merece otro intento (ADR-0020)."""
+    conn.execute("UPDATE offers SET location_issue = %s, location_retry = %s WHERE id = %s",
+                 (issue, retry, offer_id))
+
+
+@dataclass(frozen=True)
+class LotToRelocate:
+    id: UUID
+    external_id: str
+    url: str | None
+    title: str | None
+    published_on: date | None
+    address: str | None
+    cadastral_ref: str | None
+    built_area_m2: Decimal | None
+    extracted: dict[str, Any]
+
+
+def lots_to_relocate(conn: psycopg.Connection, channel: str) -> list[LotToRelocate]:
+    """Lotes sin ubicar que merecen otro intento (ADR-0020)."""
+    rows = conn.execute(
+        """
+        SELECT id, external_id, url, title, published_on, address, cadastral_ref, built_area_m2,
+               coalesce(extracted, '{}'::jsonb)
+        FROM offers
+        WHERE channel = %s AND kind = 'lote' AND location_retry AND property_id IS NULL
+        ORDER BY external_id
+        """,
+        (channel,),
+    ).fetchall()
+    return [LotToRelocate(*r) for r in rows]
 
 
 def unlink_offer(conn: psycopg.Connection, offer_id: UUID) -> None:

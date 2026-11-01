@@ -12,11 +12,15 @@ from conftest import add_section
 
 from housefinder.geo.catastro import (
     CPMRC_URL,
+    DNPPP_URL,
+    CatastroUnavailable,
     Parcel,
     ParcelNotFound,
     find_parcel,
+    find_rustic_parcel,
     parcel_ref,
     parse_cpmrc,
+    parse_dnppp,
 )
 from housefinder.offers.locate import parcel_in_municipality
 
@@ -65,12 +69,46 @@ def test_peticion_y_caida_del_servicio():
     assert dict(seen[0].url.params) == {"SRS": "EPSG:4326", "RefCat": "7744401VK6874N"}
 
     down = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(503)))
-    with pytest.raises(ParcelNotFound, match="no responde"):
+    with pytest.raises(CatastroUnavailable, match="^El Catastro no responde: HTTP 503$"):
         find_parcel(down, "7744401VK6874N")
+
+
+# Consulta_DNPPP real del 2026-11-01: Sahagún (León), polígono 501, parcela 14 (BOE-B-2026-34360).
+RUSTIC = json.loads((FIXTURES / "dnppp-sahagun-501-14.json").read_text())
+NO_RUSTIC = json.loads((FIXTURES / "dnppp-no-existe.json").read_text())
+
+
+def test_referencia_de_una_finca_rustica_por_poligono_y_parcela():
+    assert parse_dnppp(RUSTIC) == "24142A50100014"
+    with pytest.raises(ParcelNotFound, match="NO EXISTE NINGÚN INMUEBLE"):
+        parse_dnppp(NO_RUSTIC)
+    two = {"consulta_dnpppResult": {"lrcdnp": {"rcdnp": [
+        {"rc": {"pc1": "24142A5", "pc2": "0100014"}},
+        {"rc": {"pc1": "24142A5", "pc2": "0100015"}}]}}}
+    with pytest.raises(ParcelNotFound, match="2 parcelas"):
+        parse_dnppp(two)
+
+
+def test_peticion_por_poligono_y_parcela():
+    seen: list[httpx.Request] = []
+
+    def ok(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json=RUSTIC)
+
+    client = httpx.Client(transport=httpx.MockTransport(ok))
+    assert find_rustic_parcel(client, "León", "Sahagún", "501", "14") == "24142A50100014"
+    assert str(seen[0].url).startswith(DNPPP_URL)
+    assert dict(seen[0].url.params) == {"Provincia": "León", "Municipio": "Sahagún",
+                                        "Poligono": "501", "Parcela": "14"}
+    down = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(500)))
+    with pytest.raises(CatastroUnavailable, match="HTTP 500"):
+        find_rustic_parcel(down, "León", "Sahagún", "501", "14")
 
 
 @pytest.mark.parametrize("expected, address, same", [
     ("Alcalá de Henares", "CR CAMARMA 21 ALCALA DE HENARES (MADRID)", True),
+    ("Sahagún (León)", "Polígono 501 Parcela 14 C GALLEGUILLOS. SAHAGUN (LEÓN)", True),
     ("alcala de henares", "CR CAMARMA 21 ALCALA DE HENARES (MADRID)", True),
     ("Madrid", "CR CAMARMA 21 ALCALA DE HENARES (MADRID)", False),  # la provincia no cuenta
     ("Alcalá de Henares", "CL ALCALA DE HENARES 3 MADRID (MADRID)", False),  # la calle tampoco
@@ -88,6 +126,7 @@ psycopg = pytest.importorskip("psycopg")
 @pytest.mark.db
 def test_el_catastro_va_primero_y_la_direccion_es_la_reserva(migrated_database: str):
     from housefinder.geo.cartociudad import Geocoded
+    from housefinder.offers.ingest import Unlocated
     from housefinder.offers.locate import offer_locator
     from housefinder.offers.model import NormalizedOffer
 
@@ -126,4 +165,6 @@ def test_el_catastro_va_primero_y_la_direccion_es_la_reserva(migrated_database: 
         for ref in ("9999999XX9999X", "1111111XX1111X"):
             fallback = locate(offer(ref, f"Calle Mayor 1 {uuid4()}"))
             assert fallback is not None and fallback.source == "cartociudad"
-        assert locate(offer("9999999XX9999X")) is None  # sin dirección, sin ubicar
+        # Sin dirección, sin ubicar, con el motivo; no se reintenta.
+        assert locate(offer("9999999XX9999X")) == Unlocated(
+            "9999999XX9999X: LA REFERENCIA CATASTRAL NO EXISTE", retry=False)

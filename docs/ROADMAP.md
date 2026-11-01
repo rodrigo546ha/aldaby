@@ -189,9 +189,10 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       `Channel`, lo recibido siempre guardado con sus versiones, inmueble por referencia catastral o
       a menos de 30 m con superficie a ±5 %, y sección censal asignada. Ubicación por referencia
       catastral (Catastro, ADR-0016) y, si no, por dirección; el punto tiene que caer en la zona
-      cargada y en el municipio de la oferta. Un lote de otra provincia (`data/offers/zona.yaml`)
-      no se manda a ubicar, y un fallo de CartoCiudad lo deja sin ubicar sin tumbar el trabajo; los
-      dos casos van con su motivo en `unlocated` del informe de `extract_offers`.
+      cargada y en el municipio de la oferta. *Ampliado (ADR-0020):* fincas rústicas por polígono
+      y parcela del Catastro; un fallo de un servicio deja el lote sin ubicar sin tumbar el trabajo;
+      el motivo se guarda en la oferta (`location_issue`) y `extract_offers` reintenta sin el LLM
+      los fallos y los lotes de provincias sin secciones; la zona son las secciones cargadas.
 - [x] F4.7 Trabajos programados con reintentos y alertas de fallo (ADR-0010): cola en PostgreSQL con
       `SKIP LOCKED`, esperas de 1 minuto a 1 hora, programaciones por intervalo, alertas en el log
       `housefinder.alertas`; `make worker`. Primeros tipos: `ine_sections` e `ine_adrh`.

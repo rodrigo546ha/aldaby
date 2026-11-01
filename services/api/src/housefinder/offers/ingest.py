@@ -21,6 +21,7 @@ from housefinder.db.offers import (
     find_property_by_ref,
     find_property_near,
     link_offer,
+    mark_unlocated,
     offer_property,
     upsert_offer,
 )
@@ -38,8 +39,16 @@ class Point:
     source: str  # 'canal', 'cartociudad', 'catastro'…
 
 
-# Ubica una oferta: punto o None si no se puede (dirección imprecisa, sin datos…).
-Locator = Callable[[NormalizedOffer], Point | None]
+@dataclass(frozen=True)
+class Unlocated:
+    """Por qué no se pudo ubicar (ADR-0020)."""
+
+    reason: str
+    retry: bool  # otro intento puede ubicarla: un servicio falló o falta cargar su provincia
+
+
+# Ubica una oferta: punto, o por qué no se puede (None si no hay nada que contar).
+Locator = Callable[[NormalizedOffer], Point | Unlocated | None]
 
 
 @dataclass
@@ -95,14 +104,17 @@ def locate_and_link(
     offer: NormalizedOffer,
     locate: Locator,
     report: IngestReport,
-) -> None:
-    """Ubica la oferta y la enlaza con su inmueble (existente o nuevo, con su sección)."""
+) -> Unlocated | None:
+    """Ubica la oferta y la enlaza con su inmueble (existente o nuevo, con su sección). Si no se
+    puede, guarda el motivo en la oferta y lo devuelve."""
     if offer_property(conn, offer_id) is not None or not offer.locatable:
-        return
+        return None
     point = (Point(offer.lon, offer.lat, "canal")
              if offer.lon is not None and offer.lat is not None else locate(offer))
-    if point is None:
-        return
+    if not isinstance(point, Point):
+        if point is not None:
+            mark_unlocated(conn, offer_id, point.reason, point.retry)
+        return point
     report.located += 1
     property_id = _match_property(conn, offer, point)
     if property_id is None:
@@ -118,6 +130,7 @@ def locate_and_link(
     else:
         report.properties_matched += 1
     link_offer(conn, offer_id, property_id, point.source)
+    return None
 
 
 def _match_property(conn: Connection, offer: NormalizedOffer, point: Point) -> UUID | None:

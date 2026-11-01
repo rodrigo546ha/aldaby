@@ -15,11 +15,11 @@ from housefinder.db.offers import link_corrections
 from housefinder.db.review_tasks import mark_issue_read, read_issues
 from housefinder.db.sections import SourceRecord, upsert_source
 from housefinder.geo.cartociudad import Geocoded, geocode
-from housefinder.geo.catastro import Parcel, find_parcel
+from housefinder.geo.catastro import Parcel, find_parcel, find_rustic_parcel
 from housefinder.offers.channels import boe_subastas, boe_v
 from housefinder.offers.extract import extract_pending
 from housefinder.offers.ingest import IngestReport, ingest
-from housefinder.offers.locate import offer_locator
+from housefinder.offers.locate import RusticFinder, offer_locator
 from housefinder.offers.pasted import extract_link
 
 ISSUES = "offers_boe_v"  # días del BOE ya leídos por este canal
@@ -101,18 +101,16 @@ def extract_boe_v(
     geocoder: Callable[[str], Geocoded] | None = None,
     parcels: Callable[[str], Parcel] | None = None,
     only: list[str] | None = None,
+    rustic: RusticFinder | None = None,
 ) -> dict[str, Any]:
     """Extrae los lotes de hasta `limit` anuncios pendientes del BOE (ADR-0013); con `only`,
-    solo esos (BOE-B-…). `unlocated`: los lotes que no se mandaron a ubicar o cuyo servicio falló,
-    con el motivo."""
-    unlocated: list[dict[str, str]] = []
+    solo esos (BOE-B-…). Antes, vuelve a ubicar los lotes que esperaban otro intento (ADR-0020);
+    `unlocated` lista los que se quedan sin ubicar, con el motivo."""
     with connect(conninfo) as conn:
         locate = offer_locator(conn, geocoder or (lambda address: geocode(client, address)),
                                parcels or (lambda ref: find_parcel(client, ref)),
-                               lambda offer, reason: unlocated.append(
-                                   {"offer": offer.external_id, "reason": reason}))
-        report = extract_pending(conn, llm, boe_v.NAME, locate, limit, only)
-    return {**report.as_dict(), "unlocated": unlocated}
+                               rustic or (lambda *args: find_rustic_parcel(client, *args)))
+        return extract_pending(conn, llm, boe_v.NAME, locate, limit, only).as_dict()
 
 
 def extract_pasted(conninfo: str, llm: LLMClient, offer_id: UUID) -> dict[str, Any]:

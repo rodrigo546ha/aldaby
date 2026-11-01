@@ -1,8 +1,0 @@
-# Zona en la que se ubican las ofertas (F4.6): la de las secciones censales cargadas
-# (`make sections PROVINCE=28`). Un punto fuera de ellas se descarta de todos modos; por eso un lote
-# cuya provincia, o la que va entre paréntesis tras su municipio, no es una de estas no se manda al
-# Catastro ni a CartoCiudad. Si se cargan las secciones de otra provincia, hay que añadirla aquí.
-# Clave: código INE de la provincia; valor: su nombre.
-territory: ES-13
-provinces:
-  "28": Madrid

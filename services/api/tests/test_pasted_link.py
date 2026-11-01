@@ -338,6 +338,7 @@ def test_mismo_municipio(expected, matched, same):
 @pytest.mark.db
 def test_un_punto_fuera_de_la_zona_o_de_otro_municipio_no_ubica(migrated_database: str):
     from housefinder.geo.cartociudad import Geocoded
+    from housefinder.offers.ingest import Point, Unlocated
     from housefinder.offers.locate import offer_locator
     from housefinder.offers.model import NormalizedOffer
 
@@ -357,8 +358,11 @@ def test_un_punto_fuera_de_la_zona_o_de_otro_municipio_no_ubica(migrated_databas
     with psycopg.connect(migrated_database) as conn:
         locate = offer_locator(conn, geocoder)
         # El punto de Murcia no cae en ninguna sección cargada.
-        assert locate(offer(f"Carretera M-119 21 {uuid4()}", None)) is None
+        assert locate(offer(f"Carretera M-119 21 {uuid4()}", None)) == Unlocated(
+            "CartoCiudad la sitúa fuera de las secciones cargadas: CALLE ALCALA HENARES 119, "
+            "30720 Santiago de la Ribera", retry=False)
         # Dentro de la zona, pero la localidad encontrada no es el municipio de la oferta.
-        assert locate(offer(f"Calle Mayor 1 {uuid4()}", "Alcalá de Henares")) is None
+        assert not isinstance(locate(offer(f"Calle Mayor 1 {uuid4()}", "Alcalá de Henares")),
+                              Point)
         # Sin municipio en la oferta, basta con caer en la zona.
         assert locate(offer(f"Calle Mayor 1 {uuid4()}", None)) is not None

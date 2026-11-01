@@ -26,9 +26,11 @@ from housefinder.agent.llm import (
     llm_from_env,
 )
 from housefinder.geo.cartociudad import FIND_URL
+from housefinder.geo.catastro import CPMRC_URL
 from housefinder.offers.channels.boe_v import parse_announcement
 
 FIXTURES = Path(__file__).parent / "fixtures" / "boe"
+CATASTRO = Path(__file__).parent / "fixtures" / "catastro"
 ANNOUNCEMENT = (FIXTURES / "anuncio-BOE-B-2026-35273.xml").read_bytes()
 TEXT = "\n".join(parse_announcement(ANNOUNCEMENT)["texto"])
 NONE = Quoted(value=None, evidence=None)
@@ -264,6 +266,8 @@ def boe_client(cartociudad: int = 404, seen: list[str] | None = None) -> httpx.C
             return httpx.Response(200, content=ANNOUNCEMENT)
         if url.startswith(FIND_URL):
             return httpx.Response(cartociudad)
+        if url.startswith(CPMRC_URL):  # el Catastro no tiene la referencia
+            return httpx.Response(200, content=(CATASTRO / "cpmrc-no-existe.json").read_bytes())
         return httpx.Response(404)
 
     return httpx.Client(transport=httpx.MockTransport(handler))
@@ -281,6 +285,9 @@ def pending_again(conninfo: str) -> None:
                      "WHERE parent_id IN (SELECT id FROM offers "
                      "WHERE external_id = 'BOE-B-2026-35273')")
         conn.execute("DELETE FROM geocode_cache WHERE query LIKE 'carretera m-119%'")
+        # Ningún lote esperando otro intento: extract_offers los volvería a ubicar al empezar.
+        conn.execute("UPDATE offers SET location_issue = NULL, location_retry = false "
+                     "WHERE kind = 'lote'")
         # Solo este anuncio pendiente: otros tests dejan anuncios del canal en la misma base.
         conn.execute("UPDATE offers SET extraction_status = 'no_aplica' "
                      "WHERE channel = 'boe_seccion_v' AND kind = 'anuncio' "
@@ -298,19 +305,17 @@ def test_lotes_extraidos_ubicados_y_pendientes_de_confirmar(migrated_database: s
     failing = FakeLLMClient(lambda *a: (_ for _ in ()).throw(LLMOutputError("prueba")))
     assert extract_boe_v(migrated_database, boe_client(), failing)["failed"] >= 1
 
-    geocoded: list[str] = []
+    asked: list[str] = []
 
     def geocoder(address):
-        from housefinder.geo.cartociudad import Geocoded
-
-        geocoded.append(address)
-        return Geocoded(-3.36, 40.51, "portal", address, "28005", None)
+        asked.append(address)
+        return geocoded(address)
 
     llm = FakeLLMClient(lambda *a: EXTRACTION)
     add_section(migrated_database, "2800597001", -3.36, 40.51)
     report = extract_boe_v(migrated_database, boe_client(), llm, geocoder=geocoder)
     assert report["lots"] == 2 and report["rejected_fields"] == 2
-    assert geocoded == ["Carretera M-119 (Camarma-Valdeavero), n°21, Alcalá de Henares, Madrid"]
+    assert asked == ["Carretera M-119 (Camarma-Valdeavero), n°21, Alcalá de Henares, Madrid"]
     with psycopg.connect(migrated_database) as conn:
         lots = conn.execute(
             "SELECT external_id, extraction_status, auction_min_bid, deposit_required, "
@@ -327,25 +332,48 @@ def test_lotes_extraidos_ubicados_y_pendientes_de_confirmar(migrated_database: s
     assert extract_boe_v(migrated_database, boe_client(), llm)["announcements"] == 0
 
 
+
+def geocoded(address):
+    """CartoCiudad de vuelta: la dirección de la Carretera M-119 dentro de la sección de prueba."""
+    from housefinder.geo.cartociudad import Geocoded
+
+    return Geocoded(-3.36, 40.51, "portal", address, "28005", None)
+
+
 @pytest.mark.db
-def test_un_500_de_cartociudad_no_tumba_la_extraccion(migrated_database: str):
+def test_un_500_de_cartociudad_no_tumba_la_extraccion_y_el_lote_se_reintenta_sin_llm(
+        migrated_database: str):
     """Trabajos 10 y 15 (2026-10-30 y 31): un 500 de CartoCiudad con un lote hacía fallar
-    `extract_offers` entero y cada reintento repetía la extracción con el LLM."""
+    `extract_offers` entero y cada reintento repetía la extracción con el LLM (ADR-0020)."""
     from housefinder.offers.run import extract_boe_v, run_boe_v
 
     pending_again(migrated_database)
+    add_section(migrated_database, "2800597001", -3.36, 40.51)
     run_boe_v(migrated_database, boe_client(), date(2026, 10, 28), days=1)
     seen: list[str] = []
     llm = FakeLLMClient(lambda *a: EXTRACTION)
     report = extract_boe_v(migrated_database, boe_client(cartociudad=500, seen=seen), llm)
     assert (report["announcements"], report["lots"], report["located"]) == (1, 2, 0)
-    assert report["unlocated"] == [{"offer": "BOE-B-2026-35273#1",
-                                    "reason": "CartoCiudad no responde: HTTP 500"}]
+    unlocated = {u["offer"]: u for u in report["unlocated"]}
+    # Lote 1: CartoCiudad falló; el Catastro no tenía la referencia. Se reintentará.
+    assert unlocated["BOE-B-2026-35273#1"]["reason"].startswith(
+        "CartoCiudad no responde: HTTP 500; 7744401VK6874N0001FJ: Catastro: ")
+    assert unlocated["BOE-B-2026-35273#1"]["retry"] is True
+    # Lote 2: solo la referencia, que el Catastro no tiene. No hay nada que reintentar.
+    assert unlocated["BOE-B-2026-35273#2"]["retry"] is False
     assert sum(url.startswith(FIND_URL) for url in seen) == 1
+    lot_1 = ("SELECT property_id IS NOT NULL, location_issue IS NOT NULL, location_retry "
+             "FROM offers WHERE external_id = 'BOE-B-2026-35273#1'")
     with psycopg.connect(migrated_database) as conn:
         parent = conn.execute("SELECT extraction_status FROM offers "
                               "WHERE external_id = 'BOE-B-2026-35273'").fetchone()
-        located = conn.execute("SELECT count(property_id) FROM offers "
-                               "WHERE external_id LIKE 'BOE-B-2026-35273#%'").fetchone()
-    # El anuncio queda extraído: un reintento no vuelve a pasar por el LLM.
-    assert parent == ("extraida",) and located == (0,)
+        assert conn.execute(lot_1).fetchone() == (False, True, True)
+    assert parent == ("extraida",)  # un reintento no vuelve a pasar el anuncio por el LLM
+
+    # Al día siguiente CartoCiudad responde: el lote se ubica con lo ya extraído, sin el LLM.
+    no_llm = FakeLLMClient(lambda *a: (_ for _ in ()).throw(AssertionError("sin LLM")))
+    again = extract_boe_v(migrated_database, boe_client(), no_llm, geocoder=geocoded)
+    assert (again["retried"], again["located"], again["announcements"]) == (1, 1, 0)
+    assert again["unlocated"] == []
+    with psycopg.connect(migrated_database) as conn:
+        assert conn.execute(lot_1).fetchone() == (True, False, False)

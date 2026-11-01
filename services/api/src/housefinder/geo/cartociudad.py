@@ -52,6 +52,12 @@ def normalize(address: str) -> str:
     return re.sub(r"\s+", " ", text)
 
 
+def query_text(address: str) -> str:
+    """Sin comillas dobles ni barras invertidas: CartoCiudad lee la consulta como JSON y responde
+    un 500 con ellas (comprobado el 2026-11-01, ADR-0020)."""
+    return " ".join(re.sub(r'["\\]', "", address).split())
+
+
 def parse_find(payload: Any) -> Geocoded:
     if not isinstance(payload, dict) or payload.get("lat") is None or payload.get("lng") is None:
         raise AddressNotFound("CartoCiudad no encuentra la dirección")
@@ -73,7 +79,7 @@ def parse_find(payload: Any) -> Geocoded:
 def geocode(client: httpx.Client, address: str) -> Geocoded:
     if not address.strip():
         raise AddressNotFound("Dirección vacía")
-    response = client.get(FIND_URL, params={"q": address}, timeout=20)
+    response = client.get(FIND_URL, params={"q": query_text(address)}, timeout=20)
     response.raise_for_status()
     if not response.content.strip():
         raise AddressNotFound("CartoCiudad no encuentra la dirección")

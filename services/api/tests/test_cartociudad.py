@@ -53,3 +53,17 @@ def test_respuesta_vacia_del_servicio():
 
 def test_normalizacion_para_la_cache():
     assert normalize("  Calle  de ALCALÁ   1 ") == "calle de alcalá 1"
+
+
+def test_sin_comillas_dobles_ni_barras_invertidas():
+    """Con ellas CartoCiudad responde un 500 (BOE-B-2026-34360, comprobado el 2026-11-01)."""
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(204)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    with pytest.raises(AddressNotFound):
+        geocode(client, 'parcela 14, paraje: "Camino de Galleguillos", Sahagún\\ (León)')
+    assert seen[0].url.params["q"] == "parcela 14, paraje: Camino de Galleguillos, Sahagún (León)"

@@ -115,6 +115,14 @@ def latest_vintage(conn: psycopg.Connection) -> int | None:
     return int(row[0]) if row and row[0] is not None else None
 
 
+def loaded_provinces(conn: psycopg.Connection, vintage: int) -> frozenset[str]:
+    """Códigos INE de las provincias con secciones cargadas en la cartografía `vintage`."""
+    rows = conn.execute(
+        "SELECT DISTINCT left(code, 2) FROM census_sections WHERE vintage = %s", (vintage,)
+    ).fetchall()
+    return frozenset(r[0] for r in rows)
+
+
 def section_source(conn: psycopg.Connection, code: str, vintage: int) -> str | None:
     row = conn.execute(
         "SELECT source_id FROM census_sections WHERE code = %s AND vintage = %s",
