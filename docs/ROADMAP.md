@@ -189,7 +189,7 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       `Channel`, lo recibido siempre guardado con sus versiones, inmueble por referencia catastral o
       a menos de 30 m con superficie a ±5 %, y sección censal asignada. Ubicación por referencia
       catastral (Catastro, ADR-0016) y, si no, por dirección; el punto tiene que caer en la zona
-      cargada y en el municipio de la oferta. *Ampliado (ADR-0020):* fincas rústicas por polígono
+      cargada y en el municipio de la oferta. *Ampliado (ADR-0031):* fincas rústicas por polígono
       y parcela del Catastro; un fallo de un servicio deja el lote sin ubicar sin tumbar el trabajo;
       el motivo se guarda en la oferta (`location_issue`) y `extract_offers` reintenta sin el LLM
       los fallos y los lotes de provincias sin secciones; la zona son las secciones cargadas.

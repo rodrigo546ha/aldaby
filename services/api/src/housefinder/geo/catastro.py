@@ -1,5 +1,5 @@
 """Coordenadas de una parcela por su referencia catastral (ADR-0016) y referencia de una finca
-rústica por su polígono y parcela (ADR-0020).
+rústica por su polígono y parcela (ADR-0031).
 
 Servicio `Consulta_CPMRC` de la Sede Electrónica del Catastro, versión WCF con salida JSON:
 información catastral no protegida, sin registro. Devuelve el centroide de la parcela y su

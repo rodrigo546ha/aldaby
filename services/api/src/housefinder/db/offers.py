@@ -98,7 +98,7 @@ def link_offer(
 
 
 def mark_unlocated(conn: psycopg.Connection, offer_id: UUID, issue: str, retry: bool) -> None:
-    """Por qué la oferta se quedó sin ubicar y si merece otro intento (ADR-0020)."""
+    """Por qué la oferta se quedó sin ubicar y si merece otro intento (ADR-0031)."""
     conn.execute("UPDATE offers SET location_issue = %s, location_retry = %s WHERE id = %s",
                  (issue, retry, offer_id))
 
@@ -117,7 +117,7 @@ class LotToRelocate:
 
 
 def lots_to_relocate(conn: psycopg.Connection, channel: str) -> list[LotToRelocate]:
-    """Lotes sin ubicar que merecen otro intento (ADR-0020)."""
+    """Lotes sin ubicar que merecen otro intento (ADR-0031)."""
     rows = conn.execute(
         """
         SELECT id, external_id, url, title, published_on, address, cadastral_ref, built_area_m2,

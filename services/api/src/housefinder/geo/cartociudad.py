@@ -54,7 +54,7 @@ def normalize(address: str) -> str:
 
 def query_text(address: str) -> str:
     """Sin comillas dobles ni barras invertidas: CartoCiudad lee la consulta como JSON y responde
-    un 500 con ellas (comprobado el 2026-11-01, ADR-0020)."""
+    un 500 con ellas (comprobado el 2026-11-01, ADR-0031)."""
     return " ".join(re.sub(r'["\\]', "", address).split())
 
 

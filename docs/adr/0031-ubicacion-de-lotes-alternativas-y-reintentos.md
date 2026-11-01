@@ -1,4 +1,4 @@
-# ADR-0020: Ubicación de lotes: polígono y parcela, reintentos y zona según las secciones
+# ADR-0031: Ubicación de lotes: polígono y parcela, reintentos y zona según las secciones
 
 **Estado:** Aceptada · **Fecha:** 2026-11-01 · **Decide:** Rodrigo (pide alternativas a las fuentes
 que fallan y datos coherentes y precisos en cualquier región)
@@ -34,7 +34,7 @@ repetía la extracción con el LLM. Comprobado el 2026-11-01 con peticiones real
 3. **Un fallo de un servicio no tumba el trabajo.** Si CartoCiudad o el Catastro no responden
    (error HTTP, red, respuesta que no es JSON), la oferta se queda sin ubicar y se sigue con la
    siguiente vía y con el resto del lote.
-4. **El motivo se guarda en la oferta** (`offers.location_issue`, migración 0012) junto con si
+4. **El motivo se guarda en la oferta** (`offers.location_issue`, migración 0018) junto con si
    merece otro intento (`location_retry`): sí si un servicio falló o la oferta es de una provincia
    sin secciones cargadas; no si ninguna vía la encuentra. Al ubicarla, se borra. El informe de
    `extract_offers` lo lista en `unlocated`.

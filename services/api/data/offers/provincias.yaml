@@ -1,4 +1,4 @@
-# Provincias con su código INE, para saber de qué provincia dice ser una oferta (F4.6, ADR-0020).
+# Provincias con su código INE, para saber de qué provincia dice ser una oferta (F4.6, ADR-0031).
 # Copia literal de la «Relación de provincias con sus códigos» del INE, leída el 2026-11-01.
 # Un nombre con barra (Alicante/Alacant) vale en las dos lenguas; uno con coma (Coruña, A) vale
 # también con el artículo delante (A Coruña). Un nombre que no está aquí no descarta la oferta.

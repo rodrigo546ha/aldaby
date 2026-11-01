@@ -41,7 +41,7 @@ class Point:
 
 @dataclass(frozen=True)
 class Unlocated:
-    """Por qué no se pudo ubicar (ADR-0020)."""
+    """Por qué no se pudo ubicar (ADR-0031)."""
 
     reason: str
     retry: bool  # otro intento puede ubicarla: un servicio falló o falta cargar su provincia

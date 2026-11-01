@@ -348,7 +348,7 @@ def geocoded(address):
 def test_un_500_de_cartociudad_no_tumba_la_extraccion_y_el_lote_se_reintenta_sin_llm(
         migrated_database: str):
     """Trabajos 10 y 15 (2026-10-30 y 31): un 500 de CartoCiudad con un lote hacía fallar
-    `extract_offers` entero y cada reintento repetía la extracción con el LLM (ADR-0020)."""
+    `extract_offers` entero y cada reintento repetía la extracción con el LLM (ADR-0031)."""
     from housefinder.offers.run import extract_boe_v, run_boe_v
 
     pending_again(migrated_database)
@@ -381,3 +381,6 @@ def test_un_500_de_cartociudad_no_tumba_la_extraccion_y_el_lote_se_reintenta_sin
     assert again["unlocated"] == []
     with psycopg.connect(migrated_database) as conn:
         assert conn.execute(lot_1).fetchone() == (True, False, False)
+        # Sin ubicar otra vez: la búsqueda inversa lee los lotes ubicados de la misma base.
+        conn.execute("UPDATE offers SET property_id = NULL, location_source = NULL "
+                     "WHERE external_id LIKE 'BOE-B-2026-35273#%'")

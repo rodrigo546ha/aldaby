@@ -104,7 +104,7 @@ def extract_boe_v(
     rustic: RusticFinder | None = None,
 ) -> dict[str, Any]:
     """Extrae los lotes de hasta `limit` anuncios pendientes del BOE (ADR-0013); con `only`,
-    solo esos (BOE-B-…). Antes, vuelve a ubicar los lotes que esperaban otro intento (ADR-0020);
+    solo esos (BOE-B-…). Antes, vuelve a ubicar los lotes que esperaban otro intento (ADR-0031);
     `unlocated` lista los que se quedan sin ubicar, con el motivo."""
     with connect(conninfo) as conn:
         locate = offer_locator(conn, geocoder or (lambda address: geocode(client, address)),

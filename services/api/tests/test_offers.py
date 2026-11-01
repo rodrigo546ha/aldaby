@@ -199,7 +199,7 @@ def test_canal_boe_seccion_v_de_punta_a_punta(database):
 
 
 
-# --- Sin ubicar, con su motivo; zona según las secciones cargadas (ADR-0020) -------------------
+# --- Sin ubicar, con su motivo; zona según las secciones cargadas (ADR-0031) -------------------
 
 
 def cartociudad_down() -> httpx.Client:

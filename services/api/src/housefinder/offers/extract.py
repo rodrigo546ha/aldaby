@@ -7,7 +7,7 @@ usuario lo confirme. Si el modelo declina o la salida no vale, el anuncio sigue 
 
 Un lote que no se pudo ubicar por un fallo de un servicio o porque su provincia no tenía secciones
 cargadas se vuelve a ubicar al empezar la siguiente vez, con lo ya extraído y sin el LLM
-(ADR-0020).
+(ADR-0031).
 """
 
 from __future__ import annotations

@@ -1,5 +1,5 @@
 """Ubicar una oferta: por referencia catastral (Catastro, ADR-0016), por polígono y parcela
-(Catastro, ADR-0020) y, si no, por dirección (CartoCiudad con caché, ADR-0009).
+(Catastro, ADR-0031) y, si no, por dirección (CartoCiudad con caché, ADR-0009).
 
 Un resultado no se acepta a ciegas. CartoCiudad devolvió para «Carretera M-119 21, Alcalá de
 Henares» la «CALLE ALCALA HENARES 119, 30720 Santiago de la Ribera», en Murcia: leyó el municipio
@@ -10,7 +10,7 @@ municipio. Si no, se prueba la siguiente vía o la oferta se queda sin ubicar.
 Antes de preguntar fuera, la provincia: una oferta que dice ser de una provincia sin secciones
 cargadas no se manda a ningún servicio. Si un servicio falla, se sigue con la siguiente vía y, sin
 punto, la oferta se queda sin ubicar con el motivo y a la espera de otro intento; el trabajo sigue
-(ADR-0020).
+(ADR-0031).
 """
 
 from __future__ import annotations
