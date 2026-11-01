@@ -98,3 +98,16 @@ pequeños, los dos anuncios se volvieron a extraer:
 - En 31848 faltan los precios de los lotes 9 a 14: el modelo no los da (no es la comprobación).
 
 En toda la base, 181 de 202 lotes ubicados.
+
+## Lotes sin ubicar por fallo nuestro (2026-11-02)
+De los 21 lotes sin ubicar, 14 eran fallos nuestros (ADR-0035). Recomprobados sin LLM, quedan
+7 de 202:
+
+| Lote | Causa | Qué haría falta |
+| --- | --- | --- |
+| 32775#1, #2, #7 (El Frasno) | El modelo no dio la referencia de ninguna finca; la dirección nombra varias parcelas | Pedir al modelo la referencia de la primera finca, o ubicar por la primera parcela nombrada |
+| 32775#6 (El Frasno) | El modelo no dio nada que lo ubique | Lo mismo |
+| 32777#17 (Mondoñedo) | Paraje rural sin referencia; CartoCiudad no lo conoce | Nomenclátor geográfico (IGN), si sus condiciones lo permiten |
+| 32777#35 (A Pontenova) | El Catastro dice que la referencia del BOE no existe | Nada: avisar en el lote |
+| 33611#1 (Requena) | La parcela es de otro municipio que el que dice el anuncio | Nada: rechazo correcto |
+

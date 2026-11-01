@@ -61,6 +61,9 @@ NAVARRA_LAYERS = ("CATAST_Pol_ParcelaRusti", "CATAST_Pol_ParcelaUrba", "CATAST_P
 
 # Provincia (20), municipio (3), parcela (7) y la unidad: «2001860840226144403E».
 GIPUZKOA_REF = re.compile(r"^20(\d{3})(\d{7})[0-9A-Z]{0,8}$")
+# Sin provincia ni municipio delante: parcela (7), siete cifras más y una letra,
+# «82950960147121N» (Donostia, BOE-B-2026-33449). Solo si la oferta es de Gipuzkoa.
+GIPUZKOA_SHORT_REF = re.compile(r"^(\d{7})\d{7}[A-Z]$")
 BIZKAIA_REF = re.compile(r"^48\.?(\d{3})\.?(\d{4})\.?(\d{5})$")
 ARABA_REF = re.compile(r"^\d{8}$")
 
@@ -72,6 +75,8 @@ def foral_key(province: str | None, cadastral_ref: str) -> tuple[str, str] | Non
     ref = re.sub(r"\s", "", cadastral_ref).upper()
     if province in (None, "20") and (found := GIPUZKOA_REF.match(ref)):
         return "20", f"{found[1]}-{found[2]}"
+    if province == "20" and (found := GIPUZKOA_SHORT_REF.match(ref)):
+        return "20", f"-{found[1]}"  # sin municipio: la parcela vigente con ese número
     if province in (None, "48") and (found := BIZKAIA_REF.match(ref)):
         return "48", f"48.{found[1]}.{found[2]}.{found[3]}"
     if province == "01" and ARABA_REF.match(ref):
@@ -88,7 +93,9 @@ def find_foral_parcel(client: httpx.Client, province: str, key: str) -> Parcel:
     if province == "20":
         municipality, number = key.split("-")
         root = _get_xml(client, GIPUZKOA, "cp:CadastralParcel", _cp_filter(number), {})
-        features = [f for f in _parcels(root) if f.local_id.startswith(f"{municipality}-{number}-")]
+        features = [f for f in _parcels(root)
+                    if f.local_id.startswith(f"{municipality}-{number}-")
+                    or (not municipality and f.local_id.split("-")[1:2] == [number])]
     elif province == "48":
         root = _get_xml(client, BIZKAIA, "cp:CadastralParcel", _cp_filter(key), {})
         features = _parcels(root)

@@ -484,6 +484,28 @@ def test_varias_referencias_en_una_cita_vale_la_primera():
     assert checked.lots[0].value("cadastral_ref") == "37014A514013730000BY"
 
 
+@pytest.mark.parametrize("value, evidence, ref", [
+    # BOE-B-2026-32279: «Referencias Catastrales: A y B.»
+    ("06029A006000170000GO y 06029A006000180000GK",
+     "Referencias Catastrales: 06029A006000170000GO y 06029A006000180000GK.",
+     "06029A006000170000GO"),
+    # BOE-B-2026-34188: texto delante de la referencia.
+    ("Plaza de Garaje nº 9: 7531501TL7473S0009GB", "Plaza de Garaje nº 9: 7531501TL7473S0009GB.",
+     "7531501TL7473S0009GB"),
+    # Una referencia con espacios no son varias.
+    ("33007D0 0300282 0000 LM", "Le corresponde la referencia catastral 33007D0 0300282 0000 LM.",
+     "33007D003002820000LM"),
+    # La primera tiene que estar en la cita.
+    ("06029A006000170000GO y 06029A006000180000GK", "Referencia: 06029A006000180000GK.", None),
+])
+def test_de_varias_referencias_en_un_valor_vale_la_primera(value, evidence, ref):
+    text = f"Anuncio.\nLote 1.- Finca. {evidence}"
+    checked = check_document(text, DocumentExtraction(
+        is_correction=False, corrected_reference=NONE,
+        lots=[lot(label=q("Lote 1", "Lote 1.-"), cadastral_ref=q(value, evidence))]))
+    assert checked.lots[0].value("cadastral_ref") == ref
+
+
 def test_cada_parte_se_extrae_y_se_comprueba_contra_su_texto():
     def respond(instructions, document, output):
         n = next(n for n in range(1, 10) if f"LOTE Nº {n}." in document)
@@ -587,7 +609,8 @@ def test_lotes_extraidos_ubicados_y_pendientes_de_confirmar(migrated_database: s
     add_section(migrated_database, "2800597001", -3.36, 40.51)
     report = extract_boe_v(migrated_database, boe_client(), llm, geocoder=geocoder)
     assert report["lots"] == 2 and report["rejected_fields"] == 2
-    assert asked == ["Carretera M-119 (Camarma-Valdeavero), n°21, Alcalá de Henares, Madrid"]
+    # Como la busca CartoCiudad: sin la provincia, sin «n°» ni paréntesis (`address_queries`).
+    assert asked == ["Carretera M-119 21, Alcalá de Henares"]
     with psycopg.connect(migrated_database) as conn:
         lots = conn.execute(
             "SELECT external_id, extraction_status, auction_min_bid, deposit_required, "

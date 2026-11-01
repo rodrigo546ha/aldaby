@@ -202,7 +202,8 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       Anuncios largos por partes de lotes enteros (ADR-0034): no cabían en la ventana del modelo,
       que solo veía los últimos lotes; las fincas de un lote no cierran su tramo y, si el modelo
       las saca aparte, se juntan en él. La fila de precios de un lote no empieza otro, y un lote
-      que el modelo se salta se le pide otra vez, solo.
+      que el modelo se salta se le pide otra vez, solo. Nombres de lugar comparables entre las
+      lenguas oficiales y consultas a CartoCiudad como «calle número, municipio» (ADR-0035).
 - [x] F4.7 Trabajos programados con reintentos y alertas de fallo (ADR-0010): cola en PostgreSQL con
       `SKIP LOCKED`, esperas de 1 minuto a 1 hora, programaciones por intervalo, alertas en el log
       `housefinder.alertas`; `make worker`. Primeros tipos: `ine_sections` e `ine_adrh`.

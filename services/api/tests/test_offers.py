@@ -293,6 +293,29 @@ def test_la_zona_son_las_provincias_con_secciones_cargadas(conn):
     assert zone.outside(offer("h", province="Soria")) == "Soria"
 
 
+@pytest.mark.parametrize("address, municipality, province, queries", [
+    # Con la provincia, «nº» o una coma ante el número, CartoCiudad no la encuentra.
+    ("Paseo de la Marina nº 5, Garrucha (Almería), Garrucha, Almería", "Garrucha", "Almería",
+     ["Paseo de la Marina 5, Garrucha", "Marina 5, Garrucha"]),
+    ("Plaza Cuartel, 6, CACÍN, Granada", "CACÍN", "Granada",
+     ["Plaza Cuartel 6, CACÍN", "Cuartel 6, CACÍN"]),
+    ("Callejuela del Cuartel, 2, FRECHILLA, Palencia", "FRECHILLA", "Palencia",
+     ["Callejuela del Cuartel 2, FRECHILLA", "Cuartel 2, FRECHILLA"]),
+    # El municipio entero: con «Donostia» solo, CartoCiudad da Milagro (Navarra).
+    ("avenida de Navarra nº 20, Donostia/San Sebastián (Gipuzkoa), Donostia/San Sebastián, "
+     "Gipuzkoa", "Donostia/San Sebastián", "Gipuzkoa",
+     ["avenida de Navarra 20, Donostia/San Sebastián", "Navarra 20, Donostia/San Sebastián"]),
+    ("Calle Mayor 3, Getafe", None, None, ["Calle Mayor 3, Getafe", "Mayor 3, Getafe"]),
+])
+def test_la_direccion_como_la_busca_cartociudad(address, municipality, province, queries):
+    from housefinder.offers.locate import address_queries
+    from housefinder.offers.model import NormalizedOffer
+
+    offer = NormalizedOffer(external_id="x", kind="lote", url="", title="", address=address,
+                            municipality=municipality, province=province)
+    assert address_queries(offer) == list(dict.fromkeys([*queries, address]))
+
+
 @pytest.mark.parametrize("text, found", [
     ("parcela 14, polígono 501. Municipio: Sahagún (León)", ("501", "14")),
     ("Finca rústica, Polígono nº 7, Parcela n.º 123, paraje La Vega", ("7", "123")),
@@ -300,6 +323,10 @@ def test_la_zona_son_las_provincias_con_secciones_cargadas(conn):
     ("parcelas 14 y 15 del polígono 501", None),  # varias parcelas: no se elige una
     ("parcela urbana en la calle Mayor 3", None),
     ("polígono industrial Las Mercedes, nave 4", None),
+    # En letra (BOE-B-2026-32279).
+    ("polígono ciento cuatro, parcela siete, Campillo de Llerena", ("104", "7")),
+    ("parcela ciento cincuenta y dos del polígono veintitrés", ("23", "152")),
+    ("polígono dos mil trescientos uno, parcela cuarenta", ("2301", "40")),
 ])
 def test_poligono_y_parcela_de_una_finca_rustica(text, found):
     from housefinder.offers.locate import polygon_and_parcel

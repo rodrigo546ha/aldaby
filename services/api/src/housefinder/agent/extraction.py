@@ -35,6 +35,7 @@ NUMBER_IN_TEXT = re.compile(r"\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?")
 # 14, 18 o 20 caracteres de la Dirección General; 8 a 20 de los catastros forales (ADR-0032).
 CADASTRAL_REF = re.compile(r"^(?=(?:\D*\d){5})[0-9A-Z]{8,20}$")
 REF_SEPARATORS = re.compile(r"[\s./-]")
+REF_PIECES = re.compile(r"[,;:]|\s+(?:y|e|i)\s+")  # entre las referencias de un valor
 # Encabezado de un lote al principio de un párrafo: «Lote nº 2.-», «LOTE ÚNICO», «Finca 1:»,
 # «1.», «1.1», «Dos)». Solo sirve para cerrar tramos y para el tramo de reserva: no crea lotes.
 HEADING = re.compile(
@@ -639,17 +640,27 @@ def _unwrapped(source: str, raw: DocumentExtraction) -> DocumentExtraction:
 
 
 def _first_ref(source: str, quoted: Quoted) -> Quoted:
-    """Las referencias de las fincas de un lote, juntas en un valor («A, B, C») y en una cita de
-    varias líneas que no es seguida en el documento (BOE-B-2026-31747): la primera, con la línea
-    de la cita que la tiene, si esa línea está en el documento."""
-    if not quoted.value or not quoted.evidence or _normalize(quoted.evidence) in source:
+    """Las referencias de las fincas de un lote juntas en un valor («A; B y C», BOE-B-2026-32776)
+    o con texto delante («Plaza de Garaje nº 9: A», 34188): la primera pieza con forma de
+    referencia, como la ubicación de su primera finca. Si la cita son varias líneas que no van
+    seguidas en el documento (31747), la línea de la cita que la tiene. Después se comprueba como
+    siempre contra la cita."""
+    if not quoted.value or not quoted.evidence:
         return quoted
-    first = re.split(r"[,;]", quoted.value)[0].strip()
-    ref = REF_SEPARATORS.sub("", first).upper()
+    quoted_in_source = _normalize(quoted.evidence) in source
+    if quoted_in_source and CADASTRAL_REF.match(REF_SEPARATORS.sub("", quoted.value).upper()):
+        return quoted
+    refs = [REF_SEPARATORS.sub("", piece).upper()
+            for piece in REF_PIECES.split(quoted.value)]
+    ref = next((r for r in refs if CADASTRAL_REF.match(r)), None)
+    if ref is None:
+        return quoted
+    if quoted_in_source:
+        return Quoted(value=ref, evidence=quoted.evidence)
     for line in quoted.evidence.split("\n"):
         text = _normalize(line)
         if text and text in source and ref in REF_SEPARATORS.sub("", text).upper():
-            return Quoted(value=first, evidence=line.strip())
+            return Quoted(value=ref, evidence=line.strip())
     return quoted
 
 

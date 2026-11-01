@@ -116,6 +116,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     geo/catastro.py       centroide de una parcela por referencia catastral (Catastro, ADR-0016)
                           y referencia de una finca rústica por polígono y parcela (ADR-0031)
     geo/foral.py          parcelas de los catastros forales: País Vasco y Navarra (ADR-0032)
+    geo/names.py          nombres de lugar comparables entre las lenguas oficiales (ADR-0035)
     territory/            sección, renta, población y tendencias de una dirección como Figure
     valuation/            renta y precio estimados de un inmueble como Figure con rango (ADR-0018)
                           y escenarios de revalorización (scenarios.py, F5.5); valoración de

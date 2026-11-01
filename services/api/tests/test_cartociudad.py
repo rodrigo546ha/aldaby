@@ -87,6 +87,21 @@ def test_codigo_ine_de_un_municipio_por_cualquiera_de_sus_nombres():
     gerona = json.loads((CANDIDATES / "candidates-gerona.json").read_text())
     assert parse_municipalities(gerona, "Gerona") == frozenset()
     assert parse_municipalities(gerona, "Girona") == {"17079"}
+    # El anuncio en castellano, CartoCiudad en valenciano y sin el municipio entre los candidatos:
+    # sus calles y topónimos dicen de qué municipio son.
+    algimia = json.loads((CANDIDATES / "candidates-algimia-de-alfara.json").read_text())
+    assert parse_municipalities(algimia, "Algimia de Alfara") == {"46030"}
+    assert parse_municipalities(algimia, "Torres") == frozenset()  # «Torres Torres» no
+
+
+def test_nombres_iguales_en_las_lenguas_oficiales():
+    from housefinder.geo.names import place_key
+
+    assert place_key("Algimia de Alfara") == place_key("Algímia d'Alfara") == "algimia alfara"
+    assert place_key("Cangas de Narcea") == place_key("CANGAS DEL NARCEA")
+    assert place_key("Pobra do Brollón, A") == place_key("A Pobra de Brollón")
+    assert place_key("Donostia-San Sebastián") == place_key("Donostia/San Sebastián")
+    assert place_key("Alcalá de Henares") != place_key("Alcalá del Júcar")
 
 
 def test_peticion_de_candidatos():

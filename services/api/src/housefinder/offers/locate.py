@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import json
 import re
-import unicodedata
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -32,6 +31,7 @@ from housefinder.geo.cartociudad import AddressNotFound, AddressTooVague, Geocod
 from housefinder.geo.catastro import CatastroUnavailable, Parcel, ParcelNotFound
 from housefinder.geo.foral import FORAL, NAVARRA, SERVICES, foral_key, navarra_key
 from housefinder.geo.http import failure
+from housefinder.geo.names import fold, place_key
 from housefinder.offers.ingest import Locator, Point, Unlocated
 from housefinder.offers.model import NormalizedOffer
 from housefinder.territory.service import (
@@ -48,6 +48,32 @@ PROVINCE_PREFIX = re.compile(r"^(?:provincia|comunidad(?: foral| autonoma)?) de 
 POLYGON = re.compile(r"\bpol[ií]gono\s*(?:n[º°o.]*\s*)?(\d+)\b", re.IGNORECASE)
 PARCEL = re.compile(r"\bparcela\s*(?:n[º°o.]*\s*)?(\d+)\b", re.IGNORECASE)
 SEVERAL = re.compile(r"\b(?:parcelas|pol[ií]gonos)\b", re.IGNORECASE)
+# «polígono ciento cuatro, parcela siete» (BOE-B-2026-32279): el número en letra tras la palabra.
+_WORD = r"(?!pol[ií]gono\b|parcela\b)[^\W\d_]+"
+SPELLED = re.compile(rf"\b(pol[ií]gono|parcela)(\s+(?:n[º°o.]*\s*)?)({_WORD}(?:\s+{_WORD})*)",
+                     re.IGNORECASE)
+NUMBER_WORDS = {
+    "cero": 0, "un": 1, "uno": 1, "una": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5,
+    "seis": 6, "siete": 7, "ocho": 8, "nueve": 9, "diez": 10, "once": 11, "doce": 12, "trece": 13,
+    "catorce": 14, "quince": 15, "dieciseis": 16, "diecisiete": 17, "dieciocho": 18,
+    "diecinueve": 19, "veinte": 20, "veintiun": 21, "veintiuno": 21, "veintiuna": 21,
+    "veintidos": 22, "veintitres": 23, "veinticuatro": 24, "veinticinco": 25, "veintiseis": 26,
+    "veintisiete": 27, "veintiocho": 28, "veintinueve": 29, "treinta": 30, "cuarenta": 40,
+    "cincuenta": 50, "sesenta": 60, "setenta": 70, "ochenta": 80, "noventa": 90, "cien": 100,
+    "ciento": 100, "doscientos": 200, "doscientas": 200, "trescientos": 300, "trescientas": 300,
+    "cuatrocientos": 400, "cuatrocientas": 400, "quinientos": 500, "quinientas": 500,
+    "seiscientos": 600, "seiscientas": 600, "setecientos": 700, "setecientas": 700,
+    "ochocientos": 800, "ochocientas": 800, "novecientos": 900, "novecientas": 900, "mil": 1000,
+}
+# Para CartoCiudad: «nº 5» es «5», y sin el tipo de vía encuentra lo que no conoce por su tipo
+# («Callejuela del Cuartel 2, Frechilla» no; «Cuartel 2, Frechilla» sí).
+NUMBER_SIGN = re.compile(r"\b(?:n(?:\.\s*)?[º°o]\.?|núm\.?|número)\s*(?=\d)", re.IGNORECASE)
+VIA_TYPE = re.compile(
+    r"^(?:calle|c/|avenida|avda\.?|plaza|pza\.?|paseo|callejuela|calleja|callejón|camino|"
+    r"carretera|ctra\.?|travesía|ronda|glorieta|pasaje|cuesta|costanilla)\s+"
+    r"(?:(?:de la|de los|de las|del|de)\s+)?", re.IGNORECASE)
+ALL_PARENS = re.compile(r"\([^()]*\)")
+NUMBER_PART = re.compile(r"\d+\s*[A-Za-z]?")
 
 
 @dataclass(frozen=True)
@@ -55,21 +81,28 @@ class Provinces:
     """Relación de provincias del INE (`data/offers/provincias.yaml`): nombre → código."""
 
     codes: dict[str, str]
+    names: dict[str, str] = field(default_factory=dict)  # código → nombre del INE
 
     def code(self, name: str) -> str | None:
         return self.codes.get(_province(name))
+
+    def name(self, code: str) -> str | None:
+        return self.names.get(code)
 
 
 def load_provinces(path: Path | None = None) -> Provinces:
     data = yaml.safe_load((path or default_provinces_path()).read_text(encoding="utf-8"))
     codes: dict[str, str] = {}
+    names: dict[str, str] = {}
     for code, literal in data["provinces"].items():
+        base, _, article = str(literal).split("/")[0].partition(",")
+        names[str(code)] = f"{article.strip()} {base}".strip()  # «Balears, Illes» → «Illes Balears»
         for name in str(literal).split("/"):  # «Alicante/Alacant»
             base, _, article = name.partition(",")  # «Coruña, A»
             codes[_province(base)] = str(code)
             if article.strip():
                 codes[_province(f"{article} {base}")] = str(code)
-    return Provinces(codes)
+    return Provinces(codes, names)
 
 
 def default_provinces_path() -> Path:
@@ -201,11 +234,27 @@ def offer_locator(
             return None
         return at_foral(offer, "31", navarra_key(codes.pop(), *rural), notes, pending)
 
+    def province_of(municipality: str, pending: list[str]) -> str | None:
+        """La provincia de un municipio que el anuncio no la dice: la de los lugares de CartoCiudad
+        que se llaman así, si son todos de la misma (BOE-B-2026-32279, Campillo de Llerena)."""
+        if municipalities is None:
+            return None
+        try:
+            codes = municipalities(municipality)
+        except (httpx.HTTPError, json.JSONDecodeError) as exc:
+            pending.append(f"CartoCiudad no responde al buscar el municipio: {failure(exc)}")
+            return None
+        prefixes = {code[:2] for code in codes}
+        return covered.provinces.name(prefixes.pop()) if len(prefixes) == 1 else None
+
     def by_polygon(offer: NormalizedOffer, notes: list[str], pending: list[str]) -> Point | None:
         rural = polygon_and_parcel(offer.address or "")
-        province = offer.province or stated_province(offer.municipality)
         municipality = municipality_name(offer.municipality or "")
-        if rural is None or not province or not municipality:
+        if rural is None or not municipality:
+            return None
+        province = offer.province or stated_province(offer.municipality) or \
+            province_of(municipality, pending)
+        if not province:
             return None
         code = covered.provinces.code(province)
         if code == NAVARRA.province:
@@ -223,28 +272,34 @@ def offer_locator(
         return at_parcel(offer, ref, notes, pending)
 
     def by_address(offer: NormalizedOffer, notes: list[str], pending: list[str]) -> Point | None:
-        if not offer.address:
-            return None
-        try:
-            found = locate_address(conn, offer.address, geocoder)
-        except AddressNotFound:
-            notes.append("CartoCiudad no encuentra la dirección")
-            return None
-        except AddressTooVague as exc:
-            notes.append(f"CartoCiudad: {exc}")
-            return None
-        except (httpx.HTTPError, json.JSONDecodeError) as exc:
-            pending.append(f"CartoCiudad no responde: {failure(exc)}")
-            return None
-        if not _covered(conn, found.lon, found.lat):
-            pending.append(f"CartoCiudad la sitúa fuera de las secciones cargadas: {found.matched}")
-            return None
-        if offer.municipality and not in_municipality(
-                offer.municipality, found.lon, found.lat,
-                same_municipality(offer.municipality, found.matched), pending):
-            notes.append(f"CartoCiudad la sitúa en otro municipio: {found.matched}")
-            return None
-        return Point(found.lon, found.lat, "cartociudad")
+        """Cada forma de la dirección (`address_queries`) hasta que una da un punto del
+        municipio; si ninguna, el motivo de la última."""
+        missed: str | None = None
+        for query in address_queries(offer):
+            try:
+                found = locate_address(conn, query, geocoder)
+            except AddressNotFound:
+                missed = "CartoCiudad no encuentra la dirección"
+                continue
+            except AddressTooVague as exc:
+                missed = f"CartoCiudad: {exc}"
+                continue
+            except (httpx.HTTPError, json.JSONDecodeError) as exc:
+                pending.append(f"CartoCiudad no responde: {failure(exc)}")
+                return None
+            if not _covered(conn, found.lon, found.lat):
+                pending.append(
+                    f"CartoCiudad la sitúa fuera de las secciones cargadas: {found.matched}")
+                return None
+            if offer.municipality and not in_municipality(
+                    offer.municipality, found.lon, found.lat,
+                    same_municipality(offer.municipality, found.matched), pending):
+                missed = f"CartoCiudad la sitúa en otro municipio: {found.matched}"
+                continue
+            return Point(found.lon, found.lat, "cartociudad")
+        if missed is not None:
+            notes.append(missed)
+        return None
 
     def locate(offer: NormalizedOffer) -> Point | Unlocated | None:
         province = covered.outside(offer)
@@ -271,9 +326,37 @@ def _covered(conn: Connection, lon: float, lat: float) -> bool:
     return vintage is not None and section_at(conn, lon, lat, vintage) is not None
 
 
+def address_queries(offer: NormalizedOffer) -> list[str]:
+    """La dirección como la busca CartoCiudad: «calle número, municipio», sin la provincia, sin
+    «nº», sin paréntesis y sin el municipio repetido. Con la provincia detrás, CartoCiudad no
+    encuentra «Paseo de la Marina 5, Garrucha»; con «Donostia» solo, da la avenida de Navarra de
+    Milagro (Navarra): el municipio va entero. Después, la misma sin el tipo de vía y, por último,
+    la dirección tal como llegó."""
+    address = (offer.address or "").strip()
+    if not address:
+        return []
+    town = municipality_name(offer.municipality) if offer.municipality else None
+    drop = {place_key(name) for name in (town, offer.province,
+                                         stated_province(offer.municipality)) if name}
+    kept: list[str] = []
+    for part in (NUMBER_SIGN.sub("", p).strip() for p in ALL_PARENS.sub("", address).split(",")):
+        if not part or place_key(part) in drop:
+            continue
+        if kept and NUMBER_PART.fullmatch(part):  # «Plaza Cuartel, 6» → «Plaza Cuartel 6»
+            kept[-1] += f" {part}"
+            continue
+        kept.append(part)
+    street = " ".join(", ".join(kept).split())
+    bare = VIA_TYPE.sub("", street, count=1)
+    queries = [street, bare] if bare and bare != street else [street]
+    queries = [f"{q}, {town}" if town else q for q in queries if q] + [address]
+    return list(dict.fromkeys(queries))
+
+
 def polygon_and_parcel(text: str) -> tuple[str, str] | None:
-    """Polígono y parcela de una finca rústica («parcela 14, polígono 501»). None si falta uno o
-    el texto nombra más de uno (varias parcelas en un lote)."""
+    """Polígono y parcela de una finca rústica («parcela 14, polígono 501», también en letra).
+    None si falta uno o el texto nombra más de uno (varias parcelas en un lote)."""
+    text = SPELLED.sub(_in_digits, text)
     if SEVERAL.search(text):
         return None
     polygons = set(POLYGON.findall(text))
@@ -281,6 +364,28 @@ def polygon_and_parcel(text: str) -> tuple[str, str] | None:
     if len(polygons) != 1 or len(parcels) != 1:
         return None
     return polygons.pop(), parcels.pop()
+
+
+def _in_digits(found: re.Match[str]) -> str:
+    """«polígono ciento cuatro» → «polígono 104»: las palabras de número que siguen; el resto
+    queda igual."""
+    words = found.group(3).split()
+    count = 0
+    while count < len(words) and (fold(words[count]) in NUMBER_WORDS or (
+            fold(words[count]) == "y" and count + 1 < len(words)
+            and fold(words[count + 1]) in NUMBER_WORDS and count > 0)):
+        count += 1
+    if count == 0:
+        return found.group(0)
+    total = current = 0
+    for word in (fold(w) for w in words[:count] if fold(w) != "y"):
+        if word == "mil":
+            total += max(current, 1) * 1000
+            current = 0
+        else:
+            current += NUMBER_WORDS[word]
+    rest = " ".join(words[count:])
+    return f"{found.group(1)}{found.group(2)}{total + current}" + (f" {rest}" if rest else "")
 
 
 def stated_province(municipality: str | None) -> str | None:
@@ -299,9 +404,9 @@ def parcel_in_municipality(expected: str, address: str | None) -> bool:
     municipio, antes de la provincia entre paréntesis."""
     if not address:
         return False
-    place = _place(IN_PARENS.sub("", address))
-    wanted = _place(municipality_name(expected))
-    return bool(wanted) and re.search(rf"(?<!\w){re.escape(wanted)}$", place) is not None
+    place = place_key(IN_PARENS.sub("", address))
+    return any(re.search(rf"(?<!\w){re.escape(wanted)}$", place) is not None
+               for wanted in _wanted(expected))
 
 
 def same_municipality(expected: str, matched: str | None) -> bool:
@@ -312,21 +417,19 @@ def same_municipality(expected: str, matched: str | None) -> bool:
     """
     if not matched or "," not in matched:
         return False
-    place = _place(matched.split(",", 1)[1])
-    wanted = _place(municipality_name(expected))
-    return bool(wanted) and re.search(rf"(?<!\w){re.escape(wanted)}(?!\w)", place) is not None
+    place = place_key(matched.split(",", 1)[1])
+    return any(re.search(rf"(?<!\w){re.escape(wanted)}(?!\w)", place) is not None
+               for wanted in _wanted(expected))
 
 
-def _place(name: str) -> str:
-    """El nombre para compararlo: sin mayúsculas ni tildes, y «del» como «de» («Cangas de
-    Narcea», como lo escribe un anuncio, es «CANGAS DEL NARCEA» en el Catastro)."""
-    return re.sub(r"\bdel\b", "de", _fold(name))
+def _wanted(expected: str) -> list[str]:
+    """Las claves del municipio de la oferta en cualquiera de las lenguas oficiales
+    (`geo/names.py`). Si nombra dos («Monforte de Lemos e Pobra de Brollón», un paraje entre
+    los dos), vale cualquiera."""
+    name = municipality_name(expected)
+    names = [name, *re.split(r"\s+(?:y|e|i)\s+", name)]
+    return [key for key in dict.fromkeys(place_key(n) for n in names) if key]
 
 
 def _province(name: str) -> str:
-    return PROVINCE_PREFIX.sub("", _fold(name))
-
-
-def _fold(text: str) -> str:
-    decomposed = unicodedata.normalize("NFKD", text.casefold())
-    return " ".join("".join(c for c in decomposed if not unicodedata.combining(c)).split())
+    return PROVINCE_PREFIX.sub("", fold(name))

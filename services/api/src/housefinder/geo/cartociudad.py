@@ -14,6 +14,8 @@ from typing import Any
 
 import httpx
 
+from housefinder.geo.names import place_key
+
 FIND_URL = "https://www.cartociudad.es/geocoder/api/geocoder/find"
 CANDIDATES_URL = "https://www.cartociudad.es/geocoder/api/geocoder/candidates"
 SOURCE_ID = "cartociudad-geocoder"
@@ -100,22 +102,23 @@ def municipality_codes(client: httpx.Client, name: str) -> frozenset[str]:
 
 
 def parse_municipalities(payload: Any, name: str) -> frozenset[str]:
-    """Solo el nombre exacto, sin mayúsculas ni tildes: `candidates` también trae parecidos
-    («Gironella» para «Gerona») y calles con ese nombre en otros municipios."""
-    wanted = fold(name)
+    """Solo el mismo nombre, en cualquiera de las lenguas oficiales (`geo/names.py`):
+    `candidates` también trae parecidos («Gironella» para «Gerona») y calles con ese nombre en
+    otros municipios. De cada candidato vale su municipio (`muni`) y, si es un lugar, su núcleo:
+    para «Algimia de Alfara» no trae el municipio, sino calles y topónimos de «Algímia
+    d'Alfara»."""
+    wanted = place_key(name)
     codes: set[str] = set()
     for item in payload if isinstance(payload, list) else []:
-        if not isinstance(item, dict) or item.get("type") not in PLACES or not item.get("muniCode"):
+        if not isinstance(item, dict) or not item.get("muniCode"):
             continue
-        names = [*str(item.get("muni") or "").split("/"), str(item.get("poblacion") or "")]
-        if wanted and wanted in {fold(n) for n in names}:
+        muni = str(item.get("muni") or "")
+        names = [muni, *muni.split("/")]
+        if item.get("type") in PLACES:
+            names.append(str(item.get("poblacion") or ""))
+        if wanted and wanted in {place_key(n) for n in names}:
             codes.add(str(item["muniCode"]))
     return frozenset(codes)
-
-
-def fold(text: str) -> str:
-    decomposed = unicodedata.normalize("NFKD", text.casefold())
-    return " ".join("".join(c for c in decomposed if not unicodedata.combining(c)).split())
 
 
 def _matched_address(payload: dict[str, Any]) -> str:

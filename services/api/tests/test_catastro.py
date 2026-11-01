@@ -116,6 +116,12 @@ def test_peticion_por_poligono_y_parcela():
     # BOE-B-2026-31848: el anuncio dice «Cangas de Narcea».
     ("Cangas de Narcea", "Polígono 1 Parcela 96 CALDEVILLA DE RENGOS. CANGAS DEL NARCEA "
                          "(ASTURIAS)", True),
+    # BOE-B-2026-32556: en castellano el anuncio, en valenciano el Catastro.
+    ("Algimia de Alfara", "Polígono 10 Parcela 199 HIELOS. ALGIMIA D'ALFARA (VALENCIA)", True),
+    # BOE-B-2026-32777: un paraje entre dos municipios; la parcela es de uno de ellos.
+    ("Monforte de Lemos e Pobra de Brollón",
+     "Polígono 506 Parcela 773 ALON, AS. A POBRA DO BROLLON (LUGO)", True),
+    ("Alcalá de Henares", "Polígono 1 Parcela 2 ALCALA DEL JUCAR (ALBACETE)", False),
 ])
 def test_municipio_de_la_direccion_catastral(expected, address, same):
     assert parcel_in_municipality(expected, address) is same

@@ -44,6 +44,8 @@ def serve(name: str, seen: list[httpx.Request] | None = None) -> httpx.Client:
     (None, "7744401VK6874N0001FJ", None),  # Dirección General del Catastro
     (None, "24142A50100014", None),
     ("20", "7744401VK6874N0001FJ", None),
+    ("20", "82950960147121N", ("20", "-8295096")),  # Donostia, sin provincia ni municipio
+    (None, "82950960147121N", None),  # esa forma, solo si la oferta es de Gipuzkoa
 ])
 def test_forma_de_las_referencias_forales(province, ref, key):
     assert foral_key(province, ref) == key
@@ -59,6 +61,13 @@ def test_gipuzkoa_la_version_vigente_de_la_parcela_del_municipio():
     # La misma parcela en otro municipio no vale.
     with pytest.raises(ParcelNotFound, match="0 parcelas vigentes"):
         find_foral_parcel(serve("gipuzkoa-018-6084022.xml"), "20", "016-6084022")
+
+
+def test_gipuzkoa_sin_municipio_la_unica_parcela_vigente_con_ese_numero():
+    """BOE-B-2026-33449: «82950960147121N». El WFS da tres versiones de la parcela 8295096 de
+    Donostia (069); una vigente."""
+    parcel = find_foral_parcel(serve("gipuzkoa-8295096.xml"), "20", "-8295096")
+    assert (parcel.lon, parcel.lat) == (-1.981216, 43.309551)
 
 
 def test_bizkaia_y_alava_por_su_referencia():
