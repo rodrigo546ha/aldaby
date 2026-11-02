@@ -1,7 +1,7 @@
 ---
 id: privacidad
 title: Política de privacidad
-version: 2
+version: 3
 effective_from: 2026-11-02
 requires_acceptance: true
 verified: false
@@ -50,6 +50,17 @@ categorías especiales de datos.
 Si te apuntas, guardamos tu correo, si eres particular o profesional, la versión de esta política
 que aceptaste y la fecha. Solo lo usamos para darte acceso. Lo borramos si nos lo pides y, si ya
 te hemos dado acceso, queda solo la fecha del alta.
+
+## Estadísticas de uso
+
+Contamos cuántas veces se ve cada página al día, el sitio del que se llega (solo su dominio) y la
+campaña (`utm_source`), si la hay, para saber si la web se entiende y de dónde viene la gente.
+- **No** se usan cookies ni otro almacenamiento en tu navegador.
+- **No** se guarda tu IP, tu navegador, la hora exacta ni ningún identificador. Tampoco se une a tu
+  cuenta.
+- Con esos recuentos no se te puede identificar ni seguir.
+- Si tu navegador pide no ser rastreado (Global Privacy Control o «Do Not Track»), no se cuenta tu
+  visita.
 
 ## Para qué y con qué base
 

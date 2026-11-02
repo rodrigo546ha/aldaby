@@ -106,6 +106,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
                           y feeds XML de agencias en formato Kyero v3 (agency_feed.py, ADR-0038)
     feeds/                feeds de agencias: alta con consentimiento, URL cifrada y lectura diaria (ADR-0038)
     legal/                textos legales versionados y qué falta por aceptar (ADR-0039)
+    analytics/            recuento de visitas sin cookies y embudo de alta (ADR-0042)
+    db/analytics.py       recuentos por día y pasos del embudo
     db/legal.py           aceptación de los textos legales por cuenta y versión
     db/agency_feeds.py    feeds de agencias (solo la URL cifrada)
     offers/corrections.py correcciones del BOE: cita, página y anuncio que corrigen (F4.4)
@@ -192,6 +194,7 @@ make worker-install  # worker siempre en marcha en este Mac (launchd); logs: mak
                  # clave maestra local para cifrar perfiles: `python -m housefinder.crypto nueva-clave`
                  # tareas de revisión: `python -m housefinder.watch tareas`
                  # feeds de agencias: `python -m housefinder.feeds alta --organizacion … --agencia …`
+                 # embudo de alta y orígenes: `python -m housefinder.analytics embudo --desde …`
 make test      # pytest de la API (los tests `db` se saltan si la base no está arrancada)
 make lint      # ruff
 make rules-check  # valida data/rules (catálogo de tipos, vigencias, revisor)

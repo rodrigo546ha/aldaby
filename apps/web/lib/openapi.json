@@ -916,6 +916,40 @@
         }
       }
     },
+    "/analytics/event": {
+      "post": {
+        "tags": [
+          "analítica"
+        ],
+        "summary": "Event",
+        "operationId": "event_analytics_event_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/valuation": {
       "get": {
         "tags": [
@@ -2006,6 +2040,7 @@
     "/health": {
       "get": {
         "summary": "Health",
+        "description": "Para la vigilancia del servidor (ADR-0040): la API y la base responden. Sin datos.",
         "operationId": "health_health_get",
         "responses": {
           "200": {
@@ -3221,6 +3256,44 @@
           "value"
         ],
         "title": "DraftFieldOut"
+      },
+      "EventIn": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Path"
+          },
+          "referrer": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Referrer"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "path"
+        ],
+        "title": "EventIn"
       },
       "ExitRequest": {
         "properties": {

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { VisitCounter } from "../components/Analytics";
 import { LegalFooter } from "../components/Legal";
 import { AppNav } from "../components/Nav";
 import "./globals.css";
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AppNav />
         {children}
         <LegalFooter />
+        <VisitCounter />
       </body>
     </html>
   );

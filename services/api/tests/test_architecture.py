@@ -30,6 +30,8 @@ ALLOWED_INTERNAL = {
     "feeds": {"core", "crypto", "db", "feeds", "geo", "offers"},
     # Textos legales versionados (ADR-0039): solo leen sus ficheros
     "legal": {"core", "legal"},
+    # Analítica sin cookies (ADR-0042): recuentos y embudo, sin red
+    "analytics": {"analytics", "core", "db"},
     "valuation": {"core", "db", "engines", "params", "valuation"},
     "agent": {"agent", "core"},
     "advisor": {"advisor", "agent", "core", "crypto", "db", "params", "plans", "profiles",

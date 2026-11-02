@@ -418,7 +418,11 @@ umbral fijado en F0, y cada estimación con su rango.
 - [ ] F8.3 Pase de compra con pasarela de pago.
 - [ ] F8.4 Derivación a intermediario hipotecario registrado (acuerdo de colaboración).
 - [ ] F8.5 Condiciones de uso, política de privacidad y avisos del plan revisados por un abogado.
-- [ ] F8.6 Analítica de uso respetuosa con la privacidad.
+- [x] F8.6 Analítica de uso respetuosa con la privacidad.
+      *Hecho (ADR-0042):* recuento propio de páginas vistas por día, ruta normalizada, dominio de
+      origen y `utm_source`, sin cookies, IP, navegador ni identificadores; no cuenta a quien envía
+      GPC o DNT ni a los robots. Embudo de particulares (visitas, lista de espera, altas, perfiles y
+      planes) con `python -m housefinder.analytics embudo`. Privacidad v3.
 
 **Criterio de salida.** Primeros pases vendidos y medición del embudo de registro a pago.
 

@@ -396,6 +396,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/analytics/event": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Event */
+        post: operations["event_analytics_event_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/valuation": {
         parameters: {
             query?: never;
@@ -838,7 +855,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Health */
+        /**
+         * Health
+         * @description Para la vigilancia del servidor (ADR-0040): la API y la base responden. Sin datos.
+         */
         get: operations["health_health_get"];
         put?: never;
         post?: never;
@@ -1206,6 +1226,15 @@ export interface components {
              * @enum {string}
              */
             kind: "texto" | "ratio" | "eur" | "bool";
+        };
+        /** EventIn */
+        EventIn: {
+            /** Path */
+            path: string;
+            /** Referrer */
+            referrer?: string | null;
+            /** Source */
+            source?: string | null;
         };
         /** ExitRequest */
         ExitRequest: {
@@ -2825,6 +2854,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FreeTierOut"];
+                };
+            };
+        };
+    };
+    event_analytics_event_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

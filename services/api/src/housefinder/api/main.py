@@ -7,6 +7,7 @@ import os
 from fastapi import FastAPI, HTTPException
 
 from housefinder.api import (
+    analytics,
     auth,
     boe,
     branding,
@@ -34,6 +35,7 @@ app.include_router(patrimonio.router)
 app.include_router(feeds.router)
 app.include_router(legal.router)
 app.include_router(waitlist.router)
+app.include_router(analytics.router)
 app.include_router(valuation.router)
 app.include_router(profiles.router)
 app.include_router(search.router)

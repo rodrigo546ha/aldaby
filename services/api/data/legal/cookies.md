@@ -1,7 +1,7 @@
 ---
 id: cookies
 title: Política de cookies
-version: 1
+version: 2
 effective_from: 2026-11-02
 requires_acceptance: false
 verified: false
@@ -17,3 +17,6 @@ guía de cookies de la AEPD), pero te informa de ellas.
 
 Las dos son propias, `HttpOnly` (las páginas no pueden leerlas) y `SameSite=Lax`. Se borran al salir
 de la sesión. También puedes borrarlas desde tu navegador.
+
+Para contar las visitas tampoco se usan cookies: solo se suma una visita por página y día, sin
+guardar nada en tu navegador ni ningún identificador (ver la política de privacidad).

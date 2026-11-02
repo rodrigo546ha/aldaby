@@ -62,7 +62,7 @@ def test_lista_de_espera(client, migrated_database: str):
         columns = {r[0] for r in conn.execute(
             "SELECT column_name FROM information_schema.columns "
             "WHERE table_name = 'waitlist'").fetchall()}
-    assert row == ("particular", 2, None)  # el primero manda; privacidad vigente
+    assert row == ("particular", 3, None)  # el primero manda; privacidad vigente
     assert columns == {"email", "kind", "privacy_version", "created_at", "invited_at"}
 
 
@@ -95,7 +95,7 @@ def test_un_particular_tiene_su_perfil_y_tres_planes(client, migrated_database: 
     assert login["pending_legal"] == ["condiciones-particulares", "privacidad"]
     assert login["free_plans_left"] == 3
     client.post("/legal/accept",
-                json={"documents": {"condiciones-particulares": 1, "privacidad": 2}})
+                json={"documents": {"condiciones-particulares": 1, "privacidad": 3}})
 
     # Su perfil se crea solo, sin pasar por Clientes.
     missing = client.get("/profile/current")
