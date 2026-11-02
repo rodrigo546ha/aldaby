@@ -6,6 +6,7 @@ copiados de cada web, con la fecha en que se leyeron (2026-11-02); ninguno está
 
 Detalle de cada fuente: `f4-5-servicers.md` (servicers) y `fuentes-de-oferta-vivienda.md` (el
 resto).
+Qué se puede usar ya y qué no, por nivel de permiso: `fuentes-utilizables.md` (2026-11-02).
 
 Reglas que valen para todas (`CLAUDE.md`):
 - Sin permiso escrito, no se automatiza nada en una web que lo prohíbe (regla de oro 3). Cada
@@ -60,7 +61,8 @@ Reglas que valen para todas (`CLAUDE.md`):
 | Altamira (doValue) | Formulario: https://www.altamirainmuebles.com/profesionales; 914 842 874 |
 | Hipoges | inversores.es@hipoges.com; subastas.re@hipoges.com |
 | Diglo (Santander) | 910 150 732 (inversores); 91 157 44 02 (comercial). Correo: no aparece |
-| Sareb, Haya, Casaktua | No leídos (bloqueo, servidor caído, certificado) |
+| Haya, Casaktua | Son Intrum, como Solvia (`fuentes-utilizables.md`) |
+| Sareb | No vende directamente: por Aliseda e Hipoges, y quizá por Servihabitat (sin verificar) |
 
 ## 5. Bancos con portal propio
 | Banco | Contacto |
