@@ -61,7 +61,7 @@ Reglas que valen para todas (`CLAUDE.md`):
 | Altamira (doValue) | Formulario: https://www.altamirainmuebles.com/profesionales; 914 842 874 |
 | Hipoges | inversores.es@hipoges.com; subastas.re@hipoges.com |
 | Diglo (Santander) | 910 150 732 (inversores); 91 157 44 02 (comercial). Correo: no aparece |
-| Haya, Casaktua | Son Intrum, como Solvia (`fuentes-utilizables.md`) |
+| Haya, Casaktua | Son Intrum, como Solvia (`fuentes-utilizables.md`). Correo a comercial@intrum.com (dado por Rodrigo el 2026-11-02; no aparece en intrum.es), borrador preparado |
 | Sareb | No vende directamente: por Aliseda e Hipoges, y quizá por Servihabitat (sin verificar) |
 
 ## 5. Bancos con portal propio
