@@ -1,7 +1,7 @@
 # Correos a enviar para conseguir acceso a la oferta
 
 Un correo por destinatario, con el contacto que da su web (`proceso-acceso-fuentes.md`).
-Firma común (completar): **[nombre] · [cargo] · HouseFinder · [web] · [correo] · [teléfono]**.
+Firma común (completar): **Rodrigo · Aldaby · [correo de la cuenta de Gmail]**.
 
 Postura común, decidida por Rodrigo el 2026-11-02 (ADR-0036 y regla de oro 7):
 - Pedimos acceso a los datos, no reutilizar su web.
@@ -16,11 +16,11 @@ Postura común, decidida por Rodrigo el 2026-11-02 (ADR-0036 y regla de oro 7):
 
 Buenos días:
 
-Desarrollo HouseFinder, un servicio que analiza inversiones inmobiliarias en toda España para
+Desarrollo Aldaby, un servicio que analiza inversiones inmobiliarias en toda España para
 particulares y profesionales. Para cada inmueble, calcula la rentabilidad del propio usuario: su
 hipoteca, sus impuestos y sus gastos.
 
-Nos gustaría que la cartera de Solvia estuviera en HouseFinder. Hemos leído sus condiciones de uso
+Nos gustaría que la cartera de Solvia estuviera en Aldaby. Hemos leído sus condiciones de uso
 y no reutilizamos su web sin autorización, así que les escribimos para ver cómo hacerlo bien:
 
 1. ¿Ofrecen, o podrían ofrecer, un acceso a su cartera (feed, API o fichero periódico) para un
@@ -79,7 +79,7 @@ Igual que el de Banca March. Mencionar su oferta de inmuebles y Cimenta2.
 
 Buenos días:
 
-Desarrollo HouseFinder, un servicio que analiza inversiones inmobiliarias en toda España para
+Desarrollo Aldaby, un servicio que analiza inversiones inmobiliarias en toda España para
 particulares y profesionales: para cada inmueble calcula la rentabilidad del propio usuario.
 
 Hemos leído su aviso legal y no reutilizamos sus anuncios sin autorización. Querríamos saber si
@@ -96,7 +96,7 @@ Un saludo,
 
 Buenos días:
 
-Desarrollo HouseFinder, un servicio que analiza inversiones inmobiliarias en toda España: para
+Desarrollo Aldaby, un servicio que analiza inversiones inmobiliarias en toda España: para
 cada inmueble calcula la rentabilidad del propio comprador, con su hipoteca y sus impuestos.
 
 Nos gustaría incluir la cartera de la red RE/MAX, con enlace a cada ficha y los contactos de sus
@@ -116,11 +116,11 @@ Igual que el de RE/MAX, cambiando el nombre.
 ## CRM inmobiliarios (para recibir la cartera de las agencias que lo autoricen)
 
 ### 11. Sooprema · estate@sooprema.com
-**Asunto:** HouseFinder como destino de exportación para agencias de Sooprema
+**Asunto:** Aldaby como destino de exportación para agencias de Sooprema
 
 Buenos días:
 
-Desarrollo HouseFinder, un servicio que analiza inversiones inmobiliarias en toda España para
+Desarrollo Aldaby, un servicio que analiza inversiones inmobiliarias en toda España para
 particulares y profesionales. Muchas de las agencias que serán clientes nuestros trabajan con
 Sooprema.
 
