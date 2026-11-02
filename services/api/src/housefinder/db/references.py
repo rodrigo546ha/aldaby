@@ -31,15 +31,22 @@ COLUMNS = ("source_id", "level", "code", "vintage", "year", "quarter", "measure"
 
 
 def replace_references(
-    conn: psycopg.Connection, source: SourceRecord, rows: Iterable[ReferenceRow]
+    conn: psycopg.Connection, source: SourceRecord, rows: Iterable[ReferenceRow],
+    scope: str | None = None,
 ) -> int:
-    """Sustituye todas las filas de la fuente por `rows`, en la transacción de `conn`.
+    """Sustituye las filas de la fuente por `rows`, en la transacción de `conn`.
 
-    Una carga trae la serie entera (el SERPAVI revisa años anteriores): se borra lo de la fuente
-    y se copia lo nuevo, en lugar de mezclar versiones.
+    Una carga trae la serie entera de lo que carga (el SERPAVI revisa años anteriores): se borra
+    lo anterior y se copia lo nuevo, en lugar de mezclar versiones. Con `scope` (una provincia o
+    una comunidad), solo se borra lo de los territorios cuyo código empieza por él: cargar una
+    provincia no borra las demás.
     """
     upsert_source(conn, source)
-    conn.execute("DELETE FROM market_references WHERE source_id = %s", (source.id,))
+    if scope is None:
+        conn.execute("DELETE FROM market_references WHERE source_id = %s", (source.id,))
+    else:
+        conn.execute("DELETE FROM market_references WHERE source_id = %s AND code LIKE %s",
+                     (source.id, f"{scope}%"))
     count = 0
     with conn.cursor().copy(
         f"COPY market_references ({', '.join(COLUMNS)}) FROM STDIN"
@@ -53,12 +60,12 @@ def replace_references(
 
 def load_references(
     conninfo: str, source: SourceRecord, rows: list[ReferenceRow], sections: set[str],
-    vintage: int,
+    vintage: int, scope: str | None = None,
 ) -> tuple[int, set[str]]:
     """Carga la fuente en una transacción; devuelve cuántas filas y qué secciones no están en
     la cartografía `vintage` cargada (se cargan igual: el aviso es para cargarla)."""
     with psycopg.connect(conninfo) as conn, conn.transaction():
-        loaded = replace_references(conn, source, rows)
+        loaded = replace_references(conn, source, rows, scope)
         known = {r[0] for r in conn.execute(
             "SELECT code FROM census_sections WHERE vintage = %s AND code = ANY(%s)",
             (vintage, list(sections))).fetchall()}

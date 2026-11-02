@@ -81,7 +81,8 @@ def load(region: str, conninfo: str, client: httpx.Client | None = None) -> dict
     rows = parse(payload, region)
     if not rows:
         raise LookupError(f"El IPV no trae índices para la comunidad {region}")
-    loaded, _ = load_references(conninfo, source_record(payload, rows), rows, set(), 0)
+    loaded, _ = load_references(conninfo, source_record(payload, rows), rows, set(), 0,
+                                scope=region)
     last = max((r.year, r.quarter) for r in rows)
     return {"loaded": loaded, "last": f"{last[0]}T{last[1]}"}
 

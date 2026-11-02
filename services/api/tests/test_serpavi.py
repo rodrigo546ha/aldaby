@@ -141,3 +141,34 @@ def test_carga_idempotente(book: Path, migrated_database: str):
                     ("provincia", Decimal("15.1000"), "EUR/m2 mes"),
                     ("seccion", Decimal("17.8154"), "EUR/m2 mes")]
     assert source[0].startswith("Aviso legal del Ministerio") and "sha256" in source[1]
+
+
+@pytest.mark.db
+def test_cargar_una_provincia_no_borra_las_demas(migrated_database: str):
+    """Una carga por provincia o comunidad solo sustituye lo suyo (antes borraba toda la fuente)."""
+    from datetime import UTC, datetime
+
+    import psycopg
+
+    from housefinder.db.references import ReferenceRow, replace_references
+    from housefinder.db.sections import SourceRecord
+
+    source = SourceRecord("prueba-ambito", "Prueba", "https://x", "CC BY", datetime.now(UTC))
+
+    def row(code: str, value: str) -> ReferenceRow:
+        return ReferenceRow("provincia", code, None, 2024, 0, "renta_m2_mes", "colectiva",
+                            "mediana", Decimal(value), "EUR/m2 mes")
+
+    with psycopg.connect(migrated_database) as conn:
+        replace_references(conn, source, [row("28", "15")], scope="28")
+        replace_references(conn, source, [row("08", "17")], scope="08")
+        replace_references(conn, source, [row("28", "16")], scope="28")  # Madrid otra vez
+        values = dict(conn.execute(
+            "SELECT code, value FROM market_references WHERE source_id = 'prueba-ambito'"
+        ).fetchall())
+        assert values == {"28": Decimal("16"), "08": Decimal("17")}
+        replace_references(conn, source, [row("46", "12")])  # sin ámbito: la serie entera
+        codes = {r[0] for r in conn.execute(
+            "SELECT code FROM market_references WHERE source_id = 'prueba-ambito'").fetchall()}
+        assert codes == {"46"}
+        conn.rollback()

@@ -81,7 +81,8 @@ def load(region: str, conninfo: str, client: httpx.Client | None = None) -> dict
     rows = parse(payload, region)
     if not rows:
         raise LookupError(f"El IPC no trae el alquiler de vivienda de la comunidad {region}")
-    loaded, _ = load_references(conninfo, source_record(payload, rows), rows, set(), 0)
+    loaded, _ = load_references(conninfo, source_record(payload, rows), rows, set(), 0,
+                                scope=region)
     last = max((r.year, r.month) for r in rows)
     return {"loaded": loaded, "last": f"{last[0]}-{last[1]:02d}"}
 

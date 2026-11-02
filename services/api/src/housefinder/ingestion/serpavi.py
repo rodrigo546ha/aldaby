@@ -162,7 +162,7 @@ def load(province: str, conninfo: str, url: str = URL, cache: Path | None = None
         raise LookupError(f"El SERPAVI no trae valores para la provincia {province}")
     sections = {r.code for r in parsed.rows if r.level == "seccion"}
     loaded, without_map = load_references(conninfo, source_record(path, url, parsed),
-                                          parsed.rows, sections, VINTAGE)
+                                          parsed.rows, sections, VINTAGE, scope=province)
     return {"loaded": loaded, "years": parsed.years, "territories": dict(parsed.territories),
             "sections_without_map": len(without_map), "bad_values": parsed.bad_values,
             "unknown_columns": sorted(parsed.unknown_columns)}

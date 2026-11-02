@@ -50,11 +50,16 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
                                  only=payload.get("ids"), recheck=bool(payload.get("recheck")),
                                  channel=str(payload.get("channel", boe_v.NAME)))
 
+    def regions(payload: dict[str, Any]) -> list[str]:
+        """Una comunidad o, con `todas`, las 19 (ADR-0043): cada carga solo sustituye la suya."""
+        region = str(payload.get("region", "todas"))
+        return [f"{n:02d}" for n in range(1, 20)] if region == "todas" else [region]
+
     def price_index(payload: dict[str, Any]) -> dict[str, Any]:
-        return ine_ipv.load(str(payload.get("region", "13")), conninfo)
+        return {r: ine_ipv.load(r, conninfo) for r in regions(payload)}
 
     def rent_index(payload: dict[str, Any]) -> dict[str, Any]:
-        return ine_ipc_alquiler.load(str(payload.get("region", "13")), conninfo)
+        return {r: ine_ipc_alquiler.load(r, conninfo) for r in regions(payload)}
 
     def offers_boe_auctions(payload: dict[str, Any]) -> dict[str, Any]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:

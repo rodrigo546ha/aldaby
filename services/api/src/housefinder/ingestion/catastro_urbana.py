@@ -96,7 +96,7 @@ def load(year: int, province: str | None, conninfo: str,
     if not rows:
         raise LookupError(f"El fichero del Catastro {year} no trae municipios de {province}")
     loaded, _ = load_references(conninfo, source_record(year, response.content, rows), rows,
-                                set(), 0)
+                                set(), 0, scope=province)
     return {"loaded": loaded, "municipalities": len({r.code for r in rows})}
 
 
