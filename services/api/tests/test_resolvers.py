@@ -197,7 +197,7 @@ def test_minimos_con_edad_y_descendientes(book: RuleBook):
 def test_residencia_sin_escala_autonomica(book: RuleBook):
     with pytest.raises(LookupError, match="escala_irpf_general_autonomica"):
         income_tax_profile(
-            book, residence="ES-09", tax_year=EJERCICIO, other_base=Decimal(30000), age=40,
+            book, residence="ES-11", tax_year=EJERCICIO, other_base=Decimal(30000), age=40,
             descendant_ages=(), allow_unverified=True,
         )
 
@@ -232,3 +232,69 @@ def test_tax_params_exige_un_modo(book: RuleBook):
             book, MADRID, contract_date=date(2026, 11, 15), situation=PRIMER_ALQUILER,
             allow_unverified=True,
         )
+
+
+ITP_TRAMOS = """
+- id: prueba-itp-tramos
+  kind: impuesto_compra_segunda_mano
+  territory: ES-09
+  effective_from: 2025-06-27
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.10}
+      - {from: 600000, rate: 0.11}
+      - {from: 900000, rate: 0.12}
+      - {from: 1500000, rate: 0.13}
+  source_url: https://www.boe.es/prueba
+  notes: "Escala de prueba con la forma de la catalana: cada tipo solo en su tramo."
+"""
+
+
+def test_itp_por_tramos_cada_tipo_en_su_tramo(tmp_path):
+    from housefinder.regulation.resolvers import purchase_tax_rate
+
+    (tmp_path / "itp.yaml").write_text(ITP_TRAMOS, encoding="utf-8")
+    tramos = RuleBook.from_dir(tmp_path)
+    on = date(2026, 11, 1)
+
+    def tax(price: int) -> Decimal:
+        return purchase_tax(tramos, Decimal(price), "ES-09-08019", on, new_build=False,
+                            allow_unverified=True).value
+
+    # 300.000 × 10 % = 30.000,00
+    assert tax(300000) == Decimal("30000.00")
+    # 600.000 × 10 % + 300.000 × 11 % + 100.000 × 12 % = 60.000 + 33.000 + 12.000 = 105.000,00
+    assert tax(1000000) == Decimal("105000.00")
+    # 60.000 + 33.000 + 600.000 × 12 % + 500.000 × 13 % = 60.000 + 33.000 + 72.000 + 65.000
+    assert tax(2000000) == Decimal("230000.00")
+    with pytest.raises(LookupError, match="tramos"):
+        purchase_tax_rate(tramos, "ES-09", on, new_build=False, allow_unverified=True)
+
+
+def test_el_itp_lleva_tipo_o_tramos_pero_no_los_dos():
+    from housefinder.regulation.kinds import parse_params
+
+    with pytest.raises(ValueError, match="uno de los dos"):
+        parse_params("impuesto_compra_segunda_mano",
+                     {"rate": 0.1, "brackets": [{"from": 0, "rate": 0.1}]})
+    with pytest.raises(ValueError, match="uno de los dos"):
+        parse_params("impuesto_compra_segunda_mano", {})
+    with pytest.raises(ValueError, match="empezar en 0"):
+        parse_params("impuesto_compra_segunda_mano", {"brackets": [{"from": 10, "rate": 0.1}]})
+
+
+def test_itp_valenciano_el_tipo_del_tramo_sobre_todo_el_valor(book: RuleBook):
+    # Ley 13/1997 de la Generalitat Valenciana, art. 13.Uno (Ley 5/2025): 9 %; por encima de
+    # 1.000.000 €, 11 % sobre todo el valor. 1.000.000 × 9 % = 90.000,00; 1.200.000 × 11 % =
+    # 132.000,00 (no 90.000 + 200.000 × 11 %).
+    on = date(2026, 11, 1)
+
+    def tax(price: int) -> Decimal:
+        return purchase_tax(book, Decimal(price), "ES-10-46250", on, new_build=False,
+                            allow_unverified=True).value
+
+    assert tax(1000000) == Decimal("90000.00")
+    assert tax(1200000) == Decimal("132000.00")

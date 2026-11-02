@@ -49,6 +49,27 @@ class BracketScale(RuleParams):
         return self
 
 
+class TransferTaxParams(RuleParams):
+    """ITP de inmuebles: un tipo único sobre todo el precio (`rate`) o tramos (`brackets`), una
+    de las dos. Los tramos son progresivos (cada tipo solo en la parte del precio de su tramo, como
+    en Cataluña) salvo con `whole_value: true`, en que el tipo del tramo del precio se aplica a todo
+    el precio (como en la Comunitat Valenciana por encima de un millón)."""
+
+    rate: Fraction | None = None
+    brackets: tuple[Bracket, ...] | None = None
+    whole_value: bool = False
+
+    @model_validator(mode="after")
+    def _one_of(self) -> TransferTaxParams:
+        if (self.rate is None) == (self.brackets is None):
+            raise ValueError("el ITP lleva `rate` o `brackets`, uno de los dos")
+        if self.brackets is not None:
+            BracketScale(brackets=self.brackets)  # mismas comprobaciones que una escala
+        elif self.whole_value:
+            raise ValueError("`whole_value` solo tiene sentido con `brackets`")
+        return self
+
+
 ContractType = Literal["primer-alquiler", "nuevo-contrato", "prorroga-tacita"]
 RentChange = Literal[
     "rebaja-mas-5",  # renta inicial rebajada más de un 5 % respecto de la última
@@ -307,7 +328,8 @@ class KindSpec:
 
 KINDS: dict[str, KindSpec] = {
     "impuesto_compra_segunda_mano": KindSpec(
-        RateParams, "Impuesto de compra de vivienda usada (ITP) sobre el precio"
+        TransferTaxParams,
+        "Impuesto de compra de vivienda usada (ITP): tipo único o escala progresiva por tramos",
     ),
     "iva_vivienda_nueva": KindSpec(RateParams, "IVA de la compra de vivienda nueva"),
     "iva_tipo_general": KindSpec(RateParams, "Tipo general del IVA (honorarios, servicios)"),

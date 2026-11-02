@@ -148,7 +148,7 @@ def test_inversion_vivienda_nueva_con_iva_y_ajd():
 
 def test_inversion_sin_reglas_del_territorio_es_503():
     # Barcelona: no hay ITP cargado.
-    resp = client.post("/simulate/investment", json=peticion(property__territory="ES-09-08019"))
+    resp = client.post("/simulate/investment", json=peticion(property__territory="ES-11-10037"))
     assert resp.status_code == 503
     assert "impuesto_compra_segunda_mano" in resp.json()["detail"]
 

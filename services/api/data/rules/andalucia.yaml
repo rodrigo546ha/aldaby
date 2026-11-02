@@ -1,0 +1,163 @@
+# Comunidad Autónoma de Andalucía (ES-01) y municipios de Sevilla (ES-01-41091) y Málaga (ES-01-29067).
+# Ver README.md. SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Texto consolidado de la Ley 5/2021 leído el 2026-11-03 (BOE, «Última actualización publicada el 31/12/2025»).
+#
+# PENDIENTE (sin fuente oficial leída, no se escribe):
+# - Régimen urbanístico municipal del alquiler turístico de Sevilla y Málaga (limitaciones por zona).
+# - Cualquier modificación autonómica posterior al 31/12/2025 de la Ley 5/2021 que el BOE aún no consolide.
+
+# ITP de inmuebles, tipo general (único, para todo el valor). Los tipos reducidos de los arts. 43 y 44
+# (política social de vivienda, reventa por profesionales) no aplican a un inversor particular.
+# La Ley 5/2021 entró en vigor el 01/01/2022, salvo los arts. 41, 43, 49 y 50, que lo hicieron el día
+# siguiente a su publicación en el BOJA (BOJA núm. 206, 26/10/2021): 27/10/2021.
+- id: andalucia-itp-inmuebles-2021
+  kind: impuesto_compra_segunda_mano
+  territory: ES-01
+  effective_from: 2021-10-27
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.07}
+  source_url: https://www.boe.es/eli/es-an/l/2021/10/20/5/con
+  notes: "Ley 5/2021, de 20 de octubre, de Tributos Cedidos de la Comunidad Autónoma de Andalucía (BOE-A-2021-17915), art. 41: en las transmisiones de bienes inmuebles y en la constitución y cesión de derechos reales (salvo de garantía), tipo del 7 % sobre la base liquidada, único para todo el valor (no por tramos)."
+
+# AJD de la escritura de compra de vivienda sujeta a IVA: tipo general de los documentos notariales,
+# 1,2 % sobre todo el valor (único). Sin bandas ni salto de banda.
+- id: andalucia-ajd-compra-vivienda-2021
+  kind: ajd_compra_vivienda
+  territory: ES-01
+  effective_from: 2021-10-27
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.012}
+    cap_jumps: false
+  source_url: https://www.boe.es/eli/es-an/l/2021/10/20/5/con
+  notes: "Ley 5/2021 de Andalucía, art. 49: primeras copias de escrituras inscribibles con cantidad o cosa valuable, no sujetas a Sucesiones y Donaciones ni a TPO/IVA del art. 1.1 y 1.2 del TRLITPAJD, tributan además de la cuota fija al 1,2 %. No incluye los reducidos del art. 50 (política social de vivienda). Persona jurídica: mismo tipo (no hay tipo propio)."
+
+# --- IRPF, tramo autonómico (ADR-0007) -------------------------------------------------------
+# Deflactación del Decreto-ley 7/2022, de 20 de septiembre (BOJA núm. 182, 21/09/2022; convalidado el
+# 28/09/2022). Los apartados uno y dos de su art. primero (escala y mínimos) surten efectos desde el
+# 01/01/2022. La escala original de 2021 (primer tramo hasta 12.450 €) queda sustituida desde esa fecha.
+# El texto consolidado a 31/12/2025 mantiene esta escala, por lo que rige también en 2025 y 2026.
+- id: andalucia-irpf-escala-general-2022
+  kind: escala_irpf_general_autonomica
+  territory: ES-01
+  effective_from: 2022-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.095}
+      - {from: 13000, rate: 0.12}
+      - {from: 21100, rate: 0.15}
+      - {from: 35200, rate: 0.185}
+      - {from: 60000, rate: 0.225}
+  source_url: https://www.boe.es/eli/es-an/l/2021/10/20/5/con
+  notes: "Ley 5/2021 de Andalucía, art. 23 (redacción del Decreto-ley 7/2022, efectos 01/01/2022): 9,5 % hasta 13.000 €; 12 % hasta 21.100 €; 15 % hasta 35.200 €; 18,5 % hasta 60.000 €; 22,5 % en adelante. Fuente del decreto-ley: https://www.juntadeandalucia.es/boja/2022/182/1"
+
+# Mínimo del contribuyente autonómico: Andalucía lo incrementa respecto al estatal (art. 23 bis).
+- id: andalucia-irpf-minimo-contribuyente-2022
+  kind: minimo_contribuyente
+  territory: ES-01
+  effective_from: 2022-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {general: 5790, over_65_extra: 1200, over_75_extra: 1460}
+  source_url: https://www.boe.es/eli/es-an/l/2021/10/20/5/con
+  notes: "Ley 5/2021 de Andalucía, art. 23 bis.1 (añadido por el Decreto-ley 7/2022, efectos 01/01/2022), al amparo del art. 46.1 de la Ley 22/2009: 5.790 € con carácter general; +1.200 € si mayor de 65 años; +1.460 € adicionales si mayor de 75."
+
+# Mínimo por descendientes autonómico (art. 23 bis.2).
+- id: andalucia-irpf-minimo-descendientes-2022
+  kind: minimo_descendientes
+  territory: ES-01
+  effective_from: 2022-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {first: 2510, second: 2820, third: 4170, fourth_and_more: 4700, under_3_extra: 2920}
+  source_url: https://www.boe.es/eli/es-an/l/2021/10/20/5/con
+  notes: "Ley 5/2021 de Andalucía, art. 23 bis.2 (añadido por el Decreto-ley 7/2022, efectos 01/01/2022): 2.510 €, 2.820 €, 4.170 € y 4.700 € por el primer, segundo, tercer y cuarto y siguientes descendientes; +2.920 € si el descendiente es menor de tres años."
+
+# --- Alquiler ---------------------------------------------------------------------------------
+
+# Ninguna zona tensionada en Andalucía: «Andalucía» no figura en ninguna de las nueve resoluciones
+# trimestrales del Ministerio leídas, desde la del primer trimestre de 2024 hasta la del segundo de 2026:
+# BOE-A-2024-5214, BOE-A-2024-20576, BOE-A-2025-1721, BOE-A-2025-8636, BOE-A-2025-15728,
+# BOE-A-2025-21901, BOE-A-2026-2448, BOE-A-2026-9175 y BOE-A-2026-16532. No se ha leído la del
+# segundo trimestre de 2024. Revisar con cada resolución nueva y actualizar checked_through.
+- id: andalucia-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-01
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre."
+
+# Vivienda de uso turístico en Andalucía: Decreto 28/2016, modificado por el Decreto 31/2024
+# (BOJA núm. 24, 02/02/2024; entra en vigor a los veinte días de su publicación: 22/02/2024).
+- id: andalucia-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-01
+  effective_from: 2024-02-22
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico en Andalucía (Decreto 28/2016): declaración responsable e inscripción en el Registro de Turismo de Andalucía antes de iniciar la actividad"
+    requirements:
+      - code: declaracion-responsable
+        description: "Declaración responsable electrónica ante la Consejería de Turismo para iniciar la actividad; da lugar a la inscripción en el Registro de Turismo de Andalucía (art. 9.1)"
+        source_url: https://www.juntadeandalucia.es/boja/2024/24/50
+      - code: compatibilidad-urbanistica
+        description: "Cumplir la ordenación urbanística municipal y manifestar la compatibilidad con el planeamiento en la declaración (arts. 6.1.a y 9.1.e); los ayuntamientos pueden limitar con criterios objetivos el número de viviendas por edificio, sector o zona (art. 2.2)"
+        source_url: https://www.juntadeandalucia.es/boja/2024/24/50
+      - code: estatutos-no-prohiben
+        description: "El título constitutivo o los estatutos de la comunidad no pueden prohibir la actividad (art. 1.3.b)"
+        source_url: https://www.juntadeandalucia.es/boja/2024/24/50
+      - code: no-proteccion-publica
+        description: "No puede ser vivienda de protección pública ni estar en situación de asimilado a fuera de ordenación, salvo autorización municipal previa (art. 1.3)"
+        source_url: https://www.juntadeandalucia.es/boja/2024/24/50
+      - code: una-vivienda-por-referencia-catastral
+        description: "Una sola vivienda por referencia catastral, salvo excepciones acreditadas (art. 9.1)"
+        source_url: https://www.juntadeandalucia.es/boja/2024/24/50
+      - code: titulo-de-todos-los-propietarios
+        description: "Si quien explota no es el propietario, debe tener el título jurídico de todos los propietarios cuando el inmueble está en copropiedad (art. 3.2)"
+        source_url: https://www.juntadeandalucia.es/boja/2024/24/50
+  source_url: https://www.juntadeandalucia.es/boja/2024/24/50
+  notes: "Redacción del Decreto 28/2016 según el Decreto 31/2024 (BOJA núm. 24, 02/02/2024). Fecha de inicio calculada: veinte días tras la publicación. Pendiente comprobar posibles modificaciones posteriores a 2024 en el texto consolidado del Decreto 28/2016."
+
+# --- Plusvalía municipal (tipo único) ----------------------------------------------------------
+
+# Sevilla: art. 12.1 de la ordenanza fiscal reguladora del IIVTNU (versión publicada en sevilla.org,
+# ordenanzas 2024): 26,53 %. Aprobada definitivamente el 22/12/2023; la página de plusvalía de la
+# Agencia Tributaria de Sevilla fija el tipo desde el 28/12/2023.
+- id: sevilla-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-01-41091
+  effective_from: 2023-12-28
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.2653}
+  source_url: https://www.sevilla.org/servicios/agencia-tributaria-de-sevilla/ordenanzas-fiscales/2024/1-5-ordenanza-fiscal-impuesto_sobre_el_incremento_del_valor_de_los_terrenos_de_naturaleza_urbana
+  notes: "Ordenanza Fiscal del IIVTNU del Ayuntamiento de Sevilla, art. 12.1: «un tipo impositivo del 26,53%». No se ha leído el BOP ni la ordenanza de 2026 (el Ayuntamiento anunció congelación del resto de impuestos locales para 2026); fecha de inicio tomada de la página de plusvalía de la Agencia Tributaria de Sevilla."
+
+# Málaga: Ordenanza Fiscal nº 5, art. 8: 29 %, único para todos los periodos de generación.
+- id: malaga-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-01-29067
+  effective_from: 2025-04-08
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.29}
+  source_url: https://www.malaga.eu/visorcontenido/NRMDocumentDisplayer/804/DocumentoNormativa804
+  notes: "Ordenanza Fiscal nº 5 del Ayuntamiento de Málaga, art. 8: «el tipo de gravamen del 29 por 100, que será único». Texto vigente tras la modificación del Pleno de 30/01/2025 (BOP de Málaga de 08/04/2025) y la parcial del Pleno de 22/12/2025 (BOP de 26/03/2026). Fecha de inicio = BOP de 08/04/2025; el 29 % puede venir de antes (por verificar)."

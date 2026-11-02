@@ -8,7 +8,9 @@ fuente (ADR-0003). Un municipio que ya tiene su regla (Madrid, de su ordenanza) 
 Condiciones: reutilización «para fines comerciales y no comerciales», citando la fuente
 (https://www.hacienda.gob.es/es-ES/Paginas/Avisolegal.aspx).
 
-Uso: `python -m housefinder.ingestion.hacienda_ibi --year 2026 --region MADRID --ccaa 13`.
+Uso: `python -m housefinder.ingestion.hacienda_ibi --year 2026` (las 17 comunidades de régimen
+común; Navarra y el País Vasco no están: régimen foral) o `--region MADRID` para una sola. El PDF
+solo trae los municipios de más de 1.000 habitantes.
 """
 
 from __future__ import annotations
@@ -28,6 +30,18 @@ from housefinder.ingestion.ine_sections import USER_AGENT
 
 URL = ("https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx"
        "?URLPDF={path}")
+# Carpeta y fichero de cada comunidad, como los enlaza el libro completo del año
+# (`{año}/COMPLETO/Imposicion.pdf`); no siguen un patrón. Código INE de la comunidad.
+REGIONS: dict[str, tuple[str, str]] = {
+    "ANDALUCIA": ("Andalucia.pdf", "01"), "ARAGON": ("Aragon.pdf", "02"),
+    "ASTURIAS": ("Asturias.pdf", "03"), "ILLES BALEARS": ("Illes Balears.pdf", "04"),
+    "CANARIAS": ("Canarias.pdf", "05"), "CANTABRIA": ("Cantabria.pdf", "06"),
+    "CASTILLA-LEON": ("Castilla-Leon.pdf", "07"), "CASTILLA-MANCHA": ("Castilla-Mancha.pdf", "08"),
+    "CATALUÑA": ("Cataluña.pdf", "09"), "C.VALENCIANA": ("C.Valenciana.pdf", "10"),
+    "EXTREMADURA": ("Extremadura.pdf", "11"), "GALICIA": ("Galicia.pdf", "12"),
+    "MADRID": ("Madrid.pdf", "13"), "MURCIA": ("Murcia.pdf", "14"), "RIOJA": ("Rioja.pdf", "17"),
+    "CEUTA": ("Ceuta.pdf", "18"), "MELILLA": ("Melilla.pdf", "19"),
+}
 # Primera tabla del PDF: código, municipio, año de la última revisión catastral y tipo urbano
 ROW = re.compile(r"^\s*(\d{2})-(\d{3})\s+(.+?)\s+(\d{4})\s+(\d+,\d{5})\s")
 
@@ -93,27 +107,40 @@ def rules_dir() -> Path:
     return Path(__file__).resolve().parents[3] / "data" / "rules"
 
 
+def region_url(year: int, region: str) -> str:
+    filename, _ = REGIONS[region]
+    return URL.format(path=quote(f"{year}/{region}/{filename}", safe=""))
+
+
 def main() -> int:
+    import time
+
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--year", type=int, required=True)
-    parser.add_argument("--region", required=True, help="carpeta del PDF (MADRID)")
-    parser.add_argument("--ccaa", required=True, help="código INE de la comunidad (13)")
+    parser.add_argument("--region", choices=sorted(REGIONS),
+                        help="una sola comunidad (carpeta del PDF); sin ella, todas")
     args = parser.parse_args()
-    url = URL.format(path=quote(f"{args.year}/{args.region}/{args.region.title()}.pdf", safe=""))
-    with httpx.Client(headers={"User-Agent": USER_AGENT}) as client:
-        response = client.get(url, timeout=120)
-        response.raise_for_status()
-    rates = parse(pdf_text(response.content))
+    regions = [args.region] if args.region else list(REGIONS)
     folder = rules_dir()
-    generated = rules(rates, args.year, args.ccaa, url, existing_territories(folder))
+    existing = existing_territories(folder)
+    generated: list[dict[str, object]] = []
+    with httpx.Client(headers={"User-Agent": USER_AGENT}) as client:
+        for region in regions:
+            url = region_url(args.year, region)
+            response = client.get(url, timeout=120)
+            response.raise_for_status()
+            rates = parse(pdf_text(response.content))
+            generated += rules(rates, args.year, REGIONS[region][1], url, existing)
+            print(f"IBI {args.year} {region}: {len(rates)} municipios")
+            time.sleep(1)
     target = folder / f"ibi_hacienda_{args.year}.yaml"
-    header = (f"# Generado por `python -m housefinder.ingestion.hacienda_ibi --year {args.year} "
-              f"--region {args.region} --ccaa {args.ccaa}` (ADR-0022): no editar a mano.\n"
+    which = f"--region {args.region}" if args.region else "(todas las comunidades)"
+    header = (f"# Generado por `python -m housefinder.ingestion.hacienda_ibi --year {args.year}` "
+              f"{which} (ADR-0022): no editar a mano.\n"
               f"# Tipo del IBI urbano por municipio, Ministerio de Hacienda. Sin verificar.\n")
     target.write_text(header + yaml.safe_dump(generated, allow_unicode=True, sort_keys=False),
                       encoding="utf-8")
-    print(f"IBI {args.year}: {len(rates)} municipios leídos, {len(generated)} reglas en "
-          f"{target.name}")
+    print(f"{len(generated)} reglas en {target.name}")
     return 0
 
 

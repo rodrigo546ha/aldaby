@@ -64,7 +64,7 @@ supuestos:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_hipotecas
 	cd services/api && $(VENV)/python -m housefinder.ingestion.catastro_urbana --year $(CATASTRO_YEAR) --province $(PROVINCE)
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_epf
-	cd services/api && $(VENV)/python -m housefinder.ingestion.hacienda_ibi --year $(IBI_YEAR) --region MADRID --ccaa $(REGION)
+	cd services/api && $(VENV)/python -m housefinder.ingestion.hacienda_ibi --year $(IBI_YEAR)
 
 backtest:
 	cd services/api && $(VENV)/python -m housefinder.valuation.backtest --province $(PROVINCE) --region $(REGION)

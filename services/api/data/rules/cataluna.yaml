@@ -1,0 +1,3165 @@
+# Cataluña (ES-09) y municipio de Barcelona (ES-09-08019). Ver README.md.
+# SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+#
+# Tributos cedidos: Código tributario de Cataluña, libro sexto (Decreto Legislativo 1/2024,
+# de 12 de marzo, BOE-A-2024-6951; en vigor el 15/03/2024), con las modificaciones del
+# Decreto-ley 5/2025, de 25 de marzo (BOE-A-2025-10270; convalidado por la Resolución 201/XV del
+# Parlament, de 7 de mayo de 2025). Los arts. 4 y 5 del DL 5/2025 (ITP y AJD) entran en vigor a los
+# tres meses del día siguiente al de su publicación en el DOGC (disposición final 2.2): 27/06/2025.
+# El art. 3 (escala del IRPF) tiene efectos desde el 1 de enero de 2025.
+#
+# PENDIENTE (sin fuente oficial leída; no se escribe regla): ver el informe de la tanda.
+
+# --- ITP de inmuebles: tarifa progresiva por tramos de valor (NO es un tipo único) ----------------
+# «Tipo medio que resulta de aplicar la tarifa»: cada tipo se aplica SOLO al exceso de su tramo
+# (cuota íntegra acumulada en la propia tarifa: 100.000 € a 1.000.000 € en la redacción de 2024; 60.000 €
+# a 600.000 €, 93.000 € a 900.000 € y 165.000 € a 1.500.000 € en la de 2025).
+# El esquema actual de impuesto_compra_segunda_mano solo admite `rate`: estas dos reglas NO
+# cargan hasta que el catálogo admita `brackets` para este tipo (ver notas del informe).
+# No aplican: 5 % vivienda habitual de jóvenes <=35 años con base <=36.000 € (art. 641-5), 5 % víctimas de
+# violencia machista (art. 641-5 bis), familias numerosas y otros reducidos; 7 % vivienda protegida
+# (art. 641-1.2). Aparte: 20 % sobre TODO el valor si la vivienda la adquiere un gran tenedor (más de 10
+# inmuebles residenciales o más de 1.500 m² residenciales en Cataluña, o cinco o más en zona tensionada)
+# y en compra de edificios enteros de viviendas (art. 641-1.5 y 641-1.6, desde el 27/06/2025).
+- id: cataluna-itp-inmuebles-2024
+  kind: impuesto_compra_segunda_mano
+  territory: ES-09
+  effective_from: 2024-03-15
+  effective_to: 2025-06-27
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.10}
+      - {from: 1000000, rate: 0.11}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2024-6951#a6-85
+  notes: "Código tributario de Cataluña, libro sexto, art. 641-1.a) en la redacción original del Decreto Legislativo 1/2024: tarifa de inmuebles 10 % hasta 1.000.000 € y 11 % por el exceso (tipo medio, cada tipo sobre su tramo). Vigente hasta el 26/06/2025."
+
+- id: cataluna-itp-inmuebles-2025
+  kind: impuesto_compra_segunda_mano
+  territory: ES-09
+  effective_from: 2025-06-27
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.10}
+      - {from: 600000, rate: 0.11}
+      - {from: 900000, rate: 0.12}
+      - {from: 1500000, rate: 0.13}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2025-10270
+  notes: "Código tributario de Cataluña, libro sexto, art. 641-1.1, redacción del art. 5.1 del Decreto-ley 5/2025 (en vigor desde el 27/06/2025): 10 % hasta 600.000 €, 11 % de 600.000 a 900.000 €, 12 % de 900.000 a 1.500.000 € y 13 % por encima; tipo medio (cada tipo sobre el exceso de su tramo). Gran tenedor y edificios enteros: 20 % sobre todo el valor (art. 641-1.5 y 6), no modelado."
+
+# --- AJD de la escritura de compra de vivienda sujeta a IVA --------------------------------------
+# Art. 642-1: 1,5 % «en el caso de otros documentos» (letra d). El 3,5 % de la letra a) (2,5 % hasta el
+# 26/06/2025) solo es para documentos en que se renunció a la exención del IVA (art. 20.2 de la Ley
+# 37/1992), no para vivienda nueva. El 2 % de la letra b) es de préstamos hipotecarios (sujeto pasivo: el
+# prestamista). Sin tipo propio para persona jurídica. No incluye la bonificación del 100 % del art. 642-6
+# (primera vivienda habitual de menores de 36 años) ni las demás bonificaciones.
+- id: cataluna-ajd-compra-vivienda-2024
+  kind: ajd_compra_vivienda
+  territory: ES-09
+  effective_from: 2024-03-15
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.015}
+    cap_jumps: false
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2024-6951#a6-95
+  notes: "Código tributario de Cataluña, libro sexto, art. 642-1.d), 1,5 % de cuota variable en otros documentos notariales (texto refundido, Decreto Legislativo 1/2024); la letra a), elevada al 3,5 % por el Decreto-ley 5/2025 desde el 27/06/2025, no afecta a la vivienda nueva sujeta a IVA sin renuncia a la exención."
+
+# --- IRPF, tramo autonómico de Cataluña (ADR-0007) -------------------------------------------------
+# Escala del art. 611-1 del libro sexto. La refundición (en vigor el 15/03/2024) recogía la escala
+# anterior; el Decreto-ley 5/2025 la sustituye «con efectos del 1 de enero de 2025». La escala previa
+# a la refundición no se ha leído; el periodo 2024 se asigna entero a la del texto original por ser el
+# IRPF anual (revisar).
+- id: cataluna-irpf-escala-general-2024
+  kind: escala_irpf_general_autonomica
+  territory: ES-09
+  effective_from: 2024-01-01
+  effective_to: 2025-01-01
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.105}
+      - {from: 12450, rate: 0.12}
+      - {from: 17707.20, rate: 0.14}
+      - {from: 21000, rate: 0.15}
+      - {from: 33007.20, rate: 0.188}
+      - {from: 53407.20, rate: 0.215}
+      - {from: 90000, rate: 0.235}
+      - {from: 120000, rate: 0.245}
+      - {from: 175000, rate: 0.255}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-6951
+  notes: "Código tributario de Cataluña, libro sexto, art. 611-1, redacción original del Decreto Legislativo 1/2024 (BOE-A-2024-6951)."
+
+- id: cataluna-irpf-escala-general-2025
+  kind: escala_irpf_general_autonomica
+  territory: ES-09
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.095}
+      - {from: 12500, rate: 0.125}
+      - {from: 22000, rate: 0.16}
+      - {from: 33000, rate: 0.19}
+      - {from: 53000, rate: 0.215}
+      - {from: 90000, rate: 0.235}
+      - {from: 120000, rate: 0.245}
+      - {from: 175000, rate: 0.255}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2024-6951#a6
+  notes: "Código tributario de Cataluña, libro sexto, art. 611-1, redacción del art. 3.1 del Decreto-ley 5/2025, con efectos del 1 de enero de 2025 (BOE-A-2025-10270). Sin cambios posteriores en el texto consolidado leído el 2026-11-03, por lo que rige también el periodo 2026."
+
+# --- Plusvalía municipal de Barcelona ---------------------------------------------------------------
+- id: barcelona-plusvalia-2025
+  kind: tipo_plusvalia
+  territory: ES-09-08019
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.30}
+  source_url: https://www.barcelona.cat/hisenda/sites/default/files/normativa/2022-06/1.3-ordenanca-iivtnu-plusvalua.pdf
+  notes: "Ordenança fiscal núm. 1.3 del Ayuntamiento de Barcelona (IIVTNU), art. 7: «El tipus impositiu és del 30%». Aprobada definitivamente el 20/12/2024, BOPB de 23/12/2024 (CVE 202410197054), en vigor el 1 de enero de 2025 y vigente mientras no se modifique. La relación de modificaciones de 2026 que publica Hisenda no incluye la 1.3 (a comprobar en el BOPB)."
+
+# --- Alquiler de uso turístico ----------------------------------------------------------------------
+# Requisitos autonómicos: Decreto 159/2012, de 20 de noviembre (DOGC 5/12/2012), arts. 66 a 68 en el
+# texto consolidado del Portal Jurídic de Catalunya (marcado a 2017-03-31: no se han leído modificaciones
+# posteriores), y Decreto-ley 3/2023, de 7 de noviembre (DOGC 8/11/2023, en vigor el 9/11/2023).
+- id: cataluna-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-09
+  effective_from: 2023-11-09
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Habitatge d'ús turístic en Cataluña: cesión onerosa de la vivienda entera, por estancias de temporada (31 días como máximo), con comunicación previa al ayuntamiento e inscripción en el Registro de Turismo de Cataluña"
+    requirements:
+      - code: comunicacion-previa-ayuntamiento
+        description: "Comunicación previa de inicio de actividad al ayuntamiento, firmada por el propietario (y por el gestor, si lo hay), con datos de la vivienda y su capacidad máxima, teléfono de atención inmediata, empresa de asistencia y mantenimiento y declaración responsable de la cédula de habitabilidad (Decreto 159/2012, art. 68.1 a 3)"
+        source_url: https://portaljuridic.gencat.cat/eli/es-ct/d/2012/11/20/159
+      - code: registro-turismo-cataluna
+        description: "Inscripción en el Registro de Turismo de Cataluña, a partir de los datos que los ayuntamientos trasladan a la Generalitat (Decreto 159/2012, art. 68.8)"
+        source_url: https://portaljuridic.gencat.cat/eli/es-ct/d/2012/11/20/159
+      - code: cedula-habitabilidad
+        description: "Cédula de habitabilidad en vigor, condiciones técnicas de las viviendas y ocupación máxima la de la cédula (Decreto 159/2012, art. 67.1)"
+        source_url: https://portaljuridic.gencat.cat/eli/es-ct/d/2012/11/20/159
+      - code: vivienda-completa-estancia-maxima
+        description: "Se cede la vivienda entera, no por estancias, y la estancia de temporada es de 31 días continuos como máximo (Decreto 159/2012, art. 66.2 y 66.3)"
+        source_url: https://portaljuridic.gencat.cat/eli/es-ct/d/2012/11/20/159
+      - code: uso-no-prohibido
+        description: "No es posible si el uso turístico lo prohíbe la ordenación de usos del sector o los estatutos de la comunidad inscritos en el Registro de la Propiedad (Decreto 159/2012, art. 68.6)"
+        source_url: https://portaljuridic.gencat.cat/eli/es-ct/d/2012/11/20/159
+      - code: licencia-urbanistica-previa
+        description: "En los municipios del anexo del Decreto-ley 3/2023 (problemas de acceso a la vivienda o alta concentración de viviendas turísticas), licencia urbanística previa de cinco años, prorrogable si el planeamiento lo permite; las viviendas ya habilitadas deben obtenerla en cinco años desde el 9/11/2023 o cesar (arts. 1 y 2 y disposición transitoria segunda)"
+        source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2024-281
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2024-281
+  notes: "Decreto-ley 3/2023, art. 1: licencia urbanística previa; art. 2: la relación de municipios del anexo tiene vigencia de cinco años desde su entrada en vigor o hasta la orden que la sustituya. El municipio de cada inmueble debe comprobarse en el anexo."
+
+# --- Zonas de mercado residencial tensionado (Ley 12/2023, art. 18) -----------------------------------
+# Comunidad: sin declarar salvo los municipios declarados, que van como reglas propias.
+- id: cataluna-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-09
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18. Resoluciones trimestrales del Ministerio revisadas hasta la del segundo trimestre de 2026 (BOE-A-2026-16532, de 29/07/2026): las únicas con municipios de Cataluña son BOE-A-2024-5214 y BOE-A-2024-20576. PENDIENTE: las Resoluciones TER/3739/2026 (prórroga de 118 municipios) y TER/3740/2026 (53 nuevos), de 16/10/2026, aún sin resolución del Ministerio."
+
+# 140 municipios: Resolución TER/800/2024, de 13 de marzo (que modifica la TER/2940/2023), según la
+# resolución del Ministerio de 14/03/2024 (BOE de 15/03/2024). Vigencia: tres años desde el día siguiente
+# a la publicación de esa resolución (hasta el 15/03/2027); la prórroga está pendiente (TER/3739/2026).
+# 131 municipios: Resolución TER/2408/2024, de 1 de julio (DOGC 3/07/2024), según la resolución del
+# Ministerio de 8/10/2024 (BOE de 9/10/2024). Vigencia: tres años desde el día siguiente (hasta 09/10/2027).
+
+- id: cataluna-zona-tensionada-08001
+  kind: zona_tensionada
+  territory: ES-09-08001
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Abrera. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08003
+  kind: zona_tensionada
+  territory: ES-09-08003
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Alella. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43014
+  kind: zona_tensionada
+  territory: ES-09-43014
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Amposta. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08006
+  kind: zona_tensionada
+  territory: ES-09-08006
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Arenys de Mar. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08007
+  kind: zona_tensionada
+  territory: ES-09-08007
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Arenys de Munt. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08009
+  kind: zona_tensionada
+  territory: ES-09-08009
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Argentona. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08015
+  kind: zona_tensionada
+  territory: ES-09-08015
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Badalona. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08904
+  kind: zona_tensionada
+  territory: ES-09-08904
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Badia del Vallès. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-25040
+  kind: zona_tensionada
+  territory: ES-09-25040
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Balaguer. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17015
+  kind: zona_tensionada
+  territory: ES-09-17015
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Banyoles. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08252
+  kind: zona_tensionada
+  territory: ES-09-08252
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Barberà del Vallès. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08019
+  kind: zona_tensionada
+  territory: ES-09-08019
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Barcelona. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08022
+  kind: zona_tensionada
+  territory: ES-09-08022
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Berga. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17022
+  kind: zona_tensionada
+  territory: ES-09-17022
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Bisbal d'Empordà, La. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17023
+  kind: zona_tensionada
+  territory: ES-09-17023
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Blanes. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08029
+  kind: zona_tensionada
+  territory: ES-09-08029
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Cabrera de Mar. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08030
+  kind: zona_tensionada
+  territory: ES-09-08030
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Cabrils. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08033
+  kind: zona_tensionada
+  territory: ES-09-08033
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Caldes de Montbui. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08032
+  kind: zona_tensionada
+  territory: ES-09-08032
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Caldes d'Estrac. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08035
+  kind: zona_tensionada
+  territory: ES-09-08035
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Calella. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08037
+  kind: zona_tensionada
+  territory: ES-09-08037
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Calldetenes. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43038
+  kind: zona_tensionada
+  territory: ES-09-43038
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Cambrils. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08040
+  kind: zona_tensionada
+  territory: ES-09-08040
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Canet de Mar. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43907
+  kind: zona_tensionada
+  territory: ES-09-43907
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Canonja, La. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08041
+  kind: zona_tensionada
+  territory: ES-09-08041
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Canovelles. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08046
+  kind: zona_tensionada
+  territory: ES-09-08046
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Cardedeu. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08051
+  kind: zona_tensionada
+  territory: ES-09-08051
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Castellar del Vallès. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08054
+  kind: zona_tensionada
+  territory: ES-09-08054
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Castellbisbal. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08056
+  kind: zona_tensionada
+  territory: ES-09-08056
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Castelldefels. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08266
+  kind: zona_tensionada
+  territory: ES-09-08266
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Cerdanyola del Vallès. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08068
+  kind: zona_tensionada
+  territory: ES-09-08068
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Cervelló. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-25072
+  kind: zona_tensionada
+  territory: ES-09-25072
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Cervera. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08072
+  kind: zona_tensionada
+  territory: ES-09-08072
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Corbera de Llobregat. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08073
+  kind: zona_tensionada
+  territory: ES-09-08073
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Cornellà de Llobregat. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08074
+  kind: zona_tensionada
+  territory: ES-09-08074
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Cubelles. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08076
+  kind: zona_tensionada
+  territory: ES-09-08076
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Esparreguera. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08077
+  kind: zona_tensionada
+  territory: ES-09-08077
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Esplugues de Llobregat. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43055
+  kind: zona_tensionada
+  territory: ES-09-43055
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Falset. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17066
+  kind: zona_tensionada
+  territory: ES-09-17066
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Figueres. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08086
+  kind: zona_tensionada
+  territory: ES-09-08086
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Franqueses del Vallès, Les. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08088
+  kind: zona_tensionada
+  territory: ES-09-08088
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Garriga, La. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08089
+  kind: zona_tensionada
+  territory: ES-09-08089
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Gavà. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17079
+  kind: zona_tensionada
+  territory: ES-09-17079
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Girona. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08096
+  kind: zona_tensionada
+  territory: ES-09-08096
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Granollers. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-25110
+  kind: zona_tensionada
+  territory: ES-09-25110
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Guissona. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08101
+  kind: zona_tensionada
+  territory: ES-09-08101
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Hospitalet de Llobregat, L'. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08102
+  kind: zona_tensionada
+  territory: ES-09-08102
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Igualada. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08105
+  kind: zona_tensionada
+  territory: ES-09-08105
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Llagosta, La. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-25120
+  kind: zona_tensionada
+  territory: ES-09-25120
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Lleida. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08106
+  kind: zona_tensionada
+  territory: ES-09-08106
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Llinars del Vallès. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17095
+  kind: zona_tensionada
+  territory: ES-09-17095
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Lloret de Mar. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08110
+  kind: zona_tensionada
+  territory: ES-09-08110
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Malgrat de Mar. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08112
+  kind: zona_tensionada
+  territory: ES-09-08112
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Manlleu. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08113
+  kind: zona_tensionada
+  territory: ES-09-08113
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Manresa. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08118
+  kind: zona_tensionada
+  territory: ES-09-08118
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Masnou, El. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08120
+  kind: zona_tensionada
+  territory: ES-09-08120
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Matadepera. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08121
+  kind: zona_tensionada
+  territory: ES-09-08121
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Mataró. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08123
+  kind: zona_tensionada
+  territory: ES-09-08123
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Molins de Rei. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-25137
+  kind: zona_tensionada
+  territory: ES-09-25137
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Mollerussa. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08124
+  kind: zona_tensionada
+  territory: ES-09-08124
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Mollet del Vallès. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08125
+  kind: zona_tensionada
+  territory: ES-09-08125
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Montcada i Reixac. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08126
+  kind: zona_tensionada
+  territory: ES-09-08126
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Montgat. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08135
+  kind: zona_tensionada
+  territory: ES-09-08135
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Montmeló. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08136
+  kind: zona_tensionada
+  territory: ES-09-08136
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Montornès del Vallès. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43094
+  kind: zona_tensionada
+  territory: ES-09-43094
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Móra la Nova. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08147
+  kind: zona_tensionada
+  territory: ES-09-08147
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Olesa de Montserrat. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17114
+  kind: zona_tensionada
+  territory: ES-09-17114
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Olot. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08155
+  kind: zona_tensionada
+  territory: ES-09-08155
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Palafolls. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17117
+  kind: zona_tensionada
+  territory: ES-09-17117
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Palafrugell. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17118
+  kind: zona_tensionada
+  territory: ES-09-17118
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Palamós. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08156
+  kind: zona_tensionada
+  territory: ES-09-08156
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Palau-solità i Plegamans. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08158
+  kind: zona_tensionada
+  territory: ES-09-08158
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Papiol, El. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08159
+  kind: zona_tensionada
+  territory: ES-09-08159
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Parets del Vallès. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08163
+  kind: zona_tensionada
+  territory: ES-09-08163
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Pineda de Mar. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08167
+  kind: zona_tensionada
+  territory: ES-09-08167
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Polinyà. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17137
+  kind: zona_tensionada
+  territory: ES-09-17137
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Porqueres. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08169
+  kind: zona_tensionada
+  territory: ES-09-08169
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Prat de Llobregat, El. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08230
+  kind: zona_tensionada
+  territory: ES-09-08230
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Premià de Dalt. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08172
+  kind: zona_tensionada
+  territory: ES-09-08172
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Premià de Mar. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17141
+  kind: zona_tensionada
+  territory: ES-09-17141
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Puigcerdà. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43123
+  kind: zona_tensionada
+  territory: ES-09-43123
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Reus. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17147
+  kind: zona_tensionada
+  territory: ES-09-17147
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Ripoll. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08180
+  kind: zona_tensionada
+  territory: ES-09-08180
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Ripollet. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08181
+  kind: zona_tensionada
+  territory: ES-09-08181
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Roca del Vallès, La. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43133
+  kind: zona_tensionada
+  territory: ES-09-43133
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Roquetes. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08184
+  kind: zona_tensionada
+  territory: ES-09-08184
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Rubí. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08187
+  kind: zona_tensionada
+  territory: ES-09-08187
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sabadell. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43905
+  kind: zona_tensionada
+  territory: ES-09-43905
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Salou. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17155
+  kind: zona_tensionada
+  territory: ES-09-17155
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Salt. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08194
+  kind: zona_tensionada
+  territory: ES-09-08194
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Adrià de Besòs. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08197
+  kind: zona_tensionada
+  territory: ES-09-08197
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Andreu de Llavaneres. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08200
+  kind: zona_tensionada
+  territory: ES-09-08200
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Boi de Llobregat. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08202
+  kind: zona_tensionada
+  territory: ES-09-08202
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Celoni. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08204
+  kind: zona_tensionada
+  territory: ES-09-08204
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Climent de Llobregat. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08205
+  kind: zona_tensionada
+  territory: ES-09-08205
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Cugat del Vallès. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08208
+  kind: zona_tensionada
+  territory: ES-09-08208
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Esteve Sesrovires. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17160
+  kind: zona_tensionada
+  territory: ES-09-17160
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Feliu de Guíxols. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08211
+  kind: zona_tensionada
+  territory: ES-09-08211
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Feliu de Llobregat. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08209
+  kind: zona_tensionada
+  territory: ES-09-08209
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Fost de Campsentelles. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08213
+  kind: zona_tensionada
+  territory: ES-09-08213
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Fruitós de Bages. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08217
+  kind: zona_tensionada
+  territory: ES-09-08217
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Joan Despí. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08221
+  kind: zona_tensionada
+  territory: ES-09-08221
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Just Desvern. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08231
+  kind: zona_tensionada
+  territory: ES-09-08231
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Pere de Ribes. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08235
+  kind: zona_tensionada
+  territory: ES-09-08235
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Pol de Mar. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08238
+  kind: zona_tensionada
+  territory: ES-09-08238
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Quirze del Vallès. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08240
+  kind: zona_tensionada
+  territory: ES-09-08240
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Sadurní d'Anoia. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08264
+  kind: zona_tensionada
+  territory: ES-09-08264
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Vicenç de Montalt. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08263
+  kind: zona_tensionada
+  territory: ES-09-08263
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sant Vicenç dels Horts. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08244
+  kind: zona_tensionada
+  territory: ES-09-08244
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Santa Coloma de Cervelló. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17180
+  kind: zona_tensionada
+  territory: ES-09-17180
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Santa Coloma de Farners. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08245
+  kind: zona_tensionada
+  territory: ES-09-08245
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Santa Coloma de Gramenet. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08250
+  kind: zona_tensionada
+  territory: ES-09-08250
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Santa Margarida de Montbui. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08260
+  kind: zona_tensionada
+  territory: ES-09-08260
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Santa Perpètua de Mogoda. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08261
+  kind: zona_tensionada
+  territory: ES-09-08261
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Santa Susanna. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-17186
+  kind: zona_tensionada
+  territory: ES-09-17186
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sarrià de Ter. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-25203
+  kind: zona_tensionada
+  territory: ES-09-25203
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Seu d'Urgell, La. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08270
+  kind: zona_tensionada
+  territory: ES-09-08270
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sitges. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-25207
+  kind: zona_tensionada
+  territory: ES-09-25207
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Solsona. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-25209
+  kind: zona_tensionada
+  territory: ES-09-25209
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Sort. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43148
+  kind: zona_tensionada
+  territory: ES-09-43148
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Tarragona. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-25217
+  kind: zona_tensionada
+  territory: ES-09-25217
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Tàrrega. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08281
+  kind: zona_tensionada
+  territory: ES-09-08281
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Teià. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08279
+  kind: zona_tensionada
+  territory: ES-09-08279
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Terrassa. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08282
+  kind: zona_tensionada
+  territory: ES-09-08282
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Tiana. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08283
+  kind: zona_tensionada
+  territory: ES-09-08283
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Tona. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08285
+  kind: zona_tensionada
+  territory: ES-09-08285
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Torelló. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43153
+  kind: zona_tensionada
+  territory: ES-09-43153
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Torredembarra. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08289
+  kind: zona_tensionada
+  territory: ES-09-08289
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Torrelles de Llobregat. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43155
+  kind: zona_tensionada
+  territory: ES-09-43155
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Tortosa. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-25234
+  kind: zona_tensionada
+  territory: ES-09-25234
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Tremp. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08295
+  kind: zona_tensionada
+  territory: ES-09-08295
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Vallirana. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43161
+  kind: zona_tensionada
+  territory: ES-09-43161
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Valls. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-43163
+  kind: zona_tensionada
+  territory: ES-09-43163
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Vendrell, El. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08298
+  kind: zona_tensionada
+  territory: ES-09-08298
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Vic. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08301
+  kind: zona_tensionada
+  territory: ES-09-08301
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Viladecans. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08305
+  kind: zona_tensionada
+  territory: ES-09-08305
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Vilafranca del Penedès. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08302
+  kind: zona_tensionada
+  territory: ES-09-08302
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Vilanova del Camí. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08307
+  kind: zona_tensionada
+  territory: ES-09-08307
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Vilanova i la Geltrú. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08214
+  kind: zona_tensionada
+  territory: ES-09-08214
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Vilassar de Dalt. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08219
+  kind: zona_tensionada
+  territory: ES-09-08219
+  effective_from: 2024-03-16
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-5214
+  notes: "Vilassar de Mar. Resolución TER/800/2024, de 13 de marzo (BOGC núm. 9122); relación publicada en la Resolución de 14/03/2024 del Ministerio (BOE-A-2024-5214). Vigencia de tres años desde el día siguiente a su publicación en el BOE (15/03/2024)."
+
+- id: cataluna-zona-tensionada-08014
+  kind: zona_tensionada
+  territory: ES-09-08014
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Aiguafreda. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43002
+  kind: zona_tensionada
+  territory: ES-09-43002
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Albinyana. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43004
+  kind: zona_tensionada
+  territory: ES-09-43004
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Alcanar. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-25011
+  kind: zona_tensionada
+  territory: ES-09-25011
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Alcarràs. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43005
+  kind: zona_tensionada
+  territory: ES-09-43005
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Alcover. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43904
+  kind: zona_tensionada
+  territory: ES-09-43904
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Aldea, L'. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-25019
+  kind: zona_tensionada
+  territory: ES-09-25019
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Almacelles. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-25023
+  kind: zona_tensionada
+  territory: ES-09-25023
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Alpicat. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43012
+  kind: zona_tensionada
+  territory: ES-09-43012
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Altafulla. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43013
+  kind: zona_tensionada
+  territory: ES-09-43013
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Ametlla de Mar, L'. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08005
+  kind: zona_tensionada
+  territory: ES-09-08005
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Ametlla del Vallès, L'. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43906
+  kind: zona_tensionada
+  territory: ES-09-43906
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Ampolla, L'. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17008
+  kind: zona_tensionada
+  territory: ES-09-17008
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Anglès. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43016
+  kind: zona_tensionada
+  territory: ES-09-43016
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Arboç, L'. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17009
+  kind: zona_tensionada
+  territory: ES-09-17009
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Arbúcies. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08010
+  kind: zona_tensionada
+  territory: ES-09-08010
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Artés. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-25034
+  kind: zona_tensionada
+  territory: ES-09-25034
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Artesa de Segre. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08016
+  kind: zona_tensionada
+  territory: ES-09-08016
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Bagà. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08020
+  kind: zona_tensionada
+  territory: ES-09-08020
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Begues. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17013
+  kind: zona_tensionada
+  territory: ES-09-17013
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Begur. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-25050
+  kind: zona_tensionada
+  territory: ES-09-25050
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Bellpuig. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-25051
+  kind: zona_tensionada
+  territory: ES-09-25051
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Bellver de Cerdanya. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17019
+  kind: zona_tensionada
+  territory: ES-09-17019
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Besalú. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08023
+  kind: zona_tensionada
+  territory: ES-09-08023
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Bigues i Riells del Fai. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43028
+  kind: zona_tensionada
+  territory: ES-09-43028
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Bisbal del Penedès, La. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-25058
+  kind: zona_tensionada
+  territory: ES-09-25058
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Borges Blanques, Les. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17027
+  kind: zona_tensionada
+  territory: ES-09-17027
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Breda. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17032
+  kind: zona_tensionada
+  territory: ES-09-17032
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Cadaqués. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08031
+  kind: zona_tensionada
+  territory: ES-09-08031
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Calaf. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43037
+  kind: zona_tensionada
+  territory: ES-09-43037
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Calafell. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17033
+  kind: zona_tensionada
+  territory: ES-09-17033
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Caldes de Malavella. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17034
+  kind: zona_tensionada
+  territory: ES-09-17034
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Calonge i Sant Antoni. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08043
+  kind: zona_tensionada
+  territory: ES-09-08043
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Canyelles. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17044
+  kind: zona_tensionada
+  territory: ES-09-17044
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Cassà de la Selva. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08058
+  kind: zona_tensionada
+  territory: ES-09-08058
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Castellet i la Gornal. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08061
+  kind: zona_tensionada
+  territory: ES-09-08061
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Castellgalí. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17047
+  kind: zona_tensionada
+  territory: ES-09-17047
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Castelló d'Empúries. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08064
+  kind: zona_tensionada
+  territory: ES-09-08064
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Castellterçol. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17049
+  kind: zona_tensionada
+  territory: ES-09-17049
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Celrà. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08067
+  kind: zona_tensionada
+  territory: ES-09-08067
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Centelles. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43050
+  kind: zona_tensionada
+  territory: ES-09-43050
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Creixell. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43051
+  kind: zona_tensionada
+  territory: ES-09-43051
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Cunit. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43901
+  kind: zona_tensionada
+  territory: ES-09-43901
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Deltebre. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08075
+  kind: zona_tensionada
+  territory: ES-09-08075
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Dosrius. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17062
+  kind: zona_tensionada
+  territory: ES-09-17062
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Escala, L'. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08254
+  kind: zona_tensionada
+  territory: ES-09-08254
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Esquirol, L'. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08083
+  kind: zona_tensionada
+  territory: ES-09-08083
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Folgueroles. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17073
+  kind: zona_tensionada
+  territory: ES-09-17073
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Fornells de la Selva. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08091
+  kind: zona_tensionada
+  territory: ES-09-08091
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Gelida. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08092
+  kind: zona_tensionada
+  territory: ES-09-08092
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Gironella. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17083
+  kind: zona_tensionada
+  territory: ES-09-17083
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Hostalric. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-25122
+  kind: zona_tensionada
+  territory: ES-09-25122
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Linyola. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17092
+  kind: zona_tensionada
+  territory: ES-09-17092
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Llançà. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08107
+  kind: zona_tensionada
+  territory: ES-09-08107
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Lliçà d'Amunt. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08108
+  kind: zona_tensionada
+  territory: ES-09-08108
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Lliçà de Vall. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17103
+  kind: zona_tensionada
+  territory: ES-09-17103
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Maçanet de la Selva. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08119
+  kind: zona_tensionada
+  territory: ES-09-08119
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Masquefa. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08138
+  kind: zona_tensionada
+  territory: ES-09-08138
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Moià. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08127
+  kind: zona_tensionada
+  territory: ES-09-08127
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Monistrol de Montserrat. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43086
+  kind: zona_tensionada
+  territory: ES-09-43086
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Montblanc. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43088
+  kind: zona_tensionada
+  territory: ES-09-43088
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Montbrió del Camp. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43092
+  kind: zona_tensionada
+  territory: ES-09-43092
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Mont-roig del Camp. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43093
+  kind: zona_tensionada
+  territory: ES-09-43093
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Móra d'Ebre. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43095
+  kind: zona_tensionada
+  territory: ES-09-43095
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Morell, El. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08141
+  kind: zona_tensionada
+  territory: ES-09-08141
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Navàs. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08143
+  kind: zona_tensionada
+  territory: ES-09-08143
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Òdena. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08145
+  kind: zona_tensionada
+  territory: ES-09-08145
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Olèrdola. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08146
+  kind: zona_tensionada
+  territory: ES-09-08146
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Olesa de Bonesvalls. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08148
+  kind: zona_tensionada
+  territory: ES-09-08148
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Olivella. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08157
+  kind: zona_tensionada
+  territory: ES-09-08157
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Pallejà. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08905
+  kind: zona_tensionada
+  territory: ES-09-08905
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Palma de Cervelló, La. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17124
+  kind: zona_tensionada
+  territory: ES-09-17124
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Pals. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17132
+  kind: zona_tensionada
+  territory: ES-09-17132
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Peralada. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08161
+  kind: zona_tensionada
+  territory: ES-09-08161
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Piera. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43111
+  kind: zona_tensionada
+  territory: ES-09-43111
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Pobla de Montornès, La. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-25173
+  kind: zona_tensionada
+  territory: ES-09-25173
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Pont de Suert, El. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-25172
+  kind: zona_tensionada
+  territory: ES-09-25172
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Ponts. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08171
+  kind: zona_tensionada
+  territory: ES-09-08171
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Prats de Lluçanès. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08175
+  kind: zona_tensionada
+  territory: ES-09-08175
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Puig-reig. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43136
+  kind: zona_tensionada
+  territory: ES-09-43136
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Ràpita, La. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17146
+  kind: zona_tensionada
+  territory: ES-09-17146
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Riells i Viabrea. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17148
+  kind: zona_tensionada
+  territory: ES-09-17148
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Riudarenes. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43129
+  kind: zona_tensionada
+  territory: ES-09-43129
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Riudoms. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43131
+  kind: zona_tensionada
+  territory: ES-09-43131
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Roda de Berà. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08183
+  kind: zona_tensionada
+  territory: ES-09-08183
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Roda de Ter. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17152
+  kind: zona_tensionada
+  territory: ES-09-17152
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Roses. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08198
+  kind: zona_tensionada
+  territory: ES-09-08198
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Antoni de Vilamajor. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08203
+  kind: zona_tensionada
+  territory: ES-09-08203
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Cebrià de Vallalta. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08207
+  kind: zona_tensionada
+  territory: ES-09-08207
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Esteve de Palautordera. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08210
+  kind: zona_tensionada
+  territory: ES-09-08210
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Feliu de Codines. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08215
+  kind: zona_tensionada
+  territory: ES-09-08215
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Hipòlit de Voltregà. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43137
+  kind: zona_tensionada
+  territory: ES-09-43137
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Jaume dels Domenys. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43902
+  kind: zona_tensionada
+  territory: ES-09-43902
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Jaume d'Enveja. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08218
+  kind: zona_tensionada
+  territory: ES-09-08218
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Joan de Vilatorrada. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17169
+  kind: zona_tensionada
+  territory: ES-09-17169
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Julià de Ramis. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08222
+  kind: zona_tensionada
+  territory: ES-09-08222
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Llorenç d'Hortons. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08223
+  kind: zona_tensionada
+  territory: ES-09-08223
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Llorenç Savall. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08227
+  kind: zona_tensionada
+  territory: ES-09-08227
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Martí Sarroca. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08232
+  kind: zona_tensionada
+  territory: ES-09-08232
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Pere de Riudebitlles. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08233
+  kind: zona_tensionada
+  territory: ES-09-08233
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Pere de Torelló. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08234
+  kind: zona_tensionada
+  territory: ES-09-08234
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Pere de Vilamajor. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17178
+  kind: zona_tensionada
+  territory: ES-09-17178
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Pere Pescador. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08237
+  kind: zona_tensionada
+  territory: ES-09-08237
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sant Quirze de Besora. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43138
+  kind: zona_tensionada
+  territory: ES-09-43138
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Santa Bàrbara. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43139
+  kind: zona_tensionada
+  territory: ES-09-43139
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Santa Coloma de Queralt. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17181
+  kind: zona_tensionada
+  territory: ES-09-17181
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Santa Cristina d'Aro. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08248
+  kind: zona_tensionada
+  territory: ES-09-08248
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Santa Eulàlia de Ronçana. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08259
+  kind: zona_tensionada
+  territory: ES-09-08259
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Santa Maria de Palautordera. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43140
+  kind: zona_tensionada
+  territory: ES-09-43140
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Santa Oliva. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08192
+  kind: zona_tensionada
+  territory: ES-09-08192
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Santpedor. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43145
+  kind: zona_tensionada
+  territory: ES-09-43145
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Selva del Camp, La. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43044
+  kind: zona_tensionada
+  territory: ES-09-43044
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sénia, La. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08267
+  kind: zona_tensionada
+  territory: ES-09-08267
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sentmenat. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08269
+  kind: zona_tensionada
+  territory: ES-09-08269
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Seva. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17193
+  kind: zona_tensionada
+  territory: ES-09-17193
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Sils. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08274
+  kind: zona_tensionada
+  territory: ES-09-08274
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Súria. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08278
+  kind: zona_tensionada
+  territory: ES-09-08278
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Taradell. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08288
+  kind: zona_tensionada
+  territory: ES-09-08288
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Torrelles de Foix. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17199
+  kind: zona_tensionada
+  territory: ES-09-17199
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Torroella de Montgrí. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17202
+  kind: zona_tensionada
+  territory: ES-09-17202
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Tossa de Mar. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43156
+  kind: zona_tensionada
+  territory: ES-09-43156
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Ulldecona. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08291
+  kind: zona_tensionada
+  territory: ES-09-08291
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Vacarisses. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08294
+  kind: zona_tensionada
+  territory: ES-09-08294
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Vallgorguina. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17213
+  kind: zona_tensionada
+  territory: ES-09-17213
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Vidreres. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-25243
+  kind: zona_tensionada
+  territory: ES-09-25243
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Vielha e Mijaran. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08300
+  kind: zona_tensionada
+  territory: ES-09-08300
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Viladecavalls. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17221
+  kind: zona_tensionada
+  territory: ES-09-17221
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Vilafant. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-08902
+  kind: zona_tensionada
+  territory: ES-09-08902
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Vilanova del Vallès. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17233
+  kind: zona_tensionada
+  territory: ES-09-17233
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Vilobí d'Onyar. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-43178
+  kind: zona_tensionada
+  territory: ES-09-43178
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Vinyols i els Arcs. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."
+
+- id: cataluna-zona-tensionada-17048
+  kind: zona_tensionada
+  territory: ES-09-17048
+  effective_from: 2024-10-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-20576
+  notes: "Castell d'Aro, Platja d'Aro i s'Agaró. Resolución TER/2408/2024, de 1 de julio (BOGC núm. 9196); relación publicada en la Resolución de 8/10/2024 del Ministerio (BOE-A-2024-20576). Vigencia de tres años desde el día siguiente a su publicación en el BOE (09/10/2024)."

@@ -72,7 +72,7 @@ def test_cualquier_municipio_de_la_comunidad_de_madrid(book: RuleBook):
 
 def test_territorio_no_revisado_es_un_error(book: RuleBook):
     with pytest.raises(LookupError, match="zona_tensionada"):
-        stressed_zone(book, "ES-09-08019", HOY, allow_unverified=True)
+        stressed_zone(book, "ES-11-10037", HOY, allow_unverified=True)
 
 
 # --- Régimen por tipo de alquiler --------------------------------------------------------

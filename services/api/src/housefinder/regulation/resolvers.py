@@ -22,6 +22,7 @@ from housefinder.engines.irpf import (
     IrpfPart,
     MinimumAmounts,
     personal_minimum,
+    scale_tax,
 )
 from housefinder.regulation.kinds import (
     RENTAL_TYPES,
@@ -34,6 +35,7 @@ from housefinder.regulation.kinds import (
     RentalFacts,
     RentalRegime,
     TaxpayerMinimum,
+    TransferTaxParams,
     ZoneDeclaration,
     parse_params,
 )
@@ -54,13 +56,38 @@ def purchase_tax(
 
     La vivienda nueva paga IVA y AJD: ver `regulation.transactions.purchase_costs`.
     """
-    rate = purchase_tax_rate(book, territory, on, new_build, include_pending, allow_unverified)
+    if new_build:
+        raise LookupError("La vivienda nueva no paga ITP sino IVA y AJD (purchase_costs)")
+    rule = _rule(book, "impuesto_compra_segunda_mano", territory, on, include_pending,
+                 allow_unverified)
+    params = _transfer_tax(rule)
+    if params.brackets is not None and params.whole_value:
+        rate = max((b for b in params.brackets if price >= b.from_amount),
+                   key=lambda b: b.from_amount).rate
+        return Figure(
+            "purchase_costs.transfer_tax",
+            money(price * rate),
+            "EUR",
+            f"precio × tipo del ITP del tramo del precio, sobre todo el precio ({rate})",
+            combine_sources(price_sources, (rule.ref,)),
+        )
+    if params.brackets is not None:
+        scale = tuple(Bracket(b.from_amount, b.rate) for b in params.brackets)
+        steps = ", ".join(f"{b.rate} desde {b.from_amount}" for b in params.brackets)
+        return Figure(
+            "purchase_costs.transfer_tax",
+            money(scale_tax(price, scale)),
+            "EUR",
+            f"escala del ITP sobre el precio, cada tipo en su tramo ({steps})",
+            combine_sources(price_sources, (rule.ref,)),
+        )
+    assert params.rate is not None
     return Figure(
         "purchase_costs.transfer_tax",
-        money(price * rate.value),
+        money(price * params.rate),
         "EUR",
-        f"precio × tipo del ITP ({rate.value})",
-        combine_sources(price_sources, rate.sources),
+        f"precio × tipo del ITP ({params.rate})",
+        combine_sources(price_sources, (rule.ref,)),
     )
 
 
@@ -77,9 +104,13 @@ def purchase_tax_rate(
         raise LookupError("La vivienda nueva no paga ITP sino IVA y AJD (purchase_costs)")
     rule = _rule(book, "impuesto_compra_segunda_mano", territory, on, include_pending,
                  allow_unverified)
+    params = _transfer_tax(rule)
+    if params.rate is None:
+        raise LookupError(f"El ITP de {territory} va por tramos: no tiene un tipo único "
+                          "(usar purchase_tax con el precio)")
     return Figure(
         "purchase_costs.transfer_tax_rate",
-        _rate(rule),
+        params.rate,
         "ratio",
         "tipo del ITP de la regla vigente",
         (rule.ref,),
@@ -372,6 +403,13 @@ def _rule(
         verified = "" if allow_unverified else " verificada"
         raise LookupError(f"No hay regla{verified} de {kind} para {territory} el {on}")
     return rule
+
+
+def _transfer_tax(rule: Rule) -> TransferTaxParams:
+    params = parse_params(rule.kind, rule.params)
+    if not isinstance(params, TransferTaxParams):
+        raise TypeError(f"{rule.id}: se esperaba el ITP (rate o brackets)")
+    return params
 
 
 def _rate(rule: Rule) -> Decimal:
