@@ -37,6 +37,9 @@ de alquiler, gestión activa o pasiva, pruebas de estrés, escenarios normativos
    Se guardan con `profiles/store.py` (cifrado de sobre, ADR-0011); el modelo `UserProfile` nunca
    se muestra en texto y sus errores no repiten los valores.
 6. **Dinero con `Decimal`**, nunca `float`. Redondeo con `money()`.
+7. **La recomendación es la mejor para el usuario, nunca la que más nos paga.** Si HouseFinder o
+   un profesional cobran comisión por una oferta, se declara, pero ningún dato de comisión entra
+   en la búsqueda inversa, el plan ni el agente (ADR-0036).
 
 ## Mapa del repositorio
 

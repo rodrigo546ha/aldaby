@@ -1,7 +1,9 @@
 # Borrador: consulta a la Agencia Estatal BOE sobre reutilización de datos del Portal de Subastas
 
-Para Rodrigo: revisar, completar los datos entre corchetes y enviarlo por el canal de contacto que
-indique la web del BOE. HouseFinder no lo envía. Contexto: ADR-0017 y
+Para Rodrigo: revisar, completar los datos entre corchetes y enviarlo por el formulario del
+Portal de Subastas (las consultas sobre el Portal se atienden «exclusivamente» por él, comprobado
+el 2026-11-02): https://www.boe.es/contactar/formulario_simple.php?tipo=SUB. HouseFinder no lo
+envía. Contexto: ADR-0017 y
 `docs/research/f4-3-portal-subastas.md`. Ampliado a toda España el 2026-11-02, cuando se decidió
 cubrir todo el territorio.
 
