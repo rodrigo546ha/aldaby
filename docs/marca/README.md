@@ -47,6 +47,7 @@ tiene licencia SIL Open Font License 1.1.
 | `aldaby-icono-app.svg` | Icono de la app (cuadrado redondeado verde) |
 | `favicon.svg` | Favicon; cambia a blanco en modo oscuro |
 | `png/` | Exportaciones: icono a 1024 y 180 px, favicon a 32 px y logotipo a 1200 px de ancho |
+| `png/aldaby-perfil-1024.png` | Foto de perfil (Gmail, redes): el icono a sangre, sin esquinas, para el recorte en círculo |
 
 ## Uso
 
