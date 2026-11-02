@@ -398,7 +398,7 @@ _PRIVATE = """
 def get_private_offer(
     conn: psycopg.Connection, offer_id: UUID, org_id: UUID
 ) -> PrivateOffer | None:
-    row = conn.execute(_PRIVATE + " WHERE o.id = %s AND o.org_id = %s",
+    row = conn.execute(_PRIVATE + " WHERE o.id = %s AND o.org_id = %s AND o.kind = 'enlace'",
                        (offer_id, org_id)).fetchone()
     return PrivateOffer(*row) if row else None
 
@@ -406,8 +406,10 @@ def get_private_offer(
 def list_private_offers(
     conn: psycopg.Connection, org_id: UUID, limit: int = 50
 ) -> list[PrivateOffer]:
-    rows = conn.execute(_PRIVATE + " WHERE o.org_id = %s ORDER BY o.first_seen DESC LIMIT %s",
-                        (org_id, limit)).fetchall()
+    # Solo los enlaces y textos pegados: la cartera de los feeds de agencias (también de la
+    # organización, ADR-0038) va en su propia página.
+    rows = conn.execute(_PRIVATE + " WHERE o.org_id = %s AND o.kind = 'enlace' "
+                        "ORDER BY o.first_seen DESC LIMIT %s", (org_id, limit)).fetchall()
     return [PrivateOffer(*r) for r in rows]
 
 
@@ -435,7 +437,7 @@ def confirm_offer(
         """
         UPDATE offers SET extraction_status = 'confirmada', asking_price = %s,
                           built_area_m2 = %s, address = %s, cadastral_ref = %s, extracted = %s
-        WHERE id = %s AND org_id = %s
+        WHERE id = %s AND org_id = %s AND kind = 'enlace'
           AND extraction_status IN ('pendiente', 'extraida', 'confirmada')
         RETURNING id
         """,
@@ -711,3 +713,80 @@ def set_rent_expectation(conn: psycopg.Connection, org_id: UUID, offer_id: UUID,
         """,
         (org_id, offer_id, rental_type, monthly_income),
     )
+
+
+# --- Ventas directas del Patrimonio del Estado para la web (ADR-0037) ---------------------------
+
+
+@dataclass(frozen=True)
+class DirectSaleSummary:
+    external_id: str
+    title: str | None
+    published_on: date | None
+    extraction_status: str
+    lots: int
+    located_lots: int
+    delegation: str | None
+    deadline: str | None  # «Fecha límite presentación solicitudes», tal como viene: 23/03/2027
+    price: str | None  # el de la ficha, si lo trae: 1.344,49
+
+
+def list_direct_sales(conn: psycopg.Connection, channel: str,
+                      limit: int = 100) -> list[DirectSaleSummary]:
+    rows = conn.execute(
+        """
+        SELECT a.external_id, a.title, a.published_on, a.extraction_status,
+               (SELECT count(*) FROM offers l WHERE l.parent_id = a.id
+                                               AND l.extraction_status <> 'retirada'),
+               (SELECT count(*) FROM offers l WHERE l.parent_id = a.id
+                                               AND l.property_id IS NOT NULL),
+               a.raw->'ficha'->>'Delegación',
+               a.raw->'ficha'->>'Fecha límite presentación solicitudes',
+               a.raw->'ficha'->>'Precio'
+        FROM offers a
+        WHERE a.channel = %s AND a.kind = 'anuncio' AND a.org_id IS NULL
+        ORDER BY a.published_on DESC NULLS LAST, a.external_id DESC LIMIT %s
+        """,
+        (channel, limit),
+    ).fetchall()
+    return [DirectSaleSummary(*r) for r in rows]
+
+
+# --- Cartera de los feeds de agencias para la web (ADR-0038) ------------------------------------
+
+
+@dataclass(frozen=True)
+class FeedListing:
+    id: UUID
+    title: str | None
+    url: str | None
+    asking_price: Decimal | None
+    built_area_m2: Decimal | None
+    municipality: str | None
+    province: str | None
+    property_type: str | None
+    agency: str | None  # nombre de la fuente: «Feed de …»
+    public: bool  # la ven todos los usuarios (alcance «todos»)
+    located: bool
+    section_code: str | None
+
+
+def list_feed_listings(conn: psycopg.Connection, org_id: UUID,
+                       limit: int = 500) -> list[FeedListing]:
+    """Anuncios vigentes de los feeds de agencias que la organización puede ver: los suyos y los
+    que una agencia cedió a todos."""
+    rows = conn.execute(
+        """
+        SELECT o.id, o.title, o.url, o.asking_price, o.built_area_m2,
+               o.raw->>'town', o.raw->>'province', o.extracted->>'property_type', s.name,
+               o.org_id IS NULL, o.property_id IS NOT NULL, p.section_code
+        FROM offers o
+        LEFT JOIN sources s ON s.id = o.source_id
+        LEFT JOIN properties p ON p.id = o.property_id
+        WHERE o.channel = 'feed_agencia' AND o.kind = 'anuncio'
+          AND o.extraction_status = 'no_aplica' AND (o.org_id IS NULL OR o.org_id = %s)
+        ORDER BY o.published_on DESC NULLS LAST, o.title LIMIT %s
+        """,
+        (org_id, limit),
+    ).fetchall()
+    return [FeedListing(*r) for r in rows]

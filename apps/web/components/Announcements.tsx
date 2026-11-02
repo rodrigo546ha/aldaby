@@ -13,7 +13,7 @@ type LotField = components["schemas"]["LotFieldOut"];
 const MONEY = new Set(["price", "deposit"]);
 const dateFormat = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short", year: "numeric" });
 
-function formatDate(iso: string | null | undefined): string {
+export function formatDate(iso: string | null | undefined): string {
   return iso ? dateFormat.format(new Date(`${iso}T00:00:00`)) : "";
 }
 
@@ -150,7 +150,7 @@ function AnnouncementDetail({ detail, onOpen }: { detail: Detail; onOpen: (id: s
   );
 }
 
-function LotCard({ lot }: { lot: Lot }) {
+export function LotCard({ lot }: { lot: Lot }) {
   const found = lot.fields.filter((f) => f.status === "verificado" && f.name !== "label");
   const rejected = lot.fields.filter((f) => f.status === "rechazado");
   return (

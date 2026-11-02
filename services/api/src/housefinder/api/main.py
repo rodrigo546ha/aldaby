@@ -9,7 +9,9 @@ from housefinder.api import (
     boe,
     branding,
     clients,
+    feeds,
     offers,
+    patrimonio,
     plans,
     profiles,
     search,
@@ -23,6 +25,8 @@ app.include_router(simulate.router)
 app.include_router(territory.router)
 app.include_router(offers.router)
 app.include_router(boe.router)
+app.include_router(patrimonio.router)
+app.include_router(feeds.router)
 app.include_router(valuation.router)
 app.include_router(profiles.router)
 app.include_router(search.router)

@@ -267,4 +267,4 @@ def test_sin_feeds_el_trabajo_no_pide_las_claves(migrated_database: str):
 
     with psycopg.connect(migrated_database, autocommit=True) as conn:
         conn.execute("DELETE FROM agency_feeds")
-    assert run_feeds(migrated_database, feed_client([]), no_keys) == {"feeds": []}
+    assert run_feeds(migrated_database, feed_client([]), no_keys) == {"feeds": [], "withdrawn": 0}

@@ -157,12 +157,19 @@ def test_un_pdf_sin_texto_se_anota_y_la_oferta_se_guarda():
 psycopg = pytest.importorskip("psycopg")
 
 
+def clear_channel(conn) -> None:
+    """Borra lo guardado por este canal (otros tests lo leen también)."""
+    conn.execute("DELETE FROM offer_raw_versions WHERE offer_id IN "
+                 "(SELECT id FROM offers WHERE channel = 'patrimonio_estado')")
+    conn.execute("DELETE FROM offers WHERE channel = 'patrimonio_estado'")
+
+
 @pytest.mark.db
 def test_canal_de_punta_a_punta(migrated_database: str):
     from housefinder.offers.run import run_patrimonio
 
     with psycopg.connect(migrated_database, autocommit=True) as conn:
-        conn.execute("DELETE FROM offers WHERE channel = 'patrimonio_estado'")
+        clear_channel(conn)
     first = run_patrimonio(migrated_database, hacienda_client([]), lambda content: LOT_SHEET)
     assert first["items"] == 5 and first["offers_new"] == 5 and first["pending_extraction"] == 5
     again = run_patrimonio(migrated_database, hacienda_client([]), lambda content: LOT_SHEET)

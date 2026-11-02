@@ -214,6 +214,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/patrimonio/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Sales */
+        get: operations["get_sales_patrimonio_sales_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/patrimonio/sales/{sale_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Sale */
+        get: operations["get_sale_patrimonio_sales__sale_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/feeds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Feeds */
+        get: operations["list_feeds_feeds_get"];
+        put?: never;
+        /** Create Feed */
+        post: operations["create_feed_feeds_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/feeds/{feed_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Feed
+         * @description Deja de leer el feed y retira sus ofertas. Las que la agencia cedió a todos las retira el
+         *     trabajo diario: la API no puede tocar las ofertas públicas.
+         */
+        delete: operations["delete_feed_feeds__feed_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/feeds/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listings */
+        get: operations["listings_feeds_listings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/valuation": {
         parameters: {
             query?: never;
@@ -908,6 +998,52 @@ export interface components {
             /** Paragraphs */
             paragraphs: string[];
         };
+        /** DirectSaleDetailOut */
+        DirectSaleDetailOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string | null;
+            /** Published On */
+            published_on: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "no_aplica" | "pendiente" | "extraida" | "confirmada";
+            /** Paragraphs */
+            paragraphs: string[];
+            /** Lots */
+            lots: components["schemas"]["LotOut"][];
+            /** Attribution */
+            attribution: string;
+        };
+        /** DirectSaleOut */
+        DirectSaleOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string | null;
+            /** Published On */
+            published_on: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "no_aplica" | "pendiente" | "extraida" | "confirmada";
+            /** Lots */
+            lots: number;
+            /** Located Lots */
+            located_lots: number;
+            /** Delegation */
+            delegation: string | null;
+            /** Deadline */
+            deadline: string | null;
+            /** Price */
+            price: string | null;
+        };
         /** DocumentIn */
         DocumentIn: {
             /**
@@ -994,6 +1130,61 @@ export interface components {
             notes: string[];
             /** Extra Arguments */
             extra_arguments: string[];
+        };
+        /** FeedIn */
+        FeedIn: {
+            /** Agency Name */
+            agency_name: string;
+            /** Url */
+            url: string;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "organizacion" | "todos";
+            /**
+             * Consent On
+             * Format: date
+             */
+            consent_on: string;
+            /** Consent Ref */
+            consent_ref: string;
+            /** Consent Confirmed */
+            consent_confirmed: boolean;
+        };
+        /** FeedOut */
+        FeedOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Agency Name */
+            agency_name: string;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "organizacion" | "todos";
+            /**
+             * Consent On
+             * Format: date
+             */
+            consent_on: string;
+            /** Consent Ref */
+            consent_ref: string;
+            /** Created At */
+            created_at: string;
+            /** Last Run At */
+            last_run_at: string | null;
+            /** Listings */
+            listings: number | null;
+            /** Without Location */
+            without_location: number | null;
+            /** Retired */
+            retired: number | null;
+            /** Error */
+            error: string | null;
         };
         /** FieldOut */
         FieldOut: {
@@ -1126,6 +1317,36 @@ export interface components {
         LinkIn: {
             /** Url */
             url: string;
+        };
+        /** ListingOut */
+        ListingOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string | null;
+            /** Asking Price */
+            asking_price: string | null;
+            /** Built Area M2 */
+            built_area_m2: string | null;
+            /** Municipality */
+            municipality: string | null;
+            /** Province */
+            province: string | null;
+            /** Property Type */
+            property_type: string | null;
+            /** Agency */
+            agency: string | null;
+            /** Public */
+            public: boolean;
+            /** Located */
+            located: boolean;
+            /** Section Code */
+            section_code: string | null;
         };
         /** LocationOut */
         LocationOut: {
@@ -2135,6 +2356,159 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_sales_patrimonio_sales_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectSaleOut"][];
+                };
+            };
+        };
+    };
+    get_sale_patrimonio_sales__sale_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sale_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectSaleDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_feeds_feeds_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedOut"][];
+                };
+            };
+        };
+    };
+    create_feed_feeds_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_feed_feeds__feed_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feed_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listings_feeds_listings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingOut"][];
                 };
             };
         };

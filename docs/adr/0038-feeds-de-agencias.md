@@ -28,8 +28,10 @@ el formato, no se copia al repositorio. Se le pregunta a Kyero por correo.
    - el **alcance**: `organizacion` (solo la ven los usuarios de esa organización) o `todos`
      (todos los usuarios de Aldaby).
 
-   En la beta da el alta el administrador por la línea de órdenes; la pantalla para el profesional
-   llega con F7.
+   Lo da de alta el profesional en la página «Agencias», marcando que tiene ese consentimiento
+   por escrito, o el administrador por la línea de órdenes (`python -m housefinder.feeds alta`).
+   Al darlo de baja se retiran sus ofertas: las de su organización en el momento; las cedidas a
+   todos, en el siguiente trabajo diario (la API no puede tocar ofertas públicas).
 2. **La URL se guarda cifrada** con el cifrado de sobre (ADR-0011), atada a su fila, porque puede
    llevar credenciales o un token. Nunca sale en logs ni en informes.
 3. **Canal `feed_agencia`**, un `sources` por feed (`feed-agencia-<id>`) con la agencia y el

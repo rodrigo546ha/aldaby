@@ -96,8 +96,12 @@ def run_feeds(conninfo: str, client: httpx.Client, keys: Callable[[], KeyProvide
     claves solo se cargan si hay algún feed: sin feeds, el trabajo no las necesita."""
     reports: list[dict[str, Any]] = []
     with connect(conninfo) as conn:
+        # Un feed dado de baja retira sus ofertas; las públicas solo las puede tocar el worker.
+        withdrawn = sum(retire_missing(conn, NAME, f"feed-agencia-{row.id}", [])
+                        for row in list_feeds(conn, only_active=False) if not row.active)
+        conn.commit()
         if not list_feeds(conn):
-            return {"feeds": reports}
+            return {"feeds": reports, "withdrawn": withdrawn}
         locate = offer_locator(conn, geocoder or (lambda address: geocode(client, address)),
                                parcels or (lambda ref: find_parcel(client, ref)),
                                municipalities=lambda name: municipality_codes(client, name),
@@ -108,4 +112,4 @@ def run_feeds(conninfo: str, client: httpx.Client, keys: Callable[[], KeyProvide
                             **run_feed(conn, client, feed, locate)})
         reports += [{"feed": str(feed_id), "error": "no se puede descifrar la URL: falta su clave"}
                     for feed_id in locked]
-    return {"feeds": reports}
+    return {"feeds": reports, "withdrawn": withdrawn}

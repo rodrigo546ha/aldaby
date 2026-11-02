@@ -551,6 +551,199 @@
         }
       }
     },
+    "/patrimonio/sales": {
+      "get": {
+        "tags": [
+          "ventas directas del Patrimonio del Estado"
+        ],
+        "summary": "Get Sales",
+        "operationId": "get_sales_patrimonio_sales_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DirectSaleOut"
+                  },
+                  "type": "array",
+                  "title": "Response Get Sales Patrimonio Sales Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patrimonio/sales/{sale_id}": {
+      "get": {
+        "tags": [
+          "ventas directas del Patrimonio del Estado"
+        ],
+        "summary": "Get Sale",
+        "operationId": "get_sale_patrimonio_sales__sale_id__get",
+        "parameters": [
+          {
+            "name": "sale_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sale Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectSaleDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds": {
+      "get": {
+        "tags": [
+          "feeds de agencias"
+        ],
+        "summary": "List Feeds",
+        "operationId": "list_feeds_feeds_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FeedOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Feeds Feeds Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "feeds de agencias"
+        ],
+        "summary": "Create Feed",
+        "operationId": "create_feed_feeds_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds/{feed_id}": {
+      "delete": {
+        "tags": [
+          "feeds de agencias"
+        ],
+        "summary": "Delete Feed",
+        "description": "Deja de leer el feed y retira sus ofertas. Las que la agencia cedió a todos las retira el\ntrabajo diario: la API no puede tocar las ofertas públicas.",
+        "operationId": "delete_feed_feeds__feed_id__delete",
+        "parameters": [
+          {
+            "name": "feed_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Feed Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds/listings": {
+      "get": {
+        "tags": [
+          "feeds de agencias"
+        ],
+        "summary": "Listings",
+        "operationId": "listings_feeds_listings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ListingOut"
+                  },
+                  "type": "array",
+                  "title": "Response Listings Feeds Listings Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/valuation": {
       "get": {
         "tags": [
@@ -2496,6 +2689,181 @@
         ],
         "title": "CorrectionOut"
       },
+      "DirectSaleDetailOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "published_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published On"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "no_aplica",
+              "pendiente",
+              "extraida",
+              "confirmada"
+            ],
+            "title": "Status"
+          },
+          "paragraphs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Paragraphs"
+          },
+          "lots": {
+            "items": {
+              "$ref": "#/components/schemas/LotOut"
+            },
+            "type": "array",
+            "title": "Lots"
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "url",
+          "published_on",
+          "status",
+          "paragraphs",
+          "lots",
+          "attribution"
+        ],
+        "title": "DirectSaleDetailOut"
+      },
+      "DirectSaleOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "published_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published On"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "no_aplica",
+              "pendiente",
+              "extraida",
+              "confirmada"
+            ],
+            "title": "Status"
+          },
+          "lots": {
+            "type": "integer",
+            "title": "Lots"
+          },
+          "located_lots": {
+            "type": "integer",
+            "title": "Located Lots"
+          },
+          "delegation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delegation"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "published_on",
+          "status",
+          "lots",
+          "located_lots",
+          "delegation",
+          "deadline",
+          "price"
+        ],
+        "title": "DirectSaleOut"
+      },
       "DocumentIn": {
         "properties": {
           "kind": {
@@ -2758,6 +3126,156 @@
           "extra_arguments"
         ],
         "title": "ExplanationOut"
+      },
+      "FeedIn": {
+        "properties": {
+          "agency_name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Agency Name"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Url"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "organizacion",
+              "todos"
+            ],
+            "title": "Scope"
+          },
+          "consent_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Consent On"
+          },
+          "consent_ref": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Consent Ref"
+          },
+          "consent_confirmed": {
+            "type": "boolean",
+            "title": "Consent Confirmed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agency_name",
+          "url",
+          "scope",
+          "consent_on",
+          "consent_ref",
+          "consent_confirmed"
+        ],
+        "title": "FeedIn"
+      },
+      "FeedOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "agency_name": {
+            "type": "string",
+            "title": "Agency Name"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "organizacion",
+              "todos"
+            ],
+            "title": "Scope"
+          },
+          "consent_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Consent On"
+          },
+          "consent_ref": {
+            "type": "string",
+            "title": "Consent Ref"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run At"
+          },
+          "listings": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listings"
+          },
+          "without_location": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Without Location"
+          },
+          "retired": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retired"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "agency_name",
+          "scope",
+          "consent_on",
+          "consent_ref",
+          "created_at",
+          "last_run_at",
+          "listings",
+          "without_location",
+          "retired",
+          "error"
+        ],
+        "title": "FeedOut"
       },
       "FieldOut": {
         "properties": {
@@ -3225,6 +3743,138 @@
           "url"
         ],
         "title": "LinkIn"
+      },
+      "ListingOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "asking_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asking Price"
+          },
+          "built_area_m2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Built Area M2"
+          },
+          "municipality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Municipality"
+          },
+          "province": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Province"
+          },
+          "property_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Type"
+          },
+          "agency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agency"
+          },
+          "public": {
+            "type": "boolean",
+            "title": "Public"
+          },
+          "located": {
+            "type": "boolean",
+            "title": "Located"
+          },
+          "section_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "url",
+          "asking_price",
+          "built_area_m2",
+          "municipality",
+          "province",
+          "property_type",
+          "agency",
+          "public",
+          "located",
+          "section_code"
+        ],
+        "title": "ListingOut"
       },
       "LocationOut": {
         "properties": {

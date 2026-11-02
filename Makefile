@@ -115,7 +115,7 @@ rules-check:
 	cd services/api && $(VENV)/python -m housefinder.regulation.check
 
 api:
-	cd services/api && $(PDF_LIBS) $(VENV)/uvicorn housefinder.api.main:app --reload --app-dir src
+	cd services/api && $(PDF_LIBS) $(VENV)/python -m uvicorn housefinder.api.main:app --reload --app-dir src
 
 web:
 	cd apps/web && npm run dev

@@ -20,7 +20,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Link href="/perfil">Perfil</Link>
           <Link href="/busqueda">Búsqueda</Link>
           <Link href="/ofertas">Ofertas</Link>
-          <Link href="/anuncios">Anuncios del BOE</Link>
+          <Link href="/anuncios">Anuncios públicos</Link>
+          <Link href="/agencias">Agencias</Link>
           <Link href="/marca">Marca</Link>
           <ClientPicker />
           <Account />
