@@ -1,0 +1,778 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-02T18:30:00+01:00",
+  "title": "Design System: Aldaby",
+  "extensions": {
+    "colorMeta": {
+      "abyss-canvas": {
+        "role": "neutral",
+        "displayName": "Abismo",
+        "canonical": "#0b2c23",
+        "tonalRamp": [
+          "#0c3127",
+          "#18614d",
+          "#249274",
+          "#31c29a",
+          "#59d6b4",
+          "#8ae2ca",
+          "#baeee0",
+          "#ebfaf6"
+        ],
+        "cssVar": "--canvas"
+      },
+      "abyss-sunk": {
+        "role": "neutral",
+        "displayName": "Abismo hundido",
+        "canonical": "#071f18",
+        "tonalRamp": [
+          "#0b3227",
+          "#16634d",
+          "#229573",
+          "#2dc699",
+          "#56d9b3",
+          "#88e4c9",
+          "#b9efdf",
+          "#eafaf6"
+        ],
+        "cssVar": "--sunk"
+      },
+      "portal-raised": {
+        "role": "neutral",
+        "displayName": "Verde portal",
+        "canonical": "#0f3b2e",
+        "tonalRamp": [
+          "#0c3126",
+          "#19614c",
+          "#259171",
+          "#31c197",
+          "#5ad5b1",
+          "#8ae1c8",
+          "#baeede",
+          "#ebfaf5"
+        ],
+        "cssVar": "--raised"
+      },
+      "portal-raised-2": {
+        "role": "neutral",
+        "displayName": "Verde portal alto",
+        "canonical": "#164838",
+        "tonalRamp": [
+          "#0e2f24",
+          "#1c5d48",
+          "#2b8c6d",
+          "#39ba91",
+          "#61cfab",
+          "#8fddc4",
+          "#bdebdc",
+          "#ebf9f5"
+        ],
+        "cssVar": "--raised-2"
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Filete",
+        "canonical": "rgba(234, 246, 240, 0.1)",
+        "cssVar": "--line"
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Filete fuerte",
+        "canonical": "rgba(234, 246, 240, 0.2)",
+        "cssVar": "--line-strong"
+      },
+      "strong-white": {
+        "role": "neutral",
+        "displayName": "Blanco",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#3d3d3d",
+          "#5b5b5b",
+          "#797979",
+          "#989898",
+          "#b6b6b6",
+          "#d4d4d4",
+          "#f2f2f2"
+        ],
+        "cssVar": "--strong"
+      },
+      "mist": {
+        "role": "neutral",
+        "displayName": "Bruma",
+        "canonical": "#eaf6f0",
+        "tonalRamp": [
+          "#122b1f",
+          "#25553d",
+          "#37805b",
+          "#49aa79",
+          "#6ec198",
+          "#98d3b6",
+          "#c3e5d4",
+          "#edf7f2"
+        ],
+        "cssVar": "--mist"
+      },
+      "sage-text": {
+        "role": "neutral",
+        "displayName": "Salvia",
+        "canonical": "#bccdc5",
+        "tonalRamp": [
+          "#1a231f",
+          "#34463d",
+          "#4e685c",
+          "#688b7a",
+          "#89a798",
+          "#abc0b6",
+          "#cedad4",
+          "#f0f4f2"
+        ],
+        "cssVar": "--text"
+      },
+      "sage-muted": {
+        "role": "neutral",
+        "displayName": "Salvia apagada",
+        "canonical": "#8fa79c",
+        "tonalRamp": [
+          "#1b221f",
+          "#36443d",
+          "#50665c",
+          "#6b887b",
+          "#8ba499",
+          "#adbfb7",
+          "#cfd9d4",
+          "#f1f4f2"
+        ],
+        "cssVar": "--muted"
+      },
+      "stat-glow": {
+        "role": "primary",
+        "displayName": "Brillo de cifra",
+        "canonical": "#f5d68e",
+        "tonalRamp": [
+          "#382905",
+          "#70510a",
+          "#a7790f",
+          "#dfa214",
+          "#eeba41",
+          "#f3ce78",
+          "#f8e2b0",
+          "#fdf6e8"
+        ],
+        "cssVar": "--stat"
+      },
+      "brass": {
+        "role": "primary",
+        "displayName": "Latón de la anilla",
+        "canonical": "#e3a92b",
+        "tonalRamp": [
+          "#362707",
+          "#6b4e0e",
+          "#a17515",
+          "#d69c1c",
+          "#e7b548",
+          "#eecb7e",
+          "#f5e0b3",
+          "#fcf6e8"
+        ],
+        "cssVar": "--brass"
+      },
+      "warn-bg": {
+        "role": "neutral",
+        "displayName": "Fondo de aviso",
+        "canonical": "rgba(227, 169, 43, 0.12)",
+        "cssVar": "--warn-bg"
+      },
+      "warn-text": {
+        "role": "neutral",
+        "displayName": "Texto de aviso",
+        "canonical": "#f2cf83",
+        "tonalRamp": [
+          "#372806",
+          "#6e4f0c",
+          "#a57611",
+          "#dc9e17",
+          "#ebb744",
+          "#f1cc7a",
+          "#f7e1b1",
+          "#fdf6e8"
+        ],
+        "cssVar": "--warn-text"
+      },
+      "error": {
+        "role": "neutral",
+        "displayName": "Error",
+        "canonical": "#ff9f8c",
+        "tonalRamp": [
+          "#3d0a00",
+          "#7a1400",
+          "#b61e00",
+          "#f32800",
+          "#ff5230",
+          "#ff856d",
+          "#ffb7a9",
+          "#ffeae5"
+        ],
+        "cssVar": "--error"
+      },
+      "pass": {
+        "role": "neutral",
+        "displayName": "Encaja",
+        "canonical": "#8eddb8",
+        "tonalRamp": [
+          "#0e2f20",
+          "#1c5e3f",
+          "#2a8c5e",
+          "#38ba7d",
+          "#60cf9b",
+          "#8eddb8",
+          "#bdebd5",
+          "#ebf9f3"
+        ],
+        "cssVar": "--pass"
+      },
+      "cta-mint": {
+        "role": "secondary",
+        "displayName": "Amanecer, menta",
+        "canonical": "#d4f5e6",
+        "tonalRamp": [
+          "#0c3220",
+          "#176340",
+          "#229460",
+          "#2ec580",
+          "#57d89d",
+          "#88e3ba",
+          "#b9efd6",
+          "#eafaf3"
+        ]
+      },
+      "cta-sand": {
+        "role": "secondary",
+        "displayName": "Amanecer, arena",
+        "canonical": "#f6ebd0",
+        "tonalRamp": [
+          "#33270a",
+          "#664e14",
+          "#99751d",
+          "#cc9c27",
+          "#deb551",
+          "#e7cb84",
+          "#f1e0b7",
+          "#fbf6ea"
+        ]
+      },
+      "cta-brass": {
+        "role": "secondary",
+        "displayName": "Amanecer, latón (ring-near)",
+        "canonical": "#f2c66b",
+        "tonalRamp": [
+          "#382805",
+          "#704f0a",
+          "#a7760f",
+          "#df9d14",
+          "#eeb641",
+          "#f3cb78",
+          "#f8e1b0",
+          "#fdf6e8"
+        ],
+        "cssVar": "--ring-near"
+      },
+      "ring-far": {
+        "role": "secondary",
+        "displayName": "Verde lejano",
+        "canonical": "#6fc29c",
+        "tonalRamp": [
+          "#122b20",
+          "#24553f",
+          "#36805e",
+          "#48aa7d",
+          "#6ec19b",
+          "#98d3b8",
+          "#c3e5d5",
+          "#edf7f3"
+        ],
+        "cssVar": "--ring-far"
+      },
+      "sand-canvas": {
+        "role": "neutral",
+        "displayName": "Arena (lienzo claro)",
+        "canonical": "#f6ebd0",
+        "tonalRamp": [
+          "#33270a",
+          "#664e14",
+          "#99751d",
+          "#cc9c27",
+          "#deb551",
+          "#e7cb84",
+          "#f1e0b7",
+          "#fbf6ea"
+        ],
+        "cssVar": "--canvas (claro)"
+      },
+      "sand-sunk": {
+        "role": "neutral",
+        "displayName": "Arena hundida",
+        "canonical": "#ecdcb6",
+        "tonalRamp": [
+          "#31260d",
+          "#614b19",
+          "#917126",
+          "#c19632",
+          "#d4b05b",
+          "#e1c78b",
+          "#eddebb",
+          "#faf5eb"
+        ],
+        "cssVar": "--sunk (claro)"
+      },
+      "paper-raised": {
+        "role": "neutral",
+        "displayName": "Papel (capa elevada clara)",
+        "canonical": "#fffaee",
+        "tonalRamp": [
+          "#3d2b00",
+          "#7a5600",
+          "#b68100",
+          "#f3ab00",
+          "#ffc230",
+          "#ffd46d",
+          "#ffe6a9",
+          "#fff7e5"
+        ],
+        "cssVar": "--raised (claro)"
+      },
+      "sand-raised-2": {
+        "role": "neutral",
+        "displayName": "Arena alta",
+        "canonical": "#f1e3c4",
+        "tonalRamp": [
+          "#31260c",
+          "#624b17",
+          "#937023",
+          "#c4962f",
+          "#d7b058",
+          "#e3c789",
+          "#efdeba",
+          "#faf5ea"
+        ],
+        "cssVar": "--raised-2 (claro)"
+      },
+      "ink-line": {
+        "role": "neutral",
+        "displayName": "Filete de tinta",
+        "canonical": "rgba(15, 59, 46, 0.13)",
+        "cssVar": "--line (claro)"
+      },
+      "ink-line-strong": {
+        "role": "neutral",
+        "displayName": "Filete de tinta fuerte",
+        "canonical": "rgba(15, 59, 46, 0.26)",
+        "cssVar": "--line-strong (claro)"
+      },
+      "ink-strong": {
+        "role": "neutral",
+        "displayName": "Tinta verde portal",
+        "canonical": "#0f3b2e",
+        "tonalRamp": [
+          "#0c3126",
+          "#19614c",
+          "#259171",
+          "#31c197",
+          "#5ad5b1",
+          "#8ae1c8",
+          "#baeede",
+          "#ebfaf5"
+        ],
+        "cssVar": "--strong, --focus, --cta (claro)"
+      },
+      "ink-mist": {
+        "role": "neutral",
+        "displayName": "Tinta bruma",
+        "canonical": "#173f33",
+        "tonalRamp": [
+          "#102d24",
+          "#215948",
+          "#31856c",
+          "#41b290",
+          "#67c8ab",
+          "#94d8c3",
+          "#c0e8dc",
+          "#ecf8f5"
+        ],
+        "cssVar": "--mist (claro)"
+      },
+      "ink-text": {
+        "role": "neutral",
+        "displayName": "Tinta de texto",
+        "canonical": "#2b4a40",
+        "tonalRamp": [
+          "#162721",
+          "#2d4d43",
+          "#437364",
+          "#599985",
+          "#7cb3a1",
+          "#a2c9bd",
+          "#c9dfd8",
+          "#eff6f3"
+        ],
+        "cssVar": "--text (claro)"
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Tinta apagada",
+        "canonical": "#4f6359",
+        "tonalRamp": [
+          "#1b221f",
+          "#36443d",
+          "#51655b",
+          "#6c8779",
+          "#8ca398",
+          "#aebeb6",
+          "#cfd9d4",
+          "#f1f4f2"
+        ],
+        "cssVar": "--muted (claro)"
+      },
+      "stat-ink": {
+        "role": "primary",
+        "displayName": "Latón tostado",
+        "canonical": "#7f5300",
+        "tonalRamp": [
+          "#3d2800",
+          "#7a5000",
+          "#b67700",
+          "#f39f00",
+          "#ffb730",
+          "#ffcc6d",
+          "#ffe1a9",
+          "#fff6e5"
+        ],
+        "cssVar": "--stat (claro)"
+      },
+      "warn-bg-light": {
+        "role": "neutral",
+        "displayName": "Fondo de aviso claro",
+        "canonical": "rgba(227, 169, 43, 0.2)",
+        "cssVar": "--warn-bg (claro)"
+      },
+      "warn-ink": {
+        "role": "neutral",
+        "displayName": "Tinta de aviso",
+        "canonical": "#5f3d00",
+        "tonalRamp": [
+          "#3d2700",
+          "#7a4e00",
+          "#b67500",
+          "#f39c00",
+          "#ffb530",
+          "#ffcb6d",
+          "#ffe0a9",
+          "#fff6e5"
+        ],
+        "cssVar": "--warn-text (claro)"
+      },
+      "error-ink": {
+        "role": "neutral",
+        "displayName": "Tinta de error",
+        "canonical": "#a8321f",
+        "tonalRamp": [
+          "#340f0a",
+          "#671f13",
+          "#9a2e1c",
+          "#cd3d26",
+          "#df6450",
+          "#e89183",
+          "#f2bfb6",
+          "#fbece9"
+        ],
+        "cssVar": "--error (claro)"
+      },
+      "pass-ink": {
+        "role": "neutral",
+        "displayName": "Tinta de encaja",
+        "canonical": "#1f7a55",
+        "tonalRamp": [
+          "#0c3122",
+          "#196144",
+          "#259165",
+          "#31c187",
+          "#5ad5a3",
+          "#8ae1be",
+          "#baeed9",
+          "#ebfaf4"
+        ],
+        "cssVar": "--pass (claro)"
+      },
+      "ring-near-light": {
+        "role": "secondary",
+        "displayName": "Latón de anilla claro",
+        "canonical": "#c8901a",
+        "tonalRamp": [
+          "#362707",
+          "#6c4e0e",
+          "#a17415",
+          "#d79b1c",
+          "#e7b448",
+          "#eeca7d",
+          "#f5e0b3",
+          "#fcf6e8"
+        ],
+        "cssVar": "--ring-near (claro)"
+      },
+      "mark": {
+        "role": "primary",
+        "displayName": "Marca (latón; latón tostado en claro)",
+        "canonical": "#e3a92b",
+        "light": "#9a6a0a",
+        "cssVar": "--mark"
+      }
+    },
+    "themes": {
+      "default": "dark",
+      "light": "prefers-color-scheme: light (salvo data-theme=dark) o :root[data-theme=\"light\"]; el interruptor guarda la elección en localStorage 'aldaby-tema'.",
+      "ctaGradientDark": "linear-gradient(90deg, #d4f5e6 0%, #f6ebd0 48%, #f2c66b 100%)",
+      "ctaLight": "#0f3b2e",
+      "ctaHover": {
+        "dark": "brightness(1.07)",
+        "light": "brightness(1.4)"
+      },
+      "focus": {
+        "dark": "#e3a92b",
+        "light": "#0f3b2e"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Solo el titular de la portada."
+      },
+      "headline": {
+        "displayName": "Titular de sección",
+        "purpose": "Título de cada sección de la aplicación; 2.125rem por debajo de 640 px."
+      },
+      "stat": {
+        "displayName": "Cifra de cabecera",
+        "purpose": "Cifras clave del plan en stat-glow; unidad a 0,5 em."
+      },
+      "title": {
+        "displayName": "Título de bloque",
+        "purpose": "Títulos de resultados, documentos, marca y feeds."
+      },
+      "figure": {
+        "displayName": "Cifra",
+        "purpose": "Valor de cada cifra de la rejilla; unidad a 0,62 em."
+      },
+      "body": {
+        "displayName": "Cuerpo",
+        "purpose": "Texto de interfaz en Geist con ss01 y cv11."
+      },
+      "lead": {
+        "displayName": "Entradilla",
+        "purpose": "Entradillas de sección (62ch) y párrafos de la lista de espera."
+      },
+      "label": {
+        "displayName": "Etiqueta",
+        "purpose": "Mayúsculas espaciadas para navegación, leyendas, cabeceras de tabla, rótulos de cifra, estados y pie (11–12 px)."
+      },
+      "button": {
+        "displayName": "Botón",
+        "purpose": "Mayúsculas a 0,08 em; 0,1 em en el botón de portada."
+      },
+      "hint": {
+        "displayName": "Pista",
+        "purpose": "Pistas, errores, rangos, «Cómo se calcula»."
+      }
+    },
+    "shadows": [
+      {
+        "name": "grid-hairline",
+        "value": "1px 0 0 var(--line), 0 1px 0 var(--line)",
+        "purpose": "Filetes de 1 px entre celdas de la rejilla de cifras. No es elevación: es el único box-shadow del sistema."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Curva única para hover, foco y plegables (--ease)."
+      },
+      {
+        "name": "duration-state",
+        "value": "160ms",
+        "purpose": "Color, filtro, borde y giro del chevrón."
+      },
+      {
+        "name": "press",
+        "value": "translateY(1px)",
+        "purpose": "Botón pulsado."
+      },
+      {
+        "name": "knocker-ring",
+        "value": "giro sobre su eje t/7000 rad e inclinación 1.05 ± 0.12 rad con periodo t/9000",
+        "purpose": "Anilla de la portada; quieta con prefers-reduced-motion y sin dibujar fuera de pantalla."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "transition-duration: 0ms",
+        "purpose": "Con prefers-reduced-motion se anulan todas las transiciones."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "table-scroll",
+        "value": "560px"
+      },
+      {
+        "name": "compact",
+        "value": "640px"
+      },
+      {
+        "name": "single-column",
+        "value": "920px"
+      },
+      {
+        "name": "nav-scroll",
+        "value": "960px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón principal",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "La acción principal de la pantalla: degradado de amanecer en oscuro, verde portal macizo en claro.",
+      "html": "<button class=\"ds-btn-primary\">Calcular el plan</button>",
+      "css": ".ds-btn-primary { font: 500 13px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; min-height: 44px; padding: 0 22px; border: 0; border-radius: var(--radius-sm); background: var(--cta); color: var(--cta-text); cursor: pointer; transition: filter 160ms var(--ease), transform 160ms var(--ease); } .ds-btn-primary:hover { filter: var(--cta-hover); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }"
+    },
+    {
+      "name": "Botón secundario",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acciones de apoyo: transparente con filete fuerte.",
+      "html": "<button class=\"ds-btn-secondary\">Rellenar con un ejemplo</button>",
+      "css": ".ds-btn-secondary { font: 500 13px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; min-height: 44px; padding: 0 22px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: transparent; color: var(--strong); cursor: pointer; transition: background-color 160ms var(--ease); } .ds-btn-secondary:hover { background: var(--raised-2); } .ds-btn-secondary:active { transform: translateY(1px); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }"
+    },
+    {
+      "name": "Campo hundido en panel",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "El campo es el hueco: fondo hundido dentro de un panel elevado, leyenda en mayúsculas.",
+      "html": "<fieldset class=\"ds-panel\"><legend class=\"ds-legend\">Tú</legend><div class=\"ds-field\"><label for=\"ds-in\">Ingresos netos al mes <span class=\"ds-unit\">(€)</span></label><input id=\"ds-in\" class=\"ds-input\" value=\"4000\" inputmode=\"decimal\"></div></fieldset>",
+      "css": ".ds-panel { margin: 0; padding: 24px; border: 0; border-radius: var(--radius); background: var(--raised); display: flex; flex-direction: column; gap: 16px; } .ds-legend { float: left; width: 100%; padding: 0; margin: 0 0 4px; color: var(--mist); font: 500 12px var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; } .ds-field { display: flex; flex-direction: column; gap: 6px; } .ds-field label { font: 13.5px var(--font-ui); color: var(--mist); } .ds-unit { color: var(--muted); } .ds-input { width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--sunk); color: var(--strong); font: 15px var(--font-ui); font-variant-numeric: tabular-nums; transition: border-color 160ms var(--ease); } .ds-input:hover { border-color: var(--muted); } .ds-input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; border-color: transparent; }"
+    },
+    {
+      "name": "Barra de dos pisos",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Marca y contexto arriba; secciones en mayúsculas abajo, la activa con trazo de latón.",
+      "html": "<header class=\"ds-appbar\"><div class=\"ds-appbar-top\"><strong class=\"ds-brand\">aldaby</strong><span class=\"ds-ctx\">CLIENTE</span></div><nav class=\"ds-appnav\"><a href=\"#\" aria-current=\"page\">Simulador</a><a href=\"#\">Clientes</a><a href=\"#\">Perfil</a><a href=\"#\">Búsqueda</a></nav></header>",
+      "css": ".ds-appbar { background: var(--canvas); border-bottom: 1px solid var(--line); padding: 0 24px; } .ds-appbar-top { display: flex; justify-content: space-between; align-items: center; min-height: 64px; } .ds-brand { font: 800 24px var(--font-head); letter-spacing: -0.045em; color: var(--strong); } .ds-ctx { font: 500 11px var(--font-ui); letter-spacing: 0.12em; color: var(--muted); } .ds-appnav { display: flex; gap: 28px; min-height: 44px; } .ds-appnav a { position: relative; display: flex; align-items: center; color: var(--muted); text-decoration: none; font: 500 12px var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; transition: color 160ms var(--ease); } .ds-appnav a:hover, .ds-appnav a[aria-current=\"page\"] { color: var(--strong); } .ds-appnav a[aria-current=\"page\"]::after { content: \"\"; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--mark); } .ds-appnav a:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }"
+    },
+    {
+      "name": "Fila de cifras de cabecera",
+      "kind": "custom",
+      "refersTo": "headline-figure",
+      "description": "Cifras clave en latón a 40 px, en rejilla rayada, con sello PROVISIONAL y «Cómo se calcula» plegado.",
+      "html": "<div class=\"ds-headline\"><div class=\"ds-fig\"><div class=\"ds-fig-head\"><span class=\"ds-fig-label\">Cash flow tras impuestos</span><span class=\"ds-badge\">PROVISIONAL</span></div><div class=\"ds-fig-value\"><span>89,70 €</span> <span class=\"ds-fig-unit\">al mes</span></div><details class=\"ds-how\"><summary>Cómo se calcula</summary><p>Renta menos cuota, gastos e IRPF.</p></details></div><div class=\"ds-fig\"><div class=\"ds-fig-head\"><span class=\"ds-fig-label\">TIR</span></div><div class=\"ds-fig-value\"><span>5,7 %</span></div><details class=\"ds-how\"><summary>Cómo se calcula</summary><p>Flujos con revalorización y venta.</p></details></div></div>",
+      "css": ".ds-headline { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); overflow: hidden; border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); } .ds-fig { padding: 24px 24px 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: 1px 0 0 var(--line), 0 1px 0 var(--line); } .ds-fig-head { display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 10px; } .ds-fig-label { color: var(--mist); font: 500 11px/1.35 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; min-height: 2.7em; } .ds-badge { font: 600 10px/1 var(--font-ui); letter-spacing: 0.12em; padding: 3px 6px; border-radius: 4px; border: 1px solid currentColor; color: var(--warn-text); } .ds-fig-value { color: var(--stat); font: 500 2.5rem/1 var(--font-head); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 0.25em; } .ds-fig-value span:first-child { white-space: nowrap; } .ds-fig-unit { font-size: 0.5em; letter-spacing: 0; } .ds-how { margin-top: auto; font: 12.5px var(--font-ui); color: var(--muted); } .ds-how summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 6px; transition: color 160ms var(--ease); } .ds-how summary::-webkit-details-marker { display: none; } .ds-how summary::before { content: \"\"; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform 160ms var(--ease); } .ds-how[open] summary::before { transform: rotate(45deg); } .ds-how summary:hover { color: var(--mist); } .ds-how summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }"
+    },
+    {
+      "name": "Estado en celda fija",
+      "kind": "chip",
+      "refersTo": "badge-provisional",
+      "description": "Encaja: punto lleno. No encaja: anillo hueco de latón. Sin dato: solo texto.",
+      "html": "<span class=\"ds-status ds-pass\">Encaja</span> <span class=\"ds-status ds-fail\">No encaja</span> <span class=\"ds-status\">Sin datos</span>",
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 8px; font: 500 11px var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; margin-right: 16px; } .ds-pass, .ds-fail { color: var(--mist); } .ds-pass::before, .ds-fail::before { content: \"\"; width: 9px; height: 9px; border-radius: 50%; flex: none; } .ds-pass::before { background: var(--pass); } .ds-fail::before { border: 1.5px solid var(--mark); }"
+    },
+    {
+      "name": "Aviso plegable",
+      "kind": "card",
+      "refersTo": "warnings",
+      "description": "Avisos de cifras provisionales; si enumera muchas reglas, se pliega con su recuento.",
+      "html": "<ul class=\"ds-warnings\"><li><details><summary>Hay cifras PROVISIONALES porque dependen de 19 reglas y parámetros</summary><p>itp-madrid, irpf-escala-ahorro, …</p></details></li></ul>",
+      "css": ".ds-warnings { margin: 0; padding: 16px 20px 16px 38px; border-radius: 12px; background: var(--warn-bg); color: var(--warn-text); font: 14px/1.5 var(--font-ui); } .ds-warnings li { list-style: none; margin-left: -18px; } .ds-warnings summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 6px; } .ds-warnings summary::-webkit-details-marker { display: none; } .ds-warnings summary::before { content: \"\"; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform 160ms var(--ease); } .ds-warnings details[open] summary::before { transform: rotate(45deg); } .ds-warnings summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; } .ds-warnings p { margin: 8px 0 0; font-size: 12.5px; opacity: 0.85; }"
+    },
+    {
+      "name": "Tarjeta de oferta",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Panel elevado sin borde ni sombra, con rejilla rayada de cifras dentro.",
+      "html": "<article class=\"ds-card\"><h3 class=\"ds-card-title\">Piso en Carabanchel, 3 dormitorios</h3><div class=\"ds-grid\"><div class=\"ds-cell\"><span class=\"ds-cell-label\">Precio máximo</span><span class=\"ds-cell-value\">245.834 €</span></div><div class=\"ds-cell\"><span class=\"ds-cell-label\">Cuota</span><span class=\"ds-cell-value\">1.120 € <small>al mes</small></span></div></div></article>",
+      "css": ".ds-card { display: flex; flex-direction: column; gap: 20px; padding: 28px; border-radius: var(--radius); background: var(--raised); } .ds-card-title { margin: 0; color: var(--strong); font: 500 1.375rem/1.15 var(--font-head); letter-spacing: -0.02em; } .ds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); } .ds-cell { padding: 16px 20px; display: flex; flex-direction: column; gap: 6px; box-shadow: 1px 0 0 var(--line), 0 1px 0 var(--line); } .ds-cell-label { color: var(--muted); font: 13px/1.35 var(--font-ui); } .ds-cell-value { color: var(--strong); font: 500 1.375rem/1.1 var(--font-head); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-cell-value small { font-size: 0.62em; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El instrumento de profundidad",
+    "overview": "**Creative North Star: \"El instrumento de profundidad\"**\n\nAldaby se lee como un instrumento bajo el agua: un lienzo verde muy oscuro en el que las superficies no flotan sobre sombras, sino que suben o bajan de tono. Lo que se escribe está hundido, lo que agrupa está elevado y lo que importa brilla en latón. El sistema parte del estilo Auros que eligió Rodrigo (lienzo verde abisal, capas sin sombra, etiquetas en mayúsculas espaciadas, cifras grandes destacadas) y lo lleva a la marca Aldaby: el verde portal es la capa elevada, el latón de la anilla sustituye al rosa fósforo y la arena es el lienzo del tema claro.\n\nLa densidad es de herramienta de trabajo, no de folleto: páginas de 1320 px, dos columnas (formulario a la izquierda, resultados a la derecha), cifras separadas por filetes finos en lugar de tarjetas. El color se raciona. Casi todo el texto es blanco, bruma o salvia; el latón solo marca las cifras de cabecera, el foco y la sección activa. El único degradado del sistema es el del botón principal. El tema oscuro es el predeterminado; el claro (arena con tinta verde portal) sigue al sistema o al interruptor y conserva todas las capas.\n\nLa confianza es el propósito visual: cada cifra lleva al lado su «Cómo se calcula» plegado y, si depende de algo sin verificar, su sello PROVISIONAL. Nada de eso se esconde para que la pantalla quede más limpia.",
+    "keyCharacteristics": [
+      "Profundidad por color en tres capas (hundida, lienzo, elevada) y cero sombras de elevación.",
+      "Bricolage Grotesque 500 con tracking negativo para titulares y cifras; Geist para interfaz y datos tabulares.",
+      "Etiquetas en mayúsculas espaciadas 0,12 em que nombran cosas: navegación, leyendas, cabeceras de tabla, rótulos de cifra.",
+      "Latón racionado: cifras de cabecera, foco, sección activa, anilla.",
+      "Cifras en rejilla rayada con filetes, nunca en tarjetas iguales.",
+      "Un único degradado, el del botón principal."
+    ],
+    "rules": [
+      {
+        "name": "The Brass Ration Rule",
+        "body": "El latón es para la cifra que importa, el foco y la sección activa. Ni fondos, ni titulares, ni iconos decorativos. El texto en latón siempre es stat-glow (oscuro) o stat-ink (claro), nunca brass, que sobre arena o papel no llega a AA.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Gradient Rule",
+        "body": "El único degradado de la interfaz es el del botón principal en el tema oscuro. Ningún otro fondo, borde ni texto lleva degradado; en claro tampoco ese.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ring Is Brass Rule",
+        "body": "En el logotipo la anilla es siempre `var(--brass)` y la palabra y el soporte siguen a `currentColor`. No se intercambian, no se tiñen y no llevan sombra.",
+        "section": "colors"
+      },
+      {
+        "name": "The Medium Only Rule",
+        "body": "Todos los titulares y cifras grandes van en Bricolage 500. Ni negrita ni fina; la jerarquía la dan el tamaño y el tracking, que se cierra más cuanto más grande es la letra.",
+        "section": "typography"
+      },
+      {
+        "name": "The Number Never Breaks Rule",
+        "body": "Una cifra no se parte nunca entre líneas: el número va en una pieza sin cortes y su coletilla de unidad, más pequeña, puede bajar debajo.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tracked Label Rule",
+        "body": "Las mayúsculas espaciadas nombran un control o un dato (sección, leyenda, columna, cifra, estado). No se usan como antetítulo encima de un titular.",
+        "section": "typography"
+      },
+      {
+        "name": "The Depth by Color Rule",
+        "body": "Si algo tiene que destacar, cambia de capa; no gana una sombra. En claro las capas se invierten en valor (papel arriba, arena hundida abajo) pero mantienen el mismo papel.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Well Rule",
+        "body": "El campo es el hueco donde se escribe: fondo hundido con filete fuerte, también dentro de un panel elevado. En la lista de espera, que ya es hundida, el campo baja al lienzo.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** separar capas por tono: abyss-sunk, abyss-canvas, portal-raised, portal-raised-2 (en claro sand-sunk, sand-canvas, paper-raised, sand-raised-2).",
+      "**Do** poner los campos hundidos dentro de paneles elevados, con filete fuerte de 1 px y radio de 6px.",
+      "**Do** escribir cada cifra con su rótulo, su «Cómo se calcula» plegado y, si toca, su sello PROVISIONAL.",
+      "**Do** separar las cifras con filetes de 1 px en rejilla, y reservar stat-glow a 40 px para la fila de cabecera.",
+      "**Do** usar Bricolage 500 con tracking negativo para titulares y cifras, y Geist con cifras tabulares para todo lo demás.",
+      "**Do** marcar el estado de una fila en una celda fija (punto lleno, anillo hueco, solo texto), sin mover la maquetación.",
+      "**Do** mantener un solo botón principal por pantalla; lo demás, secundario o enlace.",
+      "**Do** usar la curva `cubic-bezier(0.16, 1, 0.3, 1)` a 160 ms para hover y foco, y anular las transiciones con movimiento reducido."
+    ],
+    "donts": [
+      "**Don't** usar sombras para elevar paneles, tarjetas ni botones; el único `box-shadow` permitido es el filete de 1 px de la rejilla de cifras.",
+      "**Don't** poner borde a los paneles ni convertir la rejilla de cifras en tarjetas iguales.",
+      "**Don't** escribir texto en `brass` sobre arena, papel o blanco: el texto latón en claro es stat-ink.",
+      "**Don't** añadir un segundo degradado ni llevar el del botón al tema claro.",
+      "**Don't** poner antetítulos en mayúsculas encima de los titulares, aunque la referencia Auros los use.",
+      "**Don't** usar negrita ni pesos finos en Bricolage.",
+      "**Don't** cambiar los colores de la anilla y del texto del logotipo, estirarlo ni añadirle sombra.",
+      "**Don't** ocultar ni atenuar el sello PROVISIONAL para limpiar una pantalla."
+    ]
+  }
+}

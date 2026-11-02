@@ -146,7 +146,7 @@ export function Account() {
   if (!email) return null;
   return (
     <span className="account">
-      <span>{email}</span>
+      <span className="account-email">{email}</span>
       <button type="button" className="link" onClick={logout}>Salir</button>
     </span>
   );
