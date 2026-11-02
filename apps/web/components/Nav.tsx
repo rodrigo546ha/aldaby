@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 
 import { Account } from "./Access";
 import { ClientPicker } from "./Clients";
+import { Logo } from "./Logo";
+import { ThemeToggle } from "./Theme";
 
 // Barra de la aplicación. En la página de presentación no sale (ADR-0041). Un particular trabaja
 // con su propio perfil: no ve Clientes, Agencias ni Marca, que son del profesional.
@@ -32,23 +34,35 @@ export function AppNav() {
       .catch(() => undefined);
   }, [path]);
 
+  // En móvil la barra se desplaza: la sección activa tiene que quedar a la vista
+  useEffect(() => {
+    document.querySelector('.appnav a[aria-current="page"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [path, particular]);
+
   if (path === "/") return null;
+  // Sin sesión las secciones no sirven: en el acceso solo quedan la marca y el tema
+  const outside = path.startsWith("/acceso");
   return (
-    <nav className="topnav" aria-label="Secciones">
-      <Link href="/simulador" className="topnav-brand" aria-label="Aldaby, inicio de la aplicación">
-        <picture>
-          <source srcSet="/marca/aldaby-simbolo-negativo.svg" media="(prefers-color-scheme: dark)" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/marca/aldaby-simbolo.svg" alt="" width={22} height={22} />
-        </picture>
-      </Link>
-      {LINKS.filter((l) => !(particular && l.professional)).map((l) => (
-        <Link key={l.href} href={l.href} aria-current={path.startsWith(l.href) ? "page" : undefined}>
-          {l.label}
+    <header className="appbar">
+      <div className="appbar-inner">
+        <Link href="/simulador" className="appbar-brand" aria-label="Aldaby, inicio de la aplicación">
+          <Logo />
         </Link>
-      ))}
-      {!particular && <ClientPicker />}
-      <Account />
-    </nav>
+        {!outside && (
+          <nav className="appnav" aria-label="Secciones">
+            {LINKS.filter((l) => !(particular && l.professional)).map((l) => (
+              <Link key={l.href} href={l.href} aria-current={path.startsWith(l.href) ? "page" : undefined}>
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+        )}
+        <div className="appbar-tools">
+          {!particular && !outside && <ClientPicker />}
+          {!outside && <Account />}
+          <ThemeToggle />
+        </div>
+      </div>
+    </header>
   );
 }

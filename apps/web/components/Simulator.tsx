@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
 import { amount, formatValue, label, percentToRatio } from "../lib/format";
-import { FigureView } from "./FigureView";
+import { FigureView, WarningItem } from "./FigureView";
 
 type InvestmentRequest = components["schemas"]["InvestmentRequest"];
 type InvestmentResponse = components["schemas"]["InvestmentResponse"];
@@ -418,7 +418,7 @@ function Results({ result }: { result: InvestmentResponse }) {
       {result.warnings.length > 0 && (
         <ul className="warnings">
           {result.warnings.map((w) => (
-            <li key={w}>{w}</li>
+            <WarningItem key={w} text={w} />
           ))}
         </ul>
       )}

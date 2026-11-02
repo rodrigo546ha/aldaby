@@ -1,6 +1,9 @@
 import Link from "next/link";
 
+import { KnockerRing } from "../components/KnockerRing";
 import { FreeTierLine, Waitlist } from "../components/Landing";
+import { Logo } from "../components/Logo";
+import { ThemeToggle } from "../components/Theme";
 
 export const metadata = {
   title: "Aldaby · Llama antes de comprar",
@@ -14,26 +17,28 @@ export default function Landing() {
   return (
     <main className="landing">
       <header className="landing-top">
-        <picture>
-          <source srcSet="/marca/aldaby-logo-negativo.svg" media="(prefers-color-scheme: dark)" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/marca/aldaby-logo.svg" alt="Aldaby" className="landing-logo" />
-        </picture>
-        <Link href="/acceso" className="landing-login">
-          Ya tengo cuenta
-        </Link>
+        <Logo className="landing-logo" />
+        <div className="landing-tools">
+          <Link href="/acceso" className="landing-login">
+            Ya tengo cuenta
+          </Link>
+          <ThemeToggle />
+        </div>
       </header>
 
       <section className="hero">
-        <h1>Llama antes de comprar.</h1>
-        <p className="hero-lead">
-          Aldaby calcula lo que te rinde de verdad una vivienda de inversión: con tu hipoteca, tu
-          IRPF, tus gastos y tu tiempo. No la rentabilidad del anuncio: la tuya.
-        </p>
-        <p className="hero-proof">Cada cifra lleva su fórmula y la norma o el dato público del que sale.</p>
-        <a href="#lista" className="hero-cta">
-          Apúntate a la lista de espera
-        </a>
+        <div className="hero-copy">
+          <h1>Llama antes de comprar.</h1>
+          <p className="hero-lead">
+            Aldaby calcula lo que te rinde de verdad una vivienda de inversión: con tu hipoteca, tu
+            IRPF, tus gastos y tu tiempo. No la rentabilidad del anuncio: la tuya.
+          </p>
+          <p className="hero-proof">Cada cifra lleva su fórmula y la norma o el dato público del que sale.</p>
+          <a href="#lista" className="hero-cta">
+            Apúntate a la lista de espera
+          </a>
+        </div>
+        <KnockerRing />
       </section>
 
       <section className="steps" aria-labelledby="como">
