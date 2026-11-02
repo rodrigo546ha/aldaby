@@ -383,7 +383,15 @@ umbral fijado en F0, y cada estimación con su rango.
       de alta un cliente exige marcar que se le ha informado. **Pendiente:** los textos están en
       borrador (`verified: false`) hasta que los revise el abogado (F0.6, F8.5), y faltan los
       datos del titular en `data/legal/titular.yaml`.
-- [ ] F7.5 Despliegue en AWS con copias de seguridad y monitorización básica.
+- [x] F7.5 Despliegue en el servidor con copias de seguridad y monitorización básica.
+      *Hecho (ADR-0040), preparado y probado en el Mac:* imágenes de la API y la web, Compose con
+      Caddy (HTTPS y cabeceras de seguridad, sin registro de IP), PostGIS, worker y Ollama en la
+      GPU (`infra/produccion/`). Copia diaria con restic, cifrada, al Storage Box: 7 diarias,
+      4 semanales y 6 mensuales, con `restaurar.sh` en una base nueva. Vigilancia cada 5 minutos
+      con aviso por Healthchecks.io: web, API y base, worker, cola, disco y modelo. Guía en
+      `docs/DESPLIEGUE.md`. **Pendiente:** contratar el GEX45, el Storage Box y Healthchecks.io
+      antes del piloto; comprobar allí la GPU y el SFTP del Storage Box. El plan citaba AWS:
+      ADR-0028 lo cambió por Hetzner.
 - [ ] F7.6 Piloto de 4 semanas con 3–5 profesionales y sesión de feedback semanal.
 - [ ] F7.7 Propuesta de precio al final del piloto.
 

@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler supuestos backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi evaluar
+.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler supuestos backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi evaluar requisitos-api
 
 # Configuración local (copia de .env.example, fuera de git): LLM, base de datos, claves…
 -include .env
@@ -124,3 +124,11 @@ web:
 openapi:
 	cd services/api && $(VENV)/python -c "import json; from housefinder.api.main import app; print(json.dumps(app.openapi(), ensure_ascii=False, indent=2))" > ../../apps/web/lib/openapi.json
 	cd apps/web && npx openapi-typescript lib/openapi.json -o lib/api-types.ts
+
+# Versiones de la imagen de la API (ADR-0040): las del entorno de desarrollo, sin las herramientas.
+requisitos-api:
+	{ echo "# Versiones probadas en el Mac (pip freeze del entorno de desarrollo), como restricciones de la"; \
+	  echo "# imagen de la API (ADR-0040). Regenerar con: make requisitos-api"; \
+	  cd services/api && $(VENV)/python -m pip freeze --exclude-editable \
+	  | grep -viE '^(pytest|ruff|mypy|mypy_extensions|iniconfig|pluggy|pygments|librt|ast_serialize|boto3|botocore|s3transfer|jmespath|opentelemetry-api|docstring_parser|httpx2|httpcore2|jiter|truststore|python-dotenv|pathspec)=='; \
+	} > infra/produccion/requisitos-api.txt

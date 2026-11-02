@@ -1,0 +1,27 @@
+# HTTPS con Let's Encrypt para el dominio de la beta (ADR-0040). Sin registro de accesos: llevaría las
+# IP de los usuarios. Con HOUSEFINDER_DOMAIN=localhost (prueba en el Mac) usa su propia autoridad.
+{$HOUSEFINDER_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		Content-Security-Policy "frame-ancestors 'none'"
+		-Server
+	}
+
+	# La API, sin el prefijo /api, como hace la web en desarrollo (next.config.mjs). La entrevista
+	# y el plan pueden tardar minutos con el modelo.
+	handle_path /api/* {
+		reverse_proxy api:8000 {
+			transport http {
+				read_timeout 10m
+			}
+		}
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}
