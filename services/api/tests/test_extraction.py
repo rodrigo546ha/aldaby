@@ -39,7 +39,8 @@ from housefinder.offers.channels.boe_v import parse_announcement
 
 FIXTURES = Path(__file__).parent / "fixtures" / "boe"
 CATASTRO = Path(__file__).parent / "fixtures" / "catastro"
-ANNOUNCEMENT = (FIXTURES / "anuncio-BOE-B-2026-35273.xml").read_bytes()
+ANNOUNCEMENT = (FIXTURES / "anuncio-BOE-B-2026-35273.html").read_bytes()
+ROBOTS = (FIXTURES / "robots.txt").read_bytes()
 TEXT = "\n".join(parse_announcement(ANNOUNCEMENT)["texto"])
 NONE = Quoted(value=None, evidence=None)
 
@@ -556,7 +557,9 @@ def boe_client(cartociudad: int = 404, seen: list[str] | None = None) -> httpx.C
             seen.append(url)
         if url.endswith("/sumario/20261028"):
             return httpx.Response(200, content=(FIXTURES / "sumario-20261028-5b.json").read_bytes())
-        if "xml.php?id=BOE-B-2026-35273" in url:
+        if url.endswith("/robots.txt"):
+            return httpx.Response(200, content=ROBOTS)
+        if "txt.php?id=BOE-B-2026-35273" in url:
             return httpx.Response(200, content=ANNOUNCEMENT)
         if url.startswith(FIND_URL):
             return httpx.Response(cartociudad)

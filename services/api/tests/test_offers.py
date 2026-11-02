@@ -20,13 +20,14 @@ from housefinder.offers.model import NormalizedOffer, RawItem
 
 FIXTURES = Path(__file__).parent / "fixtures" / "boe"
 CATASTRO = Path(__file__).parent / "fixtures" / "catastro"
-ANNOUNCEMENT = (FIXTURES / "anuncio-BOE-B-2026-35273.xml").read_bytes()
+ANNOUNCEMENT = (FIXTURES / "anuncio-BOE-B-2026-35273.html").read_bytes()
+ROBOTS = (FIXTURES / "robots.txt").read_bytes()
 
 
 def test_el_anuncio_se_guarda_entero_con_la_extraccion_pendiente():
     raw = parse_announcement(ANNOUNCEMENT)
     assert raw["metadatos"]["identificador"] == "BOE-B-2026-35273"
-    assert raw["metadatos"]["seccion"] == "5"
+    assert raw["metadatos"]["departamento"].startswith("Ministerio de Inclusión")
     assert any("tipo de licitación" in p for p in raw["texto"])
     item = RawItem("BOE-B-2026-35273", "https://www.boe.es/x", date(2026, 10, 28), raw)
     [offer] = BoeSectionV([]).parse(item)
@@ -34,6 +35,33 @@ def test_el_anuncio_se_guarda_entero_con_la_extraccion_pendiente():
     assert offer.title.startswith("Resolución de la Dirección Provincial de la Tesorería")
     # Nada de precio ni ubicación por reglas: lo extraerá el LLM con su evidencia (F6.1).
     assert offer.auction_min_bid is None and not offer.locatable
+
+
+def test_el_texto_sale_de_txt_php_y_no_de_lo_que_prohibe_el_robots_txt():
+    """El robots.txt del BOE prohíbe `xml.php` y algunos documentos concretos de `txt.php`."""
+    from urllib.robotparser import RobotFileParser
+
+    from housefinder.ingestion.boe import BoeItem
+    from housefinder.offers.channels.boe_v import fetch_announcement
+
+    robots = RobotFileParser()
+    robots.parse(ROBOTS.decode().splitlines())
+    asked: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        asked.append(str(request.url))
+        return httpx.Response(200, content=ANNOUNCEMENT)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    item = BoeItem("BOE-B-2026-35273", "Resolución…", None, None, date(2026, 10, 28), "5B",
+                   "Ministerio de Inclusión, Seguridad Social y Migraciones")
+    announcement = fetch_announcement(client, item, robots)
+    assert announcement is not None
+    assert announcement["metadatos"]["seccion"] == "5B"  # del sumario
+    assert asked == ["https://www.boe.es/diario_boe/txt.php?id=BOE-B-2026-35273"]
+    vetoed = BoeItem("BOE-B-2025-25790", "…", None, None, date(2025, 6, 2), "5B")
+    assert fetch_announcement(client, vetoed, robots) is None
+    assert len(asked) == 1  # ni se pide
 
 
 def test_solo_ventas_o_subastas_de_inmuebles_en_la_seccion_v():
@@ -173,7 +201,9 @@ def test_canal_boe_seccion_v_de_punta_a_punta(database):
         requests.append(url)
         if url.endswith("/sumario/20261028"):
             return httpx.Response(200, content=(FIXTURES / "sumario-20261028-5b.json").read_bytes())
-        if "xml.php?id=BOE-B-2026-35273" in url:
+        if url.endswith("/robots.txt"):
+            return httpx.Response(200, content=ROBOTS)
+        if "txt.php?id=BOE-B-2026-35273" in url:
             return httpx.Response(200, content=ANNOUNCEMENT)
         return httpx.Response(404)
 
@@ -184,7 +214,8 @@ def test_canal_boe_seccion_v_de_punta_a_punta(database):
     assert report["items"] == 1
     assert report["offers_new"] + report["offers_unchanged"] == 1
     # Solo se descarga el anuncio que es una venta de inmuebles, no los otros dos del sumario.
-    assert sum("xml.php" in r for r in requests) == 1
+    assert sum("txt.php" in r for r in requests) == 1
+    assert not any("xml.php" in r for r in requests)  # el robots.txt del BOE lo prohíbe
     before = len(requests)
     again = run_boe_v(database, client, date(2026, 10, 29), days=2)
     assert again["items"] == 0

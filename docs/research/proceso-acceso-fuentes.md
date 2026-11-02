@@ -30,7 +30,7 @@ Reglas que valen para todas (`CLAUDE.md`):
 ## 1. Lo que hay que arreglar en lo que ya tenemos
 | Qué | Por qué | Siguiente paso |
 | --- | --- | --- |
-| Canales del BOE (`boe_seccion_v`, `boe_subastas_judiciales`) | Descargan cada anuncio de `/diario_boe/xml.php?id=…`, que el `robots.txt` del BOE prohíbe (`Disallow: /diario_boe/xml.php?`) | Decidir: pasar a `txt.php` (permitido, salvo una lista de documentos concretos que hay que respetar) o preguntar a la AEBOE por el formulario de servicios de Internet: https://www.boe.es/contactar/formulario_simple.php?tipo=WEB |
+| Canales del BOE (`boe_seccion_v`, `boe_subastas_judiciales`) | Descargaban cada anuncio de `/diario_boe/xml.php?id=…`, que el `robots.txt` del BOE prohíbe (`Disallow: /diario_boe/xml.php?`) | **Hecho (2026-11-02):** leen `txt.php` y se saltan los documentos que el `robots.txt` prohíbe |
 | Enlace pegado (F4.1) en dominios que prohíben enlazar o reutilizar | Solvia, Servihabitat, Aliseda, Diglo, Fotocasa | Consulta legal (F0.6); mientras tanto, pedir el texto |
 
 ## 2. Públicas

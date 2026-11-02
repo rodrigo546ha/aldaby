@@ -48,9 +48,12 @@ def boe_client(seen: list[str]) -> httpx.Client:
         seen.append(url)
         if url.endswith("/sumario/20261027"):
             return httpx.Response(200, content=(FIXTURES / "sumario-20261027-4.json").read_bytes())
+        if url.endswith("/robots.txt"):
+            return httpx.Response(200, content=(FIXTURES / "robots.txt").read_bytes())
         for ident in ("BOE-B-2026-35002", "BOE-B-2026-35003", "BOE-B-2026-34976"):
             if url.endswith(f"id={ident}"):
-                return httpx.Response(200, content=(FIXTURES / f"anuncio-{ident}.xml").read_bytes())
+                page = FIXTURES / f"anuncio-{ident}.html"
+                return httpx.Response(200, content=page.read_bytes())
         return httpx.Response(404)
 
     return httpx.Client(transport=httpx.MockTransport(handler))

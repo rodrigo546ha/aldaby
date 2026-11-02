@@ -18,13 +18,13 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from typing import Any
+from urllib.robotparser import RobotFileParser
 
 import httpx
 import yaml
 
 from housefinder.ingestion.boe import fetch_sumario, iter_items
-from housefinder.offers.channels.boe_v import HTML_URL, XML_URL
-from housefinder.offers.channels.boe_v import parse_announcement as parse_xml
+from housefinder.offers.channels.boe_v import HTML_URL, boe_robots, fetch_announcement
 from housefinder.offers.model import NormalizedOffer, RawItem
 
 NAME = "boe_subastas_judiciales"
@@ -95,8 +95,10 @@ class BoeAuctions:
         self.seats = seats
         self.days_found: set[date] = set()
         self.unparsed: list[str] = []  # avisos de Madrid sin enlace al Portal
+        self.disallowed: list[str] = []  # avisos que el robots.txt del BOE no deja descargar
 
     def fetch(self, client: httpx.Client) -> Iterator[RawItem]:
+        robots: RobotFileParser | None = None
         for day in self.days:
             payload = fetch_sumario(day, client)
             if payload is None:
@@ -105,9 +107,12 @@ class BoeAuctions:
             for item in iter_items(payload, day):
                 if item.section != "4" or not self.seats.matches(item.title):
                     continue
-                response = client.get(XML_URL.format(id=item.identifier), timeout=60)
-                response.raise_for_status()
-                announcement = parse_xml(response.content)
+                if robots is None:
+                    robots = boe_robots(client)
+                announcement = fetch_announcement(client, item, robots)
+                if announcement is None:
+                    self.disallowed.append(item.identifier)
+                    continue
                 notice = parse_notice(" ".join(announcement["texto"]))
                 if notice is None:
                     self.unparsed.append(item.identifier)

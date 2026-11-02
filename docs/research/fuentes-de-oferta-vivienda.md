@@ -30,7 +30,8 @@ esencial, pero hay que releerlos en la web antes de apoyar en ellos un acuerdo o
    /diario_boe/xml.php?` (comprobado), y los canales `boe_seccion_v` y `boe_subastas_judiciales`
    descargan cada anuncio de esa ruta (`offers/channels/boe_v.py`, `XML_URL`). El sumario lo
    damos por la API de datos abiertos, que sí está permitida, y es esa API la que da la URL de
-   `xml.php` de cada documento. Hay que resolverlo; ver «Proceso».
+   `xml.php` de cada documento. Resuelto el 2026-11-02: los canales leen `txt.php` (mismos
+   párrafos, comprobado con 12 anuncios) y se saltan los documentos que el `robots.txt` prohíbe.
 
 ## Portales y agregadores
 | Portal | API o feed para terceros | Condiciones | `robots.txt` | Contacto |

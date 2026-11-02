@@ -21,10 +21,11 @@ from housefinder.offers.corrections import is_sale_correction, parse_citation, r
 
 FIXTURES = Path(__file__).parent / "fixtures" / "boe" / "correcciones"
 CORRECTION_DAY = date(2026, 10, 27)
+ROBOTS = (FIXTURES.parent / "robots.txt").read_bytes()
 
 
 def text_of(ident: str) -> str:
-    return " ".join(parse_announcement((FIXTURES / f"{ident}.xml").read_bytes())["texto"])
+    return " ".join(parse_announcement((FIXTURES / f"{ident}.html").read_bytes())["texto"])
 
 
 @pytest.mark.parametrize("ident, published_on, number, page", [
@@ -87,8 +88,10 @@ def boe_client(seen: list[str] | None = None) -> httpx.Client:
             path = FIXTURES / f"sumario-{url.rsplit('/', 1)[1]}.json"
             return httpx.Response(200, content=path.read_bytes()) if path.exists() else (
                 httpx.Response(404))
-        if "xml.php?id=" in url:
-            path = FIXTURES / f"{url.rsplit('=', 1)[1]}.xml"
+        if url.endswith("/robots.txt"):
+            return httpx.Response(200, content=ROBOTS)
+        if "txt.php?id=" in url:
+            path = FIXTURES / f"{url.rsplit('=', 1)[1]}.html"
             return httpx.Response(200, content=path.read_bytes()) if path.exists() else (
                 httpx.Response(404))
         return httpx.Response(404)
