@@ -1,0 +1,159 @@
+# Región de Murcia (ES-14) y municipios de Murcia (ES-14-30030) y Cartagena (ES-14-30016).
+# Ver README.md. SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Texto consolidado del Decreto Legislativo 1/2010 leído el 2026-11-03 en el BOE
+# («Última actualización publicada el 24/07/2025»); la comparación de versiones se hizo en las
+# redacciones históricas que ofrece el propio BOE. Códigos INE comprobados en el diccionario de
+# municipios del INE (2026): Murcia 30030, Cartagena 30016.
+#
+# PENDIENTE (sin fuente oficial leída, no se escribe):
+# - Mínimos del contribuyente y por descendientes: Murcia NO tiene mínimos propios (el DL 1/2010 no
+#   los regula), se aplican los estatales; por eso no hay reglas minimo_contribuyente ni minimo_descendientes.
+# - Cualquier modificación autonómica posterior al 24/07/2025 que el BOE aún no consolide (no consta
+#   Ley de Presupuestos de 2026 de la Región de Murcia; comprobar en el BORM antes de verificar).
+# - Régimen urbanístico municipal del alquiler turístico de Murcia y Cartagena.
+# - Fecha de inicio del 30 % de la plusvalía de Murcia (solo se ha leído el texto vigente en 2026).
+
+# ITP de inmuebles, tipo general (único, para todo el valor). Los tipos reducidos del art. 6 (apartados
+# 2 a 9: VPO de régimen especial, empresas inmobiliarias, familia numerosa, menores de 40 años,
+# discapacidad, etc.) no aplican a un inversor particular.
+# Tipo anterior: 8 % desde el 11/07/2013 (Ley 6/2013, art. 1.4), cerrado cuando entra en vigor la
+# Ley 3/2025 (BORM 24/07/2025; en vigor el día siguiente).
+- id: murcia-itp-inmuebles-2013
+  kind: impuesto_compra_segunda_mano
+  territory: ES-14
+  effective_from: 2013-07-11
+  effective_to: 2025-07-25
+  status: vigente
+  verified: false
+  params: {rate: 0.08}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2011-10542#a6
+  notes: "Decreto Legislativo 1/2010 de la Región de Murcia, art. 6.1, redacción de la Ley 6/2013 (publicada el 10/07/2013, en vigor el 11/07/2013): tipo del 8 % para la transmisión de bienes inmuebles, único para todo el valor (no por tramos). Leído en la versión histórica del BOE."
+
+- id: murcia-itp-inmuebles-2025
+  kind: impuesto_compra_segunda_mano
+  territory: ES-14
+  effective_from: 2025-07-25
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.0775}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2025-16147
+  notes: "Decreto Legislativo 1/2010 de la Región de Murcia, art. 6.1, redacción del art. 55.Catorce de la Ley 3/2025, de 23 de julio, de Presupuestos Generales de la Región de Murcia para 2025 (BOE-A-2025-16147; entra en vigor el día siguiente a su publicación en el BORM, 24/07/2025): «será del 7,75 %», con vigencia indefinida. Tipo único para todo el valor (no por tramos). Texto consolidado: https://www.boe.es/buscar/act.php?id=BOE-A-2011-10542#a6"
+
+# AJD de la escritura de compra de vivienda sujeta a IVA: tipo general de los documentos notariales,
+# 1,5 % sobre todo el valor (único). Sin bandas ni salto de banda. Sin tipo propio para persona jurídica.
+# El tipo es el del texto original (en vigor el 01/02/2011); el apartado 1 del art. 7 no ha cambiado de tipo.
+- id: murcia-ajd-compra-vivienda-2011
+  kind: ajd_compra_vivienda
+  territory: ES-14
+  effective_from: 2011-02-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.015}
+    cap_jumps: false
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2011-10542#a7
+  notes: "Decreto Legislativo 1/2010 de la Región de Murcia, art. 7.1: primeras copias de escrituras y actas notariales inscribibles, con cantidad o cosa valuable y no sujetas a Sucesiones y Donaciones ni a TPO/IVA del art. 1.1 y 1.2 del TRLITPAJD, tributan además de la cuota fija «al tipo de gravamen del 1,5 %», salvo los tipos de los apartados 2 a 9 (0,1 %, 0,5 %, 1,5 % y 2,5 % para supuestos concretos: jóvenes, familia numerosa, discapacidad, etc.), que no se incluyen. Persona jurídica: mismo tipo."
+
+# --- IRPF, tramo autonómico (ADR-0007) -------------------------------------------------------
+# Escala autonómica del art. 2 del DL 1/2010, sin cambios desde la redacción vigente el 01/01/2012
+# (comprobadas las versiones de 2012, 2013, 2015, 2016 y 2019 del BOE); idéntica en 2025 y 2026.
+- id: murcia-irpf-escala-general-2012
+  kind: escala_irpf_general_autonomica
+  territory: ES-14
+  effective_from: 2012-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.095}
+      - {from: 12450, rate: 0.112}
+      - {from: 20200, rate: 0.133}
+      - {from: 34000, rate: 0.179}
+      - {from: 60000, rate: 0.225}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2011-10542#a2
+  notes: "Decreto Legislativo 1/2010 de la Región de Murcia, art. 2, al amparo del art. 46.1.b) de la Ley 22/2009: 9,50 % hasta 12.450 €; 11,20 % hasta 20.200 €; 13,30 % hasta 34.000 €; 17,90 % hasta 60.000 €; 22,50 % en adelante. Coincide con la escala complementaria estatal supletoria. Fecha de inicio: primera versión del BOE comprobada (en vigor el 01/01/2012); puede ser anterior."
+
+# --- Alquiler ---------------------------------------------------------------------------------
+
+# Ninguna zona tensionada en la Región de Murcia: ni «Murcia» ni «Cartagena» figuran en ninguna de las
+# nueve resoluciones trimestrales del Ministerio leídas (texto completo en el BOE), desde la del primer
+# trimestre de 2024 hasta la del segundo de 2026: BOE-A-2024-5214, BOE-A-2024-20576, BOE-A-2025-1721,
+# BOE-A-2025-8636, BOE-A-2025-15728, BOE-A-2025-21901, BOE-A-2026-2448, BOE-A-2026-9175 y
+# BOE-A-2026-16532. No se ha leído la del segundo trimestre de 2024. No consta la del tercer trimestre
+# de 2026. Revisar con cada resolución nueva y actualizar checked_through.
+- id: murcia-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-14
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre."
+
+# Vivienda de uso turístico en la Región de Murcia: Decreto 256/2019, de 10 de octubre (BORM núm. 242,
+# 19/10/2019); entra en vigor a los veinte días de su completa publicación (disposición final primera): 08/11/2019.
+- id: murcia-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-14
+  effective_from: 2019-11-08
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico en la Región de Murcia (Decreto 256/2019): declaración responsable ante el Instituto de Turismo de la Región de Murcia antes de prestar el servicio"
+    requirements:
+      - code: declaracion-responsable
+        description: "Declaración responsable de clasificación turística, según modelo normalizado, ante el Instituto de Turismo de la Región de Murcia con carácter previo a prestar el servicio; permite ejercer la actividad e inscribirse en el Registro de Empresas y Actividades Turísticas (art. 28); no se puede comercializar sin haberla presentado (art. 6.1)"
+        source_url: https://www.borm.es/services/anuncio/780550/pdf
+      - code: disponibilidad-inmueble
+        description: "Manifestar la disponibilidad del inmueble para destinarlo a alojamiento turístico; con referencia catastral y capacidad de cada vivienda (art. 28.1.b y d); una empresa gestora que no sea titular debe tener la disponibilidad del inmueble (art. 5.7)"
+        source_url: https://www.borm.es/services/anuncio/780550/pdf
+      - code: seguro-responsabilidad-civil
+        description: "Seguro de responsabilidad civil en vigor durante toda la actividad, con cobertura mínima de 300.000 euros por siniestro (art. 8)"
+        source_url: https://www.borm.es/services/anuncio/780550/pdf
+      - code: responsable-alojamiento
+        description: "Designar un responsable del alojamiento y anunciar su teléfono en el interior de cada vivienda, al menos en español e inglés (art. 9)"
+        source_url: https://www.borm.es/services/anuncio/780550/pdf
+      - code: capacidad-maxima
+        description: "Capacidad máxima de 10 plazas, la fijada en la licencia de ocupación o equivalente, con superficies mínimas por dormitorio (6 m² individual, 8 m² doble) (art. 14)"
+        source_url: https://www.borm.es/services/anuncio/780550/pdf
+      - code: un-titular-por-vivienda
+        description: "Un único titular de la explotación por vivienda a efectos de inscripción en el Registro de Empresas y Actividades Turísticas (art. 5.5); cedida en su totalidad, sin coincidencia de usuarios con contratos distintos (art. 5.1)"
+        source_url: https://www.borm.es/services/anuncio/780550/pdf
+  source_url: https://www.borm.es/services/anuncio/780550/pdf
+  notes: "Decreto 256/2019 de la Región de Murcia (BORM núm. 242, 19/10/2019). Fecha de inicio calculada: veinte días tras la publicación. Si se cede por habitaciones, el titular debe ser persona física empadronada y residente en la vivienda (art. 5.2). Excluida la cesión sometida a la LAU (art. 1.2.b). Pendiente comprobar posibles modificaciones posteriores a 2019 y los requisitos urbanísticos municipales y de estatutos de la comunidad."
+
+# --- Plusvalía municipal (tipo único) ----------------------------------------------------------
+
+# Murcia: art. 9 de la ordenanza reguladora del IIVTNU, texto de 2026 publicado por el Ayuntamiento
+# (última modificación: Pleno de 26/12/2024, BORM de 28/12/2024, efectos 01/01/2025).
+- id: murcia-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-14-30030
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.30}
+  source_url: https://amt.murcia.es/sites/amt/files/2026-01/3.5%20Impuesto-Plusval%C3%ADa-2026.pdf
+  notes: "Ordenanza reguladora del IIVTNU del Ayuntamiento de Murcia, art. 9: «el tipo impositivo del TREINTA por ciento». Texto vigente en 2026 (modificada por el Pleno de 26/12/2024, BORM de 28/12/2024, efectos 01/01/2025). Fecha de inicio = esa modificación; el 30 % puede venir de antes (por verificar). No se ha leído el BORM."
+
+# Cartagena: art. 9.1 de la ordenanza reguladora del IIVTNU. El 30 % viene de la modificación del Pleno
+# de 18/03/2022, publicada en el BORM núm. 123 de 30/05/2022 (adaptación al RDL 26/2021), que entra en
+# vigor el día de su publicación; antes era el 29,70 %. Se mantiene en los textos de 2023 a 2026.
+- id: cartagena-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-14-30016
+  effective_from: 2022-05-30
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.30}
+  source_url: https://www.cartagena.es/gestion/documentos/acuerdosynormativas/92684.pdf
+  notes: "Ordenanza reguladora del IIVTNU del Ayuntamiento de Cartagena, art. 9.1: «El tipo de gravamen de este impuesto es del 30 por 100». Redacción del edicto del BORM núm. 123, 30/05/2022 (https://www.borm.es/services/anuncio/ano/2022/numero/2764/pdf?id=806518), en vigor el día de su publicación; confirmado en el texto de las ordenanzas de Cartagena para 2026 (entrada en vigor 01/01/2026, texto revisado a 27/01/2026). Los edictos de 2024 y 2025 (BORM 11/12/2024 y 03/11/2025) solo cambian coeficientes."

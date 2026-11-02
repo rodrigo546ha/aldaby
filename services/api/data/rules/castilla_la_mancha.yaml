@@ -1,0 +1,140 @@
+# Comunidad Autónoma de Castilla-La Mancha (ES-08). Ver README.md.
+# SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Texto consolidado de la Ley 8/2013 leído el 2026-11-03: versión de la sede tributaria de la Junta
+# (https://docm.jccm.es/portaldocm/descargarArchivo.do?ruta=1385469263266160074.doc&tipo=rutaCodigoLegislativo),
+# «Actualizada a 30/03/2026». Su cabecera enumera las modificaciones: Ley 9/2014, Ley 3/2016,
+# Ley 9/2019, Ley 11/2019, Ley 2/2021, Ley 4/2021, Ley 5/2021, Ley 1/2022, Ley 1/2023 y Ley 1/2026.
+# El texto consolidado del BOE (BOE-A-2014-1368) está sin actualizar desde el 31/01/2023: no usarlo.
+# Ley 1/2026 (DOCM núm. 61, 30/03/2026), art. 18, solo toca deducciones y los tipos REDUCIDOS del
+# art. 19 (apartados 2, 6 y 9); no cambia el tipo general ni la escala.
+#
+# PENDIENTE (sin regla escrita):
+# - minimo_contribuyente y minimo_descendientes: Castilla-La Mancha NO tiene mínimos propios en la
+#   Ley 8/2013 vigente (solo deducciones que citan el mínimo estatal); rigen los del Estado.
+# - tipo_plusvalia de Toledo y Guadalajara: ambas ordenanzas fijan el tipo por años de tenencia y el
+#   esquema actual (RateParams: `rate`) solo admite un tipo único. Ver notas al final.
+# - Régimen urbanístico municipal del alquiler turístico (Toledo, Guadalajara): no leído.
+# - Resolución del Ministerio del tercer trimestre de 2026 (aún no localizada) y la del segundo de 2024.
+
+# --- ITP de inmuebles: tipo general único (para todo el valor) -------------------------------------
+# Los tipos reducidos del art. 19 (vivienda habitual de jóvenes, familias numerosas o monoparentales,
+# discapacidad, zonas rurales por despoblación, etc.) no aplican a un inversor particular.
+# Ley 8/2013 (en vigor el 01/01/2014) fijó el 8 %; la Ley 3/2016 lo subió al 9 %. Su capítulo II
+# (medidas tributarias) surtió efectos el primer día del mes natural siguiente a la publicación en
+# el DOCM (11/05/2016): 01/06/2016. Sin cambios en 2024, 2025 ni 2026 para el tipo general.
+- id: castilla-la-mancha-itp-inmuebles-2016
+  kind: impuesto_compra_segunda_mano
+  territory: ES-08
+  effective_from: 2016-06-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.09}
+  source_url: https://docm.jccm.es/portaldocm/descargarArchivo.do?ruta=1385469263266160074.doc&tipo=rutaCodigoLegislativo
+  notes: "Ley 8/2013, de 21 de noviembre, de Medidas Tributarias de Castilla-La Mancha, art. 19.1, redacción de la Ley 3/2016, de 5 de mayo (BOE-A-2016-6725): a las transmisiones de inmuebles y a la constitución y cesión de derechos reales sobre ellos (salvo de garantía) «con carácter general, el tipo de gravamen del 9 por ciento». Tipo único para todo el valor, no por tramos."
+
+# --- AJD de la escritura de compra de vivienda sujeta a IVA ----------------------------------------
+# Documentos notariales del art. 31.2 TRLITPAJD: tipo general único del 1,50 % sobre todo el valor.
+# Sin bandas, sin salto de banda y sin tipo propio de persona jurídica. No incluye los reducidos de
+# los apartados 2 a 5 del art. 21 (vivienda habitual, zonas rurales, renuncia a la exención del IVA,
+# locales de negocio). Original: 1,25 %; subido al 1,50 % por la Ley 3/2016 (misma entrada en vigor).
+- id: castilla-la-mancha-ajd-compra-vivienda-2016
+  kind: ajd_compra_vivienda
+  territory: ES-08
+  effective_from: 2016-06-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.015}
+    cap_jumps: false
+  source_url: https://docm.jccm.es/portaldocm/descargarArchivo.do?ruta=1385469263266160074.doc&tipo=rutaCodigoLegislativo
+  notes: "Ley 8/2013 de Castilla-La Mancha, art. 21.1, redacción de la Ley 3/2016 (BOE-A-2016-6725, art. 11.Siete): «con carácter general, el tipo de gravamen del 1,50 por ciento». Sin modificaciones posteriores del apartado 1 en el texto actualizado a 30/03/2026."
+
+# --- IRPF, tramo autonómico (ADR-0007) --------------------------------------------------------------
+# Escala autonómica general (art. 13 bis), añadida por la Ley 9/2014, de 4 de diciembre, que entró en
+# vigor el 01/01/2015. El texto actualizado a 30/03/2026 la mantiene idéntica, por lo que rige también
+# en los periodos impositivos 2025 y 2026: una sola regla.
+- id: castilla-la-mancha-irpf-escala-general-2015
+  kind: escala_irpf_general_autonomica
+  territory: ES-08
+  effective_from: 2015-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.095}
+      - {from: 12450, rate: 0.12}
+      - {from: 20200, rate: 0.15}
+      - {from: 35200, rate: 0.185}
+      - {from: 60000, rate: 0.225}
+  source_url: https://www.boe.es/boe/dias/2015/02/18/pdfs/BOE-A-2015-1628.pdf
+  notes: "Ley 8/2013 de Castilla-La Mancha, art. 13 bis, añadido por la Ley 9/2014, de 4 de diciembre (BOE-A-2015-1628; entrada en vigor 01/01/2015, disposición final tercera): 9,5 % hasta 12.450 €; 12 % hasta 20.200 €; 15 % hasta 35.200 €; 18,5 % hasta 60.000 €; 22,5 % en adelante. Coinciden las cuotas íntegras de la tabla (1.182,75; 2.112,75; 4.362,75; 8.950,75 €)."
+
+# --- Alquiler ----------------------------------------------------------------------------------------
+
+# Ninguna zona tensionada en Castilla-La Mancha: ni la comunidad ni ninguno de sus municipios
+# (Albacete, Ciudad Real, Cuenca, Guadalajara, Toledo) figuran en las diez resoluciones trimestrales
+# del Ministerio leídas, desde la del primer trimestre de 2024 hasta la del segundo de 2026:
+# BOE-A-2024-5214, BOE-A-2024-20576, BOE-A-2025-1721, BOE-A-2025-8636, BOE-A-2025-15728 (y su
+# corrección BOE-A-2025-20246), BOE-A-2025-21901, BOE-A-2026-2448, BOE-A-2026-9175 y BOE-A-2026-16532.
+# No se ha leído la del segundo trimestre de 2024 ni la del tercero de 2026. Revisar con cada
+# resolución nueva y actualizar checked_through.
+- id: castilla-la-mancha-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-08
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre. Búsqueda por «Castilla-La Mancha» y por las cinco capitales de provincia sin resultados en las resoluciones citadas."
+
+# Vivienda de uso turístico en Castilla-La Mancha: Decreto 36/2018, de 29 de mayo (DOCM núm. 113,
+# 11/06/2018; entra en vigor a los veinte días de su publicación: 01/07/2018).
+- id: castilla-la-mancha-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-08
+  effective_from: 2018-07-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico en Castilla-La Mancha (Decreto 36/2018): declaración responsable de inicio de actividad e inscripción en el Registro de empresas y establecimientos turísticos antes de anunciarla"
+    requirements:
+      - code: declaracion-responsable
+        description: "Declaración responsable de inicio de actividad, antes del inicio y de cualquier publicidad, ante la Dirección General de Turismo, solo por vía telemática con firma electrónica (art. 6.1 y 6.4)"
+        source_url: https://docm.jccm.es/portaldocm/descargarArchivo.do?ruta=1528111832347830497.doc&tipo=rutaCodigoLegislativo
+      - code: inscripcion-registro-turismo
+        description: "Inscripción en el Registro de empresas y establecimientos turísticos de Castilla-La Mancha; su código debe figurar en toda publicidad y comercialización (arts. 6.6 y 16.4)"
+        source_url: https://docm.jccm.es/portaldocm/descargarArchivo.do?ruta=1528111832347830497.doc&tipo=rutaCodigoLegislativo
+      - code: estatutos-no-prohiben
+        description: "Los estatutos de la comunidad de propietarios no pueden contener prohibición expresa de la actividad de alojamiento turístico (art. 16.1.b)"
+        source_url: https://docm.jccm.es/portaldocm/descargarArchivo.do?ruta=1528111832347830497.doc&tipo=rutaCodigoLegislativo
+      - code: habitabilidad-y-equipamiento
+        description: "Cumplir la normativa de habitabilidad y seguridad de uso residencial; amueblada y equipada, con calefacción y aire acondicionado en dormitorios y salón, botiquín y wifi; mínimo salón-comedor, cocina, dormitorio y baño (art. 16.1 y 16.2)"
+        source_url: https://docm.jccm.es/portaldocm/descargarArchivo.do?ruta=1528111832347830497.doc&tipo=rutaCodigoLegislativo
+      - code: capacidad-maxima
+        description: "Capacidad según camas y plazas convertibles (como máximo 2 plazas en el salón-comedor y 4 en dormitorios) sin superar la de la licencia de primera ocupación o, si no consta, 12 plazas (art. 16.3)"
+        source_url: https://docm.jccm.es/portaldocm/descargarArchivo.do?ruta=1528111832347830497.doc&tipo=rutaCodigoLegislativo
+      - code: uso-turistico-exclusivo
+        description: "Cedida en su totalidad y de forma habitual para alojamiento turístico, sin poder usarse como residencia permanente ni con otra finalidad (arts. 2.c y 3)"
+        source_url: https://docm.jccm.es/portaldocm/descargarArchivo.do?ruta=1528111832347830497.doc&tipo=rutaCodigoLegislativo
+      - code: hojas-reclamaciones-y-placa
+        description: "Hojas de reclamaciones a disposición de los usuarios y placa distintiva en la puerta de entrada (arts. 7 y 17)"
+        source_url: https://docm.jccm.es/portaldocm/descargarArchivo.do?ruta=1528111832347830497.doc&tipo=rutaCodigoLegislativo
+  source_url: https://docm.jccm.es/portaldocm/descargarArchivo.do?ruta=1528111832347830497.doc&tipo=rutaCodigoLegislativo
+  notes: "Decreto 36/2018, de 29 de mayo, de ordenación de los apartamentos turísticos y las viviendas de uso turístico en Castilla-La Mancha, texto de la sede del DOCM sin notas de modificación. Pendiente comprobar si lo ha modificado alguna norma posterior (informes de prensa mencionan un anteproyecto de ley que exigiría la declaración responsable antes de anunciar; sin fuente oficial leída) y las limitaciones urbanísticas municipales."
+
+# --- Plusvalía municipal (IIVTNU) --------------------------------------------------------------------
+# NO SE ESCRIBE REGLA: el tipo depende de los años de tenencia, lo que no cabe en `rate`.
+# - Toledo (INE 45168, a comprobar): Ordenanza Fiscal nº 2, art. 11, versión publicada en
+#   toledo.es (modificación definitiva de 11/03/2022): 0-5 años 29,88 %; 6-10 años 28,88 %;
+#   11-15 años 26,89 %; 16-20 años 25,90 %. Fuente:
+#   https://www.toledo.es/wp-content/uploads/2016/11/of-no-02-impuesto-sobre-el-incremento-del-valor-de-los-terrenos-de-naturaleza-urbana-2024.pdf
+#   No leído el BOP ni si 2025-2026 la han cambiado.
+# - Guadalajara (INE 19130, a comprobar): solo fuentes secundarias (tipo decreciente por tenencia);
+#   no se ha leído su ordenanza en el BOP de Guadalajara.

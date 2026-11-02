@@ -1,0 +1,212 @@
+# Comunidad Autónoma de Canarias (ES-05) y municipios de Las Palmas de Gran Canaria (ES-05-35016) y
+# Santa Cruz de Tenerife (ES-05-38038). Ver README.md.
+# SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Fuentes leídas el 2026-11-03: Ley 9/2025 (BOC núm. 256, 29/12/2025), Ley 5/2024 (BOC núm. 260, 30/12/2024),
+# DL 1/2009 (copia de Hacienda, Normadoc 2019, solo para los arts. 31 y 36), DL 1/2025 consolidado (BOE) y
+# Ley 6/2025 (BOE-A-2025-26358).
+#
+# PENDIENTE (sin fuente oficial leída, no se escribe):
+# - Texto consolidado actual del DL 1/2009: no se ha encontrado una versión oficial consolidada posterior a 2019;
+#   los arts. 31 y 36 se han tomado de la copia de 2019 y de las leyes que los modifican (Ley 5/2024 y Ley 9/2025
+#   no tocan el art. 36).
+# - Escala autonómica del IRPF anterior a 2024 (no se carga: solo se cierra la de 2024).
+# - Fecha de inicio exacta del IGIC general del 7 % antes del DL 1/2025.
+# - Régimen urbanístico municipal del alquiler turístico de Las Palmas de Gran Canaria y Santa Cruz de Tenerife.
+# - Resolución de zonas tensionadas del segundo trimestre de 2024 (no leída).
+
+# ITP de inmuebles, tipo general (único, para todo el valor). El 5 % (vivienda habitual de hasta 200.000 €, sin
+# otra vivienda) y los demás tipos reducidos de los arts. 32 a 34 no aplican a un inversor particular.
+# Redacción vigente del art. 31.1.a (Ley 9/2025, DF 11.ª, con efecto 01/01/2025): 6,5 %. El 6,5 % ya estaba
+# en la redacción de la Ley 4/2018 (en vigor desde el 05/12/2018).
+- id: canarias-itp-inmuebles-2018
+  kind: impuesto_compra_segunda_mano
+  territory: ES-05
+  effective_from: 2018-12-05
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.065}
+  source_url: https://www.gobiernodecanarias.org/boc/2025/256/4414.html
+  notes: "Decreto Legislativo 1/2009 de Canarias, art. 31.1.a, redacción de la Ley 9/2025, de 23 de diciembre (BOC núm. 256, 29/12/2025, DF undécima, apartado diecinueve): transmisión de bienes inmuebles, con carácter general el 6,5 %, único para todo el valor (no por tramos). El 5 % exige vivienda habitual, base de hasta 200.000 € y no ser propietario de otra vivienda. Fecha de inicio = Ley 4/2018 según la copia de Hacienda del DL 1/2009 (art. 31 «en vigor desde 5 de diciembre de 2018»); el tipo general no ha cambiado."
+
+# AJD de la escritura de compra de vivienda sujeta a IGIC o IVA: art. 36, 1 % (el general es el 0,75 %,
+# pero «cuando se trate de documentos relativos a operaciones sujetas al IGIC o al IVA, el tipo se fija en el
+# 1 por 100»). Sin bandas ni salto de banda. No incluye el 0,4 % del art. 37 (vivienda habitual).
+- id: canarias-ajd-compra-vivienda-2016
+  kind: ajd_compra_vivienda
+  territory: ES-05
+  effective_from: 2016-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.01}
+    cap_jumps: false
+    legal_person_rate: 0.01
+  source_url: https://www.hacienda.gob.es/DocLeyes/onlinelt/C13.13.tributos_cedidos_canarias.htm
+  notes: "Decreto Legislativo 1/2009 de Canarias, art. 36, redacción de la Ley 11/2015 (en vigor desde 01/01/2016): 0,75 % en documentos notariales con carácter general y 1 % en los relativos a operaciones sujetas al IGIC o al IVA. Texto leído en la copia de Hacienda (Normadoc, 2019); la Ley 5/2024 y la Ley 9/2025 no modifican el art. 36 y Hacienda (Tributación autonómica 2026) sigue dando el 0,75 % general. Persona jurídica: mismo tipo. Por verificar que la entrega de vivienda nueva en IGIC no esté exenta de IGIC (en ese caso el tipo sería 0,75 %)."
+
+# --- IGIC de la primera entrega de vivienda ------------------------------------------------------
+# En Canarias no hay IVA: la entrega de vivienda nueva tributa por IGIC. Se carga con el kind
+# iva_vivienda_nueva (la regla de ES lleva el IVA del 10 % y la más específica gana).
+- id: canarias-igic-vivienda-nueva-2025
+  kind: iva_vivienda_nueva
+  territory: ES-05
+  effective_from: 2025-10-21
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.07}
+  source_url: https://www.boe.es/buscar/pdf/2025/BOC-j-2025-90249-consolidado.pdf
+  notes: "ESTO ES IGIC, NO IVA. Decreto Legislativo 1/2025, de 13 de octubre (BOC núm. 207, 20/10/2025; en vigor el día siguiente), art. 32.1: tipo general del IGIC del 7 %, aplicable a lo que no tenga otro tipo; no hay tipo específico para la primera entrega de vivienda libre. El art. 38 solo da tipo cero (VPO y promoción pública, entidades de arrendamiento del régimen especial del IS) y el 3 % superreducido (vivienda habitual del adquirente que sea persona de 40 años o menos, familia numerosa, discapacidad ≥65 %, víctima de violencia de género, familia monoparental o renta familiar de hasta 46.455 €, base de hasta 200.000 € y sin otra vivienda): ninguno aplica a un inversor. Fecha de inicio = entrada en vigor del texto refundido; el 7 % general viene de antes (por verificar desde cuándo)."
+
+# --- IRPF, tramo autonómico (ADR-0007) -------------------------------------------------------------
+
+# Escala de 2024 (Ley 5/2024, art. 18 bis, efectos 01/01/2024), cerrada por la deflactación de 2025.
+- id: canarias-irpf-escala-general-2024
+  kind: escala_irpf_general_autonomica
+  territory: ES-05
+  effective_from: 2024-01-01
+  effective_to: 2025-01-01
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.09}
+      - {from: 13465, rate: 0.115}
+      - {from: 19022, rate: 0.14}
+      - {from: 35185, rate: 0.185}
+      - {from: 56382, rate: 0.235}
+      - {from: 91350, rate: 0.25}
+      - {from: 121200, rate: 0.26}
+  source_url: https://sede.gobiernodecanarias.org/boc/boc-a-2024-260-4427.pdf
+  notes: "Decreto Legislativo 1/2009 de Canarias, art. 18 bis, redacción de la Ley 5/2024, de 26 de diciembre (BOC núm. 260, 30/12/2024, DF décima, apartado veintitrés; efectos desde 01/01/2024): 9 % hasta 13.465 €; 11,5 % hasta 19.022 €; 14 % hasta 35.185 €; 18,5 % hasta 56.382 €; 23,5 % hasta 91.350 €; 25 % hasta 121.200 €; 26 % en adelante. Escalas anteriores a 2024 no cargadas."
+
+# Escala de 2025 y 2026 (deflactada, Ley 9/2025, DF undécima, efectos 01/01/2025). Hacienda (Tributación
+# autonómica 2026) confirma que la escala de 2026 no cambia respecto de la de 2025.
+- id: canarias-irpf-escala-general-2025
+  kind: escala_irpf_general_autonomica
+  territory: ES-05
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.09}
+      - {from: 13748, rate: 0.115}
+      - {from: 19422, rate: 0.14}
+      - {from: 35924, rate: 0.185}
+      - {from: 57566, rate: 0.235}
+      - {from: 93268, rate: 0.25}
+      - {from: 123745, rate: 0.26}
+  source_url: https://www.gobiernodecanarias.org/boc/2025/256/4414.html
+  notes: "Decreto Legislativo 1/2009 de Canarias, art. 18 bis, redacción de la Ley 9/2025, de 23 de diciembre (BOC núm. 256, 29/12/2025, DF undécima, apartado diecisiete; efectos desde 01/01/2025): 9 % hasta 13.748 €; 11,5 % hasta 19.422 €; 14 % hasta 35.924 €; 18,5 % hasta 57.566 €; 23,5 % hasta 93.268 €; 25 % hasta 123.745 €; 26 % en adelante."
+
+# Mínimos propios de Canarias, completos (art. 18 ter, añadido por la Ley 5/2024, efectos 01/01/2024).
+# La Ley 9/2025 no los modifica (solo la escala y las deducciones).
+- id: canarias-irpf-minimo-contribuyente-2024
+  kind: minimo_contribuyente
+  territory: ES-05
+  effective_from: 2024-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {general: 5606, over_65_extra: 1162, over_75_extra: 1414}
+  source_url: https://sede.gobiernodecanarias.org/boc/boc-a-2024-260-4427.pdf
+  notes: "Decreto Legislativo 1/2009 de Canarias, art. 18 ter.Uno, añadido por la Ley 5/2024 (BOC núm. 260, 30/12/2024; efectos 01/01/2024), en sustitución del art. 57 de la Ley 35/2006: 5.606 € con carácter general; +1.162 € si mayor de 65 años; +1.414 € adicionales si mayor de 75."
+
+- id: canarias-irpf-minimo-descendientes-2024
+  kind: minimo_descendientes
+  territory: ES-05
+  effective_from: 2024-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {first: 2424, second: 2727, third: 4040, fourth_and_more: 4545, under_3_extra: 2828}
+  source_url: https://sede.gobiernodecanarias.org/boc/boc-a-2024-260-4427.pdf
+  notes: "Decreto Legislativo 1/2009 de Canarias, art. 18 ter.Dos, añadido por la Ley 5/2024 (BOC núm. 260, 30/12/2024; efectos 01/01/2024), en sustitución del art. 58 de la Ley 35/2006: 2.424 €, 2.727 €, 4.040 € y 4.545 € por el primer, segundo, tercer y cuarto y siguientes descendientes; +2.828 € si el descendiente es menor de tres años."
+
+# --- Alquiler ---------------------------------------------------------------------------------------
+
+# Ninguna zona tensionada en Canarias: «Canarias» no figura en ninguna de las nueve resoluciones trimestrales
+# del Ministerio leídas, desde la del primer trimestre de 2024 hasta la del segundo de 2026:
+# BOE-A-2024-5214, BOE-A-2024-20576, BOE-A-2025-1721, BOE-A-2025-8636, BOE-A-2025-15728,
+# BOE-A-2025-21901, BOE-A-2026-2448, BOE-A-2026-9175 y BOE-A-2026-16532. No se ha leído la del
+# segundo trimestre de 2024. Revisar con cada resolución nueva y actualizar checked_through.
+- id: canarias-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-05
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre. Ley 6/2025 de Canarias, arts. 5.1.b y 10.2: una declaración de zona tensionada suspende la habilitación de nuevas viviendas de uso turístico."
+
+# Vivienda de uso turístico en Canarias: Ley 6/2025, de 10 de diciembre (BOC núm. 246, 12/12/2025; en vigor
+# el día siguiente a su publicación: 13/12/2025).
+- id: canarias-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-05
+  effective_from: 2025-12-13
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Uso turístico de hospedaje en vivienda en Canarias (Ley 6/2025): declaración responsable ante el cabildo insular, inscripción en el Registro General Turístico y habilitación expresa del planeamiento urbanístico"
+    requirements:
+      - code: declaracion-responsable
+        description: "Declaración responsable ante el cabildo insular antes de iniciar la actividad, con inscripción de oficio en el Registro General Turístico de Canarias; trámite electrónico (art. 7.1 y 7.3)"
+        source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26358
+      - code: habilitacion-planeamiento
+        description: "El planeamiento urbanístico debe habilitar expresamente el uso turístico de la vivienda; se aporta cédula urbanística (arts. 4 y 7.7.c). Al menos el 90 % de la edificabilidad residencial se reserva a uso residencial exclusivo (art. 4.1)"
+        source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26358
+      - code: antiguedad-minima
+        description: "La vivienda debe tener al menos diez años de antigüedad (cinco en El Hierro, La Gomera y La Palma y municipios del reto demográfico), salvo que el planeamiento la reduzca fuera de zonas tensionadas (art. 5.1.a)"
+        source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26358
+      - code: zona-no-tensionada
+        description: "La declaración de zona de mercado residencial tensionado suspende la habilitación de nuevas viviendas de uso turístico mientras dure (art. 5.1.b)"
+        source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26358
+      - code: estatutos-no-prohiben
+        description: "En propiedad horizontal, el título constitutivo, los estatutos o la junta de propietarios no pueden impedir la actividad; se aporta certificación de la junta (arts. 5.1.c y 7.7.b)"
+        source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26358
+      - code: no-proteccion-publica
+        description: "La vivienda no puede estar sometida a protección pública que restrinja su destino ni formar parte de un establecimiento turístico (art. 7.4.d)"
+        source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26358
+      - code: una-vivienda-por-referencia-catastral
+        description: "Una sola vivienda por referencia catastral, salvo que se acredite la existencia de dos o más (art. 7.4.a)"
+        source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26358
+      - code: vigencia-cinco-anos
+        description: "La declaración habilita por cinco años (diez en El Hierro, La Gomera, La Palma y municipios del reto demográfico); después se renueva si se siguen cumpliendo los requisitos y la zona no es tensionada (art. 10)"
+        source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26358
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26358
+  notes: "Ley 6/2025, de 10 de diciembre, de Ordenación Sostenible del Uso Turístico de Viviendas (BOE-A-2025-26358). Sin perjuicio de la Ley 14/2019 en El Hierro, La Gomera y La Palma. Faltan el régimen transitorio (usos ya consolidados), los límites por sección electoral y las ordenanzas municipales de Las Palmas de Gran Canaria y Santa Cruz de Tenerife."
+
+# --- Plusvalía municipal (tipo único) ---------------------------------------------------------------
+
+# Las Palmas de Gran Canaria: art. 8.1 de la ordenanza fiscal del IIVTNU, 30 %.
+- id: las-palmas-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-05-35016
+  effective_from: 2022-06-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.30}
+  source_url: https://www.laspalmasgc.es/export/sites/laspalmasgc/.galleries/documentos-normativa/Ordenanza-Impuesto-Incremento-Valor-Terrenos-N.-Urbana.pdf
+  notes: "Ordenanza Fiscal del IIVTNU del Ayuntamiento de Las Palmas de Gran Canaria, art. 8.1: «El tipo de gravamen del impuesto será del 30 %». Texto vigente tras la aprobación definitiva de 27/05/2022 (BOP de Las Palmas núm. 66, 01/06/2022, en vigor el 01/06/2022); las modificaciones posteriores (BOP 2023, 2024 y 2025) solo actualizan los coeficientes. Fecha de inicio = BOP de 01/06/2022; el 30 % puede venir de antes (por verificar)."
+
+# Santa Cruz de Tenerife: art. 7 de la ordenanza fiscal del IIVTNU, 30 %.
+- id: santa-cruz-tenerife-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-05-38038
+  effective_from: 2022-07-05
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.30}
+  source_url: https://sede.santacruzdetenerife.es/fileadmin/user_upload/Sede/normativas/Ordenanzas_fiscales/OF_PLUSVALIA_CONSOLIDADO_2022.pdf
+  notes: "Ordenanza Fiscal del IIVTNU del Ayuntamiento de Santa Cruz de Tenerife, art. 7: «el tipo impositivo de un 30 por 100». Texto consolidado tras la modificación cuya aprobación definitiva se publicó en el BOP de Santa Cruz de Tenerife núm. 80 (04/07/2022); la ordenanza entra en vigor al día siguiente de su publicación. No se ha comprobado que no haya modificaciones posteriores a 2022."

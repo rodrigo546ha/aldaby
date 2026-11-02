@@ -1,0 +1,209 @@
+# Comunidad Autónoma de Galicia (ES-12) y municipios de A Coruña (ES-12-15030), Santiago de Compostela
+# (ES-12-15078) y Vigo (ES-12-36057). Ver README.md.
+# SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Texto consolidado del Decreto legislativo 1/2011 leído el 2026-11-03 (BOE-A-2011-18161, «Última
+# actualización publicada el 27/03/2026»), y las leyes autonómicas que lo modifican (BOE-A-2022-3415,
+# BOE-A-2023-6382 y BOE-A-2024-2777).
+#
+# PENDIENTE (sin fuente oficial leída, no se escribe):
+# - Resolución trimestral del Ministerio de Vivienda del tercer trimestre de 2026 (la de octubre): no se ha
+#   localizado; Taxdown cuenta dos municipios gallegos (A Coruña y Santiago), los mismos de aquí.
+# - Posibles modificaciones del Decreto 12/2017 (vivienda de uso turístico) posteriores a su texto
+#   original y régimen urbanístico municipal del alquiler turístico en A Coruña, Vigo y Santiago.
+# - Modificaciones de la ordenanza del IIVTNU de Vigo posteriores al BOP de 30/03/2022 (el Concello aprobó
+#   en 2024 un paquete de ordenanzas para 2025; no se ha leído si tocó la plusvalía).
+# - Mínimos por ascendientes y por discapacidad de Galicia (art. 4 bis.3 y 4): el esquema de reglas no
+#   los admite todavía.
+
+# ITP de inmuebles, tipo general (único, para todo el valor): 9 % hasta el 31/12/2023. Los tipos
+# reducidos del art. 14.Dos y siguientes (vivienda habitual, familias numerosas, discapacidad,
+# jóvenes, etc.) no aplican a un inversor particular.
+- id: galicia-itp-inmuebles-2022
+  kind: impuesto_compra_segunda_mano
+  territory: ES-12
+  effective_from: 2022-01-01
+  effective_to: 2024-01-01
+  status: vigente
+  verified: false
+  params: {rate: 0.09}
+  source_url: https://www.boe.es/eli/es-ga/dlg/2011/07/28/1/con/20221230
+  notes: "Decreto legislativo 1/2011 de Galicia, art. 14.Uno.1, redacción de la Ley 18/2021, de 27 de diciembre, de medidas fiscales y administrativas (BOE-A-2022-3415; entrada en vigor el 01/01/2022): tipo del 9 % en la transmisión de bienes inmuebles y constitución y cesión de derechos reales, salvo los de garantía. Tipo único sobre todo el valor, no por tramos."
+
+# ITP de inmuebles, tipo general desde el 01/01/2024: 8 %, único para todo el valor.
+- id: galicia-itp-inmuebles-2024
+  kind: impuesto_compra_segunda_mano
+  territory: ES-12
+  effective_from: 2024-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.08}
+  source_url: https://www.boe.es/eli/es-ga/dlg/2011/07/28/1/con
+  notes: "Decreto legislativo 1/2011 de Galicia, art. 14.Uno.1, redacción del art. 4 de la Ley 10/2023, de 28 de diciembre, de medidas fiscales y administrativas (BOE-A-2024-2777; DOG núm. 246, 29/12/2023; entra en vigor el 01/01/2024): «el tipo de gravamen aplicable a la transmisión de bienes inmuebles, así como en la constitución y cesión de derechos reales que recaigan sobre ellos, excepto los derechos reales de garantía, será del 8 %». Tipo único para todo el valor (no por tramos). El texto consolidado a 27/03/2026 lo mantiene."
+
+# AJD de la escritura de compra de vivienda sujeta a IVA: tipo general de los documentos notariales,
+# 1,5 % sobre todo el valor (único). Sin bandas ni salto de banda. Persona jurídica: el mismo tipo.
+- id: galicia-ajd-compra-vivienda-2013
+  kind: ajd_compra_vivienda
+  territory: ES-12
+  effective_from: 2013-03-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.015}
+    cap_jumps: false
+  source_url: https://www.boe.es/eli/es-ga/dlg/2011/07/28/1/con
+  notes: "Decreto legislativo 1/2011 de Galicia, art. 15.Uno: «en las primeras copias de escrituras o actas notariales sujetas a la modalidad de actos jurídicos documentados, cuota variable de los documentos notariales [...] el tipo de gravamen aplicable será del 1,5 %». No incluye los reducidos de vivienda habitual (1 %, art. 15.Dos), discapacidad (0,5 %, art. 15.Tres) ni familias numerosas (art. 15.Cuatro). Fecha de inicio: la redacción de 1,5 % aparece en la versión consolidada publicada el 28/02/2013 (antes, 1 %); una fuente secundaria la atribuye a la Ley 2/2013, de presupuestos de Galicia, en vigor el 01/03/2013: por verificar en el DOG."
+
+# --- IRPF, tramo autonómico (ADR-0007) -------------------------------------------------------
+# Ley 7/2022, de 27 de diciembre, de medidas fiscales y administrativas (BOE-A-2023-6382; DOG núm. 248,
+# 30/12/2022): disposición final cuarta, «los artículos 1 y 2 producirán efectos desde el 1 de enero de
+# 2022». El texto consolidado a 27/03/2026 mantiene la misma escala, por lo que rige en 2025 y 2026.
+- id: galicia-irpf-escala-general-2022
+  kind: escala_irpf_general_autonomica
+  territory: ES-12
+  effective_from: 2022-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.09}
+      - {from: 12985.35, rate: 0.1165}
+      - {from: 21068.60, rate: 0.149}
+      - {from: 35200, rate: 0.184}
+      - {from: 60000, rate: 0.225}
+  source_url: https://www.boe.es/eli/es-ga/dlg/2011/07/28/1/con
+  notes: "Decreto legislativo 1/2011 de Galicia, art. 4, redacción del art. 1 de la Ley 7/2022 (efectos 01/01/2022): 9 % hasta 12.985,35 €; 11,65 % hasta 21.068,60 €; 14,90 % hasta 35.200 €; 18,40 % hasta 60.000 €; 22,50 % en adelante. Escala anterior (2021): 9,4 % hasta 12.450 €."
+
+# Mínimo del contribuyente autonómico, que sustituye al estatal en el gravamen autonómico.
+- id: galicia-irpf-minimo-contribuyente-2022
+  kind: minimo_contribuyente
+  territory: ES-12
+  effective_from: 2022-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {general: 5789, over_65_extra: 1199, over_75_extra: 1460}
+  source_url: https://www.boe.es/eli/es-ga/dlg/2011/07/28/1/con
+  notes: "Decreto legislativo 1/2011 de Galicia, art. 4 bis.1, añadido por el art. 2 de la Ley 7/2022 (efectos 01/01/2022): 5.789 € con carácter general; +1.199 € si mayor de 65 años; +1.460 € adicionales si mayor de 75."
+
+# Mínimo por descendientes autonómico.
+- id: galicia-irpf-minimo-descendientes-2022
+  kind: minimo_descendientes
+  territory: ES-12
+  effective_from: 2022-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {first: 2503, second: 2816, third: 4172, fourth_and_more: 4694, under_3_extra: 2920}
+  source_url: https://www.boe.es/eli/es-ga/dlg/2011/07/28/1/con
+  notes: "Decreto legislativo 1/2011 de Galicia, art. 4 bis.2, añadido por el art. 2 de la Ley 7/2022 (efectos 01/01/2022): 2.503 €, 2.816 €, 4.172 € y 4.694 € por el primer, segundo, tercer y cuarto y siguientes descendientes; +2.920 € si el descendiente es menor de tres años."
+
+# --- Alquiler ---------------------------------------------------------------------------------
+
+# Galicia no ha declarado zona tensionada a nivel de comunidad: la declaración se hace municipio a
+# municipio, a solicitud del ayuntamiento, por la presidenta del Instituto Gallego de la Vivienda y Suelo
+# (Ley 8/2012, disposición adicional 24.ª). Hay dos municipios declarados (A Coruña y Santiago de
+# Compostela, abajo). Ningún otro municipio gallego figura en las nueve resoluciones trimestrales leídas
+# (1.º de 2024 a 2.º de 2026): BOE-A-2024-5214, BOE-A-2024-20576, BOE-A-2025-1721, BOE-A-2025-8636,
+# BOE-A-2025-15728 (y su corrección BOE-A-2025-20246), BOE-A-2025-21901, BOE-A-2026-2448, BOE-A-2026-9175
+# y BOE-A-2026-16532. Vigo no figura. Falta la del tercer trimestre de 2026. Revisar con cada resolución
+# nueva y actualizar checked_through.
+- id: galicia-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-12
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre. Sin declaración de ámbito autonómico: solo municipios concretos (reglas ES-12-15030 y ES-12-15078)."
+
+# A Coruña: Resolución de 30 de mayo de 2025 de la presidenta del IGVS; relación publicada en la
+# Resolución de 28/07/2025 del Ministerio (BOE núm. 181, 29/07/2025, BOE-A-2025-15728).
+- id: galicia-zona-tensionada-15030
+  kind: zona_tensionada
+  territory: ES-12-15030
+  effective_from: 2025-07-30
+  effective_to: 2028-07-30
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-15728
+  notes: "A Coruña. Resolución de 30/05/2025 de la presidenta del Instituto Gallego de la Vivienda y Suelo (declaración a solicitud del ayuntamiento); efectos desde el día siguiente a la publicación de la resolución del Ministerio en el BOE (29/07/2025) y vigencia de tres años desde ese día siguiente. Gran tenedor particularizado: más de diez inmuebles urbanos de uso residencial o más de 1.500 m² construidos de uso residencial, sin garajes ni trasteros. Aplica la limitación del art. 17.7 de la LAU (contratos sobre inmuebles sin contrato en los últimos cinco años). Corrección de erratas de enlaces: BOE-A-2025-20246."
+
+# Santiago de Compostela: Resolución de 24 de abril de 2026 de la presidenta del IGVS; relación publicada en
+# la Resolución de 24/07/2026 del Ministerio (BOE núm. 184, 29/07/2026, BOE-A-2026-16532).
+- id: galicia-zona-tensionada-15078
+  kind: zona_tensionada
+  territory: ES-12-15078
+  effective_from: 2026-07-30
+  effective_to: 2029-07-30
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Santiago de Compostela. Resolución de 24/04/2026 de la presidenta del Instituto Gallego de la Vivienda y Suelo (declaración a solicitud del ayuntamiento; cdn.mivau.gob.es/portal-web-mivau/vivienda/alquila/20260424_Resolucion_ZMRT_Santiago_Cast.pdf); efectos desde el día siguiente a la publicación de la resolución del Ministerio en el BOE (29/07/2026) y vigencia de tres años desde ese día siguiente. Gran tenedor particularizado: cinco o más inmuebles urbanos de uso residencial en el término municipal. Aplica la limitación del art. 17.7 de la LAU."
+
+# Vivienda de uso turístico en Galicia: Decreto 12/2017, de 26 de enero (DOG 10/02/2017; entra en vigor a
+# los tres meses de su publicación). Texto «Última versión» de Lex.gal (Xunta de Galicia).
+- id: galicia-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-12
+  effective_from: 2017-05-11
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico en Galicia (Decreto 12/2017): cesión de la vivienda completa por estancias de menos de 30 días, de forma reiterada (dos o más veces al año), con declaración responsable previa ante la Axencia Turismo de Galicia"
+    requirements:
+      - code: declaracion-responsable
+        description: "Declaración responsable de inicio de actividad (anexo V) ante el área provincial de la Axencia Turismo de Galicia, con tasa previa; da lugar a la inscripción de oficio en el Registro de Empresas y Actividades Turísticas de Galicia (arts. 5.4, 41.1, 42 y 43)"
+        source_url: https://www.lex.gal/es/normativa/detalle/3031/pdf/
+      - code: vivienda-completa
+        description: "La cesión es de la totalidad de la vivienda, sin cesión por estancias o habitaciones; amueblada y equipada para su uso inmediato (arts. 5.1 y 39.1)"
+        source_url: https://www.lex.gal/es/normativa/detalle/3031/pdf/
+      - code: suelo-residencial-y-limites-municipales
+        description: "Situada en suelo de uso residencial (u otro, si la normativa urbanística lo permite); los concellos pueden limitar el número máximo de viviendas de uso turístico por edificio o sector (art. 5.6)"
+        source_url: https://www.lex.gal/es/normativa/detalle/3031/pdf/
+      - code: estatutos-y-ordenacion-no-prohiben
+        description: "No puede destinarse a esta actividad si lo prohíbe la ordenación de usos del sector o los estatutos de la comunidad inscritos en el Registro de la Propiedad (art. 41.5)"
+        source_url: https://www.lex.gal/es/normativa/detalle/3031/pdf/
+      - code: documentacion-de-la-vivienda
+        description: "Disponer del título que acredite la libre disponibilidad de la vivienda, licencia de primera ocupación o cédula de habitabilidad (o equivalente), y seguro de responsabilidad civil que cubra a los usuarios (art. 41.2.e)"
+        source_url: https://www.lex.gal/es/normativa/detalle/3031/pdf/
+      - code: servicios-minimos
+        description: "Calefacción (salvo uso solo de junio a septiembre), teléfono 24 horas, servicio de asistencia y mantenimiento, y hojas de reclamación de turismo con copia de la declaración responsable visibles (art. 39.2)"
+        source_url: https://www.lex.gal/es/normativa/detalle/3031/pdf/
+  source_url: https://www.lex.gal/es/normativa/detalle/3031/pdf/
+  notes: "Decreto 12/2017, arts. 5, 39, 41 a 43, según el texto «Última versión» de Lex.gal (informativo). Fecha de inicio calculada: tres meses desde el DOG de 10/02/2017 (fuente secundaria: vLex da 11/05/2017); por verificar en el DOG. No se ha comprobado si el decreto tuvo modificaciones posteriores."
+
+# --- Plusvalía municipal (tipo único) ----------------------------------------------------------
+
+# A Coruña: Ordenanza fiscal nº 53, art. 7.1: 25 %. Aprobada por el Pleno el 28/12/2023, en vigor el 01/01/2024.
+- id: coruna-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-12-15030
+  effective_from: 2024-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.25}
+  source_url: https://www.coruna.gal/descarga/1453911757238/libro-ordenanzas-2026-v2.pdf
+  notes: "Ordenanza fiscal nº 53 del Concello da Coruña (libro de ordenanzas fiscales 2026), art. 7.1: «A cota do imposto será a que resulte de aplicar á base impoñible o tipo do 25%». Disposición final: aprobada por el Pleno el 28/12/2023, entra en vigor el 01/01/2024. Bonificación del art. 7.2 (transmisiones mortis causa de vivienda habitual) no incluida."
+
+# Vigo: Ordenanza nº 6, art. 8.1: 30 %. Última publicación en el BOP de 30/03/2022.
+- id: vigo-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-12-36057
+  effective_from: 2022-03-31
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.30}
+  source_url: http://cdixital.vigo.org/expedientes/tramites/getarchivo.jsp?id=26&tipo=ordenanzas&lang=ga
+  notes: "Ordenanza nº 6 del Concello de Vigo (texto enlazado desde la página de plusvalía de hoxe.vigo.org), art. 8.1: «o tipo de gravame do 30%». Entra en vigor al día siguiente de su publicación en el BOP; la última publicación listada es la de 30/03/2022, de donde sale la fecha de inicio (el 30 % puede venir de antes). No se ha comprobado si el paquete de ordenanzas para 2025 o 2026 la modificó."

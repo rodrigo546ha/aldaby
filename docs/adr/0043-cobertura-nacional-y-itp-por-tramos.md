@@ -31,8 +31,9 @@ Hay dos partes:
    - alquiler turístico;
    - plusvalía de las ciudades principales.
 
-   Todo va con `verified: false` y la lista de comprobación en `docs/normativa/`. Las demás
-   comunidades vienen después, por el mismo orden. El País Vasco y Navarra, con su IRPF foral,
+   Todo va con `verified: false` y la lista de comprobación en `docs/normativa/`. La tanda 7 trae
+   Castilla y León, Castilla-La Mancha, Murcia, Galicia y Canarias. Las demás comunidades vienen
+   después, por el mismo orden. El País Vasco y Navarra, con su IRPF foral,
    necesitan antes cambios en el motor.
 3. **IBI de todos los municipios de más de 1.000 habitantes** de las 17 comunidades de régimen común,
    desde los PDF del Ministerio de Hacienda (`hacienda_ibi`, ADR-0022). El nombre de la carpeta y

@@ -1,0 +1,194 @@
+# Comunidad de Castilla y León (ES-07) y municipios de Valladolid (ES-07-47186) y Burgos (ES-07-09059).
+# Ver README.md. SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+#
+# Tributos cedidos: Decreto Legislativo 1/2013, de 12 de septiembre, texto refundido de las disposiciones
+# legales de la Comunidad de Castilla y León en materia de tributos propios y cedidos (BOCL núm. 180,
+# 18/09/2013; BOE-BOCL-h-2013-90254). Texto consolidado del BOE leído el 2026-11-03: «Última actualización
+# publicada el 14/05/2024» (Ley 4/2024, de 9 de mayo, que solo toca deducciones). La web de tributos de la Junta
+# (tributos.jcyl.es, IRPF) no lista ninguna norma autonómica de 2025 ni de 2026 sobre escala o mínimos.
+# Códigos INE comprobados con el diccionario del INE (2026): 07 / 47 186 Valladolid, 07 / 09 059 Burgos.
+#
+# PENDIENTE (sin fuente oficial leída, no se escribe):
+# - Cualquier ley autonómica posterior al 14/05/2024 que el BOE aún no consolide (comprobar en el BOCYL).
+# - Régimen urbanístico municipal del alquiler turístico de Valladolid y Burgos.
+# - Texto consolidado del Decreto 3/2017 con la Orden CYT/1318/2019 (derogación del art. 3.2): leído solo el
+#   texto original del BOCYL; la derogación consta en la sede electrónica de la Junta.
+# - Fecha de inicio exacta del 21 % de Burgos (la ordenanza leída es la del BOP de 08/01/2026) y del 21,76 % de
+#   Valladolid (texto de 2022, 2025 y 2026 idéntico, vigencia del ejercicio por verificar en el BOP).
+
+# --- ITP de inmuebles: tipo general con tramo incrementado (PROGRESIVO, no sobre todo el valor) ----------
+# Art. 24.1.a): 8 % en la transmisión de inmuebles. Art. 25.1: si la base supera 250.000 €, se aplica el
+# tipo general a esos 250.000 € y el 10 % solo a la parte que exceda: escala progresiva (sin whole_value).
+# No aplican: 4 % vivienda habitual de familia numerosa, discapacidad >= 65 %, menores de 36 años y vivienda
+# protegida (art. 25.3); 0,01 % vivienda habitual de menores de 36 años en municipios pequeños (art. 25.4);
+# 4 % y 2 % para sede de empresas (art. 25.5 y 6); 4 % explotaciones agrarias (art. 25.7).
+# Los arts. 24 y 25.1 mantienen su texto desde el original (en vigor el 19/09/2013).
+- id: castilla-y-leon-itp-inmuebles-2013
+  kind: impuesto_compra_segunda_mano
+  territory: ES-07
+  effective_from: 2013-09-19
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.08}
+      - {from: 250000, rate: 0.10}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCL-h-2013-90254#a25
+  notes: "Decreto Legislativo 1/2013 de Castilla y León, art. 24.1.a): tipo general del 8 % en la transmisión de inmuebles; art. 25.1: «se aplicará el tipo general a esta cantidad [250.000 €] y un tipo incrementado del 10 por 100 a la parte de la base que exceda esta cantidad». Es progresivo: cada tipo solo sobre su tramo (el 10 % no se aplica a todo el valor). Texto original en vigor el 19/09/2013, sin cambios en estos apartados."
+
+# --- AJD de la escritura de compra de vivienda sujeta a IVA ---------------------------------------------
+# Art. 24.2: tipo general del 1,5 % en primeras copias de escrituras. El 2 % del art. 26.1 solo es para escrituras
+# de transmisiones en que se renunció a la exención del IVA (art. 20.Dos de la Ley 37/1992), no para vivienda nueva.
+# No incluye los reducidos del art. 26.2 (0,5 % vivienda habitual de familia numerosa, discapacidad,
+# vivienda protegida y menores de 36 años) ni el 0,01 % del art. 26.3. Sin tipo propio para persona jurídica.
+- id: castilla-y-leon-ajd-compra-vivienda-2013
+  kind: ajd_compra_vivienda
+  territory: ES-07
+  effective_from: 2013-09-19
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.015}
+    cap_jumps: false
+  source_url: https://www.boe.es/buscar/act.php?id=BOCL-h-2013-90254#a24
+  notes: "Decreto Legislativo 1/2013 de Castilla y León, art. 24.2: «se aplicará el tipo general del 1,5 por 100» a las primeras copias de escrituras y actas notariales sujetas como documentos notariales a AJD, único para todo el valor (sin bandas ni salto de banda). Persona jurídica: el mismo tipo."
+
+# --- IRPF, tramo autonómico (ADR-0007) -------------------------------------------------------------------
+# Escala del art. 1, redacción de la Ley 2/2022, de 1 de diciembre, de rebajas tributarias (BOCL 12/12/2022),
+# con efectos desde el 1 de enero de 2022 (rebaja de medio punto en el primer tramo). El texto consolidado a
+# 14/05/2024 la mantiene, por lo que rige también en 2025 y 2026.
+- id: castilla-y-leon-irpf-escala-general-2022
+  kind: escala_irpf_general_autonomica
+  territory: ES-07
+  effective_from: 2022-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.09}
+      - {from: 12450, rate: 0.12}
+      - {from: 20200, rate: 0.14}
+      - {from: 35200, rate: 0.185}
+      - {from: 53407.20, rate: 0.215}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCL-h-2013-90254#a1
+  notes: "Decreto Legislativo 1/2013 de Castilla y León, art. 1, redacción de la Ley 2/2022 (BOE-A-2022-21578), efectos 01/01/2022: 9 % hasta 12.450 €; 12 % hasta 20.200 €; 14 % hasta 35.200 €; 18,5 % hasta 53.407,20 €; 21,5 % en adelante."
+
+# Mínimo del contribuyente autonómico (art. 1 bis.1, añadido por la Ley 10/2014, en vigor el 01/01/2015).
+# Castilla y León tiene mínimos propios completos, pero los importes COINCIDEN con los estatales de la
+# Ley 35/2006 (5.550 €, +1.150 €, +1.400 €): el resultado no difiere del estatal.
+- id: castilla-y-leon-irpf-minimo-contribuyente-2015
+  kind: minimo_contribuyente
+  territory: ES-07
+  effective_from: 2015-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {general: 5550, over_65_extra: 1150, over_75_extra: 1400}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCL-h-2013-90254#a1bis
+  notes: "Decreto Legislativo 1/2013 de Castilla y León, art. 1 bis.1 (Ley 10/2014, BOE-A-2015-1117): 5.550 € con carácter general; +1.150 € si mayor de 65 años; +1.400 € adicionales si mayor de 75. Idénticos a los importes estatales."
+
+# Mínimo por descendientes autonómico (art. 1 bis.2), mismos importes que el estatal.
+- id: castilla-y-leon-irpf-minimo-descendientes-2015
+  kind: minimo_descendientes
+  territory: ES-07
+  effective_from: 2015-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {first: 2400, second: 2700, third: 4000, fourth_and_more: 4500, under_3_extra: 2800}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCL-h-2013-90254#a1bis
+  notes: "Decreto Legislativo 1/2013 de Castilla y León, art. 1 bis.2 (Ley 10/2014): 2.400 €, 2.700 €, 4.000 € y 4.500 € por el primer, segundo, tercer y cuarto y siguientes descendientes; +2.800 € si el descendiente es menor de tres años. Idénticos a los importes estatales."
+
+# --- Alquiler ---------------------------------------------------------------------------------------------
+
+# Ninguna zona tensionada en Castilla y León: ni «Castilla y León», ni Valladolid, ni Burgos, ni otra
+# localidad de la comunidad figuran en las nueve resoluciones trimestrales del Ministerio leídas (texto
+# completo, 2026-11-03): BOE-A-2024-5214, BOE-A-2024-20576, BOE-A-2025-1721, BOE-A-2025-8636,
+# BOE-A-2025-15728, BOE-A-2025-21901, BOE-A-2026-2448, BOE-A-2026-9175 y BOE-A-2026-16532 (la última, de
+# 24/07/2026, publicada el 29/07/2026, segundo trimestre de 2026). No se ha leído la del segundo trimestre de
+# 2024 ni hay resolución del tercer trimestre de 2026 publicada que yo haya localizado. Revisar con cada
+# resolución nueva y actualizar checked_through.
+- id: castilla-y-leon-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-07
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre."
+
+# Vivienda de uso turístico en Castilla y León: Decreto 3/2017, de 16 de febrero (BOCYL núm. 33, 17/02/2017;
+# en vigor el día siguiente, 18/02/2017), al amparo de la Ley 14/2010, de Turismo. La Orden CYT/1318/2019, de
+# 18 de diciembre (BOCYL 24/12/2019), derogó el art. 3.2 (prohibición de cesión por estancias). Requisitos
+# tomados del texto original del decreto y del procedimiento de la sede electrónica (actualizado 26/05/2026).
+- id: castilla-y-leon-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-07
+  effective_from: 2017-02-18
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico en Castilla y León (Decreto 3/2017): declaración responsable antes de iniciar la actividad e inscripción de oficio en el Registro de Turismo de Castilla y León"
+    requirements:
+      - code: declaracion-responsable
+        description: "Declaración responsable por cada vivienda, ante la Sección de Turismo de la provincia, con anterioridad al inicio de la actividad; da lugar a la inscripción de oficio en el Registro de Turismo (art. 15)"
+        source_url: https://bocyl.jcyl.es/eli/es-cl/d/2017/02/16/3/dof/spa/pdf
+      - code: licencia-primera-ocupacion
+        description: "Licencia de primera ocupación, cédula de habitabilidad o autorización municipal correspondiente, y cumplir las condiciones técnicas y de calidad (art. 7.1)"
+        source_url: https://bocyl.jcyl.es/eli/es-cl/d/2017/02/16/3/dof/spa/pdf
+      - code: vivienda-completa
+        description: "Se cede la vivienda entera como una única unidad de alojamiento, amueblada y equipada para uso inmediato, a cambio de contraprestación (art. 3)"
+        source_url: https://bocyl.jcyl.es/eli/es-cl/d/2017/02/16/3/dof/spa/pdf
+      - code: dependencias-minimas
+        description: "Dormitorio, salón-comedor, cocina y cuarto de baño o aseo (salvo estudios) y los requisitos de los arts. 8 a 12, incluidos servicios comunes como agua, electricidad, calefacción y botiquín (arts. 7.2 y 12)"
+        source_url: https://bocyl.jcyl.es/eli/es-cl/d/2017/02/16/3/dof/spa/pdf
+      - code: placa-identificativa
+        description: "Placa identificativa según el modelo del anexo, en la entrada de la vivienda (art. 6)"
+        source_url: https://bocyl.jcyl.es/eli/es-cl/d/2017/02/16/3/dof/spa/pdf
+      - code: numero-registro-en-publicidad
+        description: "Indicar el número de inscripción en el Registro de Turismo en la publicidad y la comercialización (art. 35.1)"
+        source_url: https://bocyl.jcyl.es/eli/es-cl/d/2017/02/16/3/dof/spa/pdf
+      - code: hojas-de-reclamacion
+        description: "Disponer de hojas de reclamación a disposición de los turistas (art. 34)"
+        source_url: https://bocyl.jcyl.es/eli/es-cl/d/2017/02/16/3/dof/spa/pdf
+      - code: urbanismo-y-otras-normativas
+        description: "El inmueble debe cumplir la normativa de urbanismo, edificación, sanidad, seguridad, incendios y accesibilidad (disposición adicional)"
+        source_url: https://bocyl.jcyl.es/eli/es-cl/d/2017/02/16/3/dof/spa/pdf
+  source_url: https://bocyl.jcyl.es/eli/es-cl/d/2017/02/16/3/dof/spa/pdf
+  notes: "Decreto 3/2017 de Castilla y León, texto original (BOCYL 17/02/2017), sin las modificaciones posteriores salvo la derogación del art. 3.2 por la Orden CYT/1318/2019 (según la sede electrónica de la Junta). Habitualidad: más de un mes al año (art. 4.c). Pendiente comprobar otras modificaciones y la entrada en vigor de la Orden."
+
+# --- Plusvalía municipal (tipo único) ------------------------------------------------------------------------
+
+# Valladolid: Ordenanza Fiscal reguladora del IIVTNU, art. 16 (texto íntegro de las Ordenanzas Fiscales 2026:
+# aprobadas el 29/09/2025, BOP de Valladolid núm. 238, 15/12/2025). El mismo 21,76 % figura en los textos
+# de 2022 y 2025.
+- id: valladolid-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-07-47186
+  effective_from: 2022-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.2176}
+  source_url: https://www.valladolid.es/es/ayuntamiento/organizacion-administrativa/areas/area-hacienda-personal-modernizacion-administrativa/utilidad/ordenanzas-fiscales/ordenanzas-fiscales-2026
+  notes: "Ordenanza Fiscal del IIVTNU del Ayuntamiento de Valladolid, art. 16: «La cuota de este impuesto será la resultante de aplicar a la base imponible el tipo del 21,76 %.» Leído en el texto íntegro 2026 (BOP núm. 238, 15/12/2025) y, con la misma cifra, en los de 2022 y 2025. Fecha de inicio = ejercicio 2022 (primer texto leído con este tipo); vigencia exacta por verificar."
+
+# Burgos: Ordenanza Fiscal nº 503, art. 8.1, redacción tras la modificación aprobada por el Pleno el 05/09/2025
+# y publicada en el BOP de Burgos núm. 4, de 08/01/2026 (entra en vigor al día siguiente de su publicación).
+- id: burgos-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-07-09059
+  effective_from: 2026-01-09
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.21}
+  source_url: https://www.aytoburgos.es/documents/38509/0/24.-+publicaci%C3%B3n+BOPBUR+aprobacion+definitiva+Ordenanza+Fiscal+n%C2%BA+503+IIVTNU.pdf/4cc582ec-d15b-0840-462e-d7e53d7a4e92
+  notes: "Ordenanza Fiscal nº 503 del Ayuntamiento de Burgos, art. 8.1: «El tipo de gravamen del impuesto sobre el incremento de valor de los terrenos de naturaleza urbana será del 21%.» Texto del BOP de Burgos núm. 4, 08/01/2026 (modificación del Pleno de 05/09/2025; disposición final sexta: en vigor al día siguiente de su publicación). El 21 % puede venir de versiones anteriores (por verificar)."
