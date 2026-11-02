@@ -98,7 +98,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
                           con preguntas fijas (interview.py, ADR-0020) y clientes (clients.py, ADR-0029)
     db/offers.py          ofertas, versiones de lo recibido e inmuebles (deduplicación)
     offers/               canales de oferta (interfaz Channel), ingesta, ubicación y deduplicación
-    offers/channels/      canales: BOE sección V (anuncios) y sección IV (avisos de subastas judiciales, ADR-0017)
+    offers/channels/      canales: BOE sección V (anuncios) y sección IV (avisos de subastas judiciales, ADR-0017);
+                          ventas directas del Patrimonio del Estado (patrimonio.py, ADR-0037)
     offers/corrections.py correcciones del BOE: cita, página y anuncio que corrigen (F4.4)
     offers/link.py        descarga única del enlace pegado: robots.txt, bloqueos y veto a la red interna (ADR-0015)
     offers/pasted.py      enlace o texto pegado: oferta privada, extracción en la cola y confirmación
@@ -130,6 +131,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     ingestion/ine_sections.py  cartografía de secciones del INE (API OGC Features, CC BY 4.0)
     ingestion/ine_adrh.py Atlas de renta del INE por sección; el año t va sobre el seccionado t+1
     ingestion/serpavi.py  referencias de alquiler del SERPAVI por sección, distrito y municipio (ADR-0018)
+    ingestion/public_pdf.py  texto de PDF de fuentes públicas (pliegos, hojas de lote), sin OCR
     ingestion/xlsx.py     lector de .xlsx en streaming con la biblioteca estándar
     ingestion/valor_tasado.py  valor tasado de la vivienda libre por municipio (Ministerio, vía Comunidad de Madrid)
     ingestion/ine_ipv.py  índice de precios de vivienda del INE por comunidad, trimestral

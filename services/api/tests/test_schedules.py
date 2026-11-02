@@ -71,7 +71,7 @@ def test_aplicar_el_fichero(migrated_database: str):
         assert enabled == len(loaded.schedules)
         # Sin el LLM otra vez: la extracción se desactiva en vez de fallar cada día.
         again = schedules.sync(conn, loaded, kinds, {}, now)
-        assert again.disabled == ["oferta-extraccion-boe"]
+        assert sorted(again.disabled) == ["oferta-extraccion-boe", "oferta-extraccion-patrimonio"]
 
 
 def test_un_tipo_desconocido_no_se_programa():

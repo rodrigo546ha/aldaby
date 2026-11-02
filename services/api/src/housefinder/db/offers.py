@@ -208,6 +208,19 @@ class PendingAnnouncement:
     source_id: str | None
 
 
+def rss_dates(conn: psycopg.Connection, channel: str) -> dict[str, str]:
+    """Fecha de publicación del RSS de cada anuncio guardado de un canal (ADR-0037): si no cambia,
+    no se vuelve a descargar."""
+    rows = conn.execute(
+        """
+        SELECT external_id, raw->'rss'->>'pubDate' FROM offers
+        WHERE channel = %s AND kind = 'anuncio' AND raw->'rss'->>'pubDate' IS NOT NULL
+        """,
+        (channel,),
+    ).fetchall()
+    return {r[0]: r[1] for r in rows}
+
+
 def pending_announcements(
     conn: psycopg.Connection, channel: str, limit: int, only: list[str] | None = None
 ) -> list[PendingAnnouncement]:

@@ -27,6 +27,20 @@ schedules:
     payload: {limit: 20}
     requires_env: [LLM_PROVIDER, LLM_BASE_URL, LLM_MODEL_ID]
 
+  # Ventas directas del Patrimonio del Estado (ADR-0037): las subastas entran por el BOE.
+  - name: oferta-patrimonio-ventas-directas
+    kind: offers_patrimonio
+    at: "09:20"
+    every_hours: 24
+    payload: {}
+
+  - name: oferta-extraccion-patrimonio
+    kind: extract_offers
+    at: "10:30"
+    every_hours: 24
+    payload: {limit: 10, channel: patrimonio_estado}
+    requires_env: [LLM_PROVIDER, LLM_BASE_URL, LLM_MODEL_ID]
+
   - name: vigilancia-boe
     kind: watch_boe
     at: "09:30"

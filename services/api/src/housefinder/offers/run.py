@@ -11,13 +11,13 @@ import httpx
 
 from housefinder.agent.llm import LLMClient
 from housefinder.db.connection import connect
-from housefinder.db.offers import link_corrections
+from housefinder.db.offers import link_corrections, rss_dates
 from housefinder.db.review_tasks import mark_issue_read, read_issues
 from housefinder.db.sections import SourceRecord, upsert_source
 from housefinder.geo.cartociudad import Geocoded, geocode, municipality_codes
 from housefinder.geo.catastro import Parcel, find_parcel, find_rustic_parcel
 from housefinder.geo.foral import find_foral_parcel
-from housefinder.offers.channels import boe_subastas, boe_v
+from housefinder.offers.channels import boe_subastas, boe_v, patrimonio
 from housefinder.offers.extract import extract_pending
 from housefinder.offers.ingest import IngestReport, ingest
 from housefinder.offers.locate import RusticFinder, offer_locator
@@ -96,6 +96,22 @@ def run_boe_auctions(conninfo: str, client: httpx.Client, today: date,
     return {**total.as_dict(), "unparsed": unparsed, "court_seats_verified": seats.verified}
 
 
+def run_patrimonio(conninfo: str, client: httpx.Client,
+                   pdf_reader: Callable[[bytes], list[str]] = patrimonio.pdf_pages
+                   ) -> dict[str, Any]:
+    """Ventas directas del Patrimonio del Estado nuevas o cambiadas (ADR-0037). Se ubican al
+    extraer sus lotes, como los anuncios del BOE."""
+    with connect(conninfo) as conn:
+        upsert_source(conn, SourceRecord(patrimonio.SOURCE_ID, patrimonio.SOURCE_NAME,
+                                         patrimonio.LICENSE_URL, patrimonio.LICENSE,
+                                         datetime.now(UTC)))
+        conn.commit()
+        channel = patrimonio.PatrimonioEstado(rss_dates(conn, patrimonio.NAME), pdf_reader)
+        report = ingest(conn, channel, channel.fetch(client), lambda offer: None)
+    return {**report.as_dict(), "unchanged": channel.unchanged, "disallowed": channel.disallowed,
+            "unreadable": channel.unreadable}
+
+
 def extract_boe_v(
     conninfo: str,
     client: httpx.Client,
@@ -108,8 +124,10 @@ def extract_boe_v(
     municipalities: Callable[[str], frozenset[str]] | None = None,
     foral: Callable[[str, str], Parcel] | None = None,
     recheck: bool = False,
+    channel: str = boe_v.NAME,
 ) -> dict[str, Any]:
-    """Extrae los lotes de hasta `limit` anuncios pendientes del BOE (ADR-0013); con `only`,
+    """Extrae los lotes de hasta `limit` anuncios pendientes del canal, el BOE si no se dice otro
+    (ADR-0013; ventas directas del Patrimonio, ADR-0037); con `only`,
     solo esos (BOE-B-…). Antes, vuelve a ubicar los lotes que esperaban otro intento (ADR-0031);
     `unlocated` lista los que se quedan sin ubicar, con el motivo. Con `recheck`, vuelve a comprobar
     sin el LLM lo que el modelo propuso para los anuncios ya extraídos (ADR-0033)."""
@@ -121,7 +139,7 @@ def extract_boe_v(
                                    lambda name: municipality_codes(client, name)),
                                foral=foral or (
                                    lambda province, key: find_foral_parcel(client, province, key)))
-        return extract_pending(conn, llm, boe_v.NAME, locate, limit, only, recheck).as_dict()
+        return extract_pending(conn, llm, channel, locate, limit, only, recheck).as_dict()
 
 
 def extract_pasted(conninfo: str, llm: LLMClient, offer_id: UUID) -> dict[str, Any]:
