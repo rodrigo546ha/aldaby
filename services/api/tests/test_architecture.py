@@ -21,11 +21,13 @@ ALLOWED_INTERNAL = {
     "ingestion": {"core", "db", "ingestion"},
     "geo": {"core", "geo"},
     "territory": {"core", "db", "geo", "ingestion", "territory"},
-    "jobs": {"agent", "core", "db", "ingestion", "jobs", "offers", "watch"},
+    "jobs": {"agent", "core", "crypto", "db", "feeds", "ingestion", "jobs", "offers", "watch"},
     "watch": {"core", "db", "ingestion", "watch"},
     "crypto": {"core", "crypto"},
     "profiles": {"agent", "core", "crypto", "db", "profiles"},  # extracción de la entrevista
     "offers": {"agent", "core", "db", "geo", "ingestion", "offers", "territory"},
+    # Feeds de agencias (ADR-0038): la URL va cifrada; la lectura usa el canal y la ubicación
+    "feeds": {"core", "crypto", "db", "feeds", "geo", "offers"},
     "valuation": {"core", "db", "engines", "params", "valuation"},
     "agent": {"agent", "core"},
     "advisor": {"advisor", "agent", "core", "crypto", "db", "params", "plans", "profiles",
@@ -57,6 +59,7 @@ DB_DRIVERS = {"psycopg", "psycopg_pool"}
 # La ingesta lee además PDF y Excel antiguos de fuentes públicas (ADR-0022).
 ALLOWED_EXTERNAL = {"ingestion": {"httpx", "pypdf", "xlrd"}, "geo": {"httpx"}, "jobs": {"httpx"},
                     "watch": {"httpx"}, "offers": {"httpx"}, "agent": {"httpx"},
+                    "feeds": {"httpx"},
                     # Solo documents/ lee PDF y hace OCR (ADR-0021)
                     "documents": {"pypdf", "pypdfium2", "pytesseract", "PIL"},
                     # Solo reports/ genera PDF (ADR-0026)

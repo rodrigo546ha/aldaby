@@ -41,6 +41,13 @@ schedules:
     payload: {limit: 10, channel: patrimonio_estado}
     requires_env: [LLM_PROVIDER, LLM_BASE_URL, LLM_MODEL_ID]
 
+  # Feeds de agencias con su consentimiento (ADR-0038). Los CRM los generan de madrugada.
+  - name: oferta-feeds-de-agencias
+    kind: offers_agency_feeds
+    at: "07:00"
+    every_hours: 24
+    payload: {}
+
   - name: vigilancia-boe
     kind: watch_boe
     at: "09:30"

@@ -164,7 +164,8 @@ def full_plan(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserP
         pending_delta=cash_change, auction=scored.auction, provisional=provisional))
     advice = scored.advice
     chosen = advice.advice.chosen() if advice else None
-    steps = roadmap(candidate.kind, plan.loan.value > 0,
+    # Un anuncio de un feed de agencia (ADR-0038) es una venta entre particulares, como un enlace.
+    steps = roadmap("lote" if candidate.kind == "lote" else "enlace", plan.loan.value > 0,
                     chosen.option.rental_type if chosen else "habitual")
     comparison = plan.comparison
     result = FullPlan(

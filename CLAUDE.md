@@ -100,6 +100,9 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     offers/               canales de oferta (interfaz Channel), ingesta, ubicación y deduplicación
     offers/channels/      canales: BOE sección V (anuncios) y sección IV (avisos de subastas judiciales, ADR-0017);
                           ventas directas del Patrimonio del Estado (patrimonio.py, ADR-0037)
+                          y feeds XML de agencias en formato Kyero v3 (agency_feed.py, ADR-0038)
+    feeds/                feeds de agencias: alta con consentimiento, URL cifrada y lectura diaria (ADR-0038)
+    db/agency_feeds.py    feeds de agencias (solo la URL cifrada)
     offers/corrections.py correcciones del BOE: cita, página y anuncio que corrigen (F4.4)
     offers/link.py        descarga única del enlace pegado: robots.txt, bloqueos y veto a la red interna (ADR-0015)
     offers/pasted.py      enlace o texto pegado: oferta privada, extracción en la cola y confirmación
@@ -179,6 +182,7 @@ make schedules # aplica data/jobs/programaciones.yaml (trabajos diarios; el Make
 make worker-install  # worker siempre en marcha en este Mac (launchd); logs: make worker-logs
                  # clave maestra local para cifrar perfiles: `python -m housefinder.crypto nueva-clave`
                  # tareas de revisión: `python -m housefinder.watch tareas`
+                 # feeds de agencias: `python -m housefinder.feeds alta --organizacion … --agencia …`
 make test      # pytest de la API (los tests `db` se saltan si la base no está arrancada)
 make lint      # ruff
 make rules-check  # valida data/rules (catálogo de tipos, vigencias, revisor)

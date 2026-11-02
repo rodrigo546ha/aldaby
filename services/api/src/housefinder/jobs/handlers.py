@@ -8,6 +8,7 @@ from uuid import UUID
 
 import httpx
 
+from housefinder.feeds.run import run_feeds
 from housefinder.ingestion import ine_adrh, ine_ipc_alquiler, ine_ipv, ine_sections
 from housefinder.jobs.worker import Handler
 from housefinder.offers.channels import boe_v
@@ -63,6 +64,12 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
             return run_patrimonio(conninfo, client)
 
+    def offers_agency_feeds(payload: dict[str, Any]) -> dict[str, Any]:
+        from housefinder.crypto.envelope import provider_from_env
+
+        with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
+            return run_feeds(conninfo, client, provider_from_env())
+
     def extract_link(payload: dict[str, Any]) -> dict[str, Any]:
         from housefinder.agent.llm import llm_from_env
 
@@ -71,6 +78,6 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
     return {"ine_sections": sections, "ine_adrh": adrh, "watch_boe": boe, "watch_bocm": bocm,
             "offers_boe_v": offers_boe_v, "extract_offers": extract_offers,
             "extract_link": extract_link, "offers_boe_auctions": offers_boe_auctions,
-            "offers_patrimonio": offers_patrimonio,
+            "offers_patrimonio": offers_patrimonio, "offers_agency_feeds": offers_agency_feeds,
             "ine_ipv": price_index,
             "ine_ipc_alquiler": rent_index}

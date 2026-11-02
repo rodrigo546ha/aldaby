@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Feed inventado en formato Kyero v3 para los tests (ADR-0038): ni la agencia ni los datos son
+     reales. Los contactos y las fotos están para comprobar que no se guardan. -->
+<root>
+  <kyero><feed_version>3</feed_version></kyero>
+  <property>
+    <id>P-001</id>
+    <date>2026-10-30 10:15:00</date>
+    <ref>INV-001</ref>
+    <price>189000</price>
+    <currency>EUR</currency>
+    <price_freq>sale</price_freq>
+    <type>Piso</type>
+    <town>Getafe</town>
+    <province>Madrid</province>
+    <location><latitude>40.3057</latitude><longitude>-3.7329</longitude></location>
+    <beds>3</beds>
+    <baths>1</baths>
+    <pool>0</pool>
+    <surface_area><built>85</built><plot>0</plot></surface_area>
+    <catastral>1234567 VK3613S0001AB</catastral>
+    <url><es>https://agencia-inventada.example/es/p-001</es><en>https://agencia-inventada.example/en/p-001</en></url>
+    <desc><en>Bright flat</en><es>Piso luminoso de tres dormitorios</es></desc>
+    <features><feature>ascensor</feature><feature>terraza</feature></features>
+    <images>
+      <image id="1"><url>https://agencia-inventada.example/fotos/1.jpg</url></image>
+      <image id="2"><url>https://agencia-inventada.example/fotos/2.jpg</url></image>
+      <image id="3"><url>https://agencia-inventada.example/fotos/3.jpg</url></image>
+    </images>
+    <email>comercial@agencia-inventada.example</email>
+    <contact_number>0034600000000</contact_number>
+    <whatsapp_number>0034600000001</whatsapp_number>
+  </property>
+  <property>
+    <id>P-002</id>
+    <date>2026-10-30 10:15:00</date>
+    <ref>INV-002</ref>
+    <price>950</price>
+    <price_freq>month</price_freq>
+    <type>Apartment</type>
+    <town>Madrid</town>
+    <province>Madrid</province>
+  </property>
+  <property>
+    <id>P-003</id>
+    <date>2026-10-29 09:00:00</date>
+    <ref>INV-003</ref>
+    <price>120000</price>
+    <price_freq>sale</price_freq>
+    <type>Local comercial</type>
+    <town>Madrid</town>
+    <province>Madrid</province>
+    <surface_area><built>60</built></surface_area>
+    <catastral>7654321VK4775B0001XY</catastral>
+    <desc><es>Local a pie de calle</es></desc>
+  </property>
+  <property>
+    <id>P-004</id>
+    <date>2026-10-29 09:00:00</date>
+    <ref>INV-004</ref>
+    <price>400000</price>
+    <currency>GBP</currency>
+    <price_freq>sale</price_freq>
+    <type>Villa</type>
+    <town>Marbella</town>
+    <province>Malaga</province>
+  </property>
+  <property>
+    <id>P-005</id>
+    <date>2026-10-28 18:30:00</date>
+    <ref>INV-005</ref>
+    <price>215000</price>
+    <price_freq>sale</price_freq>
+    <type>Ático</type>
+    <town>Valencia</town>
+    <province>Valencia</province>
+    <surface_area><built>70</built></surface_area>
+    <desc><es>Ático con terraza</es></desc>
+  </property>
+  <property>
+    <id>P-006</id>
+    <date>2026-10-28 18:30:00</date>
+    <ref>INV-006</ref>
+    <price>50000</price>
+    <price_freq>sale</price_freq>
+    <part_ownership>1</part_ownership>
+    <type>Apartment</type>
+    <town>Alicante</town>
+    <province>Alicante</province>
+  </property>
+  <property>
+    <id>P-007</id>
+    <date>2026-10-28 18:30:00</date>
+    <ref>INV-007</ref>
+    <price>300000</price>
+    <price_freq>sale</price_freq>
+    <type>House</type>
+    <town>Perpignan</town>
+    <province>Pyrénées-Orientales</province>
+    <country>France</country>
+  </property>
+</root>

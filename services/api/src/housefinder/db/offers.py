@@ -298,6 +298,63 @@ def retire_lots(conn: psycopg.Connection, announcement_id: UUID, kept: list[str]
     return len(rows)
 
 
+def stored_listing(conn: psycopg.Connection, channel: str,
+                   external_id: str) -> tuple[str | None, str | None, str | None] | None:
+    """Referencia catastral y coordenada de lo último recibido de un anuncio de feed (ADR-0038),
+    para saber si hay que volver a ubicarlo."""
+    row = conn.execute(
+        "SELECT cadastral_ref, raw->>'latitude', raw->>'longitude' FROM offers "
+        "WHERE channel = %s AND external_id = %s",
+        (channel, external_id),
+    ).fetchone()
+    return (row[0], row[1], row[2]) if row else None
+
+
+def refresh_listing(conn: psycopg.Connection, offer_id: UUID, listing: OfferRow,
+                    relocate: bool) -> None:
+    """Pone al día un anuncio de feed que ya estaba (ADR-0038): precio, superficie, referencia,
+    alcance y estado. Si estaba retirado vuelve; si se movió, se desliga para volver a ubicarlo."""
+    conn.execute(
+        """
+        UPDATE offers SET
+            asking_price = %(price)s, built_area_m2 = %(area)s, cadastral_ref = %(ref)s,
+            published_on = %(published)s, extracted = %(extracted)s, org_id = %(org)s,
+            extraction_status = %(status)s,
+            property_id = CASE WHEN %(relocate)s OR extraction_status = 'retirada' THEN NULL
+                               ELSE property_id END,
+            location_source = CASE WHEN %(relocate)s OR extraction_status = 'retirada' THEN NULL
+                                   ELSE location_source END,
+            location_retry = CASE WHEN %(relocate)s OR extraction_status = 'retirada' THEN false
+                                  ELSE location_retry END,
+            location_issue = CASE WHEN %(relocate)s OR extraction_status = 'retirada' THEN NULL
+                                  ELSE location_issue END
+        WHERE id = %(id)s
+        """,
+        {"price": listing.asking_price, "area": listing.built_area_m2,
+         "ref": listing.cadastral_ref, "published": listing.published_on,
+         "extracted": Jsonb(listing.extracted) if listing.extracted is not None else None,
+         "org": listing.org_id, "status": listing.extraction_status, "relocate": relocate,
+         "id": offer_id},
+    )
+
+
+def retire_missing(conn: psycopg.Connection, channel: str, source_id: str,
+                   kept: list[str]) -> int:
+    """Retira los anuncios de un feed que ya no vienen en él: el feed es una foto completa."""
+    rows = conn.execute(
+        """
+        UPDATE offers SET extraction_status = 'retirada', property_id = NULL,
+                          location_source = NULL, location_retry = false,
+                          location_issue = 'ya no está en el feed de la agencia'
+        WHERE channel = %s AND source_id = %s AND kind = 'anuncio'
+          AND extraction_status <> 'retirada' AND NOT (external_id = ANY(%s::text[]))
+        RETURNING id
+        """,
+        (channel, source_id, kept),
+    ).fetchall()
+    return len(rows)
+
+
 def mark_extracted(conn: psycopg.Connection, offer_id: UUID, extracted: dict[str, Any]) -> None:
     conn.execute(
         "UPDATE offers SET extraction_status = 'extraida', extracted = %s WHERE id = %s",
@@ -580,34 +637,44 @@ _CANDIDATES = """
            ST_X(p.location::geometry), ST_Y(p.location::geometry), p.section_code, o.extracted
     FROM offers o JOIN properties p ON p.id = o.property_id
     WHERE p.location IS NOT NULL AND p.section_code IS NOT NULL
-      AND ((o.org_id = %s AND o.kind = 'enlace' AND o.extraction_status = 'confirmada')
-           OR (o.org_id IS NULL AND o.kind = 'lote' AND o.corrects_id IS NULL))
+      AND ((o.org_id = %(org)s AND o.kind = 'enlace' AND o.extraction_status = 'confirmada')
+           OR (o.org_id IS NULL AND o.kind = 'lote' AND o.corrects_id IS NULL)
+           OR (o.channel = 'feed_agencia' AND o.kind = 'anuncio'
+               AND o.extraction_status = 'no_aplica'
+               AND (o.org_id IS NULL OR o.org_id = %(org)s)))
 """
 
 
 def search_candidates(conn: psycopg.Connection, org_id: UUID) -> list[SearchCandidate]:
-    """Ofertas ubicadas con sección: las confirmadas del usuario y los lotes del BOE (públicos).
-    Lo que no se puede puntuar (otro tipo, sin precio) lo decide quien llama, con su motivo."""
-    rows = conn.execute(_CANDIDATES + " ORDER BY o.first_seen", (org_id,)).fetchall()
+    """Ofertas ubicadas con sección: las confirmadas del usuario, los lotes del BOE (públicos) y
+    los anuncios de los feeds de agencias que puede ver (ADR-0038). Lo que no se puede puntuar
+    (otro tipo, sin precio) lo decide quien llama, con su motivo."""
+    rows = conn.execute(_CANDIDATES + " ORDER BY o.first_seen", {"org": org_id}).fetchall()
     return [SearchCandidate(*r) for r in rows]
 
 
 def search_candidate(conn: psycopg.Connection, org_id: UUID,
                      offer_id: UUID) -> SearchCandidate | None:
     """Una oferta de la búsqueda del usuario (para su plan completo)."""
-    row = conn.execute(_CANDIDATES + " AND o.id = %s", (org_id, offer_id)).fetchone()
+    row = conn.execute(_CANDIDATES + " AND o.id = %(offer)s",
+                       {"org": org_id, "offer": offer_id}).fetchone()
     return SearchCandidate(*row) if row else None
 
 
 def searchable_offer(conn: psycopg.Connection, offer_id: UUID, org_id: UUID) -> bool:
-    """Si la búsqueda del usuario puede ver la oferta: suya y confirmada, o un lote del BOE."""
+    """Si la búsqueda del usuario puede ver la oferta: suya y confirmada, un lote del BOE o un
+    anuncio de un feed de agencia que puede ver."""
     row = conn.execute(
         """
         SELECT 1 FROM offers
-        WHERE id = %s AND ((org_id = %s AND kind = 'enlace' AND extraction_status = 'confirmada')
-                           OR (org_id IS NULL AND kind = 'lote'))
+        WHERE id = %(offer)s
+          AND ((org_id = %(org)s AND kind = 'enlace' AND extraction_status = 'confirmada')
+               OR (org_id IS NULL AND kind = 'lote')
+               OR (channel = 'feed_agencia' AND kind = 'anuncio'
+                   AND extraction_status = 'no_aplica'
+                   AND (org_id IS NULL OR org_id = %(org)s)))
         """,
-        (offer_id, org_id),
+        {"offer": offer_id, "org": org_id},
     ).fetchone()
     return row is not None
 
