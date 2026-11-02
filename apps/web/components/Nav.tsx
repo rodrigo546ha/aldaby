@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { Account } from "./Access";
 import { ClientPicker } from "./Clients";
 
-// Barra de la aplicación. En la página de presentación no sale (ADR-0040). Un particular trabaja
+// Barra de la aplicación. En la página de presentación no sale (ADR-0041). Un particular trabaja
 // con su propio perfil: no ve Clientes, Agencias ni Marca, que son del profesional.
 
 const LINKS = [

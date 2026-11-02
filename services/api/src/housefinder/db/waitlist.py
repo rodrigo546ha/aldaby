@@ -1,4 +1,4 @@
-"""SQL de la lista de espera de la página de presentación (ADR-0040). Sin IP ni navegador."""
+"""SQL de la lista de espera de la página de presentación (ADR-0041). Sin IP ni navegador."""
 
 from __future__ import annotations
 

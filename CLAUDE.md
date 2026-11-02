@@ -92,9 +92,9 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/branding.py        marca del profesional (ADR-0030)
     branding/             marca del profesional: color con contraste y logotipo reescrito con Pillow (ADR-0030)
     accounts/             cuentas con argon2id, sesiones y altas por el administrador (ADR-0028);
-                          niveles de los particulares (tiers.py, ADR-0040)
-    db/waitlist.py        lista de espera de la página de presentación (ADR-0040)
-    db/tiers.py           planes completos usados en el nivel gratuito (ADR-0040)
+                          niveles de los particulares (tiers.py, ADR-0041)
+    db/waitlist.py        lista de espera de la página de presentación (ADR-0041)
+    db/tiers.py           planes completos usados en el nivel gratuito (ADR-0041)
     db/interviews.py      entrevistas de perfil (solo bytes cifrados)
     crypto/               cifrado de sobre AES-256-GCM y claves maestras (ADR-0011)
     profiles/             perfil del inversor: modelo que se redacta, almacén cifrado, entrevista
@@ -151,7 +151,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
   data/legal/             textos legales en Markdown con versión y datos del titular (ADR-0039)
-  data/niveles.yaml       límites del nivel gratuito de los particulares (ADR-0040)
+  data/niveles.yaml       límites del nivel gratuito de los particulares (ADR-0041)
   data/watch/             filtros de la vigilancia del BOE y del BOCM
   data/jobs/              programaciones diarias de la cola (ADR-0010)
   data/profiles/          comunidades autónomas por código INE, para la residencia del perfil

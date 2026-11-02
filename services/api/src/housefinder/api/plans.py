@@ -163,7 +163,7 @@ def _plan(db: Connection, keys: KeyProvider, org: UUID, client: UUID, book: Para
     if profile_id is None:
         raise HTTPException(status_code=404, detail="Confirma primero tu perfil en /perfil")
     profile = store.load(db, keys, profile_id, org)
-    record = check_full_plan(db, org, offer_id, particular)  # nivel gratuito (ADR-0040)
+    record = check_full_plan(db, org, offer_id, particular)  # nivel gratuito (ADR-0041)
     try:
         plan = full_plan(db, book, rules, profile, org, offer_id)
     except SearchUnavailable as exc:

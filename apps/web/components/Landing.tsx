@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 
-// Lista de espera y nivel gratuito de la página de presentación (F8.1, ADR-0040).
+// Lista de espera y nivel gratuito de la página de presentación (F8.1, ADR-0041).
 
 export function FreeTierLine() {
   const [plans, setPlans] = useState<number | null>(null);

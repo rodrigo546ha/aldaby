@@ -1,4 +1,4 @@
-"""SQL del nivel gratuito de los particulares (ADR-0040): tipo de organización y planes usados."""
+"""SQL del nivel gratuito de los particulares (ADR-0041): tipo de organización y planes usados."""
 
 from __future__ import annotations
 

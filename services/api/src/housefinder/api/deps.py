@@ -84,7 +84,7 @@ SessionDep = Annotated[Session | None, Depends(get_session)]
 
 def pending_legal(db: Connection, account_id: UUID, role: str) -> list[str]:
     """Textos legales cuya versión vigente la cuenta aún no ha aceptado (ADR-0039); dependen del
-    rol: el particular no firma el encargo (ADR-0040)."""
+    rol: el particular no firma el encargo (ADR-0041)."""
     return pending(legal_documents(), accepted_versions(db, account_id), role)
 
 
@@ -193,7 +193,7 @@ def is_particular(current: Session | None) -> bool:
 def get_client(request: Request, db: DbDep, org: OrgDep, keys: KeysDep,
                current: SessionDep) -> UUID:
     """Cliente activo del profesional: perfil, búsqueda, plan y asesor trabajan con él. Un
-    particular tiene un solo perfil, el suyo: se crea la primera vez (ADR-0040)."""
+    particular tiene un solo perfil, el suyo: se crea la primera vez (ADR-0041)."""
     client = active_client(request, db, org)
     if client is None and is_particular(current) and not client_ids(db, org):
         client = clients.create(db, keys, org, OWN_PROFILE, informed=True)
@@ -213,7 +213,7 @@ FREE_TIER_EXHAUSTED = ("Has usado los {n} planes completos del nivel gratuito. P
 
 
 def free_plans_left(db: Connection, org: UUID, particular: bool) -> int | None:
-    """Planes completos que le quedan a un particular; None si no tiene límite (ADR-0040)."""
+    """Planes completos que le quedan a un particular; None si no tiene límite (ADR-0041)."""
     if not particular:
         return None
     # /auth/me no pasa por get_org: sin esto, Row-Level Security esconde sus planes usados.

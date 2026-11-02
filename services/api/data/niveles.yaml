@@ -1,4 +1,4 @@
-# Niveles de acceso de los particulares (F8.2, ADR-0040). Los profesionales de la beta no tienen
+# Niveles de acceso de los particulares (F8.2, ADR-0041). Los profesionales de la beta no tienen
 # límite. El pase de compra (F8.3) levantará el del nivel gratuito.
 gratuito:
   planes_completos: 3   # ofertas distintas con plan completo (página, PDF y explicación)

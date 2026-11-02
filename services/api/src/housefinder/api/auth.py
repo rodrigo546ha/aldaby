@@ -45,7 +45,7 @@ class MeOut(BaseModel):
     email: str
     role: str
     pending_legal: list[str] = []  # textos legales que faltan por aceptar (ADR-0039)
-    free_plans_left: int | None = None  # particular: planes completos que le quedan (ADR-0040)
+    free_plans_left: int | None = None  # particular: planes completos que le quedan (ADR-0041)
 
 
 @router.post("/login", response_model=MeOut)

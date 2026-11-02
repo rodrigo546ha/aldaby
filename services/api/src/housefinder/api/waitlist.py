@@ -1,4 +1,4 @@
-"""Lista de espera de la página de presentación (F8.1, ADR-0040). Pública y sin sesión.
+"""Lista de espera de la página de presentación (F8.1, ADR-0041). Pública y sin sesión.
 
 La respuesta es la misma esté el correo ya apuntado o no: no dice quién se ha apuntado.
 """

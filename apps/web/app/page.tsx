@@ -9,7 +9,7 @@ export const metadata = {
     "Cada cifra con su fórmula y su fuente.",
 };
 
-// Página de presentación pública (F8.1, ADR-0040). Sin sesión: la lista de espera da el acceso.
+// Página de presentación pública (F8.1, ADR-0041). Sin sesión: la lista de espera da el acceso.
 export default function Landing() {
   return (
     <main className="landing">

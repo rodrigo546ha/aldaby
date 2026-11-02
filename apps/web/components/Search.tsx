@@ -65,7 +65,7 @@ export function Search() {
     load();
   }, [load]);
 
-  // Nivel gratuito de un particular (ADR-0040): cuántos planes completos le quedan
+  // Nivel gratuito de un particular (ADR-0041): cuántos planes completos le quedan
   const [plansLeft, setPlansLeft] = useState<number | null>(null);
   useEffect(() => {
     fetch("/api/auth/me")

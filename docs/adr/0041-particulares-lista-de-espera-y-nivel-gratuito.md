@@ -1,4 +1,4 @@
-# ADR-0040: Particulares: lista de espera, cuenta propia y nivel gratuito
+# ADR-0041: Particulares: lista de espera, cuenta propia y nivel gratuito
 
 **Estado:** Aceptada · **Fecha:** 2026-11-02 · **Decide:** Rodrigo (lista de espera, marca Aldaby
 y nivel gratuito con 3 planes, elegidos el 2026-11-02)

@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // en cada petición; esto solo evita enseñar páginas vacías. En el Mac, HOUSEFINDER_DEV_ORG=1
 // trabaja sin cuenta con la organización local de desarrollo.
 export function middleware(request: NextRequest) {
-  // La página de presentación es pública (ADR-0040)
+  // La página de presentación es pública (ADR-0041)
   if (request.nextUrl.pathname === "/" || process.env.HOUSEFINDER_DEV_ORG === "1" ||
       request.cookies.has("hf_sesion")) {
     return NextResponse.next();

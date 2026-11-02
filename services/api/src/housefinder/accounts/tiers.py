@@ -1,4 +1,4 @@
-"""Niveles de acceso de los particulares (F8.2, ADR-0040): el límite es un dato, no código."""
+"""Niveles de acceso de los particulares (F8.2, ADR-0041): el límite es un dato, no código."""
 
 from __future__ import annotations
 

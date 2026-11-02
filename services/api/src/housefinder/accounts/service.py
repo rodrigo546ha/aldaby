@@ -64,7 +64,7 @@ def create_account(conn: Connection, email: str, organization: str, role: str,
     kind = "particular" if role == "particular" else "profesional"
     org_id = get_or_create_organization(conn, organization, kind)
     account_id = sql.create_account(conn, org_id, email, role)
-    mark_invited(conn, email)  # si venía de la lista de espera (ADR-0040)
+    mark_invited(conn, email)  # si venía de la lista de espera (ADR-0041)
     return account_id, password_link(conn, account_id, now)
 
 

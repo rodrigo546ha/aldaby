@@ -275,7 +275,7 @@ button.link { background: none; border: none; padding: 0; color: var(--muted); t
 .topnav-brand { display: inline-flex; }
 .topnav a[aria-current="page"] { color: var(--text); }
 
-/* Página de presentación (F8.1, ADR-0040). Colores de la marca: docs/marca/README.md */
+/* Página de presentación (F8.1, ADR-0041). Colores de la marca: docs/marca/README.md */
 .landing { --brand: #0f3b2e; --brass: #e3a92b; --sand: #f6ebd0; max-width: 1040px; }
 @media (prefers-color-scheme: dark) { .landing { --brand: #9fd7bf; --sand: #26302b; } }
 .landing-top { display: flex; justify-content: space-between; align-items: center; padding: 8px 0 40px; }

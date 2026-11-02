@@ -37,7 +37,7 @@ def test_los_textos_del_repositorio():
     assert set(docs) == {"aviso-legal", "condiciones", "condiciones-particulares", "privacidad",
                          "encargo", "cookies", "clausula-clientes"}
     assert to_accept(docs) == {"condiciones": 1, "privacidad": 2, "encargo": 1}
-    # El particular no firma el encargo: Aldaby es el responsable de sus datos (ADR-0040).
+    # El particular no firma el encargo: Aldaby es el responsable de sus datos (ADR-0041).
     assert to_accept(docs, "particular") == {"condiciones-particulares": 1, "privacidad": 2}
     assert to_accept(docs, "admin") == to_accept(docs, "profesional")
     assert not any(d.verified for d in docs.values())  # hasta que los revise el abogado

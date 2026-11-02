@@ -1,4 +1,4 @@
--- HouseFinder · 0022: particulares (F8.1 y F8.2, ADR-0040): rol, lista de espera y planes completos
+-- HouseFinder · 0022: particulares (F8.1 y F8.2, ADR-0041): rol, lista de espera y planes completos
 -- usados en el nivel gratuito.
 
 ALTER TABLE accounts DROP CONSTRAINT accounts_role_check;

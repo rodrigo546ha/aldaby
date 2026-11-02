@@ -25,7 +25,7 @@ export function Login() {
       });
       if (resp.ok) {
         const next = params.get("siguiente");
-        // Un particular empieza por su perfil; un profesional, por el simulador (ADR-0040)
+        // Un particular empieza por su perfil; un profesional, por el simulador (ADR-0041)
         const home = (await resp.json()).role === "particular" ? "/perfil" : "/simulador";
         // Solo rutas propias: un enlace no puede llevar a otro sitio tras entrar
         window.location.assign(next && next.startsWith("/") && !next.startsWith("//") ? next : home);

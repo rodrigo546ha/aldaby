@@ -2,7 +2,7 @@
 
     python -m housefinder.accounts alta ana@ejemplo.es --organizacion "Asesoría Ana"
     python -m housefinder.accounts alta tu@correo.es --organizacion Aldaby --rol admin
-    python -m housefinder.accounts espera                    # lista de espera (ADR-0040)
+    python -m housefinder.accounts espera                    # lista de espera (ADR-0041)
     python -m housefinder.accounts alta luis@ejemplo.es --rol particular
     python -m housefinder.accounts restablecer ana@ejemplo.es
 
