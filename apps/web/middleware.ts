@@ -14,5 +14,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|acceso|favicon.ico).*)"],
+  // Los textos legales se leen sin sesión (ADR-0039)
+  matcher: ["/((?!api|_next|acceso|legal|favicon.ico).*)"],
 };

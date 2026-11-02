@@ -37,7 +37,8 @@ def associated_data(client_id: UUID, org_id: UUID) -> bytes:
     return f"{TABLE}:{client_id}:{org_id}".encode()
 
 
-def create(conn: Connection, keys: KeyProvider, org_id: UUID, name: str) -> UUID:
+def create(conn: Connection, keys: KeyProvider, org_id: UUID, name: str,
+           informed: bool = False) -> UUID:
     name = " ".join(name.split())
     if not name:
         raise ClientError("Escribe un nombre para el cliente")
@@ -46,7 +47,8 @@ def create(conn: Connection, keys: KeyProvider, org_id: UUID, name: str) -> UUID
     client_id = uuid4()
     sealed = seal(name.encode(), associated_data(client_id, org_id), keys)
     sql.insert_client(conn, client_id, org_id,
-                      SealedRow(sealed.data_enc, sealed.dek_enc, sealed.key_id, sealed.version))
+                      SealedRow(sealed.data_enc, sealed.dek_enc, sealed.key_id, sealed.version),
+                      informed)
     return client_id
 
 

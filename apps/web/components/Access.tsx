@@ -118,11 +118,20 @@ export function Account() {
   const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    if (window.location.pathname.startsWith("/acceso")) return;
+    const path = window.location.pathname;
+    if (path.startsWith("/acceso")) return;
     fetch("/api/auth/me")
       .then(async (resp) => {
-        if (resp.ok) setEmail((await resp.json()).email);
-        else if (resp.status === 401) window.location.assign("/acceso");
+        if (resp.ok) {
+          const me = (await resp.json()) as { email: string; pending_legal?: string[] };
+          setEmail(me.email);
+          // Textos legales sin aceptar (ADR-0039): primero, aceptarlos; leerlos sí se puede.
+          if ((me.pending_legal ?? []).length > 0 && !path.startsWith("/legal")) {
+            window.location.assign(`/acceso/condiciones?siguiente=${encodeURIComponent(path)}`);
+          }
+        } else if (resp.status === 401 && !path.startsWith("/legal")) {
+          window.location.assign("/acceso");
+        }
       })
       .catch(() => undefined);
   }, []);

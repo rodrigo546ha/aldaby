@@ -18,7 +18,7 @@ from housefinder.accounts.service import (
     log_out,
     set_password,
 )
-from housefinder.api.deps import CLIENT_COOKIE, SESSION_COOKIE, DbDep, SessionDep
+from housefinder.api.deps import CLIENT_COOKIE, SESSION_COOKIE, DbDep, SessionDep, pending_legal
 
 router = APIRouter(prefix="/auth", tags=["acceso"])
 
@@ -36,6 +36,7 @@ class PasswordIn(BaseModel):
 class MeOut(BaseModel):
     email: str
     role: str
+    pending_legal: list[str] = []  # textos legales que faltan por aceptar (ADR-0039)
 
 
 @router.post("/login", response_model=MeOut)
@@ -48,7 +49,8 @@ def login(body: LoginIn, db: DbDep, response: Response) -> MeOut:
     db.commit()
     response.set_cookie(SESSION_COOKIE, token, max_age=SESSION_DAYS * 86400, httponly=True,
                         secure=secure_cookies(), samesite="lax", path="/")
-    return MeOut(email=opened.email, role=opened.role)
+    return MeOut(email=opened.email, role=opened.role,
+                 pending_legal=pending_legal(db, opened.account_id))
 
 
 @router.post("/logout", status_code=204)
@@ -60,9 +62,10 @@ def logout(request: Request, db: DbDep, response: Response) -> None:
 
 
 @router.get("/me", response_model=MeOut)
-def me(current: SessionDep) -> MeOut:
+def me(current: SessionDep, db: DbDep) -> MeOut:
     if current is not None:
-        return MeOut(email=current.email, role=current.role)
+        return MeOut(email=current.email, role=current.role,
+                     pending_legal=pending_legal(db, current.account_id))
     if os.environ.get("HOUSEFINDER_DEV_ORG") == "1":  # en el Mac, sin cuenta (ADR-0028)
         return MeOut(email="desarrollo local", role="admin")
     raise HTTPException(status_code=401, detail="Inicia sesión para seguir")

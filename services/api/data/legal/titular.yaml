@@ -1,0 +1,12 @@
+# Datos del titular de la web para los textos legales (ADR-0039). Lo que falta queda vacío y la web
+# muestra «pendiente»: nunca se rellena de memoria (regla de oro 4). Rellenar al constituir la
+# sociedad y antes de la beta (F7.6).
+servicio: HouseFinder          # nombre comercial que ve el usuario; cambiará a Aldaby con la marca
+titular:                       # razón social
+nif:
+domicilio:
+registro:                      # datos de inscripción en el Registro Mercantil
+correo:                        # correo de contacto y para ejercer los derechos del RGPD
+web:                           # dominio
+alojamiento: "Hetzner Online GmbH (Alemania), previsto para la beta (ADR-0028); aún no contratado"
+plazo_copias:                  # cuánto se guardan las copias de seguridad cifradas (F7.5)

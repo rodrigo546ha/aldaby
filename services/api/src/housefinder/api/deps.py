@@ -16,10 +16,13 @@ from housefinder.agent.llm import LLMClient, llm_from_env
 from housefinder.crypto.envelope import KeyProvider, provider_from_env
 from housefinder.db.clients import client_ids, client_in_org
 from housefinder.db.connection import Connection, DatabaseUnavailable, connect
+from housefinder.db.legal import accepted_versions
 from housefinder.db.profiles import get_or_create_organization
 from housefinder.geo.cartociudad import Geocoded, geocode, municipality_codes
 from housefinder.geo.catastro import Parcel, find_parcel
 from housefinder.geo.foral import find_foral_parcel
+from housefinder.legal.documents import load as legal_documents
+from housefinder.legal.documents import pending
 from housefinder.offers.link import Resolver, link_client, system_resolve
 from housefinder.params.book import ParamBook, default_params_dir
 from housefinder.regulation.rules import RuleBook, default_rules_dir
@@ -61,6 +64,8 @@ DbDep = Annotated[Connection, Depends(get_db)]
 GeocoderDep = Annotated[Callable[[str], Geocoded], Depends(get_geocoder)]
 
 DEV_ORG = "Desarrollo local"
+LEGAL_PENDING = ("Acepta las condiciones de uso, la política de privacidad y el contrato de "
+                 "encargo del tratamiento para seguir")
 SESSION_COOKIE = "hf_sesion"
 
 
@@ -74,10 +79,18 @@ def get_session(request: Request, db: DbDep) -> Session | None:
 SessionDep = Annotated[Session | None, Depends(get_session)]
 
 
+def pending_legal(db: Connection, account_id: UUID) -> list[str]:
+    """Textos legales cuya versión vigente la cuenta aún no ha aceptado (ADR-0039)."""
+    return pending(legal_documents(), accepted_versions(db, account_id))
+
+
 def get_org(db: DbDep, current: SessionDep) -> UUID:
     """Organización de quien llama: la de su sesión, nunca la que diga el cliente. Sin sesión,
-    401, salvo en el Mac con `HOUSEFINDER_DEV_ORG=1` (la organización local de desarrollo)."""
+    401, salvo en el Mac con `HOUSEFINDER_DEV_ORG=1` (la organización local de desarrollo). Con
+    textos legales sin aceptar, 403 (ADR-0039)."""
     if current is not None:
+        if pending_legal(db, current.account_id):
+            raise HTTPException(status_code=403, detail=LEGAL_PENDING)
         org_id = current.org_id
     elif os.environ.get("HOUSEFINDER_DEV_ORG") == "1":
         org_id = get_or_create_organization(db, DEV_ORG, "particular")

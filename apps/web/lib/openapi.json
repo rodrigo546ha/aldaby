@@ -744,6 +744,115 @@
         }
       }
     },
+    "/legal": {
+      "get": {
+        "tags": [
+          "textos legales"
+        ],
+        "summary": "List Documents",
+        "operationId": "list_documents_legal_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LegalSummaryOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Documents Legal Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/legal/{document_id}": {
+      "get": {
+        "tags": [
+          "textos legales"
+        ],
+        "summary": "Get Document",
+        "operationId": "get_document_legal__document_id__get",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalDocumentOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/legal/accept": {
+      "post": {
+        "tags": [
+          "textos legales"
+        ],
+        "summary": "Accept",
+        "description": "Acepta las versiones vigentes. Una versión que no es la vigente se rechaza: el texto cambió\nmientras se leía.",
+        "operationId": "accept_legal_accept_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptanceIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/valuation": {
       "get": {
         "tags": [
@@ -1589,7 +1698,7 @@
           "clientes"
         ],
         "summary": "Create Client",
-        "description": "Da de alta un cliente y lo deja activo.",
+        "description": "Da de alta un cliente y lo deja activo. Exige que el profesional haya informado al cliente\ndel tratamiento de sus datos (ADR-0039).",
         "operationId": "create_client_clients_post",
         "requestBody": {
           "content": {
@@ -1856,6 +1965,22 @@
   },
   "components": {
     "schemas": {
+      "AcceptanceIn": {
+        "properties": {
+          "documents": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Documents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "documents"
+        ],
+        "title": "AcceptanceIn"
+      },
       "ActiveIn": {
         "properties": {
           "client_id": {
@@ -2555,6 +2680,11 @@
             "type": "string",
             "maxLength": 200,
             "title": "Name"
+          },
+          "informed": {
+            "type": "boolean",
+            "title": "Informed",
+            "default": false
           }
         },
         "type": "object",
@@ -3729,6 +3859,97 @@
         ],
         "title": "InvestmentResponse"
       },
+      "LegalDocumentOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "requires_acceptance": {
+            "type": "boolean",
+            "title": "Requires Acceptance"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "version",
+          "effective_from",
+          "requires_acceptance",
+          "verified",
+          "text",
+          "missing"
+        ],
+        "title": "LegalDocumentOut"
+      },
+      "LegalSummaryOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "requires_acceptance": {
+            "type": "boolean",
+            "title": "Requires Acceptance"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "version",
+          "effective_from",
+          "requires_acceptance",
+          "verified"
+        ],
+        "title": "LegalSummaryOut"
+      },
       "LinkIn": {
         "properties": {
           "url": {
@@ -4152,6 +4373,14 @@
           "role": {
             "type": "string",
             "title": "Role"
+          },
+          "pending_legal": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Pending Legal",
+            "default": []
           }
         },
         "type": "object",
@@ -4490,6 +4719,22 @@
           "password"
         ],
         "title": "PasswordIn"
+      },
+      "PendingOut": {
+        "properties": {
+          "pending": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Pending"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pending"
+        ],
+        "title": "PendingOut"
       },
       "PlanOut": {
         "properties": {

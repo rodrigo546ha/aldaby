@@ -116,9 +116,11 @@ def test_api_de_clientes_y_cliente_activo(migrated_database, keys):
     try:
         api = TestClient(app, base_url="https://testserver")
         assert api.get("/profile/current").json()["detail"] == "Crea primero un cliente en Clientes"
-        ana = api.post("/clients", json={"name": "Ana"}).json()
+        refused = api.post("/clients", json={"name": "Ana"})
+        assert refused.status_code == 422 and "informado" in refused.json()["detail"]
+        ana = api.post("/clients", json={"name": "Ana", "informed": True}).json()
         assert ana["active"] is True and api.cookies.get("hf_cliente") == ana["id"]
-        luis = api.post("/clients", json={"name": "  Luis  "}).json()
+        luis = api.post("/clients", json={"name": "  Luis  ", "informed": True}).json()
         assert luis["name"] == "Luis"
         with psycopg.connect(migrated_database) as conn:
             store.save_new(conn, keys, mine, ana["id"], profile())

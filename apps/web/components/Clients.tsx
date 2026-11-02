@@ -57,6 +57,7 @@ export function ClientPicker() {
 export function Clients() {
   const [clients, setClients] = useState<ClientOut[] | null>(null);
   const [name, setName] = useState("");
+  const [informed, setInformed] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -76,7 +77,7 @@ export function Clients() {
     const resp = await fetch("/api/clients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, informed }),
     });
     if (!resp.ok) {
       const body = await resp.json().catch(() => ({}));
@@ -112,7 +113,17 @@ export function Clients() {
         <label htmlFor="client-name">Nuevo cliente</label>
         <input id="client-name" value={name} maxLength={80} placeholder="Nombre o alias"
                onChange={(e) => setName(e.target.value)} />
-        <button type="submit">Crear</button>
+        <button type="submit" disabled={!informed}>Crear</button>
+        <label className="check client-informed">
+          <input type="checkbox" checked={informed} onChange={(e) => setInformed(e.target.checked)} />
+          <span>
+            He informado a mi cliente del tratamiento de sus datos (
+            <a href="/legal/clausula-clientes" target="_blank" rel="noopener noreferrer">
+              cláusula modelo
+            </a>
+            ).
+          </span>
+        </label>
       </form>
       <p className="hint">El nombre se guarda cifrado y solo lo ve tu organización.</p>
       {failure && <p className="failure" role="alert">{failure}</p>}

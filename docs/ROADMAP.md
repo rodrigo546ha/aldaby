@@ -375,7 +375,14 @@ umbral fijado en F0, y cada estimación con su rango.
       blanco), presentación y logotipo PNG o JPEG reescrito con Pillow (sin SVG), en la página
       `/marca`. Sale en la cabecera del PDF y de `/plan`, con una línea discreta al pie: «Cifras
       calculadas con HouseFinder, con las fuentes del anexo».
-- [ ] F7.4 Avisos legales y consentimiento de tratamiento de datos.
+- [x] F7.4 Avisos legales y consentimiento de tratamiento de datos.
+      *Hecho (ADR-0039):* aviso legal, condiciones de uso de la beta, política de privacidad,
+      contrato de encargo del tratamiento (art. 28), cookies (solo técnicas) y cláusula modelo para
+      los clientes, como Markdown versionado en `data/legal/`. Cada cuenta acepta la versión
+      vigente antes de entrar en los datos (403 hasta entonces), sin guardar IP ni navegador; dar
+      de alta un cliente exige marcar que se le ha informado. **Pendiente:** los textos están en
+      borrador (`verified: false`) hasta que los revise el abogado (F0.6, F8.5), y faltan los
+      datos del titular en `data/legal/titular.yaml`.
 - [ ] F7.5 Despliegue en AWS con copias de seguridad y monitorización básica.
 - [ ] F7.6 Piloto de 4 semanas con 3–5 profesionales y sesión de feedback semanal.
 - [ ] F7.7 Propuesta de precio al final del piloto.

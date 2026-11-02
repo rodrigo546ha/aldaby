@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { Account } from "../components/Access";
 import { ClientPicker } from "../components/Clients";
+import { LegalFooter } from "../components/Legal";
 import "./globals.css";
 
 export const metadata = {
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Account />
         </nav>
         {children}
+        <LegalFooter />
       </body>
     </html>
   );

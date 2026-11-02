@@ -18,11 +18,14 @@ class ClientRow:
 
 
 def insert_client(conn: psycopg.Connection, client_id: UUID, org_id: UUID,
-                  sealed: SealedRow) -> None:
+                  sealed: SealedRow, informed: bool = False) -> None:
+    """`informed`: el profesional marca que ha informado al cliente del tratamiento (ADR-0039);
+    se guarda cuándo."""
     conn.execute(
-        "INSERT INTO clients (id, org_id, name_enc, dek_enc, key_id, enc_version) "
-        "VALUES (%s, %s, %s, %s, %s, %s)",
-        (client_id, org_id, sealed.data_enc, sealed.dek_enc, sealed.key_id, sealed.version),
+        "INSERT INTO clients (id, org_id, name_enc, dek_enc, key_id, enc_version, informed_at) "
+        "VALUES (%s, %s, %s, %s, %s, %s, CASE WHEN %s THEN now() END)",
+        (client_id, org_id, sealed.data_enc, sealed.dek_enc, sealed.key_id, sealed.version,
+         informed),
     )
 
 

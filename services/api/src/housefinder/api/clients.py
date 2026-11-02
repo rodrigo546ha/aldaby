@@ -28,6 +28,7 @@ class ClientOut(BaseModel):
 
 class ClientIn(BaseModel):
     name: str = Field(max_length=200)
+    informed: bool = False  # «he informado a mi cliente del tratamiento» (ADR-0039)
 
 
 class ActiveIn(BaseModel):
@@ -44,9 +45,14 @@ def list_clients(request: Request, db: DbDep, keys: KeysDep, org: OrgDep) -> lis
 @router.post("", response_model=ClientOut, status_code=201)
 def create_client(body: ClientIn, db: DbDep, keys: KeysDep, org: OrgDep,
                   response: Response) -> ClientOut:
-    """Da de alta un cliente y lo deja activo."""
+    """Da de alta un cliente y lo deja activo. Exige que el profesional haya informado al cliente
+    del tratamiento de sus datos (ADR-0039)."""
+    if not body.informed:
+        raise HTTPException(status_code=422,
+                            detail="Marca que has informado a tu cliente del tratamiento de sus "
+                                   "datos")
     try:
-        client_id = clients.create(db, keys, org, body.name)
+        client_id = clients.create(db, keys, org, body.name, informed=True)
     except clients.ClientError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     db.commit()

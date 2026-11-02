@@ -304,6 +304,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/legal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Documents */
+        get: operations["list_documents_legal_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/legal/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Document */
+        get: operations["get_document_legal__document_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/legal/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept
+         * @description Acepta las versiones vigentes. Una versión que no es la vigente se rechaza: el texto cambió
+         *     mientras se leía.
+         */
+        post: operations["accept_legal_accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/valuation": {
         parameters: {
             query?: never;
@@ -655,7 +710,8 @@ export interface paths {
         put?: never;
         /**
          * Create Client
-         * @description Da de alta un cliente y lo deja activo.
+         * @description Da de alta un cliente y lo deja activo. Exige que el profesional haya informado al cliente
+         *     del tratamiento de sus datos (ADR-0039).
          */
         post: operations["create_client_clients_post"];
         delete?: never;
@@ -759,6 +815,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AcceptanceIn */
+        AcceptanceIn: {
+            /** Documents */
+            documents: {
+                [key: string]: number;
+            };
+        };
         /** ActiveIn */
         ActiveIn: {
             /**
@@ -953,6 +1016,11 @@ export interface components {
         ClientIn: {
             /** Name */
             name: string;
+            /**
+             * Informed
+             * @default false
+             */
+            informed: boolean;
         };
         /** ClientOut */
         ClientOut: {
@@ -1313,6 +1381,46 @@ export interface components {
              */
             appreciation_notes: string[];
         };
+        /** LegalDocumentOut */
+        LegalDocumentOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Version */
+            version: number;
+            /**
+             * Effective From
+             * Format: date
+             */
+            effective_from: string;
+            /** Requires Acceptance */
+            requires_acceptance: boolean;
+            /** Verified */
+            verified: boolean;
+            /** Text */
+            text: string;
+            /** Missing */
+            missing: string[];
+        };
+        /** LegalSummaryOut */
+        LegalSummaryOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Version */
+            version: number;
+            /**
+             * Effective From
+             * Format: date
+             */
+            effective_from: string;
+            /** Requires Acceptance */
+            requires_acceptance: boolean;
+            /** Verified */
+            verified: boolean;
+        };
         /** LinkIn */
         LinkIn: {
             /** Url */
@@ -1426,6 +1534,11 @@ export interface components {
             email: string;
             /** Role */
             role: string;
+            /**
+             * Pending Legal
+             * @default []
+             */
+            pending_legal: string[];
         };
         /** OfferOut */
         OfferOut: {
@@ -1534,6 +1647,11 @@ export interface components {
             token: string;
             /** Password */
             password: string;
+        };
+        /** PendingOut */
+        PendingOut: {
+            /** Pending */
+            pending: string[];
         };
         /** PlanOut */
         PlanOut: {
@@ -2509,6 +2627,90 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ListingOut"][];
+                };
+            };
+        };
+    };
+    list_documents_legal_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LegalSummaryOut"][];
+                };
+            };
+        };
+    };
+    get_document_legal__document_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LegalDocumentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_legal_accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptanceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

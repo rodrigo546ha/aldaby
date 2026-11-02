@@ -102,6 +102,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
                           ventas directas del Patrimonio del Estado (patrimonio.py, ADR-0037)
                           y feeds XML de agencias en formato Kyero v3 (agency_feed.py, ADR-0038)
     feeds/                feeds de agencias: alta con consentimiento, URL cifrada y lectura diaria (ADR-0038)
+    legal/                textos legales versionados y qué falta por aceptar (ADR-0039)
+    db/legal.py           aceptación de los textos legales por cuenta y versión
     db/agency_feeds.py    feeds de agencias (solo la URL cifrada)
     offers/corrections.py correcciones del BOE: cita, página y anuncio que corrigen (F4.4)
     offers/link.py        descarga única del enlace pegado: robots.txt, bloqueos y veto a la red interna (ADR-0015)
@@ -145,6 +147,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     api/main.py           aplicación FastAPI; un router por dominio (simulate, territory, offers, boe, valuation)
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
+  data/legal/             textos legales en Markdown con versión y datos del titular (ADR-0039)
   data/watch/             filtros de la vigilancia del BOE y del BOCM
   data/jobs/              programaciones diarias de la cola (ADR-0010)
   data/profiles/          comunidades autónomas por código INE, para la residencia del perfil

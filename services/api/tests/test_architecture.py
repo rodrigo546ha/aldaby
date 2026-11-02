@@ -28,6 +28,8 @@ ALLOWED_INTERNAL = {
     "offers": {"agent", "core", "db", "geo", "ingestion", "offers", "territory"},
     # Feeds de agencias (ADR-0038): la URL va cifrada; la lectura usa el canal y la ubicación
     "feeds": {"core", "crypto", "db", "feeds", "geo", "offers"},
+    # Textos legales versionados (ADR-0039): solo leen sus ficheros
+    "legal": {"core", "legal"},
     "valuation": {"core", "db", "engines", "params", "valuation"},
     "agent": {"agent", "core"},
     "advisor": {"advisor", "agent", "core", "crypto", "db", "params", "plans", "profiles",
