@@ -164,6 +164,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   tests/fixtures/planes/  prueba de oro: planes de F0 anonimizados (los reales, en private/)
 db/migrations/            SQL de PostgreSQL + PostGIS (NNNN_nombre.sql; no se editan una vez aplicadas)
 infra/docker-compose.yml  base de datos local
+infra/produccion/         servidor de la beta: imágenes, Compose con Caddy y Ollama, copias con restic,
+                          vigilancia y scripts de montaje y despliegue (ADR-0040, docs/DESPLIEGUE.md)
 docs/                     ROADMAP, ARCHITECTURE, DATA_SOURCES, ADRs y plantillas
 ```
 
@@ -196,6 +198,8 @@ make rules-check  # valida data/rules (catálogo de tipos, vigencias, revisor)
 make api       # API en http://localhost:8000 (docs en /docs)
 make web       # web en http://localhost:3000 (llama a la API por /api)
 make openapi   # regenera los tipos de la web desde el OpenAPI de la API
+make requisitos-api  # versiones de la imagen de la API desde el entorno probado (ADR-0040)
+                 # servidor: infra/produccion/desplegar.sh housefinder@IP (guía en docs/DESPLIEGUE.md)
 ```
 
 ## Cómo trabajar

@@ -18,7 +18,7 @@ tiene ADR, lo dice: **propuesta, pendiente de ADR**.
 | **MVP** | Madrid y área metropolitana; oferta por enlace del usuario, BOE (subastas y sección V) y grandes servicers |
 | **Competencia directa** | Invisor y Cassandra AI: rastrean portales y recogen preferencias, pero no calculan la rentabilidad personal ni modelan la normativa por inmueble |
 | **Hitos** | Validación en noviembre · beta privada con profesionales a mediados de enero de 2027 · pase para particulares en febrero · decisión a finales de marzo |
-| **Modo actual** | Todo en local (Mac M5, 16 GB): PostgreSQL + PostGIS en Docker, worker con launchd y `qwen3:14b` en Ollama. El despliegue de F7 está por decidir (sección 3.3) |
+| **Modo actual** | Todo en local (Mac M5, 16 GB): PostgreSQL + PostGIS en Docker, worker con launchd y `qwen3:14b` en Ollama. El servidor de la beta está preparado y probado en el Mac, a falta de contratarlo (sección 3.3, ADR-0040) |
 
 ---
 
@@ -93,7 +93,8 @@ pendiente de ADR**; hoy la deduplicación es por referencia catastral y distanci
 | Claves | Clave maestra en fichero local (ADR-0011) | Fichero en el servidor, sin KMS en la beta (ADR-0028) |
 
 **Decidido en ADR-0028 (2026-11-01):** un solo Hetzner GEX45 en la UE con todo dentro, lo más
-barato con GPU. Lo que sigue era la propuesta anterior, descartada: web y API en Vercel Pro (funciones en `fra1`), base en Supabase en
+barato con GPU. Montaje, copias con restic al Storage Box y avisos con Healthchecks.io en ADR-0040 y
+`docs/DESPLIEGUE.md`. Lo que sigue era la propuesta anterior, descartada: web y API en Vercel Pro (funciones en `fra1`), base en Supabase en
 la UE y un servidor GPU privado en la UE con vLLM, TEI y Caddy, con el orquestador junto a los
 modelos y el progreso en la base. El orquestador no iría en funciones de Vercel porque tienen
 límite de duración (300 s en Hobby, hasta 800 s en Pro) y un plan completo puede superarlo. El ADR

@@ -1,17 +1,32 @@
 from pathlib import Path
 
+import pytest
 import yaml
 from fastapi.testclient import TestClient
 
+from housefinder.api import main
 from housefinder.api.deps import get_param_book
 from housefinder.api.main import app
+from housefinder.db.connection import DatabaseUnavailable
 from housefinder.params.book import ParamBook
 
 client = TestClient(app)
 
 
-def test_health():
-    assert client.get("/health").json() == {"status": "ok"}
+@pytest.mark.db
+def test_health_con_base(migrated_database, monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", migrated_database)
+    monkeypatch.setenv("HOUSEFINDER_COMMIT", "abc1234")
+    assert client.get("/health").json() == {"status": "ok", "commit": "abc1234"}
+
+
+def test_health_sin_base_responde_503(monkeypatch):
+    def no_db(*args, **kwargs):
+        raise DatabaseUnavailable("La base de datos no responde")
+
+    monkeypatch.setattr(main, "connect", no_db)
+    resp = client.get("/health")
+    assert resp.status_code == 503
 
 
 def test_affordability_devuelve_cifras_trazables():

@@ -1,0 +1,176 @@
+# HouseFinder en el servidor de la beta (ADR-0028 y ADR-0040). Se maneja con los scripts de esta
+# carpeta y la configuración de infra/produccion/.env (crearlo desde env.ejemplo; nunca en git).
+# Solo Caddy publica puertos; la base y el modelo quedan en la red interna.
+name: housefinder
+
+x-registros: &registros
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+x-api: &api
+  <<: *registros
+  build:
+    context: ../..
+    dockerfile: infra/produccion/api.Dockerfile
+    args:
+      HOUSEFINDER_COMMIT: ${HOUSEFINDER_COMMIT:-desconocido}
+  image: housefinder-api:${HOUSEFINDER_COMMIT:-desconocido}
+  restart: unless-stopped
+  environment:
+    DATABASE_URL: postgresql://housefinder:${POSTGRES_PASSWORD:?falta POSTGRES_PASSWORD}@db:5432/housefinder
+    LLM_PROVIDER: openai_compatible
+    LLM_BASE_URL: ${LLM_BASE_URL:-http://ollama:11434/v1}
+    LLM_MODEL_ID: ${LLM_MODEL_ID:-qwen3-14b-hf}
+    LLM_API_KEY: ""
+    LLM_TIMEOUT_S: ${LLM_TIMEOUT_S:-1800}
+    LLM_REASONING_EFFORT: ${LLM_REASONING_EFFORT:-none}
+    HOUSEFINDER_KEYS_FILE: /run/secrets/master_keys
+    HOUSEFINDER_WEB_URL: ${HOUSEFINDER_WEB_URL:?falta HOUSEFINDER_WEB_URL}
+  secrets:
+    - master_keys
+  extra_hosts:
+    # Solo para la prueba en el Mac: el Ollama de Homebrew (LLM_BASE_URL en el .env local)
+    - "host.docker.internal:host-gateway"
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  caddy:
+    <<: *registros
+    image: caddy:2.10
+    restart: unless-stopped
+    ports:
+      - "${HOUSEFINDER_HTTP_PORT:-80}:80"
+      - "${HOUSEFINDER_HTTPS_PORT:-443}:443"
+    environment:
+      HOUSEFINDER_DOMAIN: ${HOUSEFINDER_DOMAIN:?falta HOUSEFINDER_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+
+  web:
+    <<: *registros
+    build:
+      context: ../..
+      dockerfile: infra/produccion/web.Dockerfile
+    image: housefinder-web:${HOUSEFINDER_COMMIT:-desconocido}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/legal/aviso-legal').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api:
+    <<: *api
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      preparar:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *api
+    command: ["python", "-m", "housefinder.jobs", "worker"]
+    depends_on:
+      db:
+        condition: service_healthy
+      preparar:
+        condition: service_completed_successfully
+
+  # Tarea de un solo uso en cada despliegue: migraciones (ADR-0008) y programaciones (ADR-0010)
+  preparar:
+    <<: *api
+    restart: "no"
+    command: ["sh", "-c", "python -m housefinder.db.migrate && python -m housefinder.jobs programar"]
+
+  db:
+    <<: *registros
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: housefinder
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?falta POSTGRES_PASSWORD}
+      POSTGRES_DB: housefinder
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    shm_size: 256mb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U housefinder -d housefinder"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  # Modelo en la GPU del servidor; solo con COMPOSE_PROFILES=modelo (en el Mac no se arranca)
+  ollama:
+    <<: *registros
+    image: ollama/ollama:0.34.4
+    profiles: ["modelo"]
+    restart: unless-stopped
+    environment:
+      OLLAMA_KEEP_ALIVE: 24h
+    volumes:
+      - ollama:/root/.ollama
+      - ../ollama:/modelfiles:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # Copias con restic (copia.sh, restaurar.sh); solo se arranca con `compose run`
+  copias:
+    <<: *registros
+    build:
+      context: .
+      dockerfile: copias.Dockerfile
+    image: housefinder-copias:0.19.1
+    profiles: ["copias"]
+    restart: "no"
+    environment:
+      PGHOST: db
+      PGUSER: housefinder
+      PGDATABASE: housefinder
+      PGPASSWORD: ${POSTGRES_PASSWORD:?falta POSTGRES_PASSWORD}
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:?falta RESTIC_REPOSITORY}
+      RESTIC_PASSWORD_FILE: /run/secrets/restic_password
+      RESTIC_CACHE_DIR: /cache
+    secrets:
+      - restic_password
+    volumes:
+      - ${HOUSEFINDER_SECRETOS:-/srv/housefinder/secretos}/ssh:/root/.ssh:ro
+      - restic_cache:/cache
+      # Solo para la prueba en el Mac, con RESTIC_REPOSITORY=/local/repo
+      - restic_local:/local
+    depends_on:
+      db:
+        condition: service_healthy
+
+secrets:
+  master_keys:
+    file: ${HOUSEFINDER_SECRETOS:-/srv/housefinder/secretos}/master.keys
+  restic_password:
+    file: ${HOUSEFINDER_SECRETOS:-/srv/housefinder/secretos}/restic.pass
+
+volumes:
+  pgdata:
+  ollama:
+  caddy_data:
+  caddy_config:
+  restic_cache:
+  restic_local:

@@ -12,3 +12,5 @@ dist/
 services/api/tests/fixtures/private/
 *.tsbuildinfo
 .DS_Store
+infra/produccion/.commit
+infra/produccion/.estado/

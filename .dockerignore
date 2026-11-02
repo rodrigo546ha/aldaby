@@ -1,0 +1,17 @@
+# Contexto de las imágenes de infra/produccion (ADR-0040): nunca secretos ni datos personales.
+.git
+.env
+**/.env
+infra/produccion/.env
+**/node_modules
+**/.next
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/*.tsbuildinfo
+services/api/tests
+docs
+.claude
+**/.DS_Store
