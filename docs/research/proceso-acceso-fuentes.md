@@ -54,7 +54,7 @@ Reglas que valen para todas (`CLAUDE.md`):
 ## 4. Servicers
 | Servicer | Contacto |
 | --- | --- |
-| Solvia | web@solvia.es; alta de prescriptor: https://www.solvia.es/es/login-profesional |
+| Solvia | web@solvia.es **rebota** (2026-11-02: «550 5.4.1 Recipient address rejected», el buzón no existe aunque lo cite su aviso legal). Teléfono 911 751 195; alta de prescriptor: https://www.solvia.es/es/login-profesional |
 | Servihabitat | servihabitat@servihabitat.com; inversores: https://inversores.servihabitat.com/es/ |
 | Aliseda (con Anticipa y activos de Sareb) | clientes@alisedainmobiliaria.com; 91 187 66 74 |
 | Altamira (doValue) | Formulario: https://www.altamirainmuebles.com/profesionales; 914 842 874 |

@@ -13,6 +13,9 @@ Postura común, decidida por Rodrigo el 2026-11-02 (ADR-0036 y regla de oro 7):
 ## Servicers
 
 ### 1. Solvia · web@solvia.es
+Enviado el 2026-11-02 y **rebotado**: el buzón no existe (550 5.4.1). Vía alternativa: teléfono
+911 751 195 o alta de prescriptor (`proceso-acceso-fuentes.md`).
+
 **Asunto:** Acceso a la cartera de Solvia para un servicio de análisis de inversión
 
 Buenos días:
