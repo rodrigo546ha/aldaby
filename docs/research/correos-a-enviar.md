@@ -1,7 +1,8 @@
 # Correos a enviar para conseguir acceso a la oferta
 
 Un correo por destinatario, con el contacto que da su web (`proceso-acceso-fuentes.md`).
-Firma común (completar): **Rodrigo · Aldaby · [correo de la cuenta de Gmail]**.
+Firma común: **Rodrigo · Aldaby · aldaby.admin@gmail.com**. Los 12 correos están como borradores
+en esa cuenta y los formularios se rellenan con ella (2026-11-02).
 
 Postura común, decidida por Rodrigo el 2026-11-02 (ADR-0036 y regla de oro 7):
 - Pedimos acceso a los datos, no reutilizar su web.
@@ -35,7 +36,8 @@ Los interesados en un inmueble irían siempre a Solvia.
 ¿Podemos hablarlo en una llamada?
 
 Un saludo,
-[firma]
+Rodrigo
+Aldaby · aldaby.admin@gmail.com
 
 ### 2. Servihabitat · servihabitat@servihabitat.com
 **Asunto:** Acceso a la cartera de Servihabitat para un servicio de análisis de inversión
@@ -89,7 +91,8 @@ enlace a la ficha). Si no es este buzón, les agradecería que lo pasaran al ár
 datos.
 
 Un saludo,
-[firma]
+Rodrigo
+Aldaby · aldaby.admin@gmail.com
 
 ### 8. RE/MAX España · remax@remax.es
 **Asunto:** La cartera de RE/MAX en un servicio de análisis de inversión
@@ -105,7 +108,8 @@ Estamos abiertos a un acuerdo de colaboración, también con comisión, siempre 
 qué inmuebles recomendamos: lo declaramos al usuario y el orden es siempre el mejor para él.
 
 Un saludo,
-[firma]
+Rodrigo
+Aldaby · aldaby.admin@gmail.com
 
 ### 9. Engel & Völkers España · spain@engelvoelkers.com
 Igual que el de RE/MAX, cambiando el nombre.
@@ -130,7 +134,8 @@ de alta como destino? ¿Aceptan un feed XML con el formato de Kyero, o hay que u
 clave de cada agencia?
 
 Un saludo,
-[firma]
+Rodrigo
+Aldaby · aldaby.admin@gmail.com
 
 ### 12. Inmoweb · comercial@inmoweb.es
 Igual que el de Sooprema, cambiando el nombre. Mencionar que hemos visto sus integraciones con
