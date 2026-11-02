@@ -14,7 +14,7 @@ from typing import Any
 import httpx
 
 from housefinder.crypto.envelope import KeyProvider
-from housefinder.db.agency_feeds import record_run
+from housefinder.db.agency_feeds import list_feeds, record_run
 from housefinder.db.connection import Connection, connect
 from housefinder.db.offers import (
     OfferRow,
@@ -89,17 +89,20 @@ def run_feed(conn: Connection, client: httpx.Client, feed: Feed,
     return report
 
 
-def run_feeds(conninfo: str, client: httpx.Client, keys: KeyProvider,
+def run_feeds(conninfo: str, client: httpx.Client, keys: Callable[[], KeyProvider],
               geocoder: Callable[[str], Geocoded] | None = None,
               parcels: Callable[[str], Parcel] | None = None) -> dict[str, Any]:
-    """Lee todos los feeds activos. El informe va por feed, con la agencia y sin la URL."""
+    """Lee todos los feeds activos. El informe va por feed, con la agencia y sin la URL. Las
+    claves solo se cargan si hay algún feed: sin feeds, el trabajo no las necesita."""
     reports: list[dict[str, Any]] = []
     with connect(conninfo) as conn:
+        if not list_feeds(conn):
+            return {"feeds": reports}
         locate = offer_locator(conn, geocoder or (lambda address: geocode(client, address)),
                                parcels or (lambda ref: find_parcel(client, ref)),
                                municipalities=lambda name: municipality_codes(client, name),
                                foral=lambda province, key: find_foral_parcel(client, province, key))
-        feeds, locked = active_feeds(conn, keys)
+        feeds, locked = active_feeds(conn, keys())
         for feed in feeds:
             reports.append({"feed": str(feed.id), "agency": feed.agency_name,
                             **run_feed(conn, client, feed, locate)})

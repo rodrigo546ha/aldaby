@@ -256,3 +256,15 @@ def test_alcance_todos_es_oferta_publica(migrated_database: str, keys):
     with psycopg.connect(migrated_database) as conn:
         assert searchable_offer(conn, row[0], other)
     assert "todos los usuarios de Aldaby" in source and "Contrato de alta de prueba" in source
+
+
+@pytest.mark.db
+def test_sin_feeds_el_trabajo_no_pide_las_claves(migrated_database: str):
+    from housefinder.feeds.run import run_feeds
+
+    def no_keys():
+        raise AssertionError("no debería cargar las claves")
+
+    with psycopg.connect(migrated_database, autocommit=True) as conn:
+        conn.execute("DELETE FROM agency_feeds")
+    assert run_feeds(migrated_database, feed_client([]), no_keys) == {"feeds": []}

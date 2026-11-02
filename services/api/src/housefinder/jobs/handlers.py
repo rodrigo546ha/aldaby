@@ -68,7 +68,7 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
         from housefinder.crypto.envelope import provider_from_env
 
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
-            return run_feeds(conninfo, client, provider_from_env())
+            return run_feeds(conninfo, client, provider_from_env)
 
     def extract_link(payload: dict[str, Any]) -> dict[str, Any]:
         from housefinder.agent.llm import llm_from_env
