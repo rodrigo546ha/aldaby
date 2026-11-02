@@ -1,7 +1,8 @@
 """Atlas de Distribución de Renta de los Hogares (ADRH) del INE por sección censal (F3.3).
 
-Fuente: API Tempus del INE, tablas por provincia (Madrid: 31097 renta, 31105 demografía),
-serie 2015–2024. Cada serie trae en sus metadatos el código de la sección.
+Fuente: API Tempus del INE, tablas por provincia (Madrid: 31097 renta, 31105 demografía; las de
+todas, en data/territory/adrh_tablas.yaml), serie 2015–2024. Cada serie trae en sus metadatos el
+código de la sección.
 
 Cruce con la cartografía: el dato del año t va sobre el seccionado a 1 de enero de t+1
 (la población del ADRH es la del Censo Anual a esa fecha). Ver
@@ -23,9 +24,11 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
+from pathlib import Path
 from typing import Any
 
 import httpx
+import yaml
 
 from housefinder.db.indicators import IndicatorRow
 from housefinder.db.sections import SourceRecord
@@ -72,10 +75,15 @@ INDICATORS: dict[str, Indicator] = {
     ),
 }
 
-# Tablas por provincia (INEbase, ADRH, resultados por provincias).
-PROVINCE_TABLES: dict[str, dict[str, int]] = {
-    "28": {"renta": 31097, "demografia": 31105},
-}
+# Tablas por provincia (INEbase, ADRH, resultados por provincias), desde su fichero de datos.
+def _province_tables() -> dict[str, dict[str, int]]:
+    """Tablas de cada provincia: data/territory/adrh_tablas.yaml (cómo se sacaron, allí)."""
+    path = Path(__file__).resolve().parents[3] / "data" / "territory" / "adrh_tablas.yaml"
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))["provincias"]
+    return {str(code): {k: int(v) for k, v in tables.items()} for code, tables in data.items()}
+
+
+PROVINCE_TABLES = _province_tables()
 
 
 @dataclass(frozen=True)

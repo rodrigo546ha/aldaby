@@ -100,3 +100,13 @@ def test_carga_contra_la_base(migrated_database: str):
         ("poblacion_65_y_mas", 2024, Decimal("0.235"), "ratio"),
         ("renta_neta_media_persona", 2024, Decimal("16000.0"), "EUR"),
     ]
+
+
+def test_tablas_de_las_52_provincias():
+    from housefinder.ingestion.ine_adrh import PROVINCE_TABLES
+
+    assert sorted(PROVINCE_TABLES) == [f"{n:02d}" for n in range(1, 53)]
+    assert all(set(t) == {"renta", "demografia"} for t in PROVINCE_TABLES.values())
+    assert PROVINCE_TABLES["28"] == {"renta": 31097, "demografia": 31105}  # las ya comprobadas
+    ids = [i for t in PROVINCE_TABLES.values() for i in t.values()]
+    assert len(ids) == len(set(ids))  # ninguna tabla en dos provincias

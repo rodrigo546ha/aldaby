@@ -1,0 +1,58 @@
+# Tablas del Atlas de distribución de renta de los hogares (ADRH) del INE por provincia:
+# indicadores de renta media y mediana, e indicadores demográficos, por sección censal.
+# Sacadas de la API Tempus el 2026-11-02: TABLAS_OPERACION/353 (ADRH), y la provincia de cada
+# tabla por los códigos INE de sus municipios (VALORES_GRUPOSTABLA). Baleares tiene la de renta
+# con otro código de tabla (1976_DIST-SECC-MUN). Si el INE renumera, se vuelven a sacar así.
+provincias:
+  "01": {renta: 30851, demografia: 30859}
+  "02": {renta: 30656, demografia: 30814}
+  "03": {renta: 30833, demografia: 30841}
+  "04": {renta: 30842, demografia: 30850}
+  "05": {renta: 30869, demografia: 30877}
+  "06": {renta: 30878, demografia: 30886}
+  "07": {renta: 30887, demografia: 30895}
+  "08": {renta: 30896, demografia: 30904}
+  "09": {renta: 30926, demografia: 30934}
+  "10": {renta: 30935, demografia: 30943}
+  "11": {renta: 30944, demografia: 30952}
+  "12": {renta: 30962, demografia: 30970}
+  "13": {renta: 30971, demografia: 30979}
+  "14": {renta: 30980, demografia: 30988}
+  "15": {renta: 30989, demografia: 30997}
+  "16": {renta: 30998, demografia: 31006}
+  "17": {renta: 31016, demografia: 31024}
+  "18": {renta: 31025, demografia: 31033}
+  "19": {renta: 31034, demografia: 31042}
+  "20": {renta: 31007, demografia: 31015}
+  "21": {renta: 31043, demografia: 31051}
+  "22": {renta: 31052, demografia: 31060}
+  "23": {renta: 31061, demografia: 31069}
+  "24": {renta: 31070, demografia: 31078}
+  "25": {renta: 31079, demografia: 31087}
+  "26": {renta: 31169, demografia: 31177}
+  "27": {renta: 31088, demografia: 31096}
+  "28": {renta: 31097, demografia: 31105}
+  "29": {renta: 31106, demografia: 31114}
+  "30": {renta: 31115, demografia: 31123}
+  "31": {renta: 31124, demografia: 31132}
+  "32": {renta: 31133, demografia: 31141}
+  "33": {renta: 30860, demografia: 30868}
+  "34": {renta: 31142, demografia: 31150}
+  "35": {renta: 31151, demografia: 31159}
+  "36": {renta: 31160, demografia: 31168}
+  "37": {renta: 31178, demografia: 31186}
+  "38": {renta: 31187, demografia: 31195}
+  "39": {renta: 30953, demografia: 30961}
+  "40": {renta: 31196, demografia: 31204}
+  "41": {renta: 31205, demografia: 31213}
+  "42": {renta: 31214, demografia: 31222}
+  "43": {renta: 31223, demografia: 31231}
+  "44": {renta: 31232, demografia: 31240}
+  "45": {renta: 31241, demografia: 31249}
+  "46": {renta: 31250, demografia: 31258}
+  "47": {renta: 31259, demografia: 31267}
+  "48": {renta: 30917, demografia: 30925}
+  "49": {renta: 31268, demografia: 31276}
+  "50": {renta: 31277, demografia: 31285}
+  "51": {renta: 31286, demografia: 31294}
+  "52": {renta: 31295, demografia: 31303}
