@@ -61,7 +61,7 @@ schedules:
     payload: {}
 
   # Referencias de precio (ADR-0018): el INE publica el IPV cada trimestre. Mirar cada 30 días es
-  # barato; la carga sustituye la serie entera. El valor tasado no se programa: su portal
+  # barato; cada comunidad sustituye solo su serie (ADR-0043). El valor tasado no se programa: su portal
   # (datos.comunidad.madrid) prohíbe el acceso automático y el CSV se descarga a mano.
   - name: referencias-ipv
     kind: ine_ipv
