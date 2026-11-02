@@ -1,32 +1,19 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Account } from "../components/Access";
-import { ClientPicker } from "../components/Clients";
 import { LegalFooter } from "../components/Legal";
+import { AppNav } from "../components/Nav";
 import "./globals.css";
 
 export const metadata = {
-  title: "HouseFinder",
-  description: "La inversión inmobiliaria que encaja contigo",
+  title: "Aldaby",
+  description: "La inversión inmobiliaria con tus cifras: hipoteca, IRPF y gastos, con sus fuentes",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
       <body>
-        <nav className="topnav" aria-label="Secciones">
-          <Link href="/">Simulador</Link>
-          <Link href="/clientes">Clientes</Link>
-          <Link href="/perfil">Perfil</Link>
-          <Link href="/busqueda">Búsqueda</Link>
-          <Link href="/ofertas">Ofertas</Link>
-          <Link href="/anuncios">Anuncios públicos</Link>
-          <Link href="/agencias">Agencias</Link>
-          <Link href="/marca">Marca</Link>
-          <ClientPicker />
-          <Account />
-        </nav>
+        <AppNav />
         {children}
         <LegalFooter />
       </body>

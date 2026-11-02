@@ -17,7 +17,7 @@ from housefinder.agent.llm import LLMClient, LLMOutputError
 from housefinder.agent.references import check_text
 
 MAX_EXTRA = 3
-INSTRUCTIONS = """Eres el asesor de HouseFinder, una plataforma independiente que no vende
+INSTRUCTIONS = """Eres el asesor de Aldaby, una plataforma independiente que no vende
 inmuebles. El documento describe en palabras, sin cifras, el plan de inversión de un usuario para
 una vivienda y los argumentos para no comprarla que ya ha calculado el programa.
 

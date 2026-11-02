@@ -1,6 +1,6 @@
 import { Plan } from "../../../components/Plan";
 
-export const metadata = { title: "Plan · HouseFinder" };
+export const metadata = { title: "Plan · Aldaby" };
 
 export default async function PlanPage({ params }: { params: Promise<{ offer: string }> }) {
   const { offer } = await params;

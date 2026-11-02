@@ -12,12 +12,14 @@ import httpx
 from fastapi import Depends, HTTPException, Request
 
 from housefinder.accounts.service import Session, session
+from housefinder.accounts.tiers import free_tier, plans_left
 from housefinder.agent.llm import LLMClient, llm_from_env
 from housefinder.crypto.envelope import KeyProvider, provider_from_env
 from housefinder.db.clients import client_ids, client_in_org
 from housefinder.db.connection import Connection, DatabaseUnavailable, connect
 from housefinder.db.legal import accepted_versions
 from housefinder.db.profiles import get_or_create_organization
+from housefinder.db.tiers import used_plans
 from housefinder.geo.cartociudad import Geocoded, geocode, municipality_codes
 from housefinder.geo.catastro import Parcel, find_parcel
 from housefinder.geo.foral import find_foral_parcel
@@ -25,6 +27,7 @@ from housefinder.legal.documents import load as legal_documents
 from housefinder.legal.documents import pending
 from housefinder.offers.link import Resolver, link_client, system_resolve
 from housefinder.params.book import ParamBook, default_params_dir
+from housefinder.profiles import clients
 from housefinder.regulation.rules import RuleBook, default_rules_dir
 from housefinder.valuation.scenarios import AppreciationReport, appreciation_scenarios
 
@@ -79,9 +82,10 @@ def get_session(request: Request, db: DbDep) -> Session | None:
 SessionDep = Annotated[Session | None, Depends(get_session)]
 
 
-def pending_legal(db: Connection, account_id: UUID) -> list[str]:
-    """Textos legales cuya versión vigente la cuenta aún no ha aceptado (ADR-0039)."""
-    return pending(legal_documents(), accepted_versions(db, account_id))
+def pending_legal(db: Connection, account_id: UUID, role: str) -> list[str]:
+    """Textos legales cuya versión vigente la cuenta aún no ha aceptado (ADR-0039); dependen del
+    rol: el particular no firma el encargo (ADR-0040)."""
+    return pending(legal_documents(), accepted_versions(db, account_id), role)
 
 
 def get_org(db: DbDep, current: SessionDep) -> UUID:
@@ -89,7 +93,7 @@ def get_org(db: DbDep, current: SessionDep) -> UUID:
     401, salvo en el Mac con `HOUSEFINDER_DEV_ORG=1` (la organización local de desarrollo). Con
     textos legales sin aceptar, 403 (ADR-0039)."""
     if current is not None:
-        if pending_legal(db, current.account_id):
+        if pending_legal(db, current.account_id, current.role):
             raise HTTPException(status_code=403, detail=LEGAL_PENDING)
         org_id = current.org_id
     elif os.environ.get("HOUSEFINDER_DEV_ORG") == "1":
@@ -180,9 +184,20 @@ def active_client(request: Request, db: Connection, org: UUID) -> UUID | None:
     return ids[0] if len(ids) == 1 else None
 
 
-def get_client(request: Request, db: DbDep, org: OrgDep) -> UUID:
-    """Cliente activo del profesional: perfil, búsqueda, plan y asesor trabajan con él."""
+def is_particular(current: Session | None) -> bool:
+    """Lo decide el rol de la cuenta, no el tipo de organización: la organización local de
+    desarrollo es de tipo particular pero trabaja como un profesional, sin límites."""
+    return current is not None and current.role == "particular"
+
+
+def get_client(request: Request, db: DbDep, org: OrgDep, keys: KeysDep,
+               current: SessionDep) -> UUID:
+    """Cliente activo del profesional: perfil, búsqueda, plan y asesor trabajan con él. Un
+    particular tiene un solo perfil, el suyo: se crea la primera vez (ADR-0040)."""
     client = active_client(request, db, org)
+    if client is None and is_particular(current) and not client_ids(db, org):
+        client = clients.create(db, keys, org, OWN_PROFILE, informed=True)
+        db.commit()
     if client is None:
         detail = ("Elige un cliente en la barra de arriba" if client_ids(db, org)
                   else "Crea primero un cliente en Clientes")
@@ -191,3 +206,30 @@ def get_client(request: Request, db: DbDep, org: OrgDep) -> UUID:
 
 
 ClientDep = Annotated[UUID, Depends(get_client)]
+
+OWN_PROFILE = "Mi perfil"
+FREE_TIER_EXHAUSTED = ("Has usado los {n} planes completos del nivel gratuito. Puedes volver a "
+                       "abrir esos y seguir usando la búsqueda; el pase de compra llegará pronto.")
+
+
+def free_plans_left(db: Connection, org: UUID, particular: bool) -> int | None:
+    """Planes completos que le quedan a un particular; None si no tiene límite (ADR-0040)."""
+    if not particular:
+        return None
+    # /auth/me no pasa por get_org: sin esto, Row-Level Security esconde sus planes usados.
+    db.execute("SELECT set_config('app.org_id', %s, false)", (str(org),))
+    return plans_left(len(used_plans(db, org)), free_tier())
+
+
+def check_full_plan(db: Connection, org: UUID, offer_id: UUID, particular: bool) -> bool:
+    """Si la organización puede abrir el plan completo de esta oferta. 402 si es un particular sin
+    planes libres y la oferta no es de las que ya abrió. Devuelve si hay que anotar el uso."""
+    if not particular:
+        return False
+    used = used_plans(db, org)
+    if offer_id in used:
+        return False
+    tier = free_tier()
+    if plans_left(len(used), tier) == 0:
+        raise HTTPException(status_code=402, detail=FREE_TIER_EXHAUSTED.format(n=tier.full_plans))
+    return True

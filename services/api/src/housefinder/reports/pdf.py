@@ -33,7 +33,7 @@ CSS = """
 @page { size: A4; margin: 18mm 16mm 20mm;
         @bottom-right { content: "Página " counter(page) " de " counter(pages);
                         font: 8pt "Helvetica Neue", Helvetica, Arial, sans-serif; color: #666; }
-        @bottom-left { content: "HouseFinder · plan de inversión";
+        @bottom-left { content: "Aldaby · plan de inversión";
                        font: 8pt "Helvetica Neue", Helvetica, Arial, sans-serif; color: #666; } }
 body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.5pt;
        color: #1d1d1f; line-height: 1.4; }
@@ -150,11 +150,11 @@ def plan_html(plan: FullPlan, sources: SourceCatalog, today: date,
 
 
 def _brand_css(brand: Branding | None) -> str:
-    """El color del profesional en títulos y líneas, y la línea de HouseFinder al pie
+    """El color del profesional en títulos y líneas, y la línea de Aldaby al pie
     (ADR-0030). El color ya viene comprobado (#rrggbb con contraste)."""
     if brand is None or brand.empty:
         return ""
-    css = ('@page { @bottom-left { content: "Cifras calculadas con HouseFinder, con las fuentes '
+    css = ('@page { @bottom-left { content: "Cifras calculadas con Aldaby, con las fuentes '
            'del anexo"; } }')
     if brand.color:
         css += (f"h1, h2, h3, .brand-name {{ color: {brand.color}; }} "

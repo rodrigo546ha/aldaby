@@ -11,7 +11,7 @@ psycopg = pytest.importorskip("psycopg")
 PASSWORD = "una frase larga de prueba"
 
 
-def account(db, email: str, accept: bool = True) -> tuple:
+def account(db, email: str, accept: bool = True, role: str = "profesional") -> tuple:
     """Cuenta con contraseña en una organización nueva y, si `accept`, con los textos legales
     vigentes aceptados (ADR-0039): (org_id, correo)."""
     from housefinder.accounts.service import create_account, set_password
@@ -19,10 +19,10 @@ def account(db, email: str, accept: bool = True) -> tuple:
     from housefinder.legal.documents import load, to_accept
 
     with psycopg.connect(db) as conn:
-        account_id, token = create_account(conn, email, f"Org {uuid4()}", "profesional")
+        account_id, token = create_account(conn, email, f"Org {uuid4()}", role)
         set_password(conn, token, PASSWORD)
         if accept:
-            for document, version in to_accept(load()).items():
+            for document, version in to_accept(load(), role).items():
                 record_acceptance(conn, account_id, document, version)
         org = conn.execute("SELECT org_id FROM accounts WHERE email = %s", (email,)).fetchone()[0]
         conn.commit()
@@ -66,7 +66,8 @@ def test_cada_profesional_ve_solo_lo_suyo(client, database):  # noqa: F811
 
     login = client.post("/auth/login", json={"email": email_a, "password": PASSWORD})
     assert login.status_code == 200 and login.json() == {"email": email_a, "role": "profesional",
-                                                          "pending_legal": []}
+                                                          "pending_legal": [],
+                                                          "free_plans_left": None}
     cookie = login.headers["set-cookie"].lower()
     assert "httponly" in cookie and "secure" in cookie and "samesite=lax" in cookie
     assert [o["id"] for o in client.get("/offers").json()] == [str(offer_a)]

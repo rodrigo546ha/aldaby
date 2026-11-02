@@ -1,6 +1,6 @@
 import { PublicOffers } from "../../components/PublicOffers";
 
-export const metadata = { title: "Anuncios públicos · HouseFinder" };
+export const metadata = { title: "Anuncios públicos · Aldaby" };
 
 export default function AnnouncementsPage() {
   return (

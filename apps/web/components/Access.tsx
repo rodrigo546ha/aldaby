@@ -25,8 +25,10 @@ export function Login() {
       });
       if (resp.ok) {
         const next = params.get("siguiente");
+        // Un particular empieza por su perfil; un profesional, por el simulador (ADR-0040)
+        const home = (await resp.json()).role === "particular" ? "/perfil" : "/simulador";
         // Solo rutas propias: un enlace no puede llevar a otro sitio tras entrar
-        window.location.assign(next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
+        window.location.assign(next && next.startsWith("/") && !next.startsWith("//") ? next : home);
         return;
       }
       const body = await resp.json().catch(() => ({}));
@@ -51,7 +53,7 @@ export function Login() {
       </div>
       {error && <p className="failure" role="alert">{error}</p>}
       <button type="submit" disabled={busy}>{busy ? "Entrando…" : "Entrar"}</button>
-      <p className="hint">¿Has olvidado la contraseña? Pide un enlace nuevo al equipo de HouseFinder.</p>
+      <p className="hint">¿Has olvidado la contraseña? Pide un enlace nuevo al equipo de Aldaby.</p>
     </form>
   );
 }

@@ -34,9 +34,12 @@ def test_los_huecos_sin_dato_quedan_pendientes_y_no_se_inventan():
 
 def test_los_textos_del_repositorio():
     docs = load()
-    assert set(docs) == {"aviso-legal", "condiciones", "privacidad", "encargo", "cookies",
-                         "clausula-clientes"}
-    assert to_accept(docs) == {"condiciones": 1, "privacidad": 1, "encargo": 1}
+    assert set(docs) == {"aviso-legal", "condiciones", "condiciones-particulares", "privacidad",
+                         "encargo", "cookies", "clausula-clientes"}
+    assert to_accept(docs) == {"condiciones": 1, "privacidad": 2, "encargo": 1}
+    # El particular no firma el encargo: Aldaby es el responsable de sus datos (ADR-0040).
+    assert to_accept(docs, "particular") == {"condiciones-particulares": 1, "privacidad": 2}
+    assert to_accept(docs, "admin") == to_accept(docs, "profesional")
     assert not any(d.verified for d in docs.values())  # hasta que los revise el abogado
     # Lo que dicen tiene que ser lo que hace el código: las dos cookies y sus duraciones.
     from housefinder.accounts.service import SESSION_DAYS
@@ -52,8 +55,10 @@ def test_los_textos_del_repositorio():
 def test_que_falta_por_aceptar():
     docs = load()
     assert pending(docs, {}) == ["condiciones", "encargo", "privacidad"]
-    assert pending(docs, {"condiciones": 1, "encargo": 1, "privacidad": 1}) == []
-    assert pending(docs, {"condiciones": 0, "encargo": 1, "privacidad": 1}) == ["condiciones"]
+    assert pending(docs, {"condiciones": 1, "encargo": 1, "privacidad": 2}) == []
+    assert pending(docs, {"condiciones": 1, "encargo": 1, "privacidad": 1}) == ["privacidad"]
+    assert pending(docs, {"condiciones": 1, "privacidad": 2}, "particular") == [
+        "condiciones-particulares"]
 
 
 def test_el_id_tiene_que_coincidir_con_el_fichero(tmp_path: Path):
@@ -111,7 +116,7 @@ def test_sin_aceptar_no_se_entra_en_los_datos(client, migrated_database: str):
     partial = client.post("/legal/accept", json={"documents": {"condiciones": 1}})
     assert partial.json() == {"pending": ["encargo", "privacidad"]}
     assert client.get("/offers").status_code == 403
-    done = client.post("/legal/accept", json={"documents": {"encargo": 1, "privacidad": 1}})
+    done = client.post("/legal/accept", json={"documents": {"encargo": 1, "privacidad": 2}})
     assert done.json() == {"pending": []}
     assert client.get("/offers").status_code == 200
     assert client.get("/auth/me").json()["pending_legal"] == []

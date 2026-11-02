@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from housefinder.db.legal import record_acceptance
-from housefinder.legal.documents import LegalDocument, load
+from housefinder.legal.documents import LegalDocument, audience_of, load
 
 from .deps import DbDep, SessionDep, pending_legal
 
@@ -39,6 +39,11 @@ class AcceptanceIn(BaseModel):
 
 class PendingOut(BaseModel):
     pending: list[str]
+
+
+def doc_id_not_for(doc: LegalDocument, role: str) -> bool:
+    """Si la cuenta no tiene que aceptar este documento."""
+    return not doc.requires_acceptance or audience_of(role) not in doc.audience
 
 
 def _summary(doc: LegalDocument) -> LegalSummaryOut:
@@ -70,7 +75,7 @@ def accept(body: AcceptanceIn, db: DbDep, current: SessionDep) -> PendingOut:
     documents = load()
     for document_id, version in body.documents.items():
         doc = documents.get(document_id)
-        if doc is None or not doc.requires_acceptance:
+        if doc is None or doc_id_not_for(doc, current.role):
             raise HTTPException(status_code=422, detail=f"No se acepta el documento {document_id}")
         if doc.version != version:
             raise HTTPException(status_code=409,
@@ -78,4 +83,4 @@ def accept(body: AcceptanceIn, db: DbDep, current: SessionDep) -> PendingOut:
     for document_id, version in body.documents.items():
         record_acceptance(db, current.account_id, document_id, version)
     db.commit()
-    return PendingOut(pending=pending_legal(db, current.account_id))
+    return PendingOut(pending=pending_legal(db, current.account_id, current.role))

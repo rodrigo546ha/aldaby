@@ -1,7 +1,7 @@
 ---
 id: privacidad
 title: Política de privacidad
-version: 1
+version: 2
 effective_from: 2026-11-02
 requires_acceptance: true
 verified: false
@@ -9,12 +9,14 @@ verified: false
 Esta política explica qué datos trata {{servicio}} y cómo, según el Reglamento (UE) 2016/679 (RGPD)
 y la Ley Orgánica 3/2018 (LOPDGDD).
 
-## Dos papeles distintos
+## Quién es el responsable
 
-- **Datos de tu cuenta de profesional:** el responsable es el titular de {{servicio}}.
-- **Datos de tus clientes** (perfiles, entrevistas, documentos, planes): el responsable eres tú, el
-  profesional, y {{servicio}} los trata por encargo tuyo. Eso se regula en el contrato de encargo
-  del tratamiento.
+- **Si eres particular:** el titular de {{servicio}} es el responsable de tus datos: los de tu
+  cuenta, tu perfil, tus entrevistas y tus planes.
+- **Si eres profesional:** el titular es el responsable de los datos de tu cuenta. De los datos de
+  tus clientes (perfiles, entrevistas, documentos, planes) el responsable eres tú, y {{servicio}}
+  los trata por encargo tuyo. Eso se regula en el contrato de encargo del tratamiento.
+- **Si te apuntas a la lista de espera:** el titular es el responsable de tu correo.
 
 ## Responsable de los datos de tu cuenta
 
@@ -31,9 +33,30 @@ y la Ley Orgánica 3/2018 (LOPDGDD).
 
 **No guardamos tu IP ni tu navegador.**
 
+## Si eres particular: tu perfil
+
+Para calcular tu plan guardamos lo que nos dices de ti y lo que sale de los documentos que subes:
+- año de nacimiento y comunidad de residencia;
+- ingresos, deudas, ahorro y datos fiscales;
+- años de nacimiento de tus descendientes;
+- objetivos y preferencias de inversión;
+- las respuestas de la entrevista y los planes que abres.
+
+Todo eso se guarda cifrado. Los documentos se leen en memoria y no se guardan. No tratamos
+categorías especiales de datos.
+
+## Lista de espera
+
+Si te apuntas, guardamos tu correo, si eres particular o profesional, la versión de esta política
+que aceptaste y la fecha. Solo lo usamos para darte acceso. Lo borramos si nos lo pides y, si ya
+te hemos dado acceso, queda solo la fecha del alta.
+
 ## Para qué y con qué base
 
-- Darte acceso y prestar el servicio: ejecución del contrato (art. 6.1.b RGPD).
+- Darte acceso y prestar el servicio, también calcular el plan con tu perfil si eres particular:
+  ejecución del contrato (art. 6.1.b RGPD).
+- Apuntarte a la lista de espera y escribirte para darte acceso: tu consentimiento (art. 6.1.a),
+  que puedes retirar cuando quieras.
 - Proteger las cuentas (bloqueo tras intentos fallidos): interés legítimo en la seguridad del
   servicio (art. 6.1.f).
 - Guardar las aceptaciones: cumplimiento de obligaciones legales y defensa de reclamaciones (art.
@@ -41,7 +64,9 @@ y la Ley Orgánica 3/2018 (LOPDGDD).
 
 ## Cuánto tiempo
 
-- La cuenta, mientras esté activa.
+- La cuenta y, si eres particular, tu perfil y tus planes, mientras la cuenta esté activa. Si la
+  cierras, se borran.
+- El correo de la lista de espera, hasta que te demos acceso o nos pidas borrarlo.
 - Una sesión caduca a los 14 días sin uso.
 - Los enlaces para elegir contraseña caducan a los 7 días.
 - Las copias de seguridad cifradas se conservan {{plazo_copias}}.

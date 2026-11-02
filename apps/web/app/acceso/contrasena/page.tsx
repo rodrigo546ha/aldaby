@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import { ChoosePassword } from "../../../components/Access";
 
-export const metadata = { title: "Elige tu contraseña · HouseFinder" };
+export const metadata = { title: "Elige tu contraseña · Aldaby" };
 
 export default function PasswordPage() {
   return (

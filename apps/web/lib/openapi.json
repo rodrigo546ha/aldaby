@@ -853,6 +853,69 @@
         }
       }
     },
+    "/waitlist": {
+      "post": {
+        "tags": [
+          "lista de espera"
+        ],
+        "summary": "Join",
+        "operationId": "join_waitlist_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WaitlistIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WaitlistOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/waitlist/free-tier": {
+      "get": {
+        "tags": [
+          "lista de espera"
+        ],
+        "summary": "Free Tier Info",
+        "description": "Lo que incluye el nivel gratuito, para la página de presentación (sin repetir el número).",
+        "operationId": "free_tier_info_waitlist_free_tier_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FreeTierOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/valuation": {
       "get": {
         "tags": [
@@ -3653,6 +3716,19 @@
         ],
         "title": "FinancingRequest"
       },
+      "FreeTierOut": {
+        "properties": {
+          "full_plans": {
+            "type": "integer",
+            "title": "Full Plans"
+          }
+        },
+        "type": "object",
+        "required": [
+          "full_plans"
+        ],
+        "title": "FreeTierOut"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -4381,6 +4457,17 @@
             "type": "array",
             "title": "Pending Legal",
             "default": []
+          },
+          "free_plans_left": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Plans Left"
           }
         },
         "type": "object",
@@ -5989,6 +6076,47 @@
           "attribution"
         ],
         "title": "ValuationResponse"
+      },
+      "WaitlistIn": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 320,
+            "title": "Email"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "particular",
+              "profesional"
+            ],
+            "title": "Kind"
+          },
+          "consent": {
+            "type": "boolean",
+            "title": "Consent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "kind",
+          "consent"
+        ],
+        "title": "WaitlistIn"
+      },
+      "WaitlistOut": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "WaitlistOut"
       },
       "housefinder__api__offers__ConfirmIn": {
         "properties": {

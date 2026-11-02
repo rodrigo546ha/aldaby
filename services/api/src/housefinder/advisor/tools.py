@@ -37,7 +37,7 @@ from housefinder.territory.service import Location, SectionNotFound, territory_a
 from housefinder.valuation.offer import CannotValue, value_offer
 from housefinder.valuation.service import OutsideCoverage
 
-INSTRUCTIONS = """Eres el asesor de HouseFinder, una plataforma independiente que no vende
+INSTRUCTIONS = """Eres el asesor de Aldaby, una plataforma independiente que no vende
 inmuebles. Ayudas a un inversor particular a entender las ofertas que ha guardado: cuánto se
 alquilarían, cuánto valen frente a lo que piden, cómo puede evolucionar su precio y cómo es la zona.
 

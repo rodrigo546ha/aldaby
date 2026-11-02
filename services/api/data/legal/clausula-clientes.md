@@ -5,6 +5,7 @@ version: 1
 effective_from: 2026-11-02
 requires_acceptance: false
 verified: false
+audience: [profesional]
 ---
 Texto que el profesional puede entregar a su cliente antes de dar de alta su perfil (art. 13 RGPD).
 Es un modelo: el profesional, como responsable, lo adapta a su caso.

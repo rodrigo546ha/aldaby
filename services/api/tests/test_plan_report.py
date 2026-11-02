@@ -87,9 +87,9 @@ def test_plan_con_la_marca_del_profesional(searchable, plan):  # noqa: F811
     assert "Asesoría &lt;Ana&gt;" in html and "<Ana>" not in html  # escapado
     assert "Segundo &lt;b&gt;párrafo&lt;/b&gt;." in html
     assert "color: #1f5f8b" in html and "data:image/png;base64," in html
-    assert "Cifras calculadas con HouseFinder, con las fuentes del anexo" in html
+    assert "Cifras calculadas con Aldaby, con las fuentes del anexo" in html
     plain = plan_html(plan, sources, TODAY)
-    assert "class='brand-name'" not in plain and "Cifras calculadas con HouseFinder" not in plain
+    assert "class='brand-name'" not in plain and "Cifras calculadas con Aldaby" not in plain
     weasyprint_or_skip()
     from housefinder.reports.pdf import plan_pdf
 

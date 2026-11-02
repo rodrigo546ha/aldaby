@@ -5,6 +5,7 @@ version: 1
 effective_from: 2026-11-02
 requires_acceptance: true
 verified: false
+audience: [profesional]
 ---
 Contrato del artículo 28 del RGPD entre el profesional (**responsable**) y el titular de
 {{servicio}}, {{titular}} (**encargado**), para los datos de los clientes del profesional.

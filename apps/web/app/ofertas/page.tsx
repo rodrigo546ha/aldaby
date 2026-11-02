@@ -1,6 +1,6 @@
 import { Offers } from "../../components/Offers";
 
-export const metadata = { title: "Ofertas · HouseFinder" };
+export const metadata = { title: "Ofertas · Aldaby" };
 
 export default function OffersPage() {
   return (

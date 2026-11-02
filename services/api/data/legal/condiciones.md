@@ -5,6 +5,7 @@ version: 1
 effective_from: 2026-11-02
 requires_acceptance: true
 verified: false
+audience: [profesional]
 ---
 ## A quién se aplican
 

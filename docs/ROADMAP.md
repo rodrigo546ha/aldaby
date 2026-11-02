@@ -397,8 +397,16 @@ umbral fijado en F0, y cada estimación con su rango.
 
 **Tareas**
 
-- [ ] F8.1 Página de presentación y alta.
-- [ ] F8.2 Nivel gratuito: perfil y capacidad de compra.
+- [x] F8.1 Página de presentación y alta.
+      *Hecho (ADR-0040):* página pública en `/` con la marca Aldaby y lista de espera (correo,
+      particular o profesional y consentimiento; sin IP ni navegador). El alta la da el
+      administrador desde la lista (`python -m housefinder.accounts espera` y
+      `alta … --rol particular`), con el enlace de un solo uso: no hay proveedor de correo hasta
+      F8.3. El simulador pasa a `/simulador`.
+- [x] F8.2 Nivel gratuito: perfil y capacidad de compra.
+      *Hecho (ADR-0040):* rol `particular` con su propio perfil (se crea solo), sus condiciones y
+      la privacidad v2; perfil, capacidad, simulador y búsqueda enteros, y plan completo de hasta
+      3 ofertas distintas (`data/niveles.yaml`; 402 al pasarse). Los profesionales, sin límite.
 - [ ] F8.3 Pase de compra con pasarela de pago.
 - [ ] F8.4 Derivación a intermediario hipotecario registrado (acuerdo de colaboración).
 - [ ] F8.5 Condiciones de uso, política de privacidad y avisos del plan revisados por un abogado.

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import { LegalAcceptance } from "../../../components/Legal";
 
-export const metadata = { title: "Condiciones · HouseFinder" };
+export const metadata = { title: "Condiciones · Aldaby" };
 
 export default function AcceptancePage() {
   return (

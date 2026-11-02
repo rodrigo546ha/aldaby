@@ -21,13 +21,14 @@ from argon2.exceptions import InvalidHashError, VerificationError
 from housefinder.db import accounts as sql
 from housefinder.db.connection import Connection
 from housefinder.db.profiles import get_or_create_organization
+from housefinder.db.waitlist import mark_invited
 
 MIN_PASSWORD = 12
 SESSION_DAYS = 14  # sin uso
 LINK_DAYS = 7
 MAX_ATTEMPTS = 5
 LOCK_MINUTES = 15
-ROLES = ("admin", "profesional")
+ROLES = ("admin", "profesional", "particular")
 HASHER = PasswordHasher()  # argon2id con los parámetros por defecto de argon2-cffi
 # Para que una cuenta que no existe tarde lo mismo que una que sí (no se distinguen)
 DUMMY_HASH = HASHER.hash(secrets.token_urlsafe(16))
@@ -60,8 +61,10 @@ def create_account(conn: Connection, email: str, organization: str, role: str,
     email = normalize_email(email)
     if sql.account_by_email(conn, email) is not None:
         raise AccountError("Ya hay una cuenta con ese correo")
-    org_id = get_or_create_organization(conn, organization, "profesional")
+    kind = "particular" if role == "particular" else "profesional"
+    org_id = get_or_create_organization(conn, organization, kind)
     account_id = sql.create_account(conn, org_id, email, role)
+    mark_invited(conn, email)  # si venía de la lista de espera (ADR-0040)
     return account_id, password_link(conn, account_id, now)
 
 

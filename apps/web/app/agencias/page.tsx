@@ -1,6 +1,6 @@
 import { Feeds } from "../../components/Feeds";
 
-export const metadata = { title: "Agencias · HouseFinder" };
+export const metadata = { title: "Agencias · Aldaby" };
 
 export default function AgenciesPage() {
   return (

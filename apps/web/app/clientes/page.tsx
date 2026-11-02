@@ -1,6 +1,6 @@
 import { Clients } from "../../components/Clients";
 
-export const metadata = { title: "Clientes · HouseFinder" };
+export const metadata = { title: "Clientes · Aldaby" };
 
 export default function ClientsPage() {
   return (

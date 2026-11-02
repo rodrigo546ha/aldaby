@@ -94,7 +94,7 @@ export function LegalAcceptance() {
 
   function next(): string {
     const target = params.get("siguiente");
-    return target && target.startsWith("/") && !target.startsWith("//") ? target : "/";
+    return target && target.startsWith("/") && !target.startsWith("//") ? target : "/simulador";
   }
 
   async function submit(event: FormEvent) {

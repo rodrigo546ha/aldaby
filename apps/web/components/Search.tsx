@@ -65,11 +65,26 @@ export function Search() {
     load();
   }, [load]);
 
+  // Nivel gratuito de un particular (ADR-0040): cuántos planes completos le quedan
+  const [plansLeft, setPlansLeft] = useState<number | null>(null);
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then(async (resp) => (resp.ok ? setPlansLeft((await resp.json()).free_plans_left ?? null) : null))
+      .catch(() => undefined);
+  }, []);
+
   return (
     <div className="search">
       {profile && <Assumptions profile={profile} onSaved={load} />}
       <section className="results" aria-live="polite" aria-labelledby="ranking-title">
         <h2 id="ranking-title">Ofertas para ti</h2>
+        {plansLeft !== null && (
+          <p className="hint">
+            {plansLeft === 0
+              ? "Has usado los planes completos del nivel gratuito: puedes volver a abrir esos."
+              : `Te ${plansLeft === 1 ? "queda 1 plan completo" : `quedan ${plansLeft} planes completos`} en el nivel gratuito. Volver a abrir uno no gasta otro.`}
+          </p>
+        )}
         {busy && <p className="empty">Calculando tu plan en cada oferta…</p>}
         {failure && <p className="failure">{failure}</p>}
         {missing.length > 0 && (

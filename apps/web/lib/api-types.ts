@@ -359,6 +359,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/waitlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Join */
+        post: operations["join_waitlist_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/waitlist/free-tier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Free Tier Info
+         * @description Lo que incluye el nivel gratuito, para la página de presentación (sin repetir el número).
+         */
+        get: operations["free_tier_info_waitlist_free_tier_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/valuation": {
         parameters: {
             query?: never;
@@ -1310,6 +1347,11 @@ export interface components {
             /** Alternatives */
             alternatives?: components["schemas"]["OfferRequest"][];
         };
+        /** FreeTierOut */
+        FreeTierOut: {
+            /** Full Plans */
+            full_plans: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1539,6 +1581,8 @@ export interface components {
              * @default []
              */
             pending_legal: string[];
+            /** Free Plans Left */
+            free_plans_left?: number | null;
         };
         /** OfferOut */
         OfferOut: {
@@ -2073,6 +2117,23 @@ export interface components {
             notes: string[];
             /** Attribution */
             attribution: string[];
+        };
+        /** WaitlistIn */
+        WaitlistIn: {
+            /** Email */
+            email: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "particular" | "profesional";
+            /** Consent */
+            consent: boolean;
+        };
+        /** WaitlistOut */
+        WaitlistOut: {
+            /** Message */
+            message: string;
         };
         /** ConfirmIn */
         housefinder__api__offers__ConfirmIn: {
@@ -2711,6 +2772,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    join_waitlist_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WaitlistIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WaitlistOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    free_tier_info_waitlist_free_tier_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreeTierOut"];
                 };
             };
         };

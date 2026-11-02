@@ -1,6 +1,6 @@
 import { Search } from "../../components/Search";
 
-export const metadata = { title: "Búsqueda · HouseFinder" };
+export const metadata = { title: "Búsqueda · Aldaby" };
 
 export default function SearchPage() {
   return (

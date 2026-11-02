@@ -19,6 +19,9 @@ from housefinder.api.deps import (
     OrgDep,
     ParamBookDep,
     RuleBookDep,
+    SessionDep,
+    check_full_plan,
+    is_particular,
 )
 from housefinder.api.figures import FigureOut, figure_out
 from housefinder.api.search import RentalAdviceOut, advice_out
@@ -26,6 +29,7 @@ from housefinder.branding import service as branding
 from housefinder.crypto.envelope import KeyProvider
 from housefinder.db.connection import Connection
 from housefinder.db.profiles import latest_profile_id
+from housefinder.db.tiers import record_plan_use
 from housefinder.params.book import ParamBook
 from housefinder.plans.service import FullPlan, PlanUnavailable, full_plan
 from housefinder.profiles import store
@@ -101,8 +105,8 @@ class ExplanationOut(BaseModel):
 
 @router.get("/offers/{offer_id}", response_model=PlanOut)
 def offer_plan(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
-               book: ParamBookDep, rules: RuleBookDep) -> PlanOut:
-    plan = _plan(db, keys, org, client, book, rules, offer_id)[1]
+               book: ParamBookDep, rules: RuleBookDep, current: SessionDep) -> PlanOut:
+    plan = _plan(db, keys, org, client, book, rules, offer_id, is_particular(current))[1]
     return PlanOut(
         offer_id=plan.offer_id, kind=plan.kind, title=plan.title, url=plan.url,
         auction=plan.auction, passes=plan.verdict.passes, reasons=list(plan.verdict.reasons),
@@ -123,9 +127,9 @@ def offer_plan(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: Cl
 @router.get("/offers/{offer_id}/pdf", response_class=Response,
             responses={200: {"content": {"application/pdf": {}}}})
 def offer_plan_pdf(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
-                   book: ParamBookDep, rules: RuleBookDep) -> Response:
+                   book: ParamBookDep, rules: RuleBookDep, current: SessionDep) -> Response:
     """El plan en PDF con su anexo de fuentes (ADR-0026). No se guarda: lleva datos personales."""
-    plan = _plan(db, keys, org, client, book, rules, offer_id)[1]
+    plan = _plan(db, keys, org, client, book, rules, offer_id, is_particular(current))[1]
     html = plan_html(plan, plan_sources(db, plan, rules, book), date.today(),
                      branding.load(db, org))
     try:
@@ -141,8 +145,9 @@ def offer_plan_pdf(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client
 
 @router.post("/offers/{offer_id}/explanation", response_model=ExplanationOut)
 def explanation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
-                book: ParamBookDep, rules: RuleBookDep, llm: LLMDep) -> ExplanationOut:
-    profile, plan = _plan(db, keys, org, client, book, rules, offer_id)
+                book: ParamBookDep, rules: RuleBookDep, llm: LLMDep,
+                current: SessionDep) -> ExplanationOut:
+    profile, plan = _plan(db, keys, org, client, book, rules, offer_id, is_particular(current))
     explained = explain_plan(db, book, llm, org, plan, profile, rules)
     answer = explained.answer
     return ExplanationOut(
@@ -152,17 +157,23 @@ def explanation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: C
 
 
 def _plan(db: Connection, keys: KeyProvider, org: UUID, client: UUID, book: ParamBook,
-          rules: RuleBook, offer_id: UUID) -> tuple[UserProfile, FullPlan]:
+          rules: RuleBook, offer_id: UUID,
+          particular: bool = False) -> tuple[UserProfile, FullPlan]:
     profile_id = latest_profile_id(db, org, client)
     if profile_id is None:
         raise HTTPException(status_code=404, detail="Confirma primero tu perfil en /perfil")
     profile = store.load(db, keys, profile_id, org)
+    record = check_full_plan(db, org, offer_id, particular)  # nivel gratuito (ADR-0040)
     try:
-        return profile, full_plan(db, book, rules, profile, org, offer_id)
+        plan = full_plan(db, book, rules, profile, org, offer_id)
     except SearchUnavailable as exc:
         raise HTTPException(status_code=422, detail=exc.reasons) from exc
     except PlanUnavailable as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    if record:
+        record_plan_use(db, org, offer_id)
+        db.commit()
+    return profile, plan
 
 
 def _segment(segment: Segment) -> SegmentOut:

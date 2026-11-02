@@ -19,6 +19,7 @@ from housefinder.api import (
     simulate,
     territory,
     valuation,
+    waitlist,
 )
 
 app = FastAPI(title="HouseFinder API", version="0.1.0")
@@ -29,6 +30,7 @@ app.include_router(boe.router)
 app.include_router(patrimonio.router)
 app.include_router(feeds.router)
 app.include_router(legal.router)
+app.include_router(waitlist.router)
 app.include_router(valuation.router)
 app.include_router(profiles.router)
 app.include_router(search.router)

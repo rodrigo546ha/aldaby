@@ -18,7 +18,15 @@ from housefinder.accounts.service import (
     log_out,
     set_password,
 )
-from housefinder.api.deps import CLIENT_COOKIE, SESSION_COOKIE, DbDep, SessionDep, pending_legal
+from housefinder.api.deps import (
+    CLIENT_COOKIE,
+    SESSION_COOKIE,
+    DbDep,
+    SessionDep,
+    free_plans_left,
+    is_particular,
+    pending_legal,
+)
 
 router = APIRouter(prefix="/auth", tags=["acceso"])
 
@@ -37,6 +45,7 @@ class MeOut(BaseModel):
     email: str
     role: str
     pending_legal: list[str] = []  # textos legales que faltan por aceptar (ADR-0039)
+    free_plans_left: int | None = None  # particular: planes completos que le quedan (ADR-0040)
 
 
 @router.post("/login", response_model=MeOut)
@@ -50,7 +59,8 @@ def login(body: LoginIn, db: DbDep, response: Response) -> MeOut:
     response.set_cookie(SESSION_COOKIE, token, max_age=SESSION_DAYS * 86400, httponly=True,
                         secure=secure_cookies(), samesite="lax", path="/")
     return MeOut(email=opened.email, role=opened.role,
-                 pending_legal=pending_legal(db, opened.account_id))
+                 pending_legal=pending_legal(db, opened.account_id, opened.role),
+                 free_plans_left=free_plans_left(db, opened.org_id, is_particular(opened)))
 
 
 @router.post("/logout", status_code=204)
@@ -65,7 +75,8 @@ def logout(request: Request, db: DbDep, response: Response) -> None:
 def me(current: SessionDep, db: DbDep) -> MeOut:
     if current is not None:
         return MeOut(email=current.email, role=current.role,
-                     pending_legal=pending_legal(db, current.account_id))
+                     pending_legal=pending_legal(db, current.account_id, current.role),
+                     free_plans_left=free_plans_left(db, current.org_id, is_particular(current)))
     if os.environ.get("HOUSEFINDER_DEV_ORG") == "1":  # en el Mac, sin cuenta (ADR-0028)
         return MeOut(email="desarrollo local", role="admin")
     raise HTTPException(status_code=401, detail="Inicia sesión para seguir")

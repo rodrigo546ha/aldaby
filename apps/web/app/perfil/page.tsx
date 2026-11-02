@@ -1,6 +1,6 @@
 import { Profile } from "../../components/Profile";
 
-export const metadata = { title: "Perfil · HouseFinder" };
+export const metadata = { title: "Perfil · Aldaby" };
 
 export default function ProfilePage() {
   return (
