@@ -55,6 +55,7 @@ from housefinder.regulation.resolvers import (
     ibi_annual,
     income_tax_profile,
     rental_tax_base,
+    stressed_zone,
     tax_params,
 )
 from housefinder.regulation.rules import RuleBook
@@ -321,11 +322,13 @@ def simulate(
         income = income_tax_profile(rules, buyer.residence, rental.contract_date,
                                     buyer.taxable_base, buyer.age, buyer.descendant_ages,
                                     (BUYER,), allow_unverified)
+    situation, zone_refs, zone_warnings = _zone_fact(rules, prop.territory, rental.contract_date,
+                                                     rental.situation, allow_unverified)
     tax = tax_params(
         rules,
         prop.territory,
         rental.contract_date,
-        rental.situation,
+        situation,
         marginal_rate=buyer.marginal_rate,
         marginal_rate_sources=(MARGINAL_RATE,) if buyer.marginal_rate is not None else (),
         include_pending=include_pending,
@@ -334,6 +337,7 @@ def simulate(
         housing_lease=rental.housing_lease,
         housing_lease_sources=rental.housing_lease_sources,
         residence=buyer.residence,
+        fact_sources=zone_refs,
     )
     investment = InvestmentInputs(
         price=prop.price,
@@ -421,7 +425,31 @@ def simulate(
         comparison=comparison,
         irr_alternatives=tuple(alternatives),
     )
-    return replace(sim, warnings=_warnings(sim, inp, criteria.max_ltv, max_years))
+    return replace(sim, warnings=(*zone_warnings,
+                                  *_warnings(sim, inp, criteria.max_ltv, max_years)))
+
+
+def _zone_fact(
+    rules: RuleBook, territory: str, on: date, situation: RentalFacts, allow_unverified: bool
+) -> tuple[RentalFacts, tuple[SourceRef, ...], tuple[str, ...]]:
+    """El hecho «zona tensionada» del contrato, desde la regla de zona del inmueble.
+
+    Con el municipio entero declarado, se marca y se cita la regla. Con solo una parte (barrios,
+    núcleos) no se supone: se avisa. Sin declarar o sin revisar, vale lo que diga el usuario,
+    que puede saber de una declaración que aún no está cargada.
+    """
+    try:
+        zone = stressed_zone(rules, territory, on, allow_unverified)
+    except LookupError:
+        return situation, (), ()
+    if not zone.declared or situation.stressed_zone:
+        return situation, (), ()
+    if zone.area is not None:
+        return situation, (), (
+            f"Solo parte del municipio es zona de mercado residencial tensionado ({zone.area}): "
+            "el plan no supone que el inmueble esté dentro. Si lo está, indícalo: puede cambiar "
+            "la reducción del IRPF del alquiler.",)
+    return situation.model_copy(update={"stressed_zone": True}), (zone.rule.ref,), ()
 
 
 def _years_later(day: date, years: int) -> date:

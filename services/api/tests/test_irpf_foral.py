@@ -94,3 +94,40 @@ def test_residente_foral_sin_regla_propia_no_usa_la_estatal(rules):
     with pytest.raises(LookupError, match="rendimiento_alquiler_irpf"):
         tax_params(rules, "ES-13-28079", date(2026, 11, 3), situation, marginal_rate=D("0.3"),
                    allow_unverified=True, residence="ES-16-20")
+
+
+# --- Zona tensionada deducida de las reglas -----------------------------------------------
+
+
+def test_zona_tensionada_desde_la_regla_del_inmueble(rules):
+    from housefinder.planning.simulate import _zone_fact
+    from housefinder.regulation.kinds import RentalFacts
+
+    hoy = date(2026, 11, 3)
+    nada = RentalFacts(contract="primer-alquiler", large_holder=False)
+    # Bilbao, declarado entero desde el 31/10/2025: se marca y se cita la regla
+    facts, refs, warnings = _zone_fact(rules, "ES-16-48020", hoy, nada, True)
+    assert facts.stressed_zone and [r.id for r in refs] == ["pais-vasco-zona-tensionada-48020"]
+    assert warnings == ()
+    # Gijón, solo dos barrios: no se supone, se avisa
+    facts, refs, warnings = _zone_fact(rules, "ES-03-33024", hoy, nada, True)
+    assert not facts.stressed_zone and refs == () and "Cimadevilla" in warnings[0]
+    # Madrid, sin declarar; y un territorio sin reglas: lo que diga el usuario
+    for territory in ("ES-13-28079", "ES-99-99001"):
+        assert _zone_fact(rules, territory, hoy, nada, True) == (nada, (), ())
+    dicho = nada.model_copy(update={"stressed_zone": True})
+    assert _zone_fact(rules, "ES-13-28079", hoy, dicho, True)[0].stressed_zone
+
+
+def test_pamplona_tiene_la_reduccion_navarra_sin_decirlo(rules, params):
+    # Misma oferta con el IBI del recibo y sin plusvalía, en Pamplona (tensionada) y en Abáigar
+    # (no): la reducción del 50 % del art. 25.2.b solo llega a Pamplona
+    def plan(territory: str):
+        return simulate(en("ES-15", territory, ibi_annual=D(250), cadastral_land_value=None),
+                        rules, params, allow_unverified=True)
+
+    pamplona = {f.key: f for f in plan("ES-15-31201").figures()}
+    abaigar = {f.key: f for f in plan("ES-15-31001").figures()}
+    ids = {s.id for s in pamplona["cashflow.annual_tax"].sources}
+    assert {"navarra-reduccion-alquiler", "navarra-zona-tensionada-31201"} <= ids
+    assert 0 < pamplona["cashflow.annual_tax"].value < abaigar["cashflow.annual_tax"].value

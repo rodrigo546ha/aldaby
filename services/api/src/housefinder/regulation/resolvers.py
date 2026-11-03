@@ -192,6 +192,7 @@ def tax_params(
     housing_lease: bool = True,
     housing_lease_sources: tuple[SourceRef, ...] = (),
     residence: str | None = None,
+    fact_sources: tuple[SourceRef, ...] = (),
 ) -> TaxParams:
     """Parámetros fiscales del alquiler para el motor de cash flow.
 
@@ -202,6 +203,9 @@ def tax_params(
     `housing_lease=False`: la renta no es de alquiler de vivienda (temporada, turístico…) y no
     tiene la reducción del art. 23.2; `housing_lease_sources` cita la regla que lo dice
     (ADR-0024).
+
+    `fact_sources`: de dónde salen los hechos de `situation` que no da el usuario (la regla de
+    zona tensionada).
 
     `residence`: con un IRPF foral, el alquiler tributa según su norma, y ninguna regla estatal
     del IRPF le sirve (ADR-0046). La deducción de Ceuta y Melilla va por el inmueble.
@@ -214,7 +218,8 @@ def tax_params(
             return _foral_tax_params(
                 book, residence, contract_date, situation, marginal_rate,
                 marginal_rate_sources, include_pending, allow_unverified, income,
-                housing_lease, housing_lease_sources, regime_refs + deduction_refs, deduction)
+                housing_lease, housing_lease_sources,
+                regime_refs + deduction_refs + fact_sources, deduction)
     reduction_value = Decimal(0)
     reduction_sources: tuple[SourceRef, ...] = housing_lease_sources
     if housing_lease:
@@ -234,7 +239,7 @@ def tax_params(
         depreciation_rate=_rate(depreciation_rule),
         interest_repair_carryforward_years=limit.carryforward_years,
         sources=(*reduction_sources, depreciation_rule.ref, limit_rule.ref,
-                 *marginal_rate_sources, *deduction_refs),
+                 *marginal_rate_sources, *deduction_refs, *fact_sources),
         income_tax=income,
         territorial_deduction=deduction,
     )

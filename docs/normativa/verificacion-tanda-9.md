@@ -155,7 +155,7 @@
 - La escala general sale del BOE (Ley Foral 22/2023): en lexnavarra es una imagen de otro dominio que no se descargó. No se ha podido descartar una ley foral de 2026 que cambie el IRPF.
 - Escala del ahorro: desde cuándo rige el 28 % del último tramo.
 - Mínimo personal por edad: se modela que 585 € (75 años) sustituye a 264 € (65), no que se suman.
-- Reducción del 50 % del alquiler en zona tensionada: exige el contrato inscrito en el Registro de Navarra (el plan lo supone hecho); el hecho «zona tensionada» lo pone el usuario.
+- Reducción del 50 % del alquiler en zona tensionada: exige el contrato inscrito en el Registro de Navarra (el plan lo supone hecho). El hecho «zona tensionada» sale de la regla de zona del municipio.
 - Zonas tensionadas: la vigencia se cuenta desde el BON (14/06/2025); el BOE la cuenta desde el 30/07/2025.
 - Coeficientes máximos de la plusvalía: la tabla del art. 175.2 puede no estar actualizada para 2026.
 - Fecha de publicación en el BON de las ordenanzas de Pamplona para 2026; alquiler turístico de Pamplona sin texto oficial.

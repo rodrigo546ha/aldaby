@@ -75,8 +75,9 @@ cambia respecto del motor común:
   - en Álava, el 35 % de los núcleos rurales;
   - el seguro de impago;
   - ascendientes y discapacidad.
-- **El hecho «zona tensionada» del contrato** lo pone el usuario. El plan no lo deduce aún de las
-  reglas de zona.
+- **Zona tensionada parcial.** Si el municipio entero está declarado, el plan marca el hecho del
+  contrato y cita la regla. Si solo lo están algunos barrios (Asturias, Galdakao, Vitoria-Gasteiz
+  sin su zona rural), no lo supone y avisa. Sin declaración, vale lo que diga el usuario.
 
 ## Consecuencias
 - Un residente en Navarra, Bizkaia o Álava tiene plan con su IRPF, y un madrileño que compra en
