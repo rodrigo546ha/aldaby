@@ -222,6 +222,11 @@ def test_api_de_busqueda(searchable, org):
         found = client.get("/search").json()
         assert [r["offer_id"] for r in found["ranked"]] == [str(offer)]
         assert found["ranked"][0]["passes"] is True
+        # El mapa (ADR-0051): el punto del inmueble y de dónde sale
+        from test_offer_valuation import LAT, LON
+        place = found["ranked"][0]
+        assert (place["lon"], place["lat"]) == (pytest.approx(LON), pytest.approx(LAT))
+        assert place["location_source"] == "cartociudad"
         assert found["market"][0]["key"] == "assumption.mortgage_rate"
         advice = found["ranked"][0]["advice"]
         assert advice["recommended"] == "habitual"

@@ -15,3 +15,6 @@ services/api/tests
 docs
 .claude
 **/.DS_Store
+# El mapa base se sirve desde un volumen, no desde la imagen (ADR-0051)
+**/*.pmtiles
+.herramientas

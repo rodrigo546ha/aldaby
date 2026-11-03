@@ -205,6 +205,7 @@ make rules-check  # valida data/rules (catálogo de tipos, vigencias, revisor)
 make api       # API en http://localhost:8000 (docs en /docs)
 make web       # web en http://localhost:3000 (llama a la API por /api)
 make openapi   # regenera los tipos de la web desde el OpenAPI de la API
+make mapa      # mapa base: extracto de OpenStreetMap de Protomaps (Madrid; MAPA_BBOX para otra zona, ADR-0051)
 make requisitos-api  # versiones de la imagen de la API desde el entorno probado (ADR-0040)
                  # servidor: infra/produccion/desplegar.sh housefinder@IP (guía en docs/DESPLIEGUE.md)
 ```

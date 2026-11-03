@@ -50,6 +50,8 @@ services:
       HOUSEFINDER_DOMAIN: ${HOUSEFINDER_DOMAIN:?falta HOUSEFINDER_DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Mapa base (ADR-0051): teselas.pmtiles, generado con make mapa
+      - ${HOUSEFINDER_MAPA:-/srv/housefinder/mapa}:/srv/mapa:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:

@@ -13,6 +13,7 @@ import { ThemeToggle } from "./Theme";
 // con su propio perfil: no ve Clientes, Agencias ni Marca, que son del profesional.
 
 const LINKS = [
+  { href: "/mapa", label: "Mapa", professional: false },
   { href: "/simulador", label: "Simulador", professional: false },
   { href: "/clientes", label: "Clientes", professional: true },
   { href: "/perfil", label: "Perfil", professional: false },

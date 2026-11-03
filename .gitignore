@@ -14,3 +14,8 @@ services/api/tests/fixtures/private/
 .DS_Store
 infra/produccion/.commit
 infra/produccion/.estado/
+
+# Mapa base (ADR-0051): el extracto pesa cientos de MB; la herramienta pmtiles, en local
+apps/web/public/mapa/*.pmtiles
+apps/web/public/mapa/maplibre-gl-worker.mjs
+.herramientas/

@@ -60,6 +60,10 @@ class ScoredOut(BaseModel):
     figures: list[FigureOut]
     notes: list[str]
     advice: RentalAdviceOut | None
+    # El punto del inmueble y de dónde sale, para el mapa (ADR-0051)
+    lon: float | None = None
+    lat: float | None = None
+    location_source: str | None = None
 
 
 class SkippedOut(BaseModel):
@@ -92,7 +96,8 @@ def reverse_search(db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
             passes=s.verdict.passes, reasons=list(s.verdict.reasons),
             metric=figure_out(s.verdict.metric) if s.verdict.metric else None,
             figures=[figure_out(f) for f in s.figures], notes=list(s.notes),
-            advice=advice_out(s.advice) if s.advice else None)
+            advice=advice_out(s.advice) if s.advice else None,
+            lon=s.lon, lat=s.lat, location_source=s.location_source)
             for s in report.ranked],
         skipped=[SkippedOut(offer_id=s.offer_id, title=s.title, reason=s.reason)
                  for s in report.skipped],

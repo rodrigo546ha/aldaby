@@ -35,6 +35,7 @@
   --chart-1: #eaf6f0;
   --chart-2: #f2c66b;
   --chart-3: #6fc29c;
+  --map-icon: invert(1);
 
   --font-ui: var(--font-text), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-head: var(--font-display), var(--font-ui);
@@ -79,6 +80,7 @@
     --chart-1: #0f3b2e;
     --chart-2: #9a6a0a;
     --chart-3: #4f8a70;
+    --map-icon: none;
     color-scheme: light;
   }
 }
@@ -110,6 +112,7 @@
   --chart-1: #0f3b2e;
   --chart-2: #9a6a0a;
   --chart-3: #4f8a70;
+  --map-icon: none;
   color-scheme: light;
 }
 
@@ -997,6 +1000,202 @@ td { color: var(--mist); }
   .diverging-track { grid-column: 1 / -1; grid-row: 2; }
   .paired-row { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
   .paired-track { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* ───────── Mapa de ofertas (ADR-0051) ─────────
+ * A la izquierda la lista, a la derecha el mapa; en móvil, uno u otro con un botón. */
+
+main.map-page { max-width: none; padding: 0; }
+.offer-map {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  height: calc(100svh - 109px);
+  min-height: 520px;
+}
+.map-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  padding: 20px var(--gutter) 20px;
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+}
+.map-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--mist);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  text-decoration: none;
+  transition: background-color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease);
+}
+.chip:hover { background: var(--raised); filter: none; }
+.chip[aria-pressed="true"] { background: var(--raised-2); border-color: var(--mark); color: var(--strong); }
+.map-count { margin: 0; color: var(--muted); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+.map-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.map-items li + li { border-top: 1px solid var(--line); }
+.map-items button {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  min-height: 0;
+  margin: 2px 0;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: left;
+}
+.map-items button:hover { background: var(--raised); filter: none; }
+.map-items button[aria-current="true"] { background: var(--raised-2); }
+.map-item-title {
+  color: var(--strong);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.map-item-figures { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.map-item-figures strong { display: inline-flex; align-items: baseline; gap: 0.25em; color: var(--stat); font-family: var(--font-head); font-size: 1.125rem; font-weight: 500; }
+.map-item-figures .figure-unit { font-size: 0.7em; }
+
+.map-stage { position: relative; min-width: 0; }
+/* .maplibregl-map trae position: relative; el lienzo tiene que ocupar todo el escenario */
+.map-canvas, .map-canvas.maplibregl-map { position: absolute; inset: 0; background: var(--canvas); }
+.map-tools { position: absolute; top: 12px; left: 12px; z-index: 2; display: flex; gap: 8px; }
+.map-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  background: var(--canvas);
+  color: var(--strong);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.map-tool:hover { background: var(--raised); filter: none; }
+.map-tool svg { width: 18px; height: 18px; }
+.offer-map { position: relative; }
+.map-toggle { display: none; position: absolute; top: 12px; right: 12px; z-index: 4; }
+.map-notice {
+  position: absolute;
+  top: 64px;
+  left: 12px;
+  z-index: 2;
+  max-width: min(420px, calc(100% - 24px));
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  font-size: 13px;
+  backdrop-filter: blur(6px);
+}
+
+/* Ficha de una oferta: sube desde abajo, se cierra con la X o con Escape */
+.offer-sheet {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(400px, calc(100% - 32px));
+  padding: 22px 24px 24px;
+  border-radius: var(--radius);
+  background: var(--raised);
+  animation: rise var(--dur-3) var(--ease) both;
+}
+.offer-sheet h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.offer-sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.sheet-close {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+}
+.sheet-close:hover { background: var(--raised-2); filter: none; }
+.sheet-close svg { width: 16px; height: 16px; }
+.offer-sheet-figures { display: flex; flex-wrap: wrap; gap: 14px 28px; }
+.offer-sheet-figures > div { display: flex; flex-direction: column; gap: 6px; }
+.sheet-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.2em;
+  color: var(--stat);
+  font-family: var(--font-head);
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sheet-value .figure-unit { font-size: 0.6em; }
+.button-link.primary { border: 0; background: var(--cta); color: var(--cta-text); }
+.button-link.primary:hover { background: var(--cta); filter: var(--cta-hover); }
+
+/* Controles de MapLibre con los colores del tema (el estilo global de button no les toca) */
+.maplibregl-ctrl-group { background: var(--canvas) !important; border: 1px solid var(--line-strong); border-radius: var(--radius-sm) !important; box-shadow: none !important; }
+.maplibregl-ctrl button {
+  min-height: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent !important;
+  color: var(--strong);
+  letter-spacing: 0;
+  text-transform: none;
+  filter: none;
+}
+.maplibregl-ctrl button:hover { background-color: var(--raised) !important; filter: none; }
+.maplibregl-ctrl button .maplibregl-ctrl-icon { filter: var(--map-icon); }
+.maplibregl-ctrl-group button + button { border-top: 1px solid var(--line) !important; }
+.maplibregl-ctrl-attrib { background: var(--canvas) !important; color: var(--muted); font-size: 11px; }
+.maplibregl-ctrl-attrib a { color: var(--mist); }
+.maplibregl-ctrl-attrib-button { filter: var(--map-icon); }
+
+@media (max-width: 920px) {
+  .offer-map { grid-template-columns: 1fr; height: calc(100svh - 109px); }
+  .offer-map.view-mapa .map-list { display: none; }
+  .offer-map.view-lista .map-stage { display: none; }
+  .map-list { border-right: 0; }
+  /* el botón de volver al mapa va arriba a la derecha: la lista empieza debajo */
+  .offer-map.view-lista .map-list { padding-top: 64px; }
+  .map-toggle { display: inline-flex; }
+  .offer-sheet { left: 0; right: 0; bottom: 0; width: auto; border-radius: var(--radius) var(--radius) 0 0; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 }
 
 /* ───────── Clientes, marca, acceso ───────── */

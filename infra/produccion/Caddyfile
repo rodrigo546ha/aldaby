@@ -21,6 +21,13 @@
 		}
 	}
 
+	# Mapa base (ADR-0051): el extracto de OpenStreetMap, por partes (HTTP Range), desde su volumen.
+	# No va en la imagen de la web: pesa varios GB.
+	handle /mapa/teselas.pmtiles {
+		root * /srv
+		file_server
+	}
+
 	handle {
 		reverse_proxy web:3000
 	}

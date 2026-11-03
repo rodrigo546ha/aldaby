@@ -3,13 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/worker-del-mapa.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/worker-del-mapa.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@protomaps/basemaps": "5.7.2",
+    "maplibre-gl": "6.15.0",
     "next": "^15.0.0",
+    "pmtiles": "4.5.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

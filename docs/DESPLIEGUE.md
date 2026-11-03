@@ -127,6 +127,14 @@ Las órdenes de cada carga están en el `Makefile` (`sections`, `adrh`, `serpavi
 - **`hacienda_ibi`** no carga la base: escribe reglas en `data/rules`. Se ejecuta en el Mac, se
   hace commit y se despliega.
 
+**El mapa base** (ADR-0051) no va en la imagen: se genera en el Mac con el extracto de España y se
+sube a la carpeta del mapa, que Caddy sirve en `/mapa/teselas.pmtiles`. Pesa varios GB.
+
+```bash
+make mapa MAPA_BBOX=-18.4,27.5,4.6,44.0 MAPA_DESTINO=espana.pmtiles
+scp espana.pmtiles housefinder@IP:/srv/housefinder/mapa/teselas.pmtiles
+```
+
 ## 6. Avisos (Healthchecks.io)
 
 En Healthchecks.io, crea dos comprobaciones y pon sus URL de ping en `config.env`:

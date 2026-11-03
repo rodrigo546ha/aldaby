@@ -2128,6 +2128,12 @@ export interface components {
             /** Notes */
             notes: string[];
             advice: components["schemas"]["RentalAdviceOut"] | null;
+            /** Lon */
+            lon?: number | null;
+            /** Lat */
+            lat?: number | null;
+            /** Location Source */
+            location_source?: string | null;
         };
         /** SearchAssumptionsIn */
         SearchAssumptionsIn: {

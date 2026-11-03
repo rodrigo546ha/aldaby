@@ -77,6 +77,10 @@ class Scored:
     figures: tuple[Figure, ...]  # precio, renta, plan y supuestos de esta oferta
     notes: tuple[str, ...] = ()
     advice: OfferRentalAdvice | None = None  # tipo de alquiler y gestión (F6.6)
+    # El punto del inmueble y de dónde sale, para el mapa (ADR-0051)
+    lon: float | None = None
+    lat: float | None = None
+    location_source: str | None = None
 
 
 @dataclass(frozen=True)
@@ -247,7 +251,7 @@ def evaluate(p: Prepared, rules: RuleBook, book: ParamBook, profile: UserProfile
         advice = None
         notes.append(f"Sin recomendación de tipo de alquiler: {exc}")
     return Scored(c.offer_id, c.kind, c.title, c.url, c.asking_price is None, verdict,
-                  tuple(figures), tuple(notes), advice)
+                  tuple(figures), tuple(notes), advice, c.lon, c.lat, c.location_source)
 
 
 def judge_plan(plan: InvestmentSimulation, inp: SimulationInput, rent: Figure, rules: RuleBook,

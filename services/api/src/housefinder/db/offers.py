@@ -632,13 +632,14 @@ class SearchCandidate:
     section_code: str
     extracted: dict[str, Any] | None
     deposit_required: Decimal | None = None  # depósito para pujar, si el anuncio lo dice
+    location_source: str | None = None  # de dónde sale el punto: catastro, cartociudad… (ADR-0051)
 
 
 _CANDIDATES = """
     SELECT o.id, o.kind, o.title, o.url, o.asking_price, o.auction_min_bid,
            coalesce(o.built_area_m2, p.built_area_m2),
            ST_X(p.location::geometry), ST_Y(p.location::geometry), p.section_code, o.extracted,
-           o.deposit_required
+           o.deposit_required, o.location_source
     FROM offers o JOIN properties p ON p.id = o.property_id
     WHERE p.location IS NOT NULL AND p.section_code IS NOT NULL
       AND ((o.org_id = %(org)s AND o.kind = 'enlace' AND o.extraction_status = 'confirmada')

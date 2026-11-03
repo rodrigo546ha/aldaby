@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler supuestos backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi evaluar requisitos-api
+.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler supuestos backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi evaluar requisitos-api mapa
 
 # Configuración local (copia de .env.example, fuera de git): LLM, base de datos, claves…
 -include .env
@@ -121,6 +121,21 @@ api:
 
 web:
 	cd apps/web && npm run dev
+
+# Mapa base (ADR-0051): extracto de OpenStreetMap de un build de Protomaps, leído por partes (HTTP
+# Range). pmtiles es go-pmtiles (github.com/protomaps/go-pmtiles); en el Mac, en .herramientas/. Por
+# defecto, la Comunidad de Madrid hasta zoom 15 (unos 120 MB). España con Canarias:
+# MAPA_BBOX=-18.4,27.5,4.6,44.0 MAPA_DESTINO=/srv/housefinder/mapa/teselas.pmtiles
+PMTILES ?= $(if $(wildcard .herramientas/pmtiles),.herramientas/pmtiles,pmtiles)
+MAPA_BUILD ?= 20261103
+MAPA_BBOX ?= -4.58,39.88,-3.05,41.17
+MAPA_ZOOM ?= 15
+MAPA_DESTINO ?= apps/web/public/mapa/teselas.pmtiles
+
+mapa:
+	mkdir -p $(dir $(MAPA_DESTINO))
+	$(PMTILES) extract https://build.protomaps.com/$(MAPA_BUILD).pmtiles $(MAPA_DESTINO) \
+		--bbox=$(MAPA_BBOX) --maxzoom=$(MAPA_ZOOM)
 
 # Tipos de la web generados desde el OpenAPI de la API (D11), sin arrancar el servidor.
 openapi:
