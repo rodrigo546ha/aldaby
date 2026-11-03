@@ -56,7 +56,8 @@ ipc-alquiler:
 
 # Backtesting del modelo de renta y precio (F5.6)
 # Supuestos del plan desde fuentes públicas (ADR-0022): tipos del Banco de España y del INE,
-# estadísticas del Catastro, gasto de la vivienda de la EPF y reglas del IBI de Hacienda.
+# estadísticas del Catastro, gasto de la vivienda de la EPF y reglas del IBI y de la plusvalía
+# de Hacienda (ADR-0044).
 CATASTRO_YEAR ?= 2026
 IBI_YEAR ?= 2026
 supuestos:
@@ -65,6 +66,7 @@ supuestos:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.catastro_urbana --year $(CATASTRO_YEAR) --province $(PROVINCE)
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_epf
 	cd services/api && $(VENV)/python -m housefinder.ingestion.hacienda_ibi --year $(IBI_YEAR)
+	cd services/api && $(VENV)/python -m housefinder.ingestion.hacienda_plusvalia --year $(IBI_YEAR)
 
 backtest:
 	cd services/api && $(VENV)/python -m housefinder.valuation.backtest --province $(PROVINCE) --region $(REGION)

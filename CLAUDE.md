@@ -148,6 +148,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     ingestion/ine_ipc_alquiler.py  componente de alquiler del IPC del INE por comunidad, mensual
     ingestion/bde_tipos.py, ine_hipotecas.py, catastro_urbana.py, ine_epf.py, hacienda_ibi.py
                           fuentes de los supuestos del plan (ADR-0022); hacienda_ibi genera reglas
+    ingestion/hacienda_plusvalia.py  tipo y coeficientes de la plusvalía de cada municipio del mismo
+                          libro de Hacienda: genera data/rules/plusvalia_hacienda.yaml (ADR-0044)
     db/references.py      referencias de alquiler y de precio (market_references)
     api/main.py           aplicación FastAPI; un router por dominio (simulate, territory, offers, boe, valuation)
   data/rules/             reglas de normativa en YAML

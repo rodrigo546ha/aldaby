@@ -302,5 +302,8 @@
   - Cargado: 29,88 % de 0 a 5 años, 28,88 % de 6 a 10, 26,89 % de 11 a 15 y 25,90 % de 16 en adelante.
   - Fuente: https://www.toledo.es/wp-content/uploads/2016/11/of-no-02-impuesto-sobre-el-incremento-del-valor-de-los-terrenos-de-naturaleza-urbana-2024.pdf (Ordenanza n.º 2, art. 11)
   - Dudoso: la fecha de inicio supone el BOP de Toledo n.º 49 de 11/03/2022. El agente lo descargó antes de ver que el robots.txt del BOP lo prohíbe; lo borró y no lo usó. Hay que confirmarla a mano, igual que si hubo cambios después.
-- Guadalajara, sin regla: guadalajara.es bloquea a los agentes de Anthropic en su robots.txt. El agente descargó la ordenanza con curl; no se ha usado. Para leerla a mano: Ordenanza fiscal n.º 7, art. 11, https://www.guadalajara.es/recursos/doc/portal/2023/12/28/07-ordenanza-fiscal-reguladora-del-impuesto-sobre-el-incremento-del-valor-de-los90546.pdf
+- Guadalajara: el tipo viene ahora del libro de Hacienda (`plusvalia_hacienda.yaml`, ADR-0044): 30 % hasta 18 años, 25 % a los 19 y 18 % desde 20. guadalajara.es bloquea a los agentes de Anthropic en su robots.txt; el agente descargó la ordenanza con curl y no se ha usado. Para contrastarla a mano: Ordenanza fiscal n.º 7, art. 11, https://www.guadalajara.es/recursos/doc/portal/2023/12/28/07-ordenanza-fiscal-reguladora-del-impuesto-sobre-el-incremento-del-valor-de-los90546.pdf
 
+## 8. Contraste con el libro de Hacienda de 2026 (ADR-0044)
+
+Las 25 reglas de plusvalía leídas en ordenanzas (tandas 6 a 8) coinciden con el libro de Hacienda de 2026, incluidos los tipos por años de Gijón y Toledo. Huesca (tipo 0, ordenanza derogada) no figura entre los municipios con el impuesto, como se esperaba.

@@ -32,6 +32,7 @@ condiciones de reutilización y sin quedar registrada en la tabla `sources`.
 | Hipotecas | INE, Estadística de Hipotecas, tabla 76315 | API del INE, mensual, nacional (fijo, variable y total) | F6 | Cargado, solo contraste (ADR-0022) |
 | Catastro | Estadísticas catastrales urbanas por municipio (`URBANA{año}.xls`) | XLS anual; reproducción autorizada citando el origen | F6 | Cargado 2026 de Madrid (ADR-0022): valor catastral residencial medio y parte de construcción |
 | Impuestos | Ministerio de Hacienda, Oficina Virtual EELL: tipos del IBI por municipio | PDF anual por comunidad (municipios de más de 1.000 habitantes); reutilización citando la fuente | F6 | Reglas `tipo_ibi` sin verificar en `data/rules/ibi_hacienda_2026.yaml` (ADR-0022) |
+| Impuestos | Ministerio de Hacienda, Oficina Virtual EELL: tipo y coeficientes de la plusvalía municipal por municipio | El mismo PDF, tercera parte; sin robots.txt en el servidor | F6 | Reglas `tipo_plusvalia` y `coeficientes_plusvalia` sin verificar en `data/rules/plusvalia_hacienda.yaml` (ADR-0044) |
 | Gastos | INE, Encuesta de Presupuestos Familiares, tabla 73993 | API del INE, anual, por comunidad: gastos comunitarios, seguros y mantenimiento de la vivienda | F6 | Cargado 2023–2025 (ADR-0022); medias de todos los hogares, se quedan cortas |
 | Precio | Portal Estadístico del Notariado | Visor con registro; términos: uso personal, sin uso comercial | F5 | Descartado sin autorización escrita |
 

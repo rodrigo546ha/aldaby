@@ -25,12 +25,16 @@ class DatedRecord(Protocol):
 
 R = TypeVar("R", bound=DatedRecord)
 
+# El lector seguro en C (libyaml) lee lo mismo que yaml.safe_load, unas diez veces más deprisa:
+# las reglas generadas de Hacienda son miles (ADR-0044)
+_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+
 
 def load_yaml_records(path: Path) -> list[dict[str, Any]]:
     """Todos los registros de los `*.yaml` de una carpeta, en orden de fichero."""
     records: list[dict[str, Any]] = []
     for file in sorted(path.glob("*.yaml")):
-        records.extend(yaml.safe_load(file.read_text(encoding="utf-8")) or [])
+        records.extend(yaml.load(file.read_text(encoding="utf-8"), Loader=_LOADER) or [])
     return records
 
 

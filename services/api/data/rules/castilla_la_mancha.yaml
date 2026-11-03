@@ -11,7 +11,7 @@
 # PENDIENTE (sin regla escrita):
 # - minimo_contribuyente y minimo_descendientes: Castilla-La Mancha NO tiene mínimos propios en la
 #   Ley 8/2013 vigente (solo deducciones que citan el mínimo estatal); rigen los del Estado.
-# - tipo_plusvalia de Guadalajara: ver notas al final.
+# - Ordenanza de plusvalía de Guadalajara sin leer (el tipo sale del libro de Hacienda): ver notas al final.
 # - Régimen urbanístico municipal del alquiler turístico (Toledo, Guadalajara): no leído.
 # - Resolución del Ministerio del tercer trimestre de 2026 (aún no localizada) y la del segundo de 2024.
 
@@ -129,11 +129,10 @@
   notes: "Decreto 36/2018, de 29 de mayo, de ordenación de los apartamentos turísticos y las viviendas de uso turístico en Castilla-La Mancha, texto de la sede del DOCM sin notas de modificación. Pendiente comprobar si lo ha modificado alguna norma posterior (informes de prensa mencionan un anteproyecto de ley que exigiría la declaración responsable antes de anunciar; sin fuente oficial leída) y las limitaciones urbanísticas municipales."
 
 # --- Plusvalía municipal (IIVTNU) --------------------------------------------------------------------
-# - Guadalajara (INE 19130): SIN REGLA hasta que Rodrigo lea la ordenanza a mano. El robots.txt de
-#   guadalajara.es bloquea a los agentes de Anthropic, así que no se carga desde una descarga automática.
-#   Ordenanza fiscal nº 7 (IIVTNU), art. 11, texto vigente desde 01/01/2024 (BOP nº 245, 28/12/2023, que
-#   no toca el art. 11): https://www.guadalajara.es/recursos/doc/portal/2023/12/28/07-ordenanza-fiscal-reguladora-del-impuesto-sobre-el-incremento-del-valor-de-los90546.pdf
-#   Comprobar la tabla del art. 11 (un tipo por año de generación) y desde cuándo rige.
+# - Guadalajara (INE 19130): su tipo viene del libro de Hacienda (plusvalia_hacienda.yaml, ADR-0044).
+#   Su ordenanza no se ha leído aquí: guadalajara.es bloquea a los agentes de Anthropic. Para leerla a
+#   mano: Ordenanza fiscal nº 7, art. 11,
+#   https://www.guadalajara.es/recursos/doc/portal/2023/12/28/07-ordenanza-fiscal-reguladora-del-impuesto-sobre-el-incremento-del-valor-de-los90546.pdf
 
 # Toledo: Ordenanza Fiscal nº 2, art. 11, con un tipo por periodo de generación (TRLRHL, art. 108.1).
 # Versión de 2024 publicada en toledo.es; los tipos son los de la modificación de 2022.
