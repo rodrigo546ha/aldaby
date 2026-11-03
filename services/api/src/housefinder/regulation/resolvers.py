@@ -40,6 +40,7 @@ from housefinder.regulation.kinds import (
     ReductionCases,
     RentalFacts,
     RentalRegime,
+    RentalTaxTreatment,
     TaxpayerMinimum,
     TransferTaxParams,
     ZoneDeclaration,
@@ -190,6 +191,7 @@ def tax_params(
     income: IncomeTaxProfile | None = None,
     housing_lease: bool = True,
     housing_lease_sources: tuple[SourceRef, ...] = (),
+    residence: str | None = None,
 ) -> TaxParams:
     """Parámetros fiscales del alquiler para el motor de cash flow.
 
@@ -200,7 +202,19 @@ def tax_params(
     `housing_lease=False`: la renta no es de alquiler de vivienda (temporada, turístico…) y no
     tiene la reducción del art. 23.2; `housing_lease_sources` cita la regla que lo dice
     (ADR-0024).
+
+    `residence`: con un IRPF foral, el alquiler tributa según su norma, y ninguna regla estatal
+    del IRPF le sirve (ADR-0046). La deducción de Ceuta y Melilla va por el inmueble.
     """
+    deduction, deduction_refs = tax_rebate(book, "deduccion_irpf_rentas_territorio", territory,
+                                           contract_date, include_pending, allow_unverified)
+    if residence is not None:
+        regime, regime_refs = irpf_regime(book, residence, contract_date, allow_unverified)
+        if regime == "foral":
+            return _foral_tax_params(
+                book, residence, contract_date, situation, marginal_rate,
+                marginal_rate_sources, include_pending, allow_unverified, income,
+                housing_lease, housing_lease_sources, regime_refs + deduction_refs, deduction)
     reduction_value = Decimal(0)
     reduction_sources: tuple[SourceRef, ...] = housing_lease_sources
     if housing_lease:
@@ -214,8 +228,6 @@ def tax_params(
     limit = parse_params(limit_rule.kind, limit_rule.params)
     if not isinstance(limit, InterestRepairLimit):
         raise TypeError(f"{limit_rule.id}: se esperaba un límite de intereses y reparación")
-    deduction, deduction_refs = tax_rebate(book, "deduccion_irpf_rentas_territorio", territory,
-                                           contract_date, include_pending, allow_unverified)
     return TaxParams(
         marginal_rate=marginal_rate,
         rental_income_reduction=reduction_value,
@@ -226,6 +238,92 @@ def tax_params(
         income_tax=income,
         territorial_deduction=deduction,
     )
+
+
+def rental_tax_base(
+    book: RuleBook,
+    residence: str,
+    on: date,
+    housing_lease: bool = True,
+    allow_unverified: bool = False,
+) -> str:
+    """A qué base va el alquiler: «general», o la que diga la norma foral (ADR-0046)."""
+    regime, _ = irpf_regime(book, residence, on, allow_unverified)
+    if regime != "foral":
+        return "general"
+    rule = _foral_rule(book, "rendimiento_alquiler_irpf", residence, on, False, allow_unverified)
+    treatment = parse_params(rule.kind, rule.params)
+    if not isinstance(treatment, RentalTaxTreatment):
+        raise TypeError(f"{rule.id}: se esperaba la tributación del alquiler")
+    return (treatment.housing if housing_lease else treatment.other).base
+
+
+def _foral_tax_params(
+    book: RuleBook,
+    residence: str,
+    contract_date: date,
+    situation: RentalFacts,
+    marginal_rate: Decimal | None,
+    marginal_rate_sources: tuple[SourceRef, ...],
+    include_pending: bool,
+    allow_unverified: bool,
+    income: IncomeTaxProfile | None,
+    housing_lease: bool,
+    housing_lease_sources: tuple[SourceRef, ...],
+    extra_refs: tuple[SourceRef, ...],
+    deduction: Decimal,
+) -> TaxParams:
+    """El alquiler en un IRPF foral: base, gastos, tope y bonificación de su norma."""
+    rule = _foral_rule(book, "rendimiento_alquiler_irpf", residence, contract_date,
+                       include_pending, allow_unverified)
+    treatment = parse_params(rule.kind, rule.params)
+    if not isinstance(treatment, RentalTaxTreatment):
+        raise TypeError(f"{rule.id}: se esperaba la tributación del alquiler")
+    block = treatment.housing if housing_lease else treatment.other
+    best = ReductionCases(cases=block.bonus).best(situation) if block.bonus else None
+    reduction_value = Decimal(0)
+    reduction_refs: tuple[SourceRef, ...] = housing_lease_sources
+    reduction_rule = book.resolve("reduccion_irpf_alquiler", residence, contract_date,
+                                  include_pending, allow_unverified)
+    if housing_lease and reduction_rule is not None and reduction_rule.territory != "ES":
+        cases = parse_params(reduction_rule.kind, reduction_rule.params)
+        if not isinstance(cases, ReductionCases):
+            raise TypeError(f"{reduction_rule.id}: se esperaba una reducción por casos")
+        found = cases.best(situation)
+        reduction_value = found.reduction if found is not None else Decimal(0)
+        reduction_refs = (reduction_rule.ref,)
+    depreciation_rule = _foral_rule(book, "amortizacion_inmueble_alquiler", residence,
+                                    contract_date, include_pending, allow_unverified)
+    return TaxParams(
+        marginal_rate=marginal_rate,
+        rental_income_reduction=reduction_value,
+        depreciation_rate=_rate(depreciation_rule),
+        interest_repair_carryforward_years=block.carryforward_years,
+        sources=(rule.ref, *reduction_refs, depreciation_rule.ref, *marginal_rate_sources,
+                 *extra_refs),
+        income_tax=income,
+        territorial_deduction=deduction,
+        rental_base=block.base,
+        gross_bonus=best.reduction if best is not None else Decimal(0),
+        deductible_expenses=block.expenses,
+        expense_cap=block.cap,
+    )
+
+
+def _foral_rule(
+    book: RuleBook,
+    kind: str,
+    residence: str,
+    on: date,
+    include_pending: bool,
+    allow_unverified: bool,
+) -> Rule:
+    """Regla del IRPF de un residente foral: la estatal no le sirve."""
+    rule = _rule(book, kind, residence, on, include_pending, allow_unverified)
+    if rule.territory == "ES":
+        raise LookupError(f"No hay regla foral de {kind} para {residence} el {on}: la estatal "
+                          "no se aplica a un residente foral")
+    return rule
 
 
 def income_tax_profile(

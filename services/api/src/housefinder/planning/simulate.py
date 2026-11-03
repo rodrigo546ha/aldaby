@@ -27,6 +27,7 @@ from decimal import Decimal
 
 from housefinder.core.figures import Figure, SourceRef, combine_sources, money, ratio
 from housefinder.engines.cashflow import CashflowResult, InvestmentInputs, RentalAssumptions
+from housefinder.engines.irpf import IncomeTaxProfile
 from housefinder.engines.irr import (
     IrrResult,
     investment_irr,
@@ -50,7 +51,12 @@ from housefinder.params.bank import bank_criteria
 from housefinder.params.book import ParamBook
 from housefinder.params.euribor import euribor_12m_path
 from housefinder.regulation.kinds import RentalFacts
-from housefinder.regulation.resolvers import ibi_annual, income_tax_profile, tax_params
+from housefinder.regulation.resolvers import (
+    ibi_annual,
+    income_tax_profile,
+    rental_tax_base,
+    tax_params,
+)
 from housefinder.regulation.rules import RuleBook
 from housefinder.regulation.transactions import (
     DeedAgreement,
@@ -303,12 +309,18 @@ def simulate(
         maintenance_reserve_rate=rental.maintenance_reserve_rate,
         sources=combine_sources((RENT, PROPERTY), ibi.sources),
     )
-    income = (
-        income_tax_profile(rules, buyer.residence, rental.contract_date, buyer.taxable_base,
-                           buyer.age, buyer.descendant_ages, (BUYER,), allow_unverified)
-        if buyer.taxable_base is not None
-        else None
-    )
+    # En los IRPF forales vascos el alquiler de vivienda va a la base del ahorro (ADR-0046)
+    rental_base = rental_tax_base(rules, buyer.residence, rental.contract_date,
+                                  rental.housing_lease, allow_unverified)
+    income: IncomeTaxProfile | None = None
+    if buyer.taxable_base is not None and rental_base == "ahorro":
+        income = savings_tax_profile(
+            rules, buyer.residence, rental.contract_date, buyer.savings_base,
+            buyer.taxable_base, buyer.age, buyer.descendant_ages, (BUYER,), allow_unverified)
+    elif buyer.taxable_base is not None:
+        income = income_tax_profile(rules, buyer.residence, rental.contract_date,
+                                    buyer.taxable_base, buyer.age, buyer.descendant_ages,
+                                    (BUYER,), allow_unverified)
     tax = tax_params(
         rules,
         prop.territory,
@@ -321,6 +333,7 @@ def simulate(
         income=income,
         housing_lease=rental.housing_lease,
         housing_lease_sources=rental.housing_lease_sources,
+        residence=buyer.residence,
     )
     investment = InvestmentInputs(
         price=prop.price,

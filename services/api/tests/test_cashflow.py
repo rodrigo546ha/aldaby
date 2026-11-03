@@ -186,3 +186,32 @@ def test_un_solo_modo_de_impuesto():
         replace(TAX, income_tax=PERFIL)  # marginal e incremental a la vez
     with pytest.raises(ValueError):
         replace(TAX, marginal_rate=None)  # ninguno
+
+
+# --- Regímenes forales (ADR-0046) ---------------------------------------------------------
+
+
+def test_regimen_vasco_bonificacion_sobre_ingresos_y_solo_intereses():
+    # Bizkaia y Álava, art. 32.2: (10.260 × (1 − 0,30) − 3.100) = 4.082; ni IBI, ni comunidad,
+    # ni reparación, ni amortización. Con un tipo del 20 %: 816,40.
+    vasco = replace(TAX, marginal_rate=Decimal("0.20"), rental_income_reduction=Decimal(0),
+                    rental_base="ahorro", gross_bonus=Decimal("0.30"),
+                    deductible_expenses="intereses", expense_cap="sin_negativo")
+    res = compute_cashflow(INV, RENT, vasco)
+    assert res.annual_tax.value == Decimal("816.40")
+    assert "base del ahorro" in res.annual_tax.formula
+    # Si los intereses pasan de los ingresos bonificados, el neto es cero y no se arrastra nada
+    caro = replace(INV, first_year_interest=Decimal(9000))
+    res = compute_cashflow(caro, RENT, vasco)
+    assert res.annual_tax.value == Decimal("0.00") and res.pending_excess == ()
+
+
+def test_regimen_navarro_todos_los_gastos_hasta_los_ingresos():
+    # Art. 25.1: gastos 1.883 + 3.100 + 1.800 = 6.783 < 10.260: neto 3.477, sin reducción
+    # fuera de zona tensionada; al 30 %: 1.043,10.
+    navarro = replace(TAX, rental_income_reduction=Decimal(0), expense_cap="todos")
+    assert compute_cashflow(INV, RENT, navarro).annual_tax.value == Decimal("1043.10")
+    # Con intereses de 9.000: gastos 12.683 > 10.260; neto 0 y 2.423 pendientes cuatro años
+    res = compute_cashflow(replace(INV, first_year_interest=Decimal(9000)), RENT, navarro)
+    assert res.annual_tax.value == Decimal("0.00")
+    assert res.pending_excess == (PendingExcess(Decimal("2423.00"), 4),)

@@ -245,6 +245,30 @@ class ReductionCases(RuleParams):
         return max(matching, key=lambda c: c.reduction) if matching else None
 
 
+class RentalTaxBlock(RuleParams):
+    """Cómo tributa un tipo de alquiler en el IRPF (ADR-0046).
+
+    `base`: base liquidable donde va el rendimiento. `expenses`: «todos» los gastos o solo los
+    «intereses» de la financiación. `cap`: «intereses_reparacion» (intereses y reparación hasta
+    los ingresos, con arrastre), «todos» (todos los gastos, amortización incluida, hasta los
+    ingresos, con arrastre y primero los del año) o «sin_negativo» (el neto no baja de cero y
+    no se arrastra nada). `bonus`: bonificación sobre los ingresos, el caso mayor que se cumpla.
+    """
+
+    base: Literal["general", "ahorro"]
+    expenses: Literal["todos", "intereses"]
+    cap: Literal["intereses_reparacion", "todos", "sin_negativo"]
+    carryforward_years: int = Field(default=0, ge=0)
+    bonus: tuple[ReductionCase, ...] = ()
+
+
+class RentalTaxTreatment(RuleParams):
+    """Tributación del alquiler en un IRPF foral: de vivienda (LAU, art. 2) y el resto."""
+
+    housing: RentalTaxBlock
+    other: RentalTaxBlock
+
+
 class TaxpayerMinimum(RuleParams):
     """Mínimo del contribuyente (Ley del IRPF, art. 57, o el autonómico que lo sustituya)."""
 
@@ -488,6 +512,9 @@ KINDS: dict[str, KindSpec] = {
     ),
     # IRPF foral (ADR-0046): régimen de la residencia, escalas únicas y deducciones en la cuota
     "regimen_irpf": KindSpec(IrpfRegime, "Régimen del IRPF de la residencia: común o foral"),
+    "rendimiento_alquiler_irpf": KindSpec(
+        RentalTaxTreatment, "Base, gastos, tope y bonificación del alquiler en el IRPF foral"
+    ),
     "escala_irpf_general_foral": KindSpec(
         BracketScale, "Escala foral única de la base liquidable general"
     ),
