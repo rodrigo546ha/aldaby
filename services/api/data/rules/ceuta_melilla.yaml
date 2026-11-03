@@ -1,6 +1,3 @@
-# BORRADOR, NO SE CARGA: está fuera de services/api/data/rules a propósito. El motor aún no aplica las
-# bonificaciones del 50 % (ITP, AJD, plusvalía) ni la deducción del 60 % del IRPF, y sin ellas los planes
-# saldrían muy por encima (ADR-0043). Se mueve a data/rules cuando el motor las modele.
 # Ciudades Autónomas de Ceuta (ES-18, municipio ES-18-51001) y Melilla (ES-19, municipio ES-19-52001). Ver README.md.
 # SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
 # Fuentes leídas el 2026-11-03: TRLITPAJD (RDLeg 1/1993, BOE consolidado, última actualización 21/03/2026), Ley 35/2006
@@ -13,19 +10,10 @@
 # Ceuta y Melilla NO tienen cedidos ITP, AJD ni tramo autonómico del IRPF como una comunidad de régimen común:
 # rige la ley estatal. Ni IVA ni IGIC: la entrega de vivienda nueva tributa por IPSI (impuesto municipal propio).
 #
+# Bonificaciones del 50 % (ITP, AJD, IBI y plusvalía) y deducción del 60 % del IRPF: reglas propias al
+# final del fichero (ADR-0045).
+#
 # PENDIENTE (sin fuente oficial leída, no se escribe):
-# - BONIFICACIONES QUE EL MOTOR NO MODELA (las reglas llevan el tipo legal, sin bonificar; decide Rodrigo cómo modelarlas):
-#   * ITP: bonificación del 50 % de la cuota en transmisiones de inmuebles situados en Ceuta o Melilla
-#     (TRLITPAJD, art. 57 bis.3.a, añadido por la Ley 53/2002, en vigor desde 01/01/2003). Tipo efectivo resultante = 3 %.
-#   * AJD: bonificación del 50 % de la cuota gradual de documentos notariales cuando el Registro donde se inscribe
-#     radique en Ceuta o Melilla (art. 57 bis.1). Tipo efectivo resultante = 0,25 %.
-#   * Plusvalía municipal: bonificación del 50 % de la cuota de todos los impuestos municipales (TRLRHL, art. 159.2),
-#     recogida expresamente en la ordenanza de Ceuta (art. 9.1). En Melilla la ordenanza no la repite, pero el art. 159.2
-#     es de aplicación directa. La misma bonificación afecta al IBI de ibi_hacienda_2026.yaml (ES-18-51001 y ES-19-52001).
-#   * IRPF: deducción del 60 % de la cuota íntegra (estatal más autonómica) correspondiente a rentas obtenidas en Ceuta o
-#     Melilla (Ley 35/2006, art. 68.4): afecta a un residente en esas ciudades (art. 68.4.1.º) y también a un no residente
-#     que arriende allí un inmueble (art. 68.4.2.º y 68.4.3.º.b: los rendimientos de inmuebles situados en Ceuta o Melilla
-#     son «rentas obtenidas» allí). No se modela.
 # - ¿Está la primera entrega de vivienda nueva (sujeta a IPSI, no a IVA) fuera de TPO y sujeta a AJD? El art. 7.5 y el
 #   art. 31.2 del TRLITPAJD hablan de operaciones sujetas a IVA y no mencionan el IPSI (solo la disposición adicional
 #   sobre Canarias equipara IVA e IGIC). La regla de AJD se escribe porque el art. 31.2 grava toda primera copia de
@@ -64,7 +52,7 @@
   verified: false
   params: {rate: 0.06}
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1993-25359#a11
-  notes: "Real Decreto Legislativo 1/1993 (TRLITPAJD), art. 11.1.a, redacción de la Ley 21/2001 (en vigor desde 01/01/2002): tipo supletorio del 6 % a la transmisión de inmuebles, único para todo el valor (no por tramos). BONIFICACIÓN NO MODELADA: art. 57 bis.3.a (añadido por la Ley 53/2002, en vigor desde 01/01/2003), las cuotas de TPO tienen derecho a una bonificación del 50 % en las «transmisiones y arrendamiento de inmuebles situados en Ceuta o Melilla»; tipo efectivo del 3 %, que el motor no calcula."
+  notes: "Real Decreto Legislativo 1/1993 (TRLITPAJD), art. 11.1.a, redacción de la Ley 21/2001 (en vigor desde 01/01/2002): tipo supletorio del 6 % a la transmisión de inmuebles, único para todo el valor (no por tramos). BONIFICACIÓN (regla aparte, ADR-0045): art. 57 bis.3.a (añadido por la Ley 53/2002, en vigor desde 01/01/2003), las cuotas de TPO tienen derecho a una bonificación del 50 % en las «transmisiones y arrendamiento de inmuebles situados en Ceuta o Melilla»; tipo efectivo del 3 %."
 
 - id: melilla-itp-inmuebles-2002
   kind: impuesto_compra_segunda_mano
@@ -75,7 +63,7 @@
   verified: false
   params: {rate: 0.06}
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1993-25359#a11
-  notes: "Real Decreto Legislativo 1/1993 (TRLITPAJD), art. 11.1.a, redacción de la Ley 21/2001 (en vigor desde 01/01/2002): tipo supletorio del 6 % a la transmisión de inmuebles, único para todo el valor (no por tramos). BONIFICACIÓN NO MODELADA: art. 57 bis.3.a (añadido por la Ley 53/2002, en vigor desde 01/01/2003), las cuotas de TPO tienen derecho a una bonificación del 50 % en las «transmisiones y arrendamiento de inmuebles situados en Ceuta o Melilla»; tipo efectivo del 3 %, que el motor no calcula."
+  notes: "Real Decreto Legislativo 1/1993 (TRLITPAJD), art. 11.1.a, redacción de la Ley 21/2001 (en vigor desde 01/01/2002): tipo supletorio del 6 % a la transmisión de inmuebles, único para todo el valor (no por tramos). BONIFICACIÓN (regla aparte, ADR-0045): art. 57 bis.3.a (añadido por la Ley 53/2002, en vigor desde 01/01/2003), las cuotas de TPO tienen derecho a una bonificación del 50 % en las «transmisiones y arrendamiento de inmuebles situados en Ceuta o Melilla»; tipo efectivo del 3 %."
 
 # --- AJD de la escritura de compra de vivienda nueva -----------------------------------------------------------
 
@@ -94,7 +82,7 @@
     cap_jumps: false
     legal_person_rate: 0.005
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1993-25359#a31
-  notes: "Real Decreto Legislativo 1/1993 (TRLITPAJD), art. 31.2, redacción de la Ley 53/2002 (en vigor desde 01/01/2003): tipo supletorio del 0,50 % sobre todo el valor en las primeras copias de escrituras con cantidad o cosa valuable. BONIFICACIÓN NO MODELADA: art. 57 bis.1, «la cuota gradual de documentos notariales [...] se bonificará en un 50 por 100 cuando el Registro en el que se deba proceder a la inscripción o anotación de los bienes o actos radique en Ceuta o Melilla»; tipo efectivo del 0,25 %. Por verificar si la primera entrega sujeta a IPSI (no a IVA) tributa por AJD o por TPO (arts. 7.5 y 31.2 hablan de IVA)."
+  notes: "Real Decreto Legislativo 1/1993 (TRLITPAJD), art. 31.2, redacción de la Ley 53/2002 (en vigor desde 01/01/2003): tipo supletorio del 0,50 % sobre todo el valor en las primeras copias de escrituras con cantidad o cosa valuable. BONIFICACIÓN (regla aparte, ADR-0045): art. 57 bis.1, «la cuota gradual de documentos notariales [...] se bonificará en un 50 por 100 cuando el Registro en el que se deba proceder a la inscripción o anotación de los bienes o actos radique en Ceuta o Melilla»; tipo efectivo del 0,25 %. Por verificar si la primera entrega sujeta a IPSI (no a IVA) tributa por AJD o por TPO (arts. 7.5 y 31.2 hablan de IVA)."
 
 - id: melilla-ajd-compra-vivienda-2003
   kind: ajd_compra_vivienda
@@ -109,7 +97,7 @@
     cap_jumps: false
     legal_person_rate: 0.005
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1993-25359#a31
-  notes: "Real Decreto Legislativo 1/1993 (TRLITPAJD), art. 31.2, redacción de la Ley 53/2002 (en vigor desde 01/01/2003): tipo supletorio del 0,50 % sobre todo el valor en las primeras copias de escrituras con cantidad o cosa valuable. BONIFICACIÓN NO MODELADA: art. 57 bis.1, «la cuota gradual de documentos notariales [...] se bonificará en un 50 por 100 cuando el Registro en el que se deba proceder a la inscripción o anotación de los bienes o actos radique en Ceuta o Melilla»; tipo efectivo del 0,25 %. Por verificar si la primera entrega sujeta a IPSI (no a IVA) tributa por AJD o por TPO (arts. 7.5 y 31.2 hablan de IVA)."
+  notes: "Real Decreto Legislativo 1/1993 (TRLITPAJD), art. 31.2, redacción de la Ley 53/2002 (en vigor desde 01/01/2003): tipo supletorio del 0,50 % sobre todo el valor en las primeras copias de escrituras con cantidad o cosa valuable. BONIFICACIÓN (regla aparte, ADR-0045): art. 57 bis.1, «la cuota gradual de documentos notariales [...] se bonificará en un 50 por 100 cuando el Registro en el que se deba proceder a la inscripción o anotación de los bienes o actos radique en Ceuta o Melilla»; tipo efectivo del 0,25 %. Por verificar si la primera entrega sujeta a IPSI (no a IVA) tributa por AJD o por TPO (arts. 7.5 y 31.2 hablan de IVA)."
 
 # --- IPSI de la primera entrega de vivienda ------------------------------------------------------------------
 # En Ceuta y Melilla no hay IVA: la entrega de inmuebles tributa por IPSI (operaciones interiores). Se carga con el kind
@@ -156,7 +144,7 @@
       - {from: 35200, rate: 0.185}
       - {from: 60000, rate: 0.225}
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a65
-  notes: "Ley 35/2006, disposición adicional 32.ª (añadida por la Ley 2/2011, modificada por el RDL 9/2015 con efectos 01/01/2015): «La escala autonómica aplicable a los contribuyentes que tengan su residencia habitual en Ceuta o Melilla será la prevista en el artículo 65». Art. 65, redacción de la Ley 26/2014 (en vigor desde 01/01/2015): 9,5 % hasta 12.450 €; 12 % hasta 20.200 €; 15 % hasta 35.200 €; 18,5 % hasta 60.000 €; 22,5 % en adelante. DEDUCCIÓN NO MODELADA: art. 68.4.1.º, el 60 % de la parte de la suma de las cuotas íntegras estatal y autonómica que corresponda a rentas obtenidas en Ceuta o Melilla, con residencia habitual y efectiva allí. No hay mínimos propios (rigen los estatales)."
+  notes: "Ley 35/2006, disposición adicional 32.ª (añadida por la Ley 2/2011, modificada por el RDL 9/2015 con efectos 01/01/2015): «La escala autonómica aplicable a los contribuyentes que tengan su residencia habitual en Ceuta o Melilla será la prevista en el artículo 65». Art. 65, redacción de la Ley 26/2014 (en vigor desde 01/01/2015): 9,5 % hasta 12.450 €; 12 % hasta 20.200 €; 15 % hasta 35.200 €; 18,5 % hasta 60.000 €; 22,5 % en adelante. DEDUCCIÓN (regla aparte, ADR-0045): art. 68.4.1.º, el 60 % de la parte de la suma de las cuotas íntegras estatal y autonómica que corresponda a rentas obtenidas en Ceuta o Melilla, con residencia habitual y efectiva allí. No hay mínimos propios (rigen los estatales)."
 
 - id: melilla-irpf-escala-general-2015
   kind: escala_irpf_general_autonomica
@@ -173,7 +161,7 @@
       - {from: 35200, rate: 0.185}
       - {from: 60000, rate: 0.225}
   source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a65
-  notes: "Ley 35/2006, disposición adicional 32.ª (añadida por la Ley 2/2011, modificada por el RDL 9/2015 con efectos 01/01/2015): «La escala autonómica aplicable a los contribuyentes que tengan su residencia habitual en Ceuta o Melilla será la prevista en el artículo 65». Art. 65, redacción de la Ley 26/2014 (en vigor desde 01/01/2015): 9,5 % hasta 12.450 €; 12 % hasta 20.200 €; 15 % hasta 35.200 €; 18,5 % hasta 60.000 €; 22,5 % en adelante. DEDUCCIÓN NO MODELADA: art. 68.4.1.º, el 60 % de la parte de la suma de las cuotas íntegras estatal y autonómica que corresponda a rentas obtenidas en Ceuta o Melilla, con residencia habitual y efectiva allí. No hay mínimos propios (rigen los estatales)."
+  notes: "Ley 35/2006, disposición adicional 32.ª (añadida por la Ley 2/2011, modificada por el RDL 9/2015 con efectos 01/01/2015): «La escala autonómica aplicable a los contribuyentes que tengan su residencia habitual en Ceuta o Melilla será la prevista en el artículo 65». Art. 65, redacción de la Ley 26/2014 (en vigor desde 01/01/2015): 9,5 % hasta 12.450 €; 12 % hasta 20.200 €; 15 % hasta 35.200 €; 18,5 % hasta 60.000 €; 22,5 % en adelante. DEDUCCIÓN (regla aparte, ADR-0045): art. 68.4.1.º, el 60 % de la parte de la suma de las cuotas íntegras estatal y autonómica que corresponda a rentas obtenidas en Ceuta o Melilla, con residencia habitual y efectiva allí. No hay mínimos propios (rigen los estatales)."
 
 # --- Alquiler ---------------------------------------------------------------------------------------------------
 
@@ -231,7 +219,7 @@
 
 # --- Plusvalía municipal (tipo único) ----------------------------------------------------------------------------
 
-# Ceuta: art. 8.º de la ordenanza del IIVTNU, 27 %. BONIFICACIÓN NO MODELADA: art. 9.º.1, 50 % de la cuota (TRLRHL, art. 159.2).
+# Ceuta: art. 8.º de la ordenanza del IIVTNU, 27 %. BONIFICACIÓN (regla aparte, ADR-0045): art. 9.º.1, 50 % de la cuota (TRLRHL, art. 159.2).
 - id: ceuta-plusvalia-tipo
   kind: tipo_plusvalia
   territory: ES-18-51001
@@ -241,7 +229,7 @@
   verified: false
   params: {rate: 0.27}
   source_url: http://www.2006.isotools.org/centros/27/gdocumental/l25_a46_c3/IMPUESTO_SOBRE_EL_INCREMENTO_DEL_VALOR_DE_LOS_TERRENOS_DE_NATURALEZA_URBANA_2022.pdf
-  notes: "Ordenanza del IIVTNU de la Ciudad de Ceuta, art. 8.º: «La cuota de este Impuesto será el resultado de aplicar a la base imponible el tipo impositivo del 27 por 100». Texto íntegro adaptado al RDL 26/2021 (BOCCE de 24/05/2022, aprobado por el Pleno el 28/02/2022; entra en vigor al día siguiente de su publicación), enlazado desde tributosceuta.org. BONIFICACIÓN NO MODELADA: art. 9.º.1, «las cuotas tributarias de este Impuesto serán objeto de una bonificación del 50 por 100» (TRLRHL, art. 159.2); además, 95 % en transmisiones mortis causa a familiares (art. 9.º.2). Fecha de inicio calculada a partir del BOCCE de 24/05/2022 (por verificar)."
+  notes: "Ordenanza del IIVTNU de la Ciudad de Ceuta, art. 8.º: «La cuota de este Impuesto será el resultado de aplicar a la base imponible el tipo impositivo del 27 por 100». Texto íntegro adaptado al RDL 26/2021 (BOCCE de 24/05/2022, aprobado por el Pleno el 28/02/2022; entra en vigor al día siguiente de su publicación), enlazado desde tributosceuta.org. BONIFICACIÓN (regla aparte, ADR-0045): art. 9.º.1, «las cuotas tributarias de este Impuesto serán objeto de una bonificación del 50 por 100» (TRLRHL, art. 159.2); además, 95 % en transmisiones mortis causa a familiares (art. 9.º.2). Fecha de inicio calculada a partir del BOCCE de 24/05/2022 (por verificar)."
 
 # Melilla: art. 9 de la ordenanza del IIVTNU, 29 %.
 - id: melilla-plusvalia-tipo
@@ -253,4 +241,116 @@
   verified: false
   params: {rate: 0.29}
   source_url: https://bomemelilla.es/bome/descargar/BOME-P-2022-1374.pdf
-  notes: "Ordenanza del IIVTNU de la Ciudad Autónoma de Melilla, art. 9: «La cuota de este impuesto será la resultante de aplicar a la Base imponible el tipo de gravamen del 29 %». Texto íntegro publicado por el Decreto 450 de 29/04/2022 (BOME núm. 5962, 06/05/2022); su disposición final fija la entrada en vigor al día siguiente de la publicación y deroga la ordenanza del BOME de 06/05/2014. La ordenanza no recoge el 50 % del TRLRHL, art. 159.2 (BONIFICACIÓN NO MODELADA, aplicable por ley a los impuestos municipales de Melilla); su art. 10 solo da el 95 % en transmisiones mortis causa. Una orden de 2025 (BOME núm. 6246) solo actualiza coeficientes."
+  notes: "Ordenanza del IIVTNU de la Ciudad Autónoma de Melilla, art. 9: «La cuota de este impuesto será la resultante de aplicar a la Base imponible el tipo de gravamen del 29 %». Texto íntegro publicado por el Decreto 450 de 29/04/2022 (BOME núm. 5962, 06/05/2022); su disposición final fija la entrada en vigor al día siguiente de la publicación y deroga la ordenanza del BOME de 06/05/2014. La ordenanza no recoge el 50 % del TRLRHL, art. 159.2 (BONIFICACIÓN EN REGLA APARTEDA, aplicable por ley a los impuestos municipales de Melilla); su art. 10 solo da el 95 % en transmisiones mortis causa. Una orden de 2025 (BOME núm. 6246) solo actualiza coeficientes."
+
+# --- Bonificaciones de la cuota y deducción del IRPF (ADR-0045) ---------------------------------------------
+
+- id: ceuta-bonificacion-itp
+  kind: bonificacion_itp
+  territory: ES-18
+  effective_from: 2003-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.50}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1993-25359#a57bis
+  notes: "TRLITPAJD, art. 57 bis.3.a): las cuotas de transmisiones patrimoniales onerosas «tendrán derecho a la aplicación de una bonificación del 50 por 100» en las «transmisiones y arrendamiento de inmuebles situados en Ceuta o Melilla». Añadido por el art. 5.5 de la Ley 53/2002, en vigor a partir del 01/01/2003 (nota del texto consolidado del BOE)."
+
+- id: ceuta-bonificacion-ajd
+  kind: bonificacion_ajd
+  territory: ES-18
+  effective_from: 2003-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.50}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1993-25359#a57bis
+  notes: "TRLITPAJD, art. 57 bis.1: «La cuota gradual de documentos notariales del gravamen de actos jurídicos documentados se bonificará en un 50 por 100 cuando el Registro en el que se deba proceder a la inscripción o anotación de los bienes o actos radique en Ceuta o Melilla». Se aplica por el territorio del inmueble, cuyo Registro está en la ciudad. Añadido por la Ley 53/2002, en vigor a partir del 01/01/2003."
+
+- id: ceuta-bonificacion-ibi
+  kind: bonificacion_ibi
+  territory: ES-18
+  effective_from: 2004-03-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.50}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2004-4214#a159
+  notes: "TRLRHL, art. 159.2: «Las cuotas tributarias correspondientes a los impuestos municipales regulados en esta ley serán objeto de una bonificación del 50 por ciento». Fecha de inicio: entrada en vigor del texto refundido (RDLeg 2/2004); la bonificación puede venir de antes."
+
+- id: ceuta-bonificacion-plusvalia
+  kind: bonificacion_plusvalia
+  territory: ES-18
+  effective_from: 2004-03-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.50}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2004-4214#a159
+  notes: "TRLRHL, art. 159.2: bonificación del 50 % de las cuotas de los impuestos municipales, la plusvalía entre ellos. Fecha de inicio: entrada en vigor del texto refundido; la bonificación puede venir de antes."
+
+- id: ceuta-deduccion-irpf-rentas
+  kind: deduccion_irpf_rentas_territorio
+  territory: ES-18
+  effective_from: 2018-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.60}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a68
+  notes: "Ley 35/2006 del IRPF, art. 68.4: el contribuyente, resida o no en Ceuta (1.º y 2.º), «se deducirá el 60 por ciento de la parte de la suma de las cuotas íntegras estatal y autonómica que proporcionalmente corresponda» a las rentas obtenidas allí, entre ellas los rendimientos de inmuebles situados en la ciudad (3.º.b) y las ganancias patrimoniales que procedan de ellos (3.º.d). Apartados 4.1 y 4.2 en la redacción de la Ley 6/2018, con efectos desde el 01/01/2018. El motor aplica la proporción de la renta del inmueble en la base y supone que el resto de la base se obtiene fuera de la ciudad (ADR-0045)."
+
+- id: melilla-bonificacion-itp
+  kind: bonificacion_itp
+  territory: ES-19
+  effective_from: 2003-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.50}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1993-25359#a57bis
+  notes: "TRLITPAJD, art. 57 bis.3.a): las cuotas de transmisiones patrimoniales onerosas «tendrán derecho a la aplicación de una bonificación del 50 por 100» en las «transmisiones y arrendamiento de inmuebles situados en Ceuta o Melilla». Añadido por el art. 5.5 de la Ley 53/2002, en vigor a partir del 01/01/2003 (nota del texto consolidado del BOE)."
+
+- id: melilla-bonificacion-ajd
+  kind: bonificacion_ajd
+  territory: ES-19
+  effective_from: 2003-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.50}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-1993-25359#a57bis
+  notes: "TRLITPAJD, art. 57 bis.1: «La cuota gradual de documentos notariales del gravamen de actos jurídicos documentados se bonificará en un 50 por 100 cuando el Registro en el que se deba proceder a la inscripción o anotación de los bienes o actos radique en Ceuta o Melilla». Se aplica por el territorio del inmueble, cuyo Registro está en la ciudad. Añadido por la Ley 53/2002, en vigor a partir del 01/01/2003."
+
+- id: melilla-bonificacion-ibi
+  kind: bonificacion_ibi
+  territory: ES-19
+  effective_from: 2004-03-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.50}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2004-4214#a159
+  notes: "TRLRHL, art. 159.2: «Las cuotas tributarias correspondientes a los impuestos municipales regulados en esta ley serán objeto de una bonificación del 50 por ciento». Fecha de inicio: entrada en vigor del texto refundido (RDLeg 2/2004); la bonificación puede venir de antes."
+
+- id: melilla-bonificacion-plusvalia
+  kind: bonificacion_plusvalia
+  territory: ES-19
+  effective_from: 2004-03-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.50}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2004-4214#a159
+  notes: "TRLRHL, art. 159.2: bonificación del 50 % de las cuotas de los impuestos municipales, la plusvalía entre ellos. Fecha de inicio: entrada en vigor del texto refundido; la bonificación puede venir de antes."
+
+- id: melilla-deduccion-irpf-rentas
+  kind: deduccion_irpf_rentas_territorio
+  territory: ES-19
+  effective_from: 2018-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.60}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764#a68
+  notes: "Ley 35/2006 del IRPF, art. 68.4: el contribuyente, resida o no en Melilla (1.º y 2.º), «se deducirá el 60 por ciento de la parte de la suma de las cuotas íntegras estatal y autonómica que proporcionalmente corresponda» a las rentas obtenidas allí, entre ellas los rendimientos de inmuebles situados en la ciudad (3.º.b) y las ganancias patrimoniales que procedan de ellos (3.º.d). Apartados 4.1 y 4.2 en la redacción de la Ley 6/2018, con efectos desde el 01/01/2018. El motor aplica la proporción de la renta del inmueble en la base y supone que el resto de la base se obtiene fuera de la ciudad (ADR-0045)."

@@ -61,34 +61,33 @@ def purchase_tax(
     rule = _rule(book, "impuesto_compra_segunda_mano", territory, on, include_pending,
                  allow_unverified)
     params = _transfer_tax(rule)
+    sources = combine_sources(price_sources, (rule.ref,))
     if params.brackets is not None and params.whole_value:
         rate = max((b for b in params.brackets if price >= b.from_amount),
                    key=lambda b: b.from_amount).rate
-        return Figure(
+        figure = Figure(
             "purchase_costs.transfer_tax",
             money(price * rate),
             "EUR",
             f"precio × tipo del ITP del tramo del precio, sobre todo el precio ({rate})",
-            combine_sources(price_sources, (rule.ref,)),
+            sources,
         )
-    if params.brackets is not None:
+    elif params.brackets is not None:
         scale = tuple(Bracket(b.from_amount, b.rate) for b in params.brackets)
         steps = ", ".join(f"{b.rate} desde {b.from_amount}" for b in params.brackets)
-        return Figure(
+        figure = Figure(
             "purchase_costs.transfer_tax",
             money(scale_tax(price, scale)),
             "EUR",
             f"escala del ITP sobre el precio, cada tipo en su tramo ({steps})",
-            combine_sources(price_sources, (rule.ref,)),
+            sources,
         )
-    assert params.rate is not None
-    return Figure(
-        "purchase_costs.transfer_tax",
-        money(price * params.rate),
-        "EUR",
-        f"precio × tipo del ITP ({params.rate})",
-        combine_sources(price_sources, (rule.ref,)),
-    )
+    else:
+        assert params.rate is not None
+        figure = Figure("purchase_costs.transfer_tax", money(price * params.rate), "EUR",
+                        f"precio × tipo del ITP ({params.rate})", sources)
+    return with_rebate(figure, *tax_rebate(book, "bonificacion_itp", territory, on,
+                                           include_pending, allow_unverified))
 
 
 def purchase_tax_rate(
@@ -108,12 +107,15 @@ def purchase_tax_rate(
     if params.rate is None:
         raise LookupError(f"El ITP de {territory} va por tramos: no tiene un tipo único "
                           "(usar purchase_tax con el precio)")
+    rebate, rebate_refs = tax_rebate(book, "bonificacion_itp", territory, on, include_pending,
+                                     allow_unverified)
     return Figure(
         "purchase_costs.transfer_tax_rate",
-        params.rate,
+        params.rate * (1 - rebate),
         "ratio",
-        "tipo del ITP de la regla vigente",
-        (rule.ref,),
+        "tipo del ITP de la regla vigente"
+        + (f" × (1 − bonificación de la cuota {rebate})" if rebate else ""),
+        (rule.ref, *rebate_refs),
     )
 
 
@@ -128,13 +130,15 @@ def ibi_annual(
     """IBI anual: valor catastral × tipo de gravamen del municipio."""
     rule = _rule(book, "tipo_ibi", territory, on, False, allow_unverified)
     rate = _rate(rule)
-    return Figure(
+    figure = Figure(
         "holding_costs.ibi_annual",
         money(cadastral_value * rate),
         "EUR/año",
         f"valor catastral × tipo del IBI ({rate})",
         combine_sources(cadastral_sources, (rule.ref,)),
     )
+    return with_rebate(figure, *tax_rebate(book, "bonificacion_ibi", territory, on, False,
+                                           allow_unverified))
 
 
 @dataclass(frozen=True)
@@ -204,14 +208,17 @@ def tax_params(
     limit = parse_params(limit_rule.kind, limit_rule.params)
     if not isinstance(limit, InterestRepairLimit):
         raise TypeError(f"{limit_rule.id}: se esperaba un límite de intereses y reparación")
+    deduction, deduction_refs = tax_rebate(book, "deduccion_irpf_rentas_territorio", territory,
+                                           contract_date, include_pending, allow_unverified)
     return TaxParams(
         marginal_rate=marginal_rate,
         rental_income_reduction=reduction_value,
         depreciation_rate=_rate(depreciation_rule),
         interest_repair_carryforward_years=limit.carryforward_years,
         sources=(*reduction_sources, depreciation_rule.ref, limit_rule.ref,
-                 *marginal_rate_sources),
+                 *marginal_rate_sources, *deduction_refs),
         income_tax=income,
+        territorial_deduction=deduction,
     )
 
 
@@ -404,6 +411,37 @@ def _rule(
         verified = "" if allow_unverified else " verificada"
         raise LookupError(f"No hay regla{verified} de {kind} para {territory} el {on}")
     return rule
+
+
+def tax_rebate(
+    book: RuleBook,
+    kind: str,
+    territory: str,
+    on: date,
+    include_pending: bool = False,
+    allow_unverified: bool = False,
+) -> tuple[Decimal, tuple[SourceRef, ...]]:
+    """Bonificación de la cuota de un tributo en el territorio del inmueble (ADR-0045).
+
+    Sin regla no hay bonificación (0): a diferencia de los tipos, es la excepción.
+    """
+    rule = book.resolve(kind, territory, on, include_pending, allow_unverified)
+    if rule is None:
+        return Decimal(0), ()
+    return _rate(rule), (rule.ref,)
+
+
+def with_rebate(figure: Figure, rebate: Decimal, refs: tuple[SourceRef, ...]) -> Figure:
+    """La cuota de `figure` con la bonificación aplicada; igual si no la hay."""
+    if not rebate:
+        return figure
+    return Figure(
+        figure.key,
+        money(figure.value * (1 - rebate)),
+        figure.unit,
+        f"{figure.formula}, menos la bonificación de la cuota ({rebate})",
+        combine_sources(figure.sources, refs),
+    )
 
 
 def _transfer_tax(rule: Rule) -> TransferTaxParams:

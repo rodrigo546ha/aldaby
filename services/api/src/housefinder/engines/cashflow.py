@@ -44,6 +44,8 @@ class TaxParams:
     interest_repair_carryforward_years: int  # arrastre del exceso de intereses y reparación
     sources: tuple[SourceRef, ...]
     income_tax: IncomeTaxProfile | None = None  # IRPF del usuario sin el alquiler
+    # Parte de la cuota de las rentas del inmueble que se deduce (art. 68.4, ADR-0045)
+    territorial_deduction: Decimal = Decimal(0)
 
     def __post_init__(self) -> None:
         if (self.marginal_rate is None) == (self.income_tax is None):
@@ -114,13 +116,16 @@ def compute_cashflow(
     depreciation = inv.construction_value * tax.depreciation_rate
     net = collected - other_costs - financing_repair - depreciation
     reduced = net * (1 - tax.rental_income_reduction) if net > 0 else net
+    deduction = tax.territorial_deduction
+    deducted = (f", menos el {deduction} de la parte de la cuota de esta renta (deducción por "
+                "rentas obtenidas en Ceuta o Melilla)") if deduction else ""
     if tax.income_tax is not None:
-        annual_tax = incremental_tax(reduced, tax.income_tax)
-        tax_formula = "cuota IRPF con el rendimiento reducido − cuota IRPF sin él"
+        annual_tax = incremental_tax(reduced, tax.income_tax, deduction)
+        tax_formula = "cuota IRPF con el rendimiento reducido − cuota IRPF sin él" + deducted
         tax_sources = combine_sources(tax.sources, tax.income_tax.sources)
     elif tax.marginal_rate is not None:
-        annual_tax = money(max(reduced, Decimal(0)) * tax.marginal_rate)
-        tax_formula = "máx(0, rendimiento neto × (1 − reducción)) × tipo marginal"
+        annual_tax = money(max(reduced, Decimal(0)) * tax.marginal_rate * (1 - deduction))
+        tax_formula = "máx(0, rendimiento neto × (1 − reducción)) × tipo marginal" + deducted
         tax_sources = tax.sources
     else:  # TaxParams lo impide; se deja explícito
         raise ValueError("Falta el tipo marginal o el perfil del IRPF")

@@ -97,6 +97,7 @@ class MunicipalGainsTax:
     coefficient: Decimal  # el del periodo de generación
     rate: Decimal  # tipo de gravamen del municipio
     land_share: Decimal  # valor catastral del suelo / valor catastral total
+    rebate: Decimal = Decimal(0)  # bonificación de la cuota (Ceuta y Melilla, ADR-0045)
 
 
 def municipal_gains_tax(
@@ -113,6 +114,9 @@ def municipal_gains_tax(
     if real <= 0:
         return money(0), "sin incremento real: no sujeta"
     objective = params.land_value * params.coefficient
+    rebated = f", menos la bonificación de la cuota ({params.rebate})" if params.rebate else ""
     if real < objective:
-        return money(real * params.rate), "incremento real (menor que la base objetiva)"
-    return money(objective * params.rate), "base objetiva: valor del suelo × coeficiente"
+        return (money(real * params.rate * (1 - params.rebate)),
+                "incremento real (menor que la base objetiva)" + rebated)
+    return (money(objective * params.rate * (1 - params.rebate)),
+            "base objetiva: valor del suelo × coeficiente" + rebated)

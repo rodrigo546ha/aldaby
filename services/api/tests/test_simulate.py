@@ -250,3 +250,22 @@ def test_alquiler_que_no_es_de_vivienda_va_sin_reduccion(rules, params):
     ids = {s.id for s in sim.cashflow.annual_tax.sources}
     assert "alquiler-turistico-estatal" in ids
     assert not any(i.startswith("irpf-reduccion") for i in ids)
+
+
+def test_ceuta_con_bonificaciones_y_deduccion(rules, params):
+    # ADR-0045: el mismo caso con el inmueble en Ceuta
+    madrid = by_key(simulate(caso(), rules, params, allow_unverified=True))
+    sim = simulate(caso(property=replace(caso().property, territory="ES-18-51001")), rules, params,
+                   allow_unverified=True)
+    v = by_key(sim)
+    # ITP 200.000 × 6 % × (1 − 0,5); IBI 100.000 × 0,79 % × (1 − 0,5)
+    assert v["purchase_costs.transfer_tax"] == D("6000.00")
+    assert v["holding_costs.ibi_annual"] == D("395.00")
+    # Plusvalía a 10 años: 40.000 × 0,08 (coeficiente propio de Ceuta, menor que el 0,12 máximo)
+    # × 27 % × (1 − 0,5)
+    assert v["sale_costs.municipal_gains_tax"] == D("432.00")
+    # El 60 % de la parte de la cuota del alquiler y de la ganancia se deduce
+    assert 0 < v["cashflow.annual_tax"] < madrid["cashflow.annual_tax"]
+    assert 0 < v["irr.capital_gains_tax"] < madrid["irr.capital_gains_tax"]
+    figures = {f.key: f for f in sim.figures()}
+    assert "Ceuta o Melilla" in figures["cashflow.annual_tax"].formula

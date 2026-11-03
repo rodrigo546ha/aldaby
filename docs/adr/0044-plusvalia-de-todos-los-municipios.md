@@ -36,8 +36,8 @@ derogada, no está en la lista de municipios con el impuesto.
    entero con cada libro nuevo, así que no tiene año en el nombre.
 3. **Las ordenanzas leídas mandan.** Un municipio que ya tiene su regla en otro fichero no se toca.
    Si su tipo no coincide con el del libro, el generador lo avisa para revisarlo.
-4. **Fuera de este fichero:**
-   - Ceuta y Melilla, cuyas bonificaciones no se modelan (ADR-0043);
+4. **Fuera de este fichero** (Ceuta y Melilla sí están: su bonificación va en reglas propias,
+   ADR-0045):
    - el País Vasco y Navarra, que no están en el libro (régimen foral);
    - los municipios de 1.000 habitantes o menos, que tampoco están en el libro.
 5. **La columna «Porc. reducc.»** de la tabla de coeficientes no se modela. Cuando no es cero, se

@@ -22,6 +22,7 @@ GIJON = " ".join(["25,00"] * 6 + ["22,00"] * 14 + ["18,00"])
 FLAT = " ".join(["30,00"] * 21)
 
 TEXT = f"""
+IMPUESTOS SOBRE BIENES INMUEBLES Y ACTIVIDADES ECONÓMICAS        CASTILLA-MANCHA
  1.CM MUNICIPIOS MAYORES DE 1000 HABITANTES
 45-168   Toledo                 2008   0,44400   0,84800   1,29500   3,79   2,74
 45-165   Talavera de la Reina   2009   0,55000   0,80000   1,10000   3,00   2,00
@@ -38,6 +39,7 @@ IMPUESTO SOBRE EL INCREMENTO DEL VALOR DE                         CASTILLA-MANCH
 45-168   Toledo                 {TOLEDO}   0,00
 45-165   Talavera de la         {FLAT}   0,00
          Reina
+IMPUESTO SOBRE VEHICULOS DE TRACCION MECANICA                  CASTILLA-MANCHA
  4.CM MUNICIPIOS MAYORES DE 1000 HABITANTES
        Tipo de Gravamen
 45-168   Toledo   3,98
@@ -50,6 +52,18 @@ def test_las_dos_tablas_de_la_tercera_parte():
     toledo = found["45168"]
     assert toledo.rates[0] == D("0.2988") and toledo.rates[20] == D("0.259")
     assert found["45165"].coefficients[1] == D("0.13") and found["45165"].reduction == D(5)
+
+
+def test_sin_numeracion_de_partes():
+    # El PDF de Ceuta no numera las partes: basta la cabecera de la página
+    ceuta = f"""IMPUESTO SOBRE EL INCREMENTO DEL VALOR DE                      CEUTA
+       Coeficiente sobre la Base Imponible
+51-001   Ceuta   {OLD}   0,00
+       Tipo de Gravamen
+51-001   Ceuta   {FLAT.replace("30,00", "27,00")}   0,00
+"""
+    (only,) = hp.parse(ceuta)
+    assert only.code == "51001" and only.rates[0] == D("0.27")
 
 
 def test_tipo_unico_o_por_años():

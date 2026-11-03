@@ -77,15 +77,25 @@ def income_tax(base: Decimal, profile: IncomeTaxProfile) -> Decimal:
     return part_tax(base, profile.state) + part_tax(base, profile.regional)
 
 
-def incremental_tax(rental_net: Decimal, profile: IncomeTaxProfile) -> Decimal:
+def incremental_tax(
+    rental_net: Decimal, profile: IncomeTaxProfile, territorial_deduction: Decimal = Decimal(0)
+) -> Decimal:
     """IRPF atribuible al alquiler: cuota con el rendimiento − cuota sin él.
 
     `rental_net` es el rendimiento neto ya reducido; si es negativo, baja la base y la
     cuota incremental sale negativa (ahorro fiscal). La base no baja de cero: compensar
     una base negativa en años siguientes queda fuera de este cálculo.
+
+    `territorial_deduction`: parte que se deduce de la cuota que proporcionalmente corresponde a
+    esta renta (Ley del IRPF, art. 68.4: el 60 % en Ceuta y Melilla). La proporción es la de la
+    renta en la base; el resto de la base se supone obtenida fuera de esas ciudades (ADR-0045).
     """
     with_rental = max(profile.other_base + rental_net, Decimal(0))
-    return income_tax(with_rental, profile) - income_tax(profile.other_base, profile)
+    tax_with = income_tax(with_rental, profile)
+    result = tax_with - income_tax(profile.other_base, profile)
+    if territorial_deduction and rental_net > 0 and with_rental > 0:
+        result -= money(tax_with * rental_net / with_rental * territorial_deduction)
+    return result
 
 
 def personal_minimum(

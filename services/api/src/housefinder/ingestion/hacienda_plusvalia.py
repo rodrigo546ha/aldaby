@@ -16,7 +16,7 @@ gravamen. Van a reglas `tipo_plusvalia` y `coeficientes_plusvalia` sin verificar
 La plusvalía se calcula a la fecha de venta del plan, años después: las reglas rigen desde el 1 de
 enero del año del libro y sin fin, y el fichero se rehace entero con el libro de cada año. Un
 municipio con su regla en otro fichero (de su ordenanza) no se toca; se avisa si no coincide.
-Ceuta y Melilla no se generan: sus bonificaciones no se modelan (ADR-0043).
+La bonificación del 50 % de Ceuta y Melilla va en reglas propias (ADR-0045).
 
 Uso: `python -m housefinder.ingestion.hacienda_plusvalia --year 2026`.
 """
@@ -38,11 +38,12 @@ from housefinder.ingestion.hacienda_ibi import parse as parse_ibi
 from housefinder.ingestion.ine_sections import USER_AGENT
 
 GENERATED = "plusvalia_hacienda.yaml"
-SKIPPED_REGIONS = {"18", "19"}  # Ceuta y Melilla (ADR-0043)
 PERIODS = 21  # menos de un año, 1… 19 años y 20 o más
 HUNDRED = Decimal(100)
 
-PART = re.compile(r"^\s*(\d)\.[A-Z]{1,3}\s")  # «3.M MUNICIPIOS MAYORES DE 1000 HABITANTES»
+# Cabecera de cada página: «IMPUESTO SOBRE EL INCREMENTO DEL VALOR DE …», «IMPUESTOS SOBRE BIENES
+# INMUEBLES…». La numeración de las partes («3.M») no está en todos los PDF (Ceuta).
+HEADING = re.compile(r"^IMPUESTOS? SOBRE ")
 ROW = re.compile(r"^\s*(\d{2})-(\d{3})\s+(.*?)\s+((?:\d+,\d{2}\s*){22})\s*$")
 NUMBER = re.compile(r"\d+,\d{2}")
 
@@ -57,16 +58,16 @@ class MunicipalGains:
 
 
 def parse(text: str) -> list[MunicipalGains]:
-    """Municipios con las dos tablas de la tercera parte del PDF."""
-    part = None
+    """Municipios con las dos tablas de la parte de la plusvalía del PDF."""
+    in_gains = False
     table = None
     coefficients: dict[str, tuple[str, tuple[Decimal, ...], Decimal]] = {}
     rates: dict[str, tuple[Decimal, ...]] = {}
     for line in text.splitlines():
-        if heading := PART.match(line):
-            part, table = heading.group(1), None
+        if HEADING.match(line):
+            in_gains, table = "INCREMENTO DEL VALOR" in line, None
             continue
-        if part != "3":
+        if not in_gains:
             continue
         if "Coeficiente sobre la Base" in line:
             table = "coef"
@@ -201,8 +202,6 @@ def main() -> int:
     warnings: list[str] = []
     with httpx.Client(headers={"User-Agent": USER_AGENT}) as client:
         for region, (_, ccaa) in REGIONS.items():
-            if ccaa in SKIPPED_REGIONS:
-                continue
             url = region_url(args.year, region)
             response = client.get(url, timeout=120)
             response.raise_for_status()

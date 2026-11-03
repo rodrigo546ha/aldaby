@@ -55,6 +55,8 @@ añade su esquema al catálogo.
 | `minimo_contribuyente` | `general`, `over_65_extra`, `over_75_extra` en euros |
 | `minimo_descendientes` | `first`, `second`, `third`, `fourth_and_more`, `under_3_extra` en euros |
 | `limite_intereses_reparacion` | `carryforward_years`: años a los que se arrastra el exceso |
+| `bonificacion_itp`, `bonificacion_ajd`, `bonificacion_ibi`, `bonificacion_plusvalia` | `rate`: parte de la cuota que se bonifica en el territorio del inmueble (Ceuta y Melilla). Sin regla no hay bonificación (ADR-0045) |
+| `deduccion_irpf_rentas_territorio` | `rate`: parte que se deduce de la cuota del IRPF que corresponde proporcionalmente a las rentas del inmueble de ese territorio (Ley del IRPF, art. 68.4) |
 | `zona_tensionada` | `declared` (sí o no), `checked_through` (fecha de la última resolución trimestral revisada) y, si solo se declara parte del municipio, `area` con el ámbito (barrios, núcleos) |
 | `regimen_alquiler_habitual`, `regimen_alquiler_temporada`, `regimen_alquiler_habitaciones`, `regimen_alquiler_turistico` | `regime` (texto), `allowed` y `requirements`: lista de `{code, description, source_url}`. Los requisitos de cada nivel territorial se suman |
 

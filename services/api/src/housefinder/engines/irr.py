@@ -130,20 +130,25 @@ def investment_irr(
     )
     depreciated = investment.construction_value * tax.depreciation_rate * horizon_years
     gain = sale_price - sale_costs - (acquisition - depreciated)
+    deduction = tax.territorial_deduction
+    deducted = (f"; menos el {deduction} de la parte de la cuota de la ganancia (deducción "
+                "por rentas obtenidas en Ceuta o Melilla)") if deduction else ""
+    deduction_sources = tax.sources if deduction else ()
     if gains_tax_profile is not None:
-        gains_tax = max(incremental_tax(gain, gains_tax_profile), Decimal(0))
+        gains_tax = max(incremental_tax(gain, gains_tax_profile, deduction), Decimal(0))
         gains_formula = (
             "cuota del ahorro con la ganancia − sin ella; ganancia = venta − gastos y "
             "tributos de la venta − (precio + gastos de compra + reforma − amortizaciones)"
+            + deducted
         )
-        gains_sources = gains_tax_profile.sources
+        gains_sources = combine_sources(gains_tax_profile.sources, deduction_sources)
     elif capital_gains_tax_rate is not None:
-        gains_tax = money(max(gain, Decimal(0)) * capital_gains_tax_rate)
+        gains_tax = money(max(gain, Decimal(0)) * capital_gains_tax_rate * (1 - deduction))
         gains_formula = (
             "máx(0, ganancia) × tipo; ganancia = venta − gastos y tributos de la venta − "
-            "(precio + gastos de compra + reforma − amortizaciones)"
+            "(precio + gastos de compra + reforma − amortizaciones)" + deducted
         )
-        gains_sources = ()
+        gains_sources = deduction_sources
     else:  # comprobado arriba; se deja explícito
         raise ValueError("Falta el tipo de la ganancia o el perfil del ahorro")
     months = horizon_years * 12

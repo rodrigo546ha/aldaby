@@ -430,6 +430,21 @@ KINDS: dict[str, KindSpec] = {
     "tipo_plusvalia": KindSpec(
         GainsRate, "Tipo de gravamen de la plusvalía municipal, único o por años de tenencia"
     ),
+    # Bonificaciones de la cuota por el territorio del inmueble (`rate`: parte de la cuota que se
+    # bonifica). Sin regla no hay bonificación: son la excepción, no la norma (ADR-0045).
+    "bonificacion_itp": KindSpec(RateParams, "Bonificación de la cuota del ITP de la compra"),
+    "bonificacion_ajd": KindSpec(
+        RateParams, "Bonificación de la cuota gradual del AJD de la escritura de compra"
+    ),
+    "bonificacion_ibi": KindSpec(RateParams, "Bonificación de la cuota del IBI"),
+    "bonificacion_plusvalia": KindSpec(
+        RateParams, "Bonificación de la cuota de la plusvalía municipal"
+    ),
+    # Parte de la cuota del IRPF que corresponde a las rentas del inmueble que se deduce
+    # (Ceuta y Melilla, Ley del IRPF, art. 68.4); por el territorio del inmueble (ADR-0045).
+    "deduccion_irpf_rentas_territorio": KindSpec(
+        RateParams, "Deducción del IRPF por las rentas del inmueble obtenidas en su territorio"
+    ),
 }
 
 

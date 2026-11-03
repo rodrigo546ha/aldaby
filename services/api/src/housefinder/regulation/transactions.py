@@ -33,7 +33,15 @@ from housefinder.regulation.kinds import (
     GainsRate,
     parse_params,
 )
-from housefinder.regulation.resolvers import _minimum, _rate, _rule, _scale, purchase_tax
+from housefinder.regulation.resolvers import (
+    _minimum,
+    _rate,
+    _rule,
+    _scale,
+    purchase_tax,
+    tax_rebate,
+    with_rebate,
+)
 from housefinder.regulation.rules import Rule, RuleBook
 
 DeedAgreement = Literal["ley", "comprador", "vendedor"]
@@ -69,11 +77,13 @@ def purchase_costs(
     (art. 1455: el vendedor, salvo pacto).
     """
     if new_build:
-        vat_rule = _rule(book, "iva_vivienda_nueva", "ES", on, include_pending,
+        # El del territorio: IGIC en Canarias, IPSI en Ceuta y Melilla, IVA en el resto
+        vat_rule = _rule(book, "iva_vivienda_nueva", territory, on, include_pending,
                          allow_unverified)
         vat_rate = _rate(vat_rule)
         tax = Figure("purchase_costs.vat", money(price * vat_rate), "EUR",
-                     f"precio × IVA de la vivienda ({vat_rate})",
+                     f"precio × impuesto indirecto de la entrega ({vat_rate}; IVA, o IGIC o "
+                     "IPSI donde rigen)",
                      combine_sources(price_sources, (vat_rule.ref,)))
         stamp_duty: Figure | None = stamp_duty_new_home(
             book, price, territory, on, price_sources, include_pending, allow_unverified
@@ -119,7 +129,7 @@ def stamp_duty_new_home(
     if not isinstance(params, BandedRate):
         raise TypeError(f"{rule.id}: se esperaba un tipo por bandas")
     bands = tuple(RateBand(b.up_to, b.rate) for b in params.bands)
-    return Figure(
+    figure = Figure(
         "purchase_costs.stamp_duty",
         banded_tax(price, bands, params.cap_jumps),
         "EUR",
@@ -128,6 +138,8 @@ def stamp_duty_new_home(
            else ""),
         combine_sources(price_sources, (rule.ref,)),
     )
+    return with_rebate(figure, *tax_rebate(book, "bonificacion_ajd", territory, on,
+                                           include_pending, allow_unverified))
 
 
 def buyer_pays_deed(
@@ -272,10 +284,13 @@ def municipal_gains_params(
     )
     rate_rule = _rule(book, "tipo_plusvalia", territory, sale_date, include_pending,
                       allow_unverified)
+    rebate, rebate_refs = tax_rebate(book, "bonificacion_plusvalia", territory, sale_date,
+                                     include_pending, allow_unverified)
     return ResolvedMunicipalGains(
         MunicipalGainsTax(land_value, coefficient, _gains_rate(rate_rule, holding_years),
-                          land_share),
-        combine_sources(value_sources, (coefficients.ref, maximums.ref, rate_rule.ref)),
+                          land_share, rebate),
+        combine_sources(value_sources, (coefficients.ref, maximums.ref, rate_rule.ref),
+                        rebate_refs),
     )
 
 

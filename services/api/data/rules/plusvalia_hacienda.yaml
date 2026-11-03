@@ -47738,3 +47738,29 @@
   params: {rate: 0.3}
   notes: 'Villamediana de: tipo de gravamen de la plusvalía municipal según el Ministerio de Hacienda
     (Oficina Virtual EELL), libro de 2026.'
+- id: plusvalia-coeficientes-51001
+  kind: coeficientes_plusvalia
+  territory: ES-18-51001
+  effective_from: '2026-01-01'
+  effective_to: null
+  status: vigente
+  verified: false
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FCEUTA%2FCeuta.pdf
+  params:
+    by_years: [0.14, 0.13, 0.14, 0.14, 0.16, 0.17, 0.16, 0.12, 0.1, 0.09, 0.08, 0.08, 0.08, 0.08, 0.09,
+      0.09, 0.1, 0.13, 0.17, 0.23, 0.4]
+  notes: 'Ceuta: coeficientes propios según el Ministerio de Hacienda (Oficina Virtual EELL), libro de
+    2026; donde pasen del máximo legal se aplica el máximo (TRLRHL, art. 107.4).'
+- id: plusvalia-coeficientes-52001
+  kind: coeficientes_plusvalia
+  territory: ES-19-52001
+  effective_from: '2026-01-01'
+  effective_to: null
+  status: vigente
+  verified: false
+  source_url: https://serviciostelematicosext.hacienda.gob.es/SGFAL/ConsultaTipos/aspx/descargaPDF.aspx?URLPDF=2026%2FMELILLA%2FMelilla.pdf
+  params:
+    by_years: [0.15, 0.15, 0.14, 0.14, 0.16, 0.18, 0.19, 0.18, 0.15, 0.12, 0.1, 0.09, 0.09, 0.09, 0.09,
+      0.09, 0.1, 0.13, 0.17, 0.23, 0.4]
+  notes: 'Melilla: coeficientes propios según el Ministerio de Hacienda (Oficina Virtual EELL), libro
+    de 2026; donde pasen del máximo legal se aplica el máximo (TRLRHL, art. 107.4).'
