@@ -1,0 +1,135 @@
+# Comunidad Autónoma de La Rioja (ES-17) y municipio de Logroño (ES-17-26089). Ver README.md.
+# SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Texto consolidado de la Ley 10/2017 leído el 2026-11-03 (BOE-A-2017-13750, «Última actualización
+# publicada el 29/10/2026»). Entró en vigor el 31/10/2017.
+#
+# PENDIENTE (sin fuente oficial leída, no se escribe):
+# - Mínimos personales y familiares propios (minimo_contribuyente, minimo_descendientes): La Rioja
+#   solo modifica el mínimo por discapacidad de descendientes (art. 31 bis); no hay mínimo del
+#   contribuyente ni de descendientes completos que sustituyan a los estatales. No se escriben.
+# - Deflactación de la escala (art. 31 ter): condicionada a un proyecto de ley futuro; el texto
+#   consolidado a 29/10/2026 mantiene la escala del art. 31 sin cambios.
+# - Régimen urbanístico municipal de Logroño del alquiler turístico (la prensa habla de licencia previa
+#   y moratoria desde noviembre de 2025; sin texto oficial leído).
+# - Decreto 15/2021 (modifica el Decreto 10/2017): no se ha leído su articulado; por la información
+#   oficial no toca las viviendas de uso turístico.
+# - Ninguna fecha de inicio anterior a 2017-10-31 (consolidación) se ha comprobado.
+
+# ITP de inmuebles, tipo general (único, para todo el valor, no por tramos). Los tipos reducidos del
+# art. 45 (vivienda habitual) y 47 (explotaciones agrarias) no aplican a un inversor particular.
+- id: la-rioja-itp-inmuebles-2017
+  kind: impuesto_compra_segunda_mano
+  territory: ES-17
+  effective_from: 2017-10-31
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.07}
+  source_url: https://www.boe.es/eli/es-ri/l/2017/10/27/10/con
+  notes: "Ley 10/2017, de 27 de octubre, de La Rioja (BOE-A-2017-13750), art. 44.1: tipo del 7 % en las transmisiones de bienes inmuebles y en la constitución y cesión de derechos reales sobre ellos, salvo los de garantía. Tipo único sobre toda la base liquidable, sin tramos. Fecha de inicio = entrada en vigor de la ley consolidadora (31/10/2017); el 7 % puede venir de normas anteriores que la ley consolida (por verificar)."
+
+# AJD de la escritura de compra de vivienda sujeta a IVA: tipo general de los documentos notariales,
+# 1 % sobre todo el valor (único). Sin bandas ni salto de banda.
+- id: la-rioja-ajd-compra-vivienda-2017
+  kind: ajd_compra_vivienda
+  territory: ES-17
+  effective_from: 2017-10-31
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.01}
+    cap_jumps: false
+  source_url: https://www.boe.es/eli/es-ri/l/2017/10/27/10/con
+  notes: "Ley 10/2017 de La Rioja, art. 48: las primeras copias de escrituras con cantidad o cosa valuable, inscribibles y no sujetas a Sucesiones y Donaciones ni a los números 1 y 2 del art. 1 del TRLITPAJD, tributan además de la cuota fija al 1 %. No incluye el 0,1 % de vivienda habitual de determinados sujetos pasivos (art. 49) ni el 1,5 % cuando se renuncia a la exención del IVA (art. 52, no aplica a vivienda nueva con IVA). Persona jurídica: mismo tipo (no hay tipo propio). Fecha de inicio como en el ITP (por verificar)."
+
+# --- IRPF, tramo autonómico (ADR-0007) -------------------------------------------------------
+# Escala del art. 31, sin modificación en el texto consolidado a 29/10/2026: rige en 2025 y 2026.
+- id: la-rioja-irpf-escala-general-2018
+  kind: escala_irpf_general_autonomica
+  territory: ES-17
+  effective_from: 2018-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.08}
+      - {from: 12450, rate: 0.106}
+      - {from: 20200, rate: 0.136}
+      - {from: 35200, rate: 0.178}
+      - {from: 40000, rate: 0.183}
+      - {from: 50000, rate: 0.19}
+      - {from: 60000, rate: 0.245}
+      - {from: 120000, rate: 0.27}
+  source_url: https://www.boe.es/eli/es-ri/l/2017/10/27/10/con
+  notes: "Ley 10/2017 de La Rioja, art. 31 (texto consolidado a 29/10/2026): 8 % hasta 12.450 €; 10,6 % hasta 20.200 €; 13,6 % hasta 35.200 €; 17,8 % hasta 40.000 €; 18,3 % hasta 50.000 €; 19 % hasta 60.000 €; 24,5 % hasta 120.000 €; 27 % en adelante. El art. 31 ter prevé deflactarla si el IPC de La Rioja de diciembre supera el 3 %, mediante proyecto de ley que no consta aplicado. Fecha de inicio = primer periodo impositivo tras la entrada en vigor de la ley consolidadora; la misma escala puede venir de antes (por verificar)."
+
+# --- Alquiler ---------------------------------------------------------------------------------
+
+# Ninguna zona tensionada en La Rioja: ni «Rioja» ni «Logroño» figuran en ninguna de las nueve
+# resoluciones trimestrales del Ministerio leídas, desde la del primer trimestre de 2024 hasta la del
+# segundo de 2026: BOE-A-2024-5214, BOE-A-2024-20576, BOE-A-2025-1721, BOE-A-2025-8636,
+# BOE-A-2025-15728, BOE-A-2025-21901, BOE-A-2026-2448, BOE-A-2026-9175 y BOE-A-2026-16532.
+# No se ha leído la del segundo trimestre de 2024 ni se ha encontrado aún la del tercero de 2026.
+# Revisar con cada resolución nueva y actualizar checked_through.
+- id: la-rioja-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-17
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre."
+
+# Vivienda de uso turístico en La Rioja: Decreto 10/2017 (Reglamento General de Turismo, BOR núm. 34,
+# 22/03/2017), arts. 66, 67 y 69 en la redacción del Decreto 40/2018, de 23 de noviembre (BOR núm. 141,
+# 30/11/2018; entra en vigor el día siguiente: 01/12/2018).
+- id: la-rioja-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-17
+  effective_from: 2018-12-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico en La Rioja (Decreto 10/2017): comunicación de inicio de actividad a la Dirección General de Turismo e inscripción en el Registro de Proveedores de Servicios Turísticos; sin licencia autonómica"
+    requirements:
+      - code: comunicacion-inicio
+        description: "Comunicación de inicio de actividad (modelo oficial) ante la Dirección General de Turismo; permite ejercer la actividad desde su presentación (trámite oficial; requisitos de los arts. 66 a 71 del Decreto 10/2017)"
+        source_url: https://web.larioja.org/oficina-electronica/tramite?n=24269
+      - code: vivienda-completa
+        description: "Cesión temporal de la vivienda completa, amueblada y equipada para uso inmediato; la cesión por habitaciones se somete al régimen de las pensiones (art. 66.1 y 66.3)"
+        source_url: https://ias1.larioja.org/boletin/Bor_Boletin_visor_Servlet?referencia=8916193-1-PDF-520959-X
+      - code: umbral-tres-meses
+        description: "No es vivienda de uso turístico la alquilada en un único periodo consecutivo igual o inferior a tres meses al año (art. 66.2)"
+        source_url: https://ias1.larioja.org/boletin/Bor_Boletin_visor_Servlet?referencia=8916193-1-PDF-520959-X
+      - code: superficie-y-capacidad
+        description: "Superficie útil mínima del Decreto 28/2013 de habitabilidad (art. 66.5); capacidad máxima de plazas igual al doble de las habitaciones, incluido el salón, y hasta 8 plazas (art. 66.6)"
+        source_url: https://ias1.larioja.org/boletin/Bor_Boletin_visor_Servlet?referencia=8916193-1-PDF-520959-X
+      - code: estatutos-y-normativa-municipal
+        description: "No puede destinarse a uso turístico si lo prohíben los estatutos de la comunidad de propietarios o incumple la normativa municipal aplicable; en comunidad de propietarios no pueden ofertarse servicios que causen molestias ni destinarse a fiestas o eventos (art. 67)"
+        source_url: https://ias1.larioja.org/boletin/Bor_Boletin_visor_Servlet?referencia=8916193-1-PDF-520959-X
+      - code: numero-de-registro-y-placa
+        description: "El número de inscripción en el registro de proveedores de servicios turísticos debe constar en la comercialización y publicidad, y es obligatoria la placa identificativa en lugar visible de la entrada (art. 69.3 y 69.4)"
+        source_url: https://ias1.larioja.org/boletin/Bor_Boletin_visor_Servlet?referencia=8916193-1-PDF-520959-X
+  source_url: https://ias1.larioja.org/boletin/Bor_Boletin_visor_Servlet?referencia=8916193-1-PDF-520959-X
+  notes: "Redacción del Decreto 10/2017 según el Decreto 40/2018 (BOR núm. 141, 30/11/2018; disposición final: en vigor el día siguiente). No se ha leído el Decreto 15/2021 (BOR 2021, en vigor 20/02/2021), que también modifica el Decreto 10/2017; no consta que toque estos artículos. Pendiente comprobar el texto consolidado vigente y la ordenanza o plan municipal de Logroño."
+
+# --- Plusvalía municipal (tipo único) ----------------------------------------------------------
+
+# Logroño: Ordenanza fiscal reguladora del IIVTNU (nº 6 del texto íntegro de ordenanzas fiscales
+# actualizadas a 1 de enero de 2026), art. 7.1: 30 %.
+- id: logrono-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-17-26089
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.30}
+  source_url: https://logrono.es/documents/20121/1744171/ORDENANZAS+FISCALES+2026.pdf/156442a9-310a-e851-95da-3d66209b8ab6?t=1772784854868
+  notes: "Ordenanza Fiscal reguladora del Impuesto sobre el Incremento del Valor de los Terrenos de Naturaleza Urbana del Ayuntamiento de Logroño, art. 7.1: «El tipo impositivo será del 30 por 100.» Texto íntegro de las ordenanzas fiscales actualizadas a 1 de enero de 2026 (modificaciones publicadas en el BOR núm. 250, 26/12/2025, y núm. 252, 30/12/2025). Fecha de inicio = ejercicio 2026 (primer texto leído); el 30 % puede venir de antes (por verificar). Código INE 26089 comprobado en el diccionario de municipios del INE 2026."

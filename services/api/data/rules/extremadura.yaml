@@ -1,0 +1,174 @@
+# Comunidad Autónoma de Extremadura (ES-11) y municipios de Badajoz (ES-11-06015) y Cáceres (ES-11-10037).
+# Ver README.md. SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Texto consolidado del Decreto Legislativo 1/2018 leído el 2026-11-03 (BOE, «Última actualización
+# publicada el 04/08/2026»); Ley 2/2026 (BOE-A-2026-17839) leída el mismo día.
+#
+# PENDIENTE (sin fuente oficial leída, no se escribe):
+# - Mínimos del contribuyente y por descendientes: Extremadura NO tiene mínimos propios (el texto
+#   refundido remite al art. 58 de la Ley 35/2006), por lo que no se escriben esas reglas.
+# - Régimen de «vivienda de uso turístico» propiamente dicha: la Junta tramita la cesión de la vivienda
+#   completa como apartamento turístico (Decreto 182/2012); no se ha encontrado una norma específica.
+# - Fecha exacta del BOP de entrada en vigor de las ordenanzas de plusvalía de Badajoz y Cáceres.
+
+# ITP de inmuebles, tipo general. Los tipos reducidos de los arts. 39 a 44 ter (vivienda protegida,
+# vivienda habitual de jóvenes, colectivos, empresas y zonas rurales) no aplican a un inversor particular.
+# La Ley 2/2026 no modifica el art. 36. La tarifa figura ya en el texto original del texto refundido
+# (en vigor el 24/05/2018); si es anterior a esa fecha no se ha comprobado.
+- id: extremadura-itp-inmuebles-2018
+  kind: impuesto_compra_segunda_mano
+  territory: ES-11
+  effective_from: 2018-05-24
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.08}
+      - {from: 360000, rate: 0.10}
+      - {from: 600000, rate: 0.11}
+  source_url: https://www.boe.es/eli/es-ex/dlg/2018/04/10/1/con
+  notes: "Decreto Legislativo 1/2018, de 10 de abril, de Extremadura (BOE-A-2018-8159), art. 36: tarifa progresiva, 8 % hasta 360.000 €, 10 % entre 360.000,01 y 600.000 € y 11 % por encima; el apartado 2 dice que la cuota es la suma de las cuotas de cada escalón con su tipo propio, es decir, PROGRESIVA por porción (no whole_value)."
+
+# AJD de la escritura de compra de vivienda sujeta a IVA: tipo general de los documentos notariales,
+# 1,5 % sobre todo el valor (único). Sin bandas ni salto de banda. No incluye el 0,5 % de la vivienda
+# habitual de hasta 200.000 € (art. 47), el de vivienda protegida (47 bis) ni los de zonas rurales (50 bis).
+# El 3 % del art. 51 es solo para escrituras con renuncia a la exención del IVA (inmuebles usados).
+- id: extremadura-ajd-compra-vivienda-2018
+  kind: ajd_compra_vivienda
+  territory: ES-11
+  effective_from: 2018-05-24
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.015}
+    cap_jumps: false
+  source_url: https://www.boe.es/eli/es-ex/dlg/2018/04/10/1/con
+  notes: "Decreto Legislativo 1/2018 de Extremadura, art. 46: «tipo general del 1,50 %» en las primeras copias de escrituras y actas notariales sujetas como Documentos Notariales. Persona jurídica: mismo tipo (no hay tipo propio). Texto idéntico en las versiones consolidadas de 2018 a 2026 (la Ley 2/2026 no toca el art. 46)."
+
+# --- IRPF, tramo autonómico (ADR-0007) -------------------------------------------------------
+# Escala vigente en 2023-2025: Decreto-ley 4/2023, de 12 de septiembre (DOE núm. 178, 15/09/2023;
+# convalidado por Resolución de 3/10/2023), cuyo art. 1 surte efectos desde el 01/01/2023.
+- id: extremadura-irpf-escala-general-2023
+  kind: escala_irpf_general_autonomica
+  territory: ES-11
+  effective_from: 2023-01-01
+  effective_to: 2026-01-01
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.08}
+      - {from: 12450, rate: 0.10}
+      - {from: 20200, rate: 0.16}
+      - {from: 24200, rate: 0.175}
+      - {from: 35200, rate: 0.21}
+      - {from: 60000, rate: 0.235}
+      - {from: 80200, rate: 0.24}
+      - {from: 99200, rate: 0.245}
+      - {from: 120200, rate: 0.25}
+  source_url: https://www.boe.es/eli/es-ex/dl/2023/09/12/4
+  notes: "Decreto Legislativo 1/2018, art. 1, redacción del Decreto-ley 4/2023 (BOE-A-2023-21669; efectos 01/01/2023). Tipos y tramos leídos en la versión consolidada de 15/09/2023 a 07/04/2025, idéntica en la escala. Hasta el 31/12/2022 el primer tramo era 9,5 % y el segundo 12,5 %."
+
+# Escala del periodo impositivo 2026: la Ley 2/2026 (DOE núm. 149, 04/08/2026; BOE 17/08/2026) baja
+# 0,25 puntos los dos primeros tramos; los apartados uno a dieciséis de su disposición final segunda
+# (IRPF) entran en vigor con efectos del 01/01/2026 (disposición final séptima).
+- id: extremadura-irpf-escala-general-2026
+  kind: escala_irpf_general_autonomica
+  territory: ES-11
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.0775}
+      - {from: 12450, rate: 0.0975}
+      - {from: 20200, rate: 0.16}
+      - {from: 24200, rate: 0.175}
+      - {from: 35200, rate: 0.21}
+      - {from: 60000, rate: 0.235}
+      - {from: 80200, rate: 0.24}
+      - {from: 99200, rate: 0.245}
+      - {from: 120200, rate: 0.25}
+  source_url: https://www.boe.es/eli/es-ex/l/2026/08/03/2
+  notes: "Ley 2/2026, de 3 de agosto, de Presupuestos Generales de Extremadura para 2026 (BOE-A-2026-17839), disposición final segunda, apartado uno (art. 1 del Decreto Legislativo 1/2018): 7,75 % hasta 12.450 €; 9,75 % hasta 20.200 €; 16 % hasta 24.200 €; 17,5 % hasta 35.200 €; 21 % hasta 60.000 €; 23,5 % hasta 80.200 €; 24 % hasta 99.200 €; 24,5 % hasta 120.200 €; 25 % en adelante. El proyecto de presupuestos de 2027 (no aprobado) propondría bajar de nuevo los dos primeros tramos; no se ha leído."
+
+# --- Alquiler ---------------------------------------------------------------------------------
+
+# Ninguna zona tensionada en Extremadura: ni «Extremadura» ni «Badajoz» ni «Cáceres» figuran en las
+# resoluciones trimestrales del Ministerio leídas: BOE-A-2026-9175 (primer trimestre de 2026) y
+# BOE-A-2026-16532 (segundo trimestre de 2026). No se han leído las resoluciones anteriores
+# de 2024 y 2025. Revisar con cada resolución nueva y actualizar checked_through.
+- id: extremadura-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-11
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre. Resolución de 24/07/2026 de la Secretaría de Estado de Vivienda y Agenda Urbana (segundo trimestre de 2026)."
+
+# Alquiler de la vivienda completa a turistas en Extremadura: no hay decreto específico de «viviendas
+# de uso turístico»; la Junta lo tramita como apartamento turístico (Decreto 182/2012, art. 2.1, que
+# cita el art. 61 de la Ley 2/2011) mediante declaración responsable, con inscripción de oficio en el
+# Registro General de Empresas y Actividades Turísticas (Decreto 205/2012).
+- id: extremadura-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-11
+  effective_from: 2012-09-14
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Apartamento turístico en Extremadura (Decreto 182/2012): declaración responsable ante la Dirección General de Turismo e inscripción de oficio en el Registro General de Empresas y Actividades Turísticas"
+    requirements:
+      - code: declaracion-responsable
+        description: "Declaración responsable de inicio de actividad ante la Dirección General de Turismo; se puede iniciar la actividad desde su presentación y la actividad se inscribe de oficio en el Registro General de Empresas y Actividades Turísticas de Extremadura"
+        source_url: https://www.juntaex.es/w/5826
+      - code: cesion-completa-con-cocina
+        description: "Se cede el uso de la totalidad del apartamento, con instalaciones para preparar, conservar y consumir alimentos dentro de cada unidad (Decreto 182/2012, art. 2.1)"
+        source_url: https://www.juntaex.es/w/5826
+      - code: seguro-responsabilidad-civil
+        description: "Seguro de responsabilidad civil vigente, con cobertura suficiente y al corriente de pago"
+        source_url: https://www.juntaex.es/w/5826
+      - code: titulo-disponibilidad
+        description: "Título que acredite la plena disponibilidad del inmueble (por ejemplo, nota simple del Registro de la Propiedad)"
+        source_url: https://www.juntaex.es/w/5826
+      - code: memoria-y-planos
+        description: "Memoria descriptiva y planos a escala firmados por facultativo competente"
+        source_url: https://www.juntaex.es/w/5826
+      - code: tasas
+        description: "Pago de la tasa de tramitación y primera visita de comprobación, y del Libro de Inspección (modelo 50)"
+        source_url: https://www.juntaex.es/w/5826
+  source_url: https://www.juntaex.es/w/5826
+  notes: "Requisitos tal como los publica la sede de la Junta (ficha actualizada el 13/10/2026). Decreto 182/2012, de 7 de septiembre (DOE núm. 178, 13/09/2012; en vigor al día siguiente, de ahí el inicio). La ficha no menciona expresamente «viviendas de uso turístico»: por verificar con la Dirección General de Turismo si una vivienda particular encaja siempre en el trámite de apartamento turístico. No se han leído los requisitos técnicos de clasificación por categorías del decreto."
+
+# --- Plusvalía municipal (tipo único) ----------------------------------------------------------
+
+# Badajoz: art. 7.1 de la ordenanza fiscal del IIVTNU, aprobada por el Pleno el 25/04/2022.
+- id: badajoz-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-11-06015
+  effective_from: 2022-07-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.2574}
+  source_url: https://www.aytobadajoz.es/files/archivos/ayto/2026_10/ordenanzas-fiscales-2026.pdf
+  notes: "Ordenanza Fiscal reguladora del IIVTNU del Ayuntamiento de Badajoz, art. 7.1: «El tipo de gravamen del Impuesto es del 25,74 (veinticinco con setenta y cuatro) por ciento.» Leída en la compilación de ordenanzas fiscales firmada el 06/10/2026. La disposición final dice que entra en vigor el día de su publicación en el BOP; la fecha de inicio 01/07/2022 procede de un sitio secundario (guiafiscal.es) y no se ha comprobado en el BOP."
+
+# Cáceres: art. 8.1 de la ordenanza fiscal del IIVTNU, aprobada definitivamente por el Pleno el 21/07/2022.
+- id: caceres-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-11-10037
+  effective_from: 2022-07-21
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.30}
+  source_url: https://www.ayto-caceres.es/publicaciones/ordenanzas/ordenanzas-fiscales/ordenanza-fiscal-reguladora-del-impuesto-sobre-el-incremento-del-valor-de-los-terrenos-de-naturaleza-urbana/?download=90729
+  notes: "Ordenanza Fiscal reguladora del IIVTNU del Ayuntamiento de Cáceres, art. 8.1: «El tipo de gravamen del Impuesto es del 30 %.» Leída en la sede municipal el 2026-11-03. La disposición final fija la entrada en vigor el día siguiente a la publicación en el BOP de Cáceres, cuya fecha no se ha encontrado: la fecha de inicio 2022-07-21 es la del Pleno (cota inferior); el tipo del 30 % puede venir de antes (por verificar)."

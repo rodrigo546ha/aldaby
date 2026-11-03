@@ -299,6 +299,7 @@ class StressedZone:
     declared: bool
     checked_through: date  # última resolución trimestral revisada
     rule: Rule
+    area: str | None = None  # ámbito declarado si no es todo el municipio
 
 
 def stressed_zone(
@@ -313,7 +314,7 @@ def stressed_zone(
     zone = parse_params(rule.kind, rule.params)
     if not isinstance(zone, ZoneDeclaration):
         raise TypeError(f"{rule.id}: se esperaba una declaración de zona")
-    return StressedZone(zone.declared, zone.checked_through, rule)
+    return StressedZone(zone.declared, zone.checked_through, rule, zone.area)
 
 
 @dataclass(frozen=True)

@@ -86,9 +86,9 @@ def test_escala_autonomica_de_madrid(book: RuleBook):
 
 
 def test_otra_comunidad_no_hereda_la_escala_estatal(book: RuleBook):
-    # Extremadura (ES-11) no tiene escala cargada: debe faltar, no usar la estatal.
+    # Navarra (ES-15, foral) no tiene escala cargada: debe faltar, no usar la estatal.
     regla = book.resolve(
-        "escala_irpf_general_autonomica", "ES-11", EJERCICIO, allow_unverified=True
+        "escala_irpf_general_autonomica", "ES-15", EJERCICIO, allow_unverified=True
     )
     assert regla is None
 

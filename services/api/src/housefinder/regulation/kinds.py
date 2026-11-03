@@ -185,10 +185,19 @@ class ZoneDeclaration(RuleParams):
     """Si el territorio es zona de mercado residencial tensionado (Ley 12/2023, art. 18).
 
     `checked_through`: fecha de la última resolución trimestral del Ministerio revisada.
+    `area`: el ámbito declarado cuando no es todo el municipio (barrios, núcleos), como lo nombra
+    la resolución.
     """
 
     declared: bool
     checked_through: date
+    area: str | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def _area_if_declared(self) -> ZoneDeclaration:
+        if self.area is not None and not self.declared:
+            raise ValueError("`area` solo tiene sentido con `declared: true`")
+        return self
 
 
 class Requirement(RuleParams):

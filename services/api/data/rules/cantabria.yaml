@@ -1,0 +1,184 @@
+# Comunidad Autónoma de Cantabria (ES-06) y municipios de Santander (ES-06-39075) y Torrelavega (ES-06-39087).
+# Ver README.md. SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Texto consolidado del Decreto Legislativo 62/2008 leído el 2026-11-03 (BOE, BOCT-c-2008-90028,
+# «Última actualización, publicada el 30/04/2026, en vigor a partir del 01/05/2026»). Las redacciones
+# anteriores se leyeron en las versiones históricas del mismo texto consolidado.
+#
+# PENDIENTE (sin fuente oficial leída, no se escribe):
+# - Mínimos del contribuyente y por descendientes: Cantabria NO tiene mínimos propios (su art. 2 solo
+#   regula deducciones sobre la cuota); rige el mínimo estatal también en el tramo autonómico.
+# - Régimen urbanístico municipal del alquiler turístico de Santander y Torrelavega (informe municipal
+#   de compatibilidad, art. 6.1.b del Decreto 50/2025): no se ha leído su planeamiento.
+# - Tipo de la plusvalía de Santander anterior al 10/05/2022 y modificaciones de la ordenanza de
+#   Torrelavega posteriores al 02/06/2022 (no se ha leído el BOC de 2025 ni de 2026 de Torrelavega).
+# - Posibles modificaciones del Decreto 50/2025 posteriores al 24/07/2025.
+
+# ITP de inmuebles, tipo general (único, para todo el valor). Los tipos reducidos del art. 9.2 a 9.8
+# (vivienda habitual, menores de 40 años, familia numerosa o monoparental, discapacidad, municipios
+# con riesgo de despoblamiento, rehabilitación, VPO, sociedades de jóvenes) no aplican a un inversor
+# particular. Redacción vigente hasta el 31/12/2023: 10 %.
+- id: cantabria-itp-inmuebles-2018
+  kind: impuesto_compra_segunda_mano
+  territory: ES-06
+  effective_from: 2018-01-01
+  effective_to: 2024-01-01
+  status: vigente
+  verified: false
+  params: {rate: 0.10}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCT-c-2008-90028#a9
+  notes: "Decreto Legislativo 62/2008 de Cantabria, art. 9.1.A (Tipo general), versión en vigor el 01/01/2018 (Ley 9/2017, BOE-A-2018-856) hasta el 31/12/2023: «tipo del 10 por ciento» en la transmisión de bienes inmuebles y constitución y cesión de derechos reales salvo los de garantía. Tipo único sobre todo el valor (no por tramos). En 2016-2017 el tipo general era el 8 % (no se escribe: anterior a 2024)."
+
+- id: cantabria-itp-inmuebles-2024
+  kind: impuesto_compra_segunda_mano
+  territory: ES-06
+  effective_from: 2024-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.09}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCT-c-2008-90028#a9
+  notes: "Decreto Legislativo 62/2008 de Cantabria, art. 9.1.A, redacción de la Ley 3/2023 (BOE-A-2024-1373, en vigor el 01/01/2024): «se aplicará el tipo del 9 por ciento». Tipo único sobre todo el valor (no por tramos): la escala 7 % hasta 300.000 € y 9 % por el exceso del art. 9.2 es solo para vivienda habitual. La Ley 5/2026 (BOE-A-2026-10431, en vigor el 01/05/2026) modificó los apartados 2, 3.c), 4 y 7 del art. 9, no el tipo general."
+
+# AJD de la escritura de compra de vivienda sujeta a IVA: tipo general de las primeras copias de
+# escrituras inscribibles, 1,5 % sobre todo el valor (único). Sin bandas ni salto de banda.
+# No incluye el 1 % de la vivienda habitual ni los reducidos del art. 13.4 a 13.10.
+- id: cantabria-ajd-compra-vivienda-2016
+  kind: ajd_compra_vivienda
+  territory: ES-06
+  effective_from: 2016-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.015}
+    cap_jumps: false
+  source_url: https://www.boe.es/buscar/act.php?id=BOCT-c-2008-90028#a13
+  notes: "Decreto Legislativo 62/2008 de Cantabria, art. 13.3 (redacción de la Ley 3/2023 desde el 01/01/2024; en las versiones de 2016 a 2023 también 1,5 %): primeras copias de escrituras y actas notariales inscribibles, no sujetas a Sucesiones y Donaciones ni a TPO/IVA, tributan además al 1,5 %. Persona jurídica: mismo tipo (no hay tipo propio). Vivienda habitual: 1 %, y 0,1 % con requisitos (art. 13.4), no aplicables a un inversor."
+
+# --- IRPF, tramo autonómico (ADR-0007) -------------------------------------------------------
+# Escala autonómica (art. 1 del Decreto Legislativo 62/2008). Cantabria no tiene mínimos personales
+# y familiares propios: se aplican los estatales también en el gravamen autonómico.
+
+# Escala 2016-2023 (redacción de la Ley 6/2015, en vigor el 01/01/2016).
+- id: cantabria-irpf-escala-general-2016
+  kind: escala_irpf_general_autonomica
+  territory: ES-06
+  effective_from: 2016-01-01
+  effective_to: 2024-01-01
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.095}
+      - {from: 12450, rate: 0.12}
+      - {from: 20200, rate: 0.15}
+      - {from: 34000, rate: 0.185}
+      - {from: 46000, rate: 0.195}
+      - {from: 60000, rate: 0.245}
+      - {from: 90000, rate: 0.255}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCT-c-2008-90028#a1
+  notes: "Decreto Legislativo 62/2008 de Cantabria, art. 1, redacción de la Ley 6/2015 (BOE-A-2016-478), versión vigente hasta el 31/12/2023: 9,5 % hasta 12.450 €; 12 % hasta 20.200 €; 15 % hasta 34.000 €; 18,5 % hasta 46.000 €; 19,5 % hasta 60.000 €; 24,5 % hasta 90.000 €; 25,5 % en adelante."
+
+# Escala desde 2024 (Ley 3/2023); rige en 2025 y 2026.
+- id: cantabria-irpf-escala-general-2024
+  kind: escala_irpf_general_autonomica
+  territory: ES-06
+  effective_from: 2024-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.085}
+      - {from: 13000, rate: 0.11}
+      - {from: 21000, rate: 0.145}
+      - {from: 35200, rate: 0.18}
+      - {from: 60000, rate: 0.225}
+      - {from: 90000, rate: 0.245}
+  source_url: https://www.boe.es/buscar/act.php?id=BOCT-c-2008-90028#a1
+  notes: "Decreto Legislativo 62/2008 de Cantabria, art. 1, redacción de la Ley 3/2023 (BOE-A-2024-1373, en vigor el 01/01/2024): 8,5 % hasta 13.000 €; 11 % hasta 21.000 €; 14,5 % hasta 35.200 €; 18 % hasta 60.000 €; 22,5 % hasta 90.000 €; 24,5 % en adelante. El art. 1 no se ha modificado después (texto consolidado a 30/04/2026), por lo que rige también en 2025 y 2026."
+
+# --- Alquiler ---------------------------------------------------------------------------------
+
+# Ninguna zona tensionada en Cantabria: «Cantabria», «Santander» y «Torrelavega» no figuran en ninguna
+# de las nueve resoluciones trimestrales del Ministerio leídas, desde la del primer trimestre de 2024
+# hasta la del segundo de 2026: BOE-A-2024-5214, BOE-A-2024-20576, BOE-A-2025-1721, BOE-A-2025-8636,
+# BOE-A-2025-15728, BOE-A-2025-21901, BOE-A-2026-2448, BOE-A-2026-9175 y BOE-A-2026-16532.
+# No se ha leído la del segundo trimestre de 2024. Revisar con cada resolución nueva y actualizar checked_through.
+- id: cantabria-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-06
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre."
+
+# Vivienda de uso turístico en Cantabria: Decreto 50/2025, de 24 de julio (BOC extraordinario núm. 15,
+# 24/07/2025, CVE-2025-6592). Disposición final segunda: entra en vigor al día siguiente de su publicación
+# (25/07/2025). Deroga el Decreto 225/2019.
+- id: cantabria-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-06
+  effective_from: 2025-07-25
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico en Cantabria (Decreto 50/2025): declaración responsable ante la Dirección General de Turismo antes de iniciar la actividad, con inscripción de oficio en el Registro General de Empresas Turísticas de Cantabria"
+    requirements:
+      - code: declaracion-responsable
+        description: "Declaración responsable de apertura (Anexo I) ante la Dirección General competente en turismo, antes de iniciar la actividad; faculta para ejercerla desde el día de su presentación y se inscribe de oficio con carácter preventivo (arts. 5.1 y 6.2)"
+        source_url: https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=423179
+      - code: titulo-juridico
+        description: "Título jurídico suficiente de la propiedad o de un derecho de uso sobre la vivienda (art. 6.1.a)"
+        source_url: https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=423179
+      - code: informe-compatibilidad-urbanistica
+        description: "Informe municipal de compatibilidad de uso turístico con el planeamiento urbanístico (art. 6.1.b); los ayuntamientos pueden limitar con criterios objetivos el número de viviendas por edificio, sector, ámbito, periodo, área o zona (art. 4.2)"
+        source_url: https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=423179
+      - code: certificado-tecnico-programa-minimo
+        description: "Certificado de técnico competente de las condiciones del programa mínimo de vivienda, con la capacidad alojativa (art. 6.1.c)"
+        source_url: https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=423179
+      - code: aprobacion-previa-comunidad-propietarios
+        description: "Aprobación previa de la comunidad de propietarios en los términos de la Ley de Propiedad Horizontal, si el inmueble está en régimen de propiedad horizontal (art. 6.1.d)"
+        source_url: https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=423179
+      - code: no-proteccion-publica
+        description: "La vivienda no puede ser de protección pública calificada (arts. 1.4 y 6.1.f)"
+        source_url: https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=423179
+      - code: seguridad-y-ruido
+        description: "Un extintor por planta, un detector de humo junto a la cocina y un sistema de monitorización del ruido en los salones (art. 6.1.g)"
+        source_url: https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=423179
+      - code: cesion-compartida-propietario-residente
+        description: "Solo si se cede por habitaciones (cesión compartida): únicamente personas físicas, la persona propietaria debe residir en la vivienda y aportar certificado municipal de convivencia (arts. 3.b y 6.1.e)"
+        source_url: https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=423179
+  source_url: https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=423179
+  notes: "Decreto 50/2025, de 24 de julio (BOC extraordinario núm. 15, 24/07/2025), arts. 1, 3, 4, 5 y 6; disposición final segunda (entrada en vigor al día siguiente de su publicación). Disposición transitoria única: las viviendas ya inscritas o con declaración anterior al 03/04/2025 quedan exentas del art. 6.1.d (aprobación de la comunidad) y deben presentar el Anexo V en 8 meses. Pendiente comprobar modificaciones posteriores al 24/07/2025."
+
+# --- Plusvalía municipal (tipo único) ----------------------------------------------------------
+
+# Santander: Ordenanza nº 5-I, art. 6: tipo único del 21 %.
+- id: santander-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-06-39075
+  effective_from: 2022-05-10
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.21}
+  source_url: https://www.santander.es/system/files/5i_-_iivtnu_2026.pdf
+  notes: "Ordenanza Fiscal nº 5-I del Ayuntamiento de Santander (texto del ejercicio 2026 publicado en santander.es; Pleno de 24/02/2022, BOC núm. 88 de 09/05/2022), art. 6: «el tipo único del 21 por l00». Disposición final segunda: efectos desde el día siguiente a su publicación definitiva (10/05/2022). No se ha leído el BOC de la aprobación del tipo ni el de modificaciones posteriores; webs no oficiales hablan de un 28 %, que no coincide con la ordenanza leída."
+
+# Torrelavega: Ordenanza Fiscal del IIVTNU (BOC núm. 106, 02/06/2022), art. 12.1: 30 %.
+- id: torrelavega-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-06-39087
+  effective_from: 2022-06-02
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.30}
+  source_url: https://boc.cantabria.es/boces/verAnuncioAction.do?idAnuBlob=372719
+  notes: "Ordenanza Fiscal reguladora del IIVTNU del Ayuntamiento de Torrelavega (aprobación definitiva, BOC núm. 106 de 02/06/2022, CVE-2022-4145), art. 12.1: «El tipo de gravamen del Impuesto será el 30 por ciento». Entra en vigor en el momento de su publicación íntegra en el BOC. La modificación de ordenanzas para 2024 (BOC 27/12/2023, CVE-2023-10867) no toca este impuesto; no se han leído las de 2025 y 2026."

@@ -131,6 +131,10 @@ def _zone(rules: RuleBook, territory: str, today: date) -> list[str]:
         zone = stressed_zone(rules, territory, today, allow_unverified=True)
     except LookupError:
         return ["No consta revisado si el municipio es zona de mercado residencial tensionado."]
+    if zone.declared and zone.area:
+        return ["Solo parte del municipio es zona de mercado residencial tensionado "
+                f"({zone.area}): comprueba si el inmueble está dentro; los límites a la renta "
+                "del alquiler habitual no se modelan."]
     if zone.declared:
         return ["El municipio es zona de mercado residencial tensionado: los límites a la renta "
                 "del alquiler habitual no se modelan."]

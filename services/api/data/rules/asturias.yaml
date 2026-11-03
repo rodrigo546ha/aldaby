@@ -1,0 +1,264 @@
+# Principado de Asturias (ES-03) y municipio de Oviedo (ES-03-33044). Zonas tensionadas en los municipios
+# de Avilés, Cabrales, Gijón, Gozón y Llanes. Ver README.md.
+# SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Texto consolidado del Decreto Legislativo 2/2014 leído el 2026-11-03 (BOE-A-2015-945, «Última
+# actualización publicada el 31/12/2025»), con la Ley 3/2025 (BOE-A-2025-25707) y la Ley 11/2014
+# (BOE-A-2015-1764, art. 39) que lo modifican.
+#
+# PENDIENTE (sin fuente oficial leída, o que el esquema no admite; no se escribe):
+# - Plusvalía de Gijón: la Ordenanza Fiscal nº 1.03 (ordenanzas 2026 de Gijón) fija el tipo según el periodo
+#   de generación (25 % hasta 5 años, 22 % de 6 a 19 años, 18 % con 20 o más) y `tipo_plusvalia` solo admite
+#   un tipo único. Fuente leída: https://drupal.gijon.es/sites/default/files/2026-02/ORDENANZAS%202026_1.pdf
+#   (art. 8.1). No se ha leído el BOPA con la fecha de entrada en vigor.
+# - Resolución trimestral del Ministerio de Vivienda del tercer trimestre de 2026 (la de octubre): no se ha
+#   localizado; pueden existir nuevas declaraciones asturianas (p. ej. Oviedo, que hoy no figura).
+# - Delimitación exacta de las zonas tensionadas (barrios y núcleos): las reglas municipales marcan el
+#   municipio entero como declarado, pero la declaración es solo de los ámbitos citados en cada nota.
+# - Régimen anterior (Decreto 48/2016 antes del Decreto 4/2026) de la vivienda de uso turístico: no leído.
+# - Régimen urbanístico municipal del alquiler turístico (ordenanzas de Oviedo y Gijón, art. 2.3 del decreto).
+# - Modificaciones autonómicas posteriores al 31/12/2025 que el BOE aún no consolide.
+
+# ITP de inmuebles, tipo general. Los tipos reducidos de los arts. 27 a 32 bis (VPP, empresas, vivienda
+# habitual de jóvenes de hasta 35 años, familias numerosas y monoparentales, zonas rurales, etc.) no aplican a
+# un inversor particular. El art. 31 bis (en vigor desde el 03/12/2025) fija el 20 % solo si el adquirente es
+# gran tenedor (más de diez inmuebles urbanos residenciales o más de 1.500 m², o más de cinco en zona tensionada
+# declarada) o si se compra un edificio entero de viviendas para uso turístico: no se modela.
+# Tarifa por TRAMOS aplicada a TODO el valor (`whole_value: true`): el tipo del tramo en que cae el valor
+# íntegro del bien se aplica a la totalidad del precio, no solo al exceso.
+- id: asturias-itp-inmuebles-2014
+  kind: impuesto_compra_segunda_mano
+  territory: ES-03
+  effective_from: 2014-10-30
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    whole_value: true
+    brackets:
+      - {from: 0, rate: 0.08}
+      - {from: 300000.01, rate: 0.09}
+      - {from: 500000.01, rate: 0.10}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2015-945#a26
+  notes: "Decreto Legislativo 2/2014 de Asturias, art. 26, sin modificaciones en el texto consolidado a 31/12/2025: «el tipo de gravamen que resulte de la siguiente tarifa atendiendo al valor íntegro del bien o derecho»: 8 % entre 0 y 300.000 €; 9 % entre 300.000,01 y 500.000 €; 10 % por encima de 500.000 €. Es un tipo único por tramo sobre TODO el valor (no progresivo): un precio de 300.000,01 € paga el 9 % sobre los 300.000,01 €. Fecha de inicio = entrada en vigor del texto refundido (30/10/2014); la tarifa puede venir de antes (por verificar en la ley que la introdujo)."
+
+# AJD de la escritura de compra de vivienda sujeta a IVA: tipo general de los documentos notariales,
+# 1,2 % sobre todo el valor (único). Sin bandas ni salto de banda. Persona jurídica: el mismo tipo.
+- id: asturias-ajd-compra-vivienda-2014
+  kind: ajd_compra_vivienda
+  territory: ES-03
+  effective_from: 2014-10-30
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.012}
+    cap_jumps: false
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2015-945#a34
+  notes: "Decreto Legislativo 2/2014 de Asturias, art. 34: «Con carácter general se aplicará el tipo del 1,2 por ciento en las primeras copias de escrituras y actas notariales sujetas como documentos notariales.» No incluye el 1,5 % de la renuncia a la exención del IVA (art. 36) ni los de VPP (art. 35) o vivienda destinada a alquiler (art. 38). Fecha de inicio = entrada en vigor del texto refundido (30/10/2014); por verificar si el 1,2 % ya regía antes."
+
+# --- IRPF, tramo autonómico (ADR-0007) -------------------------------------------------------
+
+# Escala vigente hasta el periodo 2024 (Ley 11/2014, art. 39.Uno, a partir del ejercicio 2015).
+- id: asturias-irpf-escala-general-2015
+  kind: escala_irpf_general_autonomica
+  territory: ES-03
+  effective_from: 2015-01-01
+  effective_to: 2025-01-01
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.10}
+      - {from: 12450, rate: 0.12}
+      - {from: 17707.20, rate: 0.14}
+      - {from: 33007.20, rate: 0.185}
+      - {from: 53407.20, rate: 0.215}
+      - {from: 70000, rate: 0.225}
+      - {from: 90000, rate: 0.25}
+      - {from: 175000, rate: 0.255}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2015-1764#a39
+  notes: "Decreto Legislativo 2/2014 de Asturias, art. 2, redacción del art. 39.Uno de la Ley 11/2014, de 29 de diciembre (BOE-A-2015-1764; «a partir del ejercicio 2015», en vigor el 01/01/2015): 10 % hasta 12.450 €; 12 % hasta 17.707,20 €; 14 % hasta 33.007,20 €; 18,5 % hasta 53.407,20 €; 21,5 % hasta 70.000 €; 22,5 % hasta 90.000 €; 25 % hasta 175.000 €; 25,5 % en adelante. Sustituida por la Ley 3/2025 para el periodo 2025."
+
+# Escala del periodo 2025 en adelante (Ley 3/2025, de 19 de noviembre; en vigor el 03/12/2025). La exposición
+# de motivos dice que se aprueba para que «resulte de aplicación al presente ejercicio fiscal» y se
+# beneficien los contribuyentes en la autoliquidación de 2025: se resuelve por periodo impositivo desde 2025.
+- id: asturias-irpf-escala-general-2025
+  kind: escala_irpf_general_autonomica
+  territory: ES-03
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.09}
+      - {from: 12450, rate: 0.12}
+      - {from: 17707.20, rate: 0.14}
+      - {from: 33007.20, rate: 0.192}
+      - {from: 53407.20, rate: 0.215}
+      - {from: 70000, rate: 0.225}
+      - {from: 90000, rate: 0.25}
+      - {from: 175000, rate: 0.26}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2015-945#a2
+  notes: "Decreto Legislativo 2/2014 de Asturias, art. 2, redacción del art. único.1 de la Ley 3/2025, de 19 de noviembre (BOE-A-2025-25707; BOPA núm. 232, 02/12/2025; en vigor el 03/12/2025): 9 % hasta 12.450 €; 12 % hasta 17.707,20 €; 14 % hasta 33.007,20 €; 19,2 % hasta 53.407,20 €; 21,5 % hasta 70.000 €; 22,5 % hasta 90.000 €; 25 % hasta 175.000 €; 26 % en adelante. Aplicación al periodo 2025 deducida de la exposición de motivos (la ley no lo dice en su articulado): por verificar."
+
+# Mínimo del contribuyente autonómico (art. 2 bis, añadido por la Ley 3/2025): +10 % sobre el estatal.
+- id: asturias-irpf-minimo-contribuyente-2025
+  kind: minimo_contribuyente
+  territory: ES-03
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {general: 6105, over_65_extra: 1265, over_75_extra: 1540}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2015-945#a2-2
+  notes: "Decreto Legislativo 2/2014 de Asturias, art. 2 bis, añadido por el art. único.2 de la Ley 3/2025 (en vigor el 03/12/2025): 6.105 € con carácter general; +1.265 € si mayor de 65 años; +1.540 € adicionales si mayor de 75. La exposición de motivos los eleva «un 10 %, el máximo permitido por la normativa estatal» y los aplica al ejercicio 2025 (por verificar)."
+
+# Mínimo por descendientes autonómico (art. 2 ter, añadido por la Ley 3/2025).
+- id: asturias-irpf-minimo-descendientes-2025
+  kind: minimo_descendientes
+  territory: ES-03
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {first: 2640, second: 2970, third: 4400, fourth_and_more: 4950, under_3_extra: 3080}
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2015-945#a2-3
+  notes: "Decreto Legislativo 2/2014 de Asturias, art. 2 ter, añadido por el art. único.2 de la Ley 3/2025: 2.640 €, 2.970 €, 4.400 € y 4.950 € por el primer, segundo, tercer y cuarto y siguientes descendientes (menores de 25 años o con discapacidad, que convivan y con rentas de hasta 8.000 €); +3.080 € si el descendiente es menor de tres años."
+
+# --- Alquiler ---------------------------------------------------------------------------------
+
+# Sin zona tensionada de ámbito autonómico: Asturias ha declarado ámbitos concretos de cinco municipios
+# (reglas siguientes). La primera declaración asturiana figura en la Resolución del Ministerio de 24/07/2026
+# (BOE núm. 184, 29/07/2026, BOE-A-2026-16532); no figura en las ocho resoluciones anteriores leídas
+# (BOE-A-2024-5214, BOE-A-2024-20576, BOE-A-2025-1721, BOE-A-2025-8636, BOE-A-2025-15728,
+# BOE-A-2025-21901, BOE-A-2026-2448 y BOE-A-2026-9175; no se ha leído la del segundo trimestre de 2024).
+# Oviedo no figura. Falta la del tercer trimestre de 2026. Revisar con cada resolución nueva y actualizar
+# checked_through.
+- id: asturias-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-03
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre. Sin declaración de ámbito autonómico: solo ámbitos de los municipios de Avilés, Cabrales, Gijón, Gozón y Llanes (reglas ES-03-33004, 33008, 33024, 33025 y 33036)."
+
+# Las cinco declaraciones: Resoluciones de la Consejería de Ordenación de Territorio, Urbanismo, Vivienda y
+# Derechos Ciudadanos, recogidas en la Resolución de 24/07/2026 del Ministerio (BOE 29/07/2026). Vigencia de tres
+# años desde el día siguiente a la publicación (art. 18.2.d de la Ley 12/2023): del 30/07/2026 al 30/07/2029.
+# Gran tenedor particularizado en todas: más de diez inmuebles urbanos de uso residencial o más de 1.500 m²
+# construidos de uso residencial, sin garajes ni trasteros. Todas aplican la limitación del art. 17.7 de la LAU.
+
+- id: asturias-zona-tensionada-33004
+  kind: zona_tensionada
+  territory: ES-03-33004
+  effective_from: 2026-07-30
+  effective_to: 2029-07-30
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29, area: "barrio de La Magdalena"}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Avilés: SOLO el barrio de La Magdalena (Resolución de 15/05/2026, BOPA núm. 96, 21/05/2026, https://miprincipado.asturias.es/bopa/2026/05/21/2026-04107.pdf), no el resto del concejo. Vigencia de tres años desde el día siguiente a la publicación de la resolución del Ministerio (29/07/2026). Gran tenedor: más de diez inmuebles o más de 1.500 m². Aplica la limitación del art. 17.7 de la LAU."
+
+- id: asturias-zona-tensionada-33008
+  kind: zona_tensionada
+  territory: ES-03-33008
+  effective_from: 2026-07-30
+  effective_to: 2029-07-30
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29, area: "núcleos de Arenas y Poo"}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Cabrales: SOLO los núcleos de Arenas y de Poo (Resolución de 24/04/2026, BOPA núm. 82, 30/04/2026, https://miprincipado.asturias.es/bopa/2026/04/30/2026-03383.pdf, y Resolución de 11/05/2026, BOPA núm. 96, 21/05/2026, https://miprincipado.asturias.es/bopa/2026/05/21/2026-04016.pdf), no el resto del concejo. Vigencia de tres años desde el día siguiente a la publicación de la resolución del Ministerio (29/07/2026). Gran tenedor: más de diez inmuebles o más de 1.500 m². Aplica la limitación del art. 17.7 de la LAU."
+
+- id: asturias-zona-tensionada-33024
+  kind: zona_tensionada
+  territory: ES-03-33024
+  effective_from: 2026-07-30
+  effective_to: 2029-07-30
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29, area: "barrios de La Arena y Cimadevilla"}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Gijón/Xixón: SOLO los barrios de La Arena y Cimadevilla (Resolución de 14/05/2026, BOPA núm. 96, 21/05/2026, https://miprincipado.asturias.es/bopa/2026/05/21/2026-04106.pdf), no el resto del municipio. Vigencia de tres años desde el día siguiente a la publicación de la resolución del Ministerio (29/07/2026). Gran tenedor: más de diez inmuebles o más de 1.500 m². Aplica la limitación del art. 17.7 de la LAU."
+
+- id: asturias-zona-tensionada-33025
+  kind: zona_tensionada
+  territory: ES-03-33025
+  effective_from: 2026-07-30
+  effective_to: 2029-07-30
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29, area: "Luanco"}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Gozón: SOLO Luanco (Resolución de 21/05/2026, BOPA núm. 100, 27/05/2026, https://miprincipado.asturias.es/bopa/2026/05/27/2026-04318.pdf), no el resto del concejo. Vigencia de tres años desde el día siguiente a la publicación de la resolución del Ministerio (29/07/2026). Gran tenedor: más de diez inmuebles o más de 1.500 m². Aplica la limitación del art. 17.7 de la LAU."
+
+- id: asturias-zona-tensionada-33036
+  kind: zona_tensionada
+  territory: ES-03-33036
+  effective_from: 2026-07-30
+  effective_to: 2029-07-30
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29, area: "núcleos de Llanes, Posada de Llanes, Nueva, Poo, Barro y Celorio"}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Llanes: SOLO los núcleos urbano de Llanes y de Posada de Llanes (Resoluciones de 24/04/2026 y 11/05/2026, mismas que Cabrales) y los de Nueva, Poo, Barro y Celorio (Resolución de 01/06/2026, BOPA núm. 109, 09/06/2026, https://miprincipado.asturias.es/bopa/2026/06/09/2026-04627.pdf), no el resto del concejo. Vigencia de tres años desde el día siguiente a la publicación de la resolución del Ministerio (29/07/2026). Gran tenedor: más de diez inmuebles o más de 1.500 m². Aplica la limitación del art. 17.7 de la LAU."
+
+# Vivienda de uso turístico y vivienda vacacional en Asturias: Decreto 48/2016, de 10 de agosto, en la
+# redacción del Decreto 4/2026, de 2 de febrero (BOPA núm. 28, 11/02/2026). Entra en vigor a los veinte
+# días de su publicación (disposición final segunda): 03/03/2026. Los artículos citados son del Decreto 48/2016.
+- id: asturias-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-03
+  effective_from: 2026-03-03
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico (en edificio de propiedad horizontal) y vivienda vacacional en Asturias (Decreto 48/2016): declaración responsable previa e inscripción en el Registro de Empresas y Actividades Turísticas"
+    requirements:
+      - code: declaracion-responsable
+        description: "Declaración responsable electrónica ante la Administración turística antes de iniciar la actividad; faculta para empezar el mismo día, con inscripción en el Registro de Empresas y Actividades Turísticas (arts. 29 y 31)"
+        source_url: https://miprincipado.asturias.es/bopa/2026/02/11/2026-01087.pdf
+      - code: certificado-comunidad-propietarios
+        description: "Certificación de la Junta de la comunidad de propietarios que acredite la posibilidad de comercialización turística (arts. 27.c y 30.2.g), con la aprobación expresa de tres quintas partes de los propietarios que exige la Ley de Propiedad Horizontal"
+        source_url: https://miprincipado.asturias.es/bopa/2026/02/11/2026-01087.pdf
+      - code: zona-apta-y-limites-municipales
+        description: "Estar en zona declarada apta por el Ayuntamiento; no pueden ser vivienda vacacional ni de uso turístico las de protección pública ni las de zonas declaradas no aptas, y las entidades locales pueden limitar el número por edificio, sector o zona (arts. 1.4, 2.3 y 13.1.g)"
+        source_url: https://miprincipado.asturias.es/bopa/2026/02/11/2026-01087.pdf
+      - code: licencia-de-uso-o-cedula
+        description: "Licencia municipal de uso o cédula de segunda ocupación y uso residencial del inmueble (art. 13.1.a y k)"
+        source_url: https://miprincipado.asturias.es/bopa/2026/02/11/2026-01087.pdf
+      - code: seguro-responsabilidad-civil
+        description: "Seguro de responsabilidad civil de explotación con cobertura mínima de 150.250 € y franquicia máxima de 602 € (art. 30.2.h)"
+        source_url: https://miprincipado.asturias.es/bopa/2026/02/11/2026-01087.pdf
+      - code: una-vivienda-por-referencia-catastral
+        description: "Una sola vivienda por referencia catastral, salvo que se acredite la existencia de varias (art. 30.1.d)"
+        source_url: https://miprincipado.asturias.es/bopa/2026/02/11/2026-01087.pdf
+      - code: equipamiento-y-capacidad
+        description: "Superficie mínima (25 m² útiles para 1 persona, 33 m² para 2, 15 m² por persona desde 3), un baño por cada cuatro plazas, máximo de 8 plazas y monitor de ruido en el salón (art. 13.1.e y j, 13.4 y 13.5)"
+        source_url: https://miprincipado.asturias.es/bopa/2026/02/11/2026-01087.pdf
+      - code: recepcion-y-numero-de-registro
+        description: "Servicio de recepción presencial o a distancia en las 24 horas siguientes a la entrada (sin cajetines de llaves en la vía pública) y número de inscripción en toda la publicidad (arts. 13.2, 14.3 y 27.e)"
+        source_url: https://miprincipado.asturias.es/bopa/2026/02/11/2026-01087.pdf
+  source_url: https://miprincipado.asturias.es/bopa/2026/02/11/2026-01087.pdf
+  notes: "Decreto 4/2026 (BOPA núm. 28, 11/02/2026), arts. 1, 2, 3, 5, 7, 12, 13, 14, 15, 17, 27, 29, 30 y 31 del Decreto 48/2016. Fecha de inicio calculada: veinte días tras la publicación. Las viviendas ya inscritas tienen doce meses (arts. 7.2, 13.1.e, 13.4 y 13.5) o seis meses (resto) para adaptarse (disposición transitoria única). Se excluyen los arrendamientos por más de cuatro meses seguidos a un mismo arrendatario (art. 1.3)."
+
+# --- Plusvalía municipal (tipo único) ----------------------------------------------------------
+
+# Oviedo: Ordenanza Fiscal nº 404, art. 12.1: 20 %. Texto de las ordenanzas fiscales 2026 publicado por el
+# Ayuntamiento, modificada por el Pleno el 03/12/2024 y aplicable desde el 01/01/2025.
+- id: oviedo-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-03-33044
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.20}
+  source_url: https://www.oviedo.es/documents/35133/0d707f1c-50d5-4d05-a2e9-fd2436fb3f68
+  notes: "Ordenanza Fiscal nº 404 del Ayuntamiento de Oviedo, art. 12.1: «El tipo de gravamen del impuesto será del 20 por 100.» Disposición final: modificada por acuerdo del Pleno de 03/12/2024, en vigor el día de su publicación en el BOPA y de aplicación desde el 01/01/2025. No se ha leído el BOPA de publicación; hay fuentes divulgativas que dan el 26 % para Oviedo (guiafiscal.es), que contradicen la ordenanza oficial leída."

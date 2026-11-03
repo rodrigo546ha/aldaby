@@ -33,6 +33,15 @@ def test_esquema_de_zona():
     assert zona.checked_through == date(2026, 7, 29)
 
 
+def test_zona_de_parte_del_municipio():
+    zona = parse_params("zona_tensionada", {"declared": True, "checked_through": "2026-07-29",
+                                            "area": "barrios de La Arena y Cimadevilla"})
+    assert zona.area == "barrios de La Arena y Cimadevilla"
+    with pytest.raises(ValueError, match="area"):
+        parse_params("zona_tensionada", {"declared": False, "checked_through": "2026-07-29",
+                                         "area": "x"})
+
+
 def test_esquema_de_regimen():
     regimen = parse_params(
         "regimen_alquiler_turistico",
@@ -70,9 +79,16 @@ def test_cualquier_municipio_de_la_comunidad_de_madrid(book: RuleBook):
     assert stressed_zone(book, ALCALA, HOY, allow_unverified=True).declared is False
 
 
+def test_gijon_solo_dos_barrios(book: RuleBook):
+    zona = stressed_zone(book, "ES-03-33024", HOY, allow_unverified=True)
+    assert zona.declared is True and zona.area and "Cimadevilla" in zona.area
+    oviedo = stressed_zone(book, "ES-03-33044", HOY, allow_unverified=True)
+    assert oviedo.declared is False
+
+
 def test_territorio_no_revisado_es_un_error(book: RuleBook):
     with pytest.raises(LookupError, match="zona_tensionada"):
-        stressed_zone(book, "ES-11-10037", HOY, allow_unverified=True)
+        stressed_zone(book, "ES-15-31201", HOY, allow_unverified=True)
 
 
 # --- Régimen por tipo de alquiler --------------------------------------------------------

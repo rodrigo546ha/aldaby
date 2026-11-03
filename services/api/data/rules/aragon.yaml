@@ -1,0 +1,156 @@
+# Comunidad Autónoma de Aragón (ES-02) y municipios de Zaragoza (ES-02-50297) y Huesca (ES-02-22125).
+# Ver README.md. SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Decreto Legislativo 1/2005 leído el 2026-11-03 en el texto consolidado del BOE (BOA-d-2005-90006,
+# «Última actualización publicada el 07/07/2025», Ley 3/2025, que no toca los artículos usados aquí).
+#
+# PENDIENTE (sin fuente oficial leída, no se escribe):
+# - Mínimos del contribuyente y por descendientes: Aragón no tiene propios en el DL 1/2005 (el título I,
+#   capítulo I solo fija la escala, art. 110-1, y deducciones). Se heredan los estatales (no hay regla).
+# - Cualquier ley aragonesa posterior al 07/07/2025 que modifique el DL 1/2005 y el BOE aún no consolide.
+#   La página de normativa de la Administración Tributaria de Aragón no lista ninguna de medidas fiscales
+#   ni presupuestos para 2025 o 2026.
+# - Tipo de la plusvalía de Huesca antes de 2026 (la ordenanza está derogada y su texto ya no se publica).
+# - Régimen urbanístico municipal del alquiler turístico de Zaragoza y Huesca.
+
+# ITP de inmuebles, tipo general. Los tipos reducidos (arts. 121-3 y siguientes: empresarios con IVA exento,
+# VPO, etc.) no aplican a un inversor particular.
+# Escala PROGRESIVA: la tabla del art. 121-1 da la cuota íntegra acumulada de cada tramo y el tipo sobre el
+# «resto valor bien» (cuota íntegra de 32.000 € a 400.000 € = 8 % x 400.000, etc.); no se aplica el tipo
+# del tramo a todo el valor, así que no lleva whole_value.
+- id: aragon-itp-inmuebles-2016
+  kind: impuesto_compra_segunda_mano
+  territory: ES-02
+  effective_from: 2016-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.08}
+      - {from: 400000, rate: 0.085}
+      - {from: 450000, rate: 0.09}
+      - {from: 500000, rate: 0.095}
+      - {from: 750000, rate: 0.10}
+  source_url: https://www.boe.es/buscar/act.php?id=BOA-d-2005-90006#a1-4
+  notes: "Decreto Legislativo 1/2005 de Aragón, art. 121-1, redacción del art. 2.1 de la Ley 10/2015, de 28 de diciembre (efectos desde el 01/01/2016, disp. final 2.2). Escala: 8 % hasta 400.000 €; 8,5 % de 400.000 a 450.000; 9 % de 450.000 a 500.000; 9,5 % de 500.000 a 750.000; 10 % desde 750.000. Cuota íntegra acumulada de la tabla: 32.000, 36.250 y 40.750 y 64.500 € en 400.000, 450.000, 500.000 y 750.000 € (coincide con progresiva). «Determinados así los tipos procedentes, se aplicarán sobre la base liquidable en la misma proporción que sobre el valor del bien»."
+
+# AJD de la escritura de compra de vivienda sujeta a IVA: tipo general de los documentos notariales,
+# 1,5 % sobre todo el valor (único). Sin bandas ni salto de banda. No incluye el 2 % de la renuncia a la
+# exención del IVA (art. 122-2) ni las bonificaciones del art. 122-3 y 122-10 (familias numerosas, colectivos).
+- id: aragon-ajd-compra-vivienda-2016
+  kind: ajd_compra_vivienda
+  territory: ES-02
+  effective_from: 2016-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.015}
+    cap_jumps: false
+  source_url: https://www.boe.es/buscar/act.php?id=BOA-d-2005-90006#a1-10
+  notes: "Decreto Legislativo 1/2005 de Aragón, art. 122-1.1, redacción del art. 2.8 de la Ley 10/2015, de 28 de diciembre (efectos desde el 01/01/2016): «tipo general del 1,5 por 100 en las primeras copias de escrituras y actas notariales sujetas como Documentos notariales». Persona jurídica: mismo tipo (no hay tipo propio)."
+
+# --- IRPF, tramo autonómico (ADR-0007) -------------------------------------------------------
+# Escala del art. 110-1 en la redacción del art. 64.1 de la Ley 17/2023, de 22 de diciembre (Presupuestos
+# 2024; BOE-A-2024-903), con efectos desde el 01/01/2023 según el consolidado. No cambia en 2024, 2025 ni
+# 2026 en el texto consolidado a 07/07/2025; la página de normativa de la Administración Tributaria de
+# Aragón no lista ley posterior que la modifique. La escala de 2022 (Ley 8/2022) era otra y no se carga.
+- id: aragon-irpf-escala-general-2023
+  kind: escala_irpf_general_autonomica
+  territory: ES-02
+  effective_from: 2023-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.095}
+      - {from: 13072.50, rate: 0.12}
+      - {from: 21210, rate: 0.15}
+      - {from: 36960, rate: 0.185}
+      - {from: 52500, rate: 0.205}
+      - {from: 60000, rate: 0.23}
+      - {from: 80000, rate: 0.24}
+      - {from: 90000, rate: 0.25}
+      - {from: 130000, rate: 0.255}
+  source_url: https://www.boe.es/buscar/act.php?id=BOA-d-2005-90006#a1
+  notes: "Decreto Legislativo 1/2005 de Aragón, art. 110-1, redacción de la Ley 17/2023 (efectos 01/01/2023): 9,5 % hasta 13.072,50 €; 12 % hasta 21.210; 15 % hasta 36.960; 18,5 % hasta 52.500; 20,5 % hasta 60.000; 23 % hasta 80.000; 24 % hasta 90.000; 25 % hasta 130.000; 25,5 % en adelante. Los tramos se leen de la columna «Base liquidable hasta» de la tabla del BOE (el «resto base liquidable hasta» es la anchura de cada tramo; ambas columnas coinciden)."
+
+# --- Alquiler ---------------------------------------------------------------------------------
+
+# Ninguna zona tensionada en Aragón: ni «Aragón» ni Zaragoza, Huesca o Teruel figuran en ninguna de las nueve
+# resoluciones trimestrales del Ministerio leídas, de la del primer trimestre de 2024 a la del segundo de
+# 2026: BOE-A-2024-5214, BOE-A-2024-20576, BOE-A-2025-1721, BOE-A-2025-8636, BOE-A-2025-15728,
+# BOE-A-2025-21901, BOE-A-2026-2448, BOE-A-2026-9175 y BOE-A-2026-16532. No se ha leído la del segundo
+# trimestre de 2024. Revisar con cada resolución nueva y actualizar checked_through.
+- id: aragon-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-02
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Ley 12/2023, art. 18: la declaración corresponde a la comunidad autónoma; el Ministerio publica la relación cada trimestre. La del segundo trimestre de 2026 (Resolución de 24/07/2026, BOE núm. 184 de 29/07/2026) solo recoge Asturias, Galicia y País Vasco."
+
+# Vivienda de uso turístico en Aragón: Decreto 1/2023, de 11 de enero, Reglamento de las viviendas de uso
+# turístico, más la exigencia del acuerdo de la comunidad desde el 03/04/2025 (Ley Orgánica 1/2025,
+# disp. final 4.ª, que modifica los arts. 7 y 17 de la LPH). Requisitos tal como los publica el trámite
+# 1763 de la sede del Gobierno de Aragón (consultado el 2026-11-03).
+- id: aragon-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-02
+  effective_from: 2025-04-03
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda de uso turístico en Aragón (Decreto 1/2023): declaración responsable previa e inscripción informativa en el Registro de Turismo de Aragón"
+    requirements:
+      - code: declaracion-responsable
+        description: "Declaración responsable previa al inicio de la actividad ante la Dirección General de Turismo y Hostelería, por vía electrónica o presencial; se puede ejercer desde que se presenta y se revisa en un máximo de 3 meses"
+        source_url: https://www.aragon.es/tramitador/-/tramite/declaracion-responsable-viviendas-turistico
+      - code: tipo-de-inmueble
+        description: "Solo inmuebles sometidos a propiedad horizontal, viviendas unifamiliares aisladas o de complejos inmobiliarios privados, amueblados y equipados para uso inmediato"
+        source_url: https://www.aragon.es/tramitador/-/tramite/declaracion-responsable-viviendas-turistico
+      - code: acuerdo-comunidad-propietarios
+        description: "En propiedad horizontal, acuerdo expreso de la junta aprobando el uso turístico, con el voto favorable de 3/5 de los propietarios y 3/5 de las cuotas (arts. 7.3 y 17.12 de la LPH); no se exige a quien ya ejercía antes del 03/04/2025 acogido a la normativa turística"
+        source_url: https://aragon.es/documents/d/guest/cambios-en-la-regulacion-de-viviendas-de-uso-turistico-abril-2025-pdf
+      - code: titulo-disponibilidad
+        description: "Documento que acredite el título de disponibilidad del inmueble para uso turístico"
+        source_url: https://www.aragon.es/tramitador/-/tramite/declaracion-responsable-viviendas-turistico
+      - code: tasa-50
+        description: "Pago de la tasa 50, tarifa 2 (130,00 €) y aportar el justificante"
+        source_url: https://www.aragon.es/tramitador/-/tramite/declaracion-responsable-viviendas-turistico
+  source_url: https://www.aragon.es/tramitador/-/tramite/declaracion-responsable-viviendas-turistico
+  notes: "Fecha de inicio = entrada en vigor de la modificación de la LPH (03/04/2025); la entrada en vigor del Decreto 1/2023 y su texto en el BOA no se han leído (por verificar). Se presume sujeta al reglamento la cesión por un mes o menos por usuario o comercializada en canales turísticos. El art. 15.2.f del decreto (declaración de que los estatutos no la prohíben) queda desplazado por el acuerdo expreso, según la Administración."
+
+# --- Plusvalía municipal (tipo único) ----------------------------------------------------------
+
+# Zaragoza: Ordenanza Fiscal nº 9, art. 13: 28 % único. Texto publicado en el BOPZ nº 29 de 06/02/2026
+# (aprobación definitiva del Pleno de 28/01/2026; entra en vigor al publicarse).
+- id: zaragoza-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-02-50297
+  effective_from: 2026-02-06
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.28}
+  source_url: https://www.zaragoza.es/sede/servicio/normativa/3465
+  notes: "Ordenanza Fiscal nº 9 del Ayuntamiento de Zaragoza, art. 13: «el tipo de gravamen único del 28%». Fecha de inicio = BOPZ nº 29 (06/02/2026); el 28 % puede venir de antes (según fuentes secundarias, rebaja del 30 % a 28 % por propuesta de Vox en las ordenanzas anteriores; no leído en el BOPZ). La sede muestra además una modificación del art. 14.2 aprobada inicialmente el 29/09/2026 (BOPZ 02/10/2026), que no toca el tipo."
+
+# Huesca: ordenanza fiscal nº 3 derogada íntegramente por el Pleno de 22/12/2025 con efectos desde el
+# 01/01/2026: el impuesto ya no se exige. Se carga tipo 0 desde esa fecha.
+- id: huesca-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-02-22125
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0}
+  source_url: https://www.huesca.es/documents/20126/142542/OF+3+Reguladora+del+impuesto+sobre+el+incremento+del+valor+de+los+terrenos+de+naturaleza+urbana.pdf/5f645207-4efc-3c31-3d73-1f443ce24303?t=1735898410723
+  notes: "Ordenanza Fiscal nº 3 del Ayuntamiento de Huesca: «derogada íntegramente por Acuerdo del Excmo. Ayuntamiento Pleno, en sesión celebrada el 22 de diciembre de 2025, con efectos a partir del día 1 de enero de 2026». Es la leyenda que publica la sede en el PDF de la ordenanza; no se ha leído el acuerdo ni el BOP de Huesca. Las transmisiones anteriores a 2026 siguen la ordenanza antigua (su tipo no consta)."

@@ -32,9 +32,19 @@ Hay dos partes:
    - plusvalía de las ciudades principales.
 
    Todo va con `verified: false` y la lista de comprobación en `docs/normativa/`. La tanda 7 trae
-   Castilla y León, Castilla-La Mancha, Murcia, Galicia y Canarias. Las demás comunidades vienen
-   después, por el mismo orden. El País Vasco y Navarra, con su IRPF foral,
-   necesitan antes cambios en el motor.
+   Castilla y León, Castilla-La Mancha, Murcia, Galicia y Canarias. La tanda 8 completa las de
+   régimen común: Aragón, Asturias, Illes Balears, Cantabria, Extremadura y La Rioja.
+   Quedan fuera:
+   - **Ceuta y Melilla.** Tienen bonificaciones del 50 % en el ITP, el AJD y la plusvalía, y una
+     deducción del 60 % en el IRPF (TRLITPAJD art. 57 bis, TRLRHL art. 159.2, Ley 35/2006
+     art. 68.4). El motor no las modela, y con solo el tipo legal sus planes saldrían muy por
+     encima. El borrador de sus reglas espera en `docs/normativa/borradores/ceuta_melilla.yaml`,
+     y entretanto no tienen reglas: el error lo dice.
+   - **El País Vasco y Navarra**, con su IRPF foral, que necesita antes cambios en el motor.
+5. **Zona tensionada de parte de un municipio.** Asturias declara barrios y núcleos, no concejos
+   enteros. La regla `zona_tensionada` del municipio lleva entonces `area` con el ámbito, tal
+   como lo nombra la resolución, y el consejo de alquiler pide comprobar si el inmueble está
+   dentro, en lugar de dar por tensionado todo el municipio.
 3. **IBI de todos los municipios de más de 1.000 habitantes** de las 17 comunidades de régimen común,
    desde los PDF del Ministerio de Hacienda (`hacienda_ibi`, ADR-0022). El nombre de la carpeta y
    del fichero de cada comunidad sale del libro completo del año.
