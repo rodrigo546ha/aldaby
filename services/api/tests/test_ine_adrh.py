@@ -46,14 +46,28 @@ def test_secciones_años_y_porcentajes():
     assert mayores.value == Decimal("0.235") and mayores.unit == "ratio"
 
 
+def test_renta_mediana_por_hogar():
+    payload = [series("2807902001", "Renta mediana por hogar", {2024: 30000.0})]
+    rows = parse_table(payload, "28").rows
+    assert (rows[0].indicator, rows[0].unit) == ("renta_mediana_hogar", "EUR")
+
+
 def test_indicador_desconocido_para_la_carga():
     with pytest.raises(ValueError, match="indicador desconocido"):
         parse_table([series("2807902001", "Renta inventada", {2024: 1.0})], "28")
 
 
-def test_codigo_de_otra_provincia():
+def test_seccion_de_otra_provincia_se_salta_y_se_cuenta():
+    # La tabla de Baleares (30887) trae una sección de Sant Joan d'Alacant: va con la de Alicante
+    parsed = parse_table([series("0311902006", "Población", {2024: 1.0}),
+                          series("0704002001", "Población", {2024: 2.0})], "07")
+    assert parsed.other_province == 1
+    assert [r.section_code for r in parsed.rows] == ["0704002001"]
+
+
+def test_codigo_mal_formado():
     with pytest.raises(ValueError, match="código de sección"):
-        parse_table([series("0807902001", "Población", {2024: 1.0})], "28")
+        parse_table([series("28079", "Población", {2024: 1.0})], "28")
 
 
 def test_metadatos_con_forma_de_series_tabla():

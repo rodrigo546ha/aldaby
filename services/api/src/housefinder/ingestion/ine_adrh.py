@@ -56,6 +56,7 @@ INDICATORS: dict[str, Indicator] = {
     "Mediana de la renta por unidad de consumo": Indicator(
         "renta_mediana_unidad_consumo", "EUR"
     ),
+    "Renta mediana por hogar": Indicator("renta_mediana_hogar", "EUR"),
     "Renta bruta media por persona": Indicator("renta_bruta_media_persona", "EUR"),
     "Renta bruta media por hogar": Indicator("renta_bruta_media_hogar", "EUR"),
     "Edad media de la población": Indicator("edad_media", "años"),
@@ -91,13 +92,14 @@ class ParsedTable:
     rows: list[IndicatorRow]
     skipped_levels: int  # series de municipios y distritos (no se cargan aquí)
     empty_values: int  # años sin dato publicado
+    other_province: int  # series de secciones de otra provincia, mal archivadas por el INE
     years: tuple[int, ...]
 
 
 def parse_table(payload: list[dict[str, Any]], province: str) -> ParsedTable:
     """Indicadores por sección de una respuesta de DATOS_TABLA con `tip=AM`."""
     rows: list[IndicatorRow] = []
-    skipped = empty = 0
+    skipped = empty = foreign = 0
     years: set[int] = set()
     for series in payload:
         meta = {_variable(m): m for m in series.get("MetaData", [])}
@@ -106,8 +108,13 @@ def parse_table(payload: list[dict[str, Any]], province: str) -> ParsedTable:
             skipped += 1
             continue
         code = str(section.get("Codigo", ""))
-        if not CODE.match(code) or not code.startswith(province):
+        if not CODE.match(code):
             raise ValueError(f"{series.get('COD')}: código de sección no válido {code!r}")
+        if not code.startswith(province):
+            # p. ej. la tabla de Baleares trae una sección de Sant Joan d'Alacant: se carga con
+            # la tabla de su provincia, no con esta
+            foreign += 1
+            continue
         kind = meta.get("Tipo de dato")
         if kind is not None and kind.get("Nombre") != BASE_DATA:
             raise ValueError(f"{series.get('COD')}: tipo de dato no esperado {kind!r}")
@@ -127,7 +134,7 @@ def parse_table(payload: list[dict[str, Any]], province: str) -> ParsedTable:
             if indicator.percent:
                 value = value / HUNDRED
             rows.append(IndicatorRow(code, year + 1, indicator.key, year, value, indicator.unit))
-    return ParsedTable(rows, skipped, empty, tuple(sorted(years)))
+    return ParsedTable(rows, skipped, empty, foreign, tuple(sorted(years)))
 
 
 def _variable(meta: dict[str, Any]) -> str:
@@ -205,7 +212,8 @@ def load(
             summary.append({
                 "table": table, "name": name, "years": list(parsed.years),
                 "loaded": report.loaded, "empty": parsed.empty_values,
-                "skipped_levels": parsed.skipped_levels, "missing_by_year": table_missing,
+                "skipped_levels": parsed.skipped_levels,
+                "other_province": parsed.other_province, "missing_by_year": table_missing,
             })
     if missing:
         detail = ", ".join(f"{year}: {n} secciones sin cartografía {year + 1}"
@@ -229,7 +237,8 @@ def main() -> int:
     for t in result["tables"]:
         print(f"Tabla {t['table']} ({t['name']}): años {tuple(t['years'])}, {t['loaded']} "
               f"valores cargados, {t['empty']} sin dato, {t['skipped_levels']} series de "
-              "municipio o distrito no cargadas")
+              "municipio o distrito no cargadas"
+              + (f", {t['other_province']} de otra provincia" if t["other_province"] else ""))
     return 0
 
 
