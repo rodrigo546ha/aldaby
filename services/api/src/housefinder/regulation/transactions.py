@@ -15,6 +15,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
+from housefinder.core.dated import province_of
 from housefinder.core.figures import Figure, SourceRef, combine_sources, money
 from housefinder.engines.irpf import IncomeTaxProfile, IrpfPart
 from housefinder.engines.taxes import (
@@ -271,13 +272,16 @@ def municipal_gains_params(
 ) -> ResolvedMunicipalGains:
     """Coeficiente y tipo de la plusvalía municipal para una venta.
 
-    El coeficiente es el del municipio si ha fijado uno propio, nunca mayor que el máximo
-    estatal vigente (TRLRHL, art. 107.4). `holding_months` solo cuenta con menos de un año.
+    El coeficiente es el del municipio si ha fijado uno propio, nunca mayor que el máximo legal
+    vigente (TRLRHL, art. 107.4, o la norma foral). `holding_months` solo cuenta con menos de un
+    año.
     """
     coefficients = _rule(book, "coeficientes_plusvalia", territory, sale_date, include_pending,
                          allow_unverified)
-    maximums = _rule(book, "coeficientes_plusvalia", "ES", sale_date, include_pending,
-                     allow_unverified)
+    # Los máximos son de la ley: la estatal o, en los territorios forales, la norma foral de su
+    # provincia o comunidad (ADR-0046); nunca los de un municipio
+    maximums = _rule(book, "coeficientes_plusvalia", province_of(territory), sale_date,
+                     include_pending, allow_unverified)
     coefficient = min(
         _coefficient(coefficients.kind, coefficients.params, holding_years, holding_months),
         _coefficient(maximums.kind, maximums.params, holding_years, holding_months),

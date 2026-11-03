@@ -12,6 +12,7 @@ from dataclasses import dataclass, replace
 from datetime import date
 from decimal import Decimal
 
+from housefinder.core.dated import territory_contains
 from housefinder.core.figures import Figure, SourceRef, money, ratio
 from housefinder.params.book import ParamBook
 from housefinder.planning.rental_advice import LABELS, RentalAdvice, TypeOption, advise
@@ -66,8 +67,8 @@ def rental_advice(inp: SimulationInput, rent: Figure, maintenance_annual: Decima
         if income is not None:
             notes += [f"Alquiler {LABELS[rental_type]}: {n}" for n in regime.tax_notes]
         scenario += _changes(rules, rental_type, territory, today, regime)
-    region = territory.rsplit("-", 1)[0]
-    away = region != profile.residence
+    # Lejos de casa: fuera de la comunidad (o del territorio histórico) de residencia
+    away = not territory_contains(profile.residence, territory)
     advice = advise(options, profile.risk_tolerance, profile.management, away)
     return OfferRentalAdvice(advice, tuple(scenario), (*_zone(rules, territory, today), *notes))
 

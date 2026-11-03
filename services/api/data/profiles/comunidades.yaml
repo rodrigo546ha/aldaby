@@ -1,4 +1,4 @@
-# Comunidades autónomas por código INE y nombres con los que el usuario dice dónde vive
+# Comunidades autónomas (y territorios históricos del País Vasco) por código INE y nombres con los que el usuario dice dónde vive
 # (ADR-0020). La comunidad se saca de sus palabras, sin modelo: el nombre de la comunidad, una de
 # sus provincias o un nombre habitual. Un municipio que no esté aquí («vivo en Getafe») no se
 # adivina: se vuelve a preguntar la comunidad.
@@ -22,8 +22,11 @@
 "13": [Comunidad de Madrid, Madrid]
 "14": [Región de Murcia, Murcia]
 "15": [Comunidad Foral de Navarra, Navarra, Pamplona]
-"16": [País Vasco, Euskadi, Álava, Araba, Gipuzkoa, Guipúzcoa, Bizkaia, Vizcaya, Bilbao,
-       San Sebastián, Donostia, Vitoria]
+# País Vasco: cada territorio histórico tiene su IRPF foral, así que la residencia es el territorio
+# (ES-16-01, ES-16-20, ES-16-48; ADR-0046). «País Vasco» o «Euskadi» solos no bastan: se pregunta.
+"16-01": [Álava, Araba, Álava/Araba, Vitoria, Vitoria-Gasteiz, Gasteiz]
+"16-20": [Gipuzkoa, Guipúzcoa, San Sebastián, Donostia, Donostia-San Sebastián]
+"16-48": [Bizkaia, Vizcaya, Bilbao]
 "17": [La Rioja, Logroño]
 "18": [Ceuta]
 "19": [Melilla]

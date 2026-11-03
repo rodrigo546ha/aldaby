@@ -113,7 +113,11 @@ class BuyerRequest(BaseModel):
     existing_monthly_debt: Decimal = Field(ge=0, default=Decimal(0))
     available_savings: Decimal = Field(ge=0)
     age: int = Field(ge=18, le=90)
-    residence: str = Field(pattern=r"^ES-\d{2}$", description="Comunidad de residencia (ES-13)")
+    residence: str = Field(
+        pattern=r"^ES-\d{2}(-\d{2})?$",
+        description="Comunidad de residencia (ES-13); en el País Vasco, el territorio "
+        "histórico (ES-16-48)",
+    )
     taxable_base: Decimal | None = Field(
         default=None, ge=0, description="Base liquidable general sin el alquiler"
     )

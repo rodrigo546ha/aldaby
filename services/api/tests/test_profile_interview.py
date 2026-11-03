@@ -146,7 +146,17 @@ def test_lista_de_comunidades_para_la_web():
     from housefinder.api.main import app
 
     listed = TestClient(app).get("/profile/regions").json()
-    assert len(listed) == 19 and {"code": "ES-13", "name": "Comunidad de Madrid"} in listed
+    # 16 comunidades, 2 ciudades y los 3 territorios históricos vascos, que tienen IRPF propio
+    assert len(listed) == 21 and {"code": "ES-13", "name": "Comunidad de Madrid"} in listed
+    assert {"code": "ES-16-48", "name": "Bizkaia"} in listed
+
+
+def test_residencia_en_el_pais_vasco_por_territorio():
+    from housefinder.profiles.interview import region_in
+
+    assert region_in("vivo en Bilbao") == ("ES-16-48", "Bizkaia")
+    assert region_in("en Vitoria-Gasteiz") == ("ES-16-01", "Álava")
+    assert region_in("vivo en Euskadi") is None  # hay que decir el territorio
 
 
 def test_lo_que_devolvio_qwen3_no_da_cifras_falsas():

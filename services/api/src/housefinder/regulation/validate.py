@@ -13,7 +13,8 @@ from housefinder.regulation.kinds import parse_params
 if TYPE_CHECKING:
     from housefinder.regulation.rules import Rule
 
-TERRITORY = re.compile(r"^ES(-\d{2}(-\d{5})?)?$")  # ES | ES-<ccaa> | ES-<ccaa>-<municipio>
+# ES | ES-<ccaa> | ES-<ccaa>-<provincia> (territorios forales) | ES-<ccaa>-<municipio>
+TERRITORY = re.compile(r"^ES(-\d{2}(-(\d{2}|\d{5}))?)?$")
 
 
 def check_rules(rules: Sequence[Rule]) -> list[str]:
@@ -36,7 +37,8 @@ def _rule_errors(rule: Rule) -> list[str]:
     except ValueError as exc:
         errors.append(str(exc))
     if not TERRITORY.match(rule.territory):
-        errors.append(f"territorio no válido {rule.territory!r} (ES, ES-13 o ES-13-28079)")
+        errors.append(f"territorio no válido {rule.territory!r} "
+                      "(ES, ES-13, ES-16-48 o ES-13-28079)")
     if rule.effective_to is not None and rule.effective_to <= rule.effective_from:
         errors.append("effective_to debe ser posterior a effective_from")
     if not rule.source_url.startswith(("https://", "http://")):

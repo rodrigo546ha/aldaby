@@ -98,3 +98,15 @@ def test_minimos_madrid_sustituyen_y_otras_heredan(book: RuleBook):
     otra = book.resolve("minimo_contribuyente", "ES-09", EJERCICIO, allow_unverified=True)
     assert parse_params(madrid.kind, madrid.params).general == Decimal("5956.65")
     assert parse_params(otra.kind, otra.params).general == Decimal(5550)  # la estatal
+
+
+def test_nivel_de_provincia():
+    # ADR-0046: el territorio histórico contiene a sus municipios y gana a la comunidad
+    from housefinder.core.dated import province_of, territory_contains, territory_level
+
+    assert [territory_level(c) for c in ("ES", "ES-16", "ES-16-48", "ES-16-48020")] == [0, 1, 2, 3]
+    assert territory_contains("ES-16-48", "ES-16-48020")
+    assert not territory_contains("ES-16-48", "ES-16-20069")
+    assert territory_contains("ES-16", "ES-16-48") and territory_contains("ES-16", "ES-16-48020")
+    assert not territory_contains("ES-16-48020", "ES-16-48")
+    assert province_of("ES-16-48020") == "ES-16-48" and province_of("ES-13") == "ES-13"

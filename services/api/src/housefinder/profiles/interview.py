@@ -61,7 +61,8 @@ QUESTIONS = (
     Question("birth_year", "Año de nacimiento",
              "Para empezar, ¿en qué año naciste? Si lo prefieres, dime tu edad.", True),
     Question("residence", "Comunidad de residencia",
-             "¿En qué comunidad autónoma vives? Cambia los impuestos que pagas.", True),
+             "¿En qué comunidad autónoma vives? Cambia los impuestos que pagas. En el País "
+             "Vasco, dime el territorio: Álava, Bizkaia o Gipuzkoa.", True),
     Question("net_monthly_income", "Ingresos netos al mes",
              "¿Cuánto ingresas al mes, neto, después de impuestos? Si lo sabes al año o en catorce "
              "pagas, dímelo así.", True),
@@ -288,7 +289,8 @@ def _issue(asked: str, checked: CheckedAnswer) -> str:
     place = checked.fields["residence"]
     if asked == "residence" and place.status == "verificado":
         return (f"No sé de qué comunidad es «{place.evidence}»: dime el nombre de la comunidad "
-                "autónoma.")
+                "autónoma. En el País Vasco, dime el territorio: Álava, Bizkaia o Gipuzkoa, que "
+                "tienen cada uno su IRPF.")
     return (f"No he encontrado «{BY_FIELD[asked].label.lower()}» en tu respuesta. Si es una "
             "cantidad, escríbela con cifras (por ejemplo, 2.500).")
 

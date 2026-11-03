@@ -25,7 +25,8 @@ class UserProfile(BaseModel):
     existing_monthly_debt: Decimal = Field(default=Decimal(0), ge=0)
     available_savings: Decimal = Field(ge=0)
     birth_year: int = Field(ge=1900, le=2100)
-    residence: str = Field(pattern=r"^ES-\d{2}$")  # comunidad autónoma de residencia
+    # comunidad autónoma de residencia; en el País Vasco, el territorio histórico (ES-16-48)
+    residence: str = Field(pattern=r"^ES-\d{2}(-\d{2})?$")
     taxable_base: Decimal | None = Field(default=None, ge=0)  # base general sin el alquiler
     marginal_rate: Decimal | None = Field(default=None, ge=0, le=1)
     savings_base: Decimal = Field(default=Decimal(0), ge=0)

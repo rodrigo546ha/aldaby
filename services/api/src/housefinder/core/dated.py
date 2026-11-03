@@ -1,8 +1,9 @@
 """Lector común de registros con fecha: reglas de normativa y parámetros (ADR-0005).
 
-Territorio: código jerárquico tipo "ES", "ES-13" (comunidad), "ES-13-28079" (municipio,
-código INE). Gana el registro aplicable más específico y, a igualdad, el de inicio de
-vigencia más reciente.
+Territorio: código jerárquico tipo "ES", "ES-13" (comunidad), "ES-16-48" (provincia: el
+territorio histórico de los forales, ADR-0046) y "ES-13-28079" (municipio, código INE, cuyas dos
+primeras cifras son las de la provincia). Gana el registro aplicable más específico y, a
+igualdad, el de inicio de vigencia más reciente.
 """
 
 from __future__ import annotations
@@ -56,13 +57,30 @@ def applies_on(effective_from: date, effective_to: date | None, on: date) -> boo
     return effective_from <= on and (effective_to is None or on < effective_to)
 
 
+def territory_level(code: str) -> int:
+    """0 España, 1 comunidad, 2 provincia (ES-16-48), 3 municipio (ES-16-48020)."""
+    parts = code.split("-")
+    if len(parts) < 3:
+        return len(parts) - 1
+    return 2 if len(parts[2]) == 2 else 3
+
+
 def territory_contains(record_territory: str, target: str) -> bool:
-    return target == record_territory or target.startswith(record_territory + "-")
+    if target == record_territory or target.startswith(record_territory + "-"):
+        return True
+    # La provincia contiene a sus municipios: ES-16-48 a ES-16-48020
+    return (territory_level(record_territory) == 2 and territory_level(target) == 3
+            and target.startswith(record_territory))
+
+
+def province_of(code: str) -> str:
+    """La provincia de un municipio (ES-16-48020 → ES-16-48); el resto, igual."""
+    return code[:8] if territory_level(code) == 3 else code
 
 
 def most_specific(candidates: Iterable[R]) -> R | None:
     """Más específico primero; a igualdad, el de inicio de vigencia más reciente."""
     ordered = sorted(
-        candidates, key=lambda r: (r.territory.count("-"), r.effective_from), reverse=True
+        candidates, key=lambda r: (territory_level(r.territory), r.effective_from), reverse=True
     )
     return ordered[0] if ordered else None
