@@ -84,8 +84,8 @@
 **Pendiente o dudoso:**
 - Sin mínimos propios: la Ley 8/2013 no los regula y se aplican los estatales.
 - Las cifras salen del texto de la sede de la Junta actualizado a 30/03/2026; el consolidado del BOE está desactualizado desde el 31/01/2023.
-- Plusvalía de Toledo sin cargar: su tipo cambia según los años de tenencia (29,88 / 28,88 / 26,89 / 25,90 % en la versión de 2022 publicada en toledo.es), y el esquema solo admite un tipo. Hace falta ampliar el esquema.
-- Plusvalía de Guadalajara sin cargar: lo mismo, y solo hay fuentes secundarias.
+- Plusvalía de Toledo: cargada después con un tipo por años de tenencia (`toledo-plusvalia-tipo`); ver la sección final de `verificacion-tanda-8.md`.
+- Plusvalía de Guadalajara sin cargar: guadalajara.es bloquea a los agentes de Anthropic en su robots.txt; la URL de la ordenanza, para leerla a mano, está en `castilla_la_mancha.yaml`.
 - Turismo: no se ha comprobado si el Decreto 36/2018 cambió después; la prensa habla de un anteproyecto de ley.
 
 ## 3. Región de Murcia (ES-14)

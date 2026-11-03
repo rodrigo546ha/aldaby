@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+from housefinder.regulation.kinds import GainsRate, parse_params
 from housefinder.regulation.resolvers import purchase_tax
 from housefinder.regulation.rules import RuleBook, default_rules_dir
 from housefinder.regulation.transactions import (
@@ -104,6 +105,30 @@ def test_coeficiente_municipal_limitado_por_el_maximo(tmp_path: Path, book):
     two = municipal_gains_params(local, "ES-13-28005", HOY, 2, 0, D(1), D(1),
                                  allow_unverified=True)
     assert two.params.coefficient == D("0.10")  # el municipal, menor que 0,14
+
+
+def test_tipo_de_la_plusvalia_por_años_de_tenencia():
+    tipo = parse_params("tipo_plusvalia", {"by_years": [
+        {"from_years": 0, "rate": 0.30}, {"from_years": 6, "rate": 0.25},
+        {"from_years": 11, "rate": 0.20},
+    ]})
+    assert isinstance(tipo, GainsRate)
+    assert [tipo.for_years(y) for y in (0, 5, 6, 10, 11, 25)] == [
+        D("0.30"), D("0.30"), D("0.25"), D("0.25"), D("0.20"), D("0.20")]
+    assert parse_params("tipo_plusvalia", {"rate": 0.29}).for_years(7) == D("0.29")
+    with pytest.raises(ValueError, match="uno de los dos"):
+        parse_params("tipo_plusvalia", {"rate": 0.3, "by_years": [{"from_years": 0, "rate": 0.3}]})
+    with pytest.raises(ValueError, match="empezar en 0"):
+        parse_params("tipo_plusvalia", {"by_years": [{"from_years": 1, "rate": 0.3}]})
+
+
+def test_gijon_cambia_de_tipo_con_los_años(book):
+    # Ordenanza 1.03, art. 8.1: 25 % hasta 5 años, 22 % de 6 a 19 y 18 % desde 20
+    gijon = "ES-03-33024"
+    rates = [municipal_gains_params(book, gijon, HOY, years, 0, D(1), D(1),
+                                    allow_unverified=True).params.rate
+             for years in (5, 6, 19, 20, 30)]
+    assert rates == [D("0.25"), D("0.22"), D("0.22"), D("0.18"), D("0.18")]
 
 
 def test_ahorro_recibe_el_minimo_que_sobra_de_la_base_general(book):

@@ -42,7 +42,8 @@ añade su esquema al catálogo.
 
 | `kind` | `params` |
 | --- | --- |
-| `iva_vivienda_nueva`, `iva_tipo_general`, `amortizacion_inmueble_alquiler`, `tipo_ibi`, `tipo_plusvalia` | `rate` en tanto por uno |
+| `iva_vivienda_nueva`, `iva_tipo_general`, `amortizacion_inmueble_alquiler`, `tipo_ibi` | `rate` en tanto por uno |
+| `tipo_plusvalia` | `rate` (tipo único) o `by_years`: lista de `{from_years, rate}`, un tipo por periodo de generación desde esos años completos de tenencia (el primero desde 0), como permite el art. 108.1 del TRLRHL |
 | `impuesto_compra_segunda_mano` | `rate` (tipo único) o `brackets`: lista de `{from, rate}`, progresiva (cada tipo en su tramo); con `whole_value: true`, el tipo del tramo del precio se aplica a todo el precio (ADR-0043) |
 | `reduccion_irpf_alquiler` | `cases`: lista de `{condition, reduction, when}`, sin condiciones repetidas; `when` son los hechos del contrato que exige el caso (ver abajo) |
 | `escala_irpf_general_estatal`, `escala_irpf_general_autonomica`, `escala_irpf_ahorro_estatal`, `escala_irpf_ahorro_autonomica` | `brackets`: lista de `{from, rate}`; el primero desde 0, crecientes. La estatal va en `ES`; la autonómica general, en `ES-<ccaa>`. La autonómica del ahorro la fija la ley estatal (art. 76) y va en `ES` |

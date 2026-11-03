@@ -6,9 +6,7 @@
 # (BOE-A-2015-1764, art. 39) que lo modifican.
 #
 # PENDIENTE (sin fuente oficial leída, o que el esquema no admite; no se escribe):
-# - Plusvalía de Gijón: la Ordenanza Fiscal nº 1.03 (ordenanzas 2026 de Gijón) fija el tipo según el periodo
-#   de generación (25 % hasta 5 años, 22 % de 6 a 19 años, 18 % con 20 o más) y `tipo_plusvalia` solo admite
-#   un tipo único. Fuente leída: https://drupal.gijon.es/sites/default/files/2026-02/ORDENANZAS%202026_1.pdf
+# - Fecha de publicación en el BOPA de la ordenanza de plusvalía de Gijón (Pleno de 10/05/2022).
 #   (art. 8.1). No se ha leído el BOPA con la fecha de entrada en vigor.
 # - Resolución trimestral del Ministerio de Vivienda del tercer trimestre de 2026 (la de octubre): no se ha
 #   localizado; pueden existir nuevas declaraciones asturianas (p. ej. Oviedo, que hoy no figura).
@@ -248,7 +246,7 @@
   source_url: https://miprincipado.asturias.es/bopa/2026/02/11/2026-01087.pdf
   notes: "Decreto 4/2026 (BOPA núm. 28, 11/02/2026), arts. 1, 2, 3, 5, 7, 12, 13, 14, 15, 17, 27, 29, 30 y 31 del Decreto 48/2016. Fecha de inicio calculada: veinte días tras la publicación. Las viviendas ya inscritas tienen doce meses (arts. 7.2, 13.1.e, 13.4 y 13.5) o seis meses (resto) para adaptarse (disposición transitoria única). Se excluyen los arrendamientos por más de cuatro meses seguidos a un mismo arrendatario (art. 1.3)."
 
-# --- Plusvalía municipal (tipo único) ----------------------------------------------------------
+# --- Plusvalía municipal ----------------------------------------------------------
 
 # Oviedo: Ordenanza Fiscal nº 404, art. 12.1: 20 %. Texto de las ordenanzas fiscales 2026 publicado por el
 # Ayuntamiento, modificada por el Pleno el 03/12/2024 y aplicable desde el 01/01/2025.
@@ -262,3 +260,20 @@
   params: {rate: 0.20}
   source_url: https://www.oviedo.es/documents/35133/0d707f1c-50d5-4d05-a2e9-fd2436fb3f68
   notes: "Ordenanza Fiscal nº 404 del Ayuntamiento de Oviedo, art. 12.1: «El tipo de gravamen del impuesto será del 20 por 100.» Disposición final: modificada por acuerdo del Pleno de 03/12/2024, en vigor el día de su publicación en el BOPA y de aplicación desde el 01/01/2025. No se ha leído el BOPA de publicación; hay fuentes divulgativas que dan el 26 % para Oviedo (guiafiscal.es), que contradicen la ordenanza oficial leída."
+
+# Gijón/Xixón: Ordenanza fiscal nº 1.03, art. 8.1, con un tipo por periodo de generación (TRLRHL,
+# art. 108.1). Texto de las ordenanzas de 2026 publicado por el Ayuntamiento (págs. 83 y 84).
+- id: gijon-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-03-33024
+  effective_from: 2022-05-11
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    by_years:
+      - {from_years: 0, rate: 0.25}
+      - {from_years: 6, rate: 0.22}
+      - {from_years: 20, rate: 0.18}
+  source_url: https://drupal.gijon.es/sites/default/files/2026-02/ORDENANZAS%202026_1.pdf
+  notes: "Ordenanza fiscal nº 1.03 del Ayuntamiento de Gijón (IIVTNU), art. 8.1: 25 % con periodo de generación inferior a un año y de 1 a 5 años; 22 % de 6 a 19 años (la ordenanza da el tipo de cada año, todos al 22 %); 18 % con 20 años o más. Art. 7.3: se cuentan años completos; con menos de un año se prorratea el coeficiente, no el tipo. Disposición final: aprobada por el Pleno el 10/05/2022, en vigor al día siguiente de su publicación en el BOPA, que no se ha localizado: la fecha de inicio (día siguiente al Pleno) es una cota inferior. El texto de 2026 conserva esa disposición, sin cambios del tipo después."

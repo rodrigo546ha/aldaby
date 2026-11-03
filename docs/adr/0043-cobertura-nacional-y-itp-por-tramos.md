@@ -57,6 +57,12 @@ Hay dos partes:
 
    `purchase_tax_rate` (el tipo como cifra) solo existe para el tipo único.
 
+6. **Plusvalía con un tipo por años de tenencia.** El TRLRHL (art. 108.1) deja fijar un tipo
+   por periodo de generación, y Gijón y Toledo lo hacen. `tipo_plusvalia` lleva `rate` (tipo
+   único) o `by_years`: una lista de `{from_years, rate}` con los años completos de tenencia
+   desde los que rige cada tipo, el primero desde 0. El tipo se elige con los mismos años
+   completos que el coeficiente, y con menos de un año se usa el de 0.
+
 ## Consecuencias
 - Los planes de las tres comunidades salen con cifras provisionales hasta que Rodrigo verifique la
   tanda 6. Las de las demás comunidades siguen sin poder calcularse: el error dice qué regla falta.

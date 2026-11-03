@@ -30,10 +30,11 @@ from housefinder.regulation.kinds import (
     DeedPayer,
     FeeScale,
     GainsCoefficients,
+    GainsRate,
     parse_params,
 )
 from housefinder.regulation.resolvers import _minimum, _rate, _rule, _scale, purchase_tax
-from housefinder.regulation.rules import RuleBook
+from housefinder.regulation.rules import Rule, RuleBook
 
 DeedAgreement = Literal["ley", "comprador", "vendedor"]
 
@@ -272,9 +273,18 @@ def municipal_gains_params(
     rate_rule = _rule(book, "tipo_plusvalia", territory, sale_date, include_pending,
                       allow_unverified)
     return ResolvedMunicipalGains(
-        MunicipalGainsTax(land_value, coefficient, _rate(rate_rule), land_share),
+        MunicipalGainsTax(land_value, coefficient, _gains_rate(rate_rule, holding_years),
+                          land_share),
         combine_sources(value_sources, (coefficients.ref, maximums.ref, rate_rule.ref)),
     )
+
+
+def _gains_rate(rule: Rule, years: int) -> Decimal:
+    """Tipo del municipio: el único o el del periodo de generación (TRLRHL, art. 108.1)."""
+    params = parse_params(rule.kind, rule.params)
+    if not isinstance(params, GainsRate):
+        raise TypeError(f"{rule.id}: se esperaba el tipo de la plusvalía")
+    return params.for_years(years)
 
 
 def _coefficient(kind: str, raw: dict, years: int, months: int) -> Decimal:

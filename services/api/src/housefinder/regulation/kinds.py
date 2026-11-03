@@ -29,6 +29,39 @@ class RateParams(RuleParams):
     rate: Fraction
 
 
+class GainsRateStep(RuleParams):
+    from_years: int = Field(ge=0)  # años completos de tenencia desde los que rige `rate`
+    rate: Fraction
+
+
+class GainsRate(RuleParams):
+    """Tipo de la plusvalía municipal: uno solo (`rate`) o uno por periodo de generación
+    (`by_years`, TRLRHL art. 108.1), uno de los dos. Cada paso rige desde `from_years` años
+    completos de tenencia hasta el siguiente; el primero empieza en 0 (menos de un año)."""
+
+    rate: Fraction | None = None
+    by_years: tuple[GainsRateStep, ...] | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def _one_of(self) -> GainsRate:
+        if (self.rate is None) == (self.by_years is None):
+            raise ValueError("el tipo de la plusvalía lleva `rate` o `by_years`, uno de los dos")
+        if self.by_years is not None:
+            starts = [s.from_years for s in self.by_years]
+            if starts[0] != 0:
+                raise ValueError("el primer periodo de `by_years` debe empezar en 0 años")
+            if any(a >= b for a, b in zip(starts, starts[1:], strict=False)):
+                raise ValueError("los periodos de `by_years` deben empezar en años crecientes")
+        return self
+
+    def for_years(self, years: int) -> Decimal:
+        """Tipo para una tenencia de `years` años completos."""
+        if self.rate is not None:
+            return self.rate
+        assert self.by_years is not None
+        return [s.rate for s in self.by_years if s.from_years <= years][-1]
+
+
 class Bracket(RuleParams):
     from_amount: Amount = Field(alias="from")  # base desde la que se aplica `rate`
     rate: Fraction
@@ -394,7 +427,9 @@ KINDS: dict[str, KindSpec] = {
     "coeficientes_plusvalia": KindSpec(
         GainsCoefficients, "Coeficientes de la plusvalía municipal por años de tenencia"
     ),
-    "tipo_plusvalia": KindSpec(RateParams, "Tipo de gravamen de la plusvalía municipal"),
+    "tipo_plusvalia": KindSpec(
+        GainsRate, "Tipo de gravamen de la plusvalía municipal, único o por años de tenencia"
+    ),
 }
 
 

@@ -115,7 +115,7 @@
 - ITP por tramos sobre TODO el valor (`whole_value: true`): 8 % hasta 300.000 €, 9 % hasta 500.000 € y 10 % por encima.
 - Zonas tensionadas solo en parte de cinco concejos (Avilés, Cabrales, Gijón, Gozón y Llanes), desde el 30/07/2026: cada regla lleva `area` con los barrios o núcleos de su resolución del BOPA. Oviedo no está declarado.
 - La escala y los mínimos de la Ley 3/2025 se aplican al periodo 2025 por la exposición de motivos, no por el articulado: confirmar.
-- Plusvalía de Gijón sin cargar: su tipo cambia con los años de generación (25, 22 o 18 %) y el esquema solo admite un tipo, como Toledo.
+- Plusvalía de Gijón: cargada con un tipo por años de tenencia (`gijon-plusvalia-tipo`); ver la sección final.
 - Plusvalía de Oviedo: la ordenanza oficial dice 20 %; guiafiscal.es dice 26 %. No se ha leído el BOPA de publicación.
 - El ITP del 20 % para grandes tenedores (art. 31 bis, desde el 03/12/2025) no se modela.
 - La fecha de inicio del ITP y el AJD (2014-10-30) es la del texto refundido; los tipos pueden venir de antes.
@@ -289,3 +289,18 @@
 - Sin mínimos propios (solo sube un 10 % el mínimo por discapacidad de descendientes).
 - Las fechas de inicio son las de la Ley 10/2017; los valores pueden ser anteriores.
 - Turismo: no se ha leído el Decreto 15/2021, que también modifica el Decreto 10/2017. El régimen municipal de Logroño (licencia previa y moratoria, según la prensa) no se ha leído en fuente oficial.
+
+## 7. Plusvalía con un tipo por años de tenencia
+
+`tipo_plusvalia` admite ahora `by_years`: un tipo por periodo de generación (TRLRHL, art. 108.1).
+
+- [ ] `gijon-plusvalia-tipo` (tipo_plusvalia, ES-03-33024, 2022-05-11 → sin fin)
+  - Cargado: 25 % de 0 a 5 años, 22 % de 6 a 19 y 18 % desde 20.
+  - Fuente: https://drupal.gijon.es/sites/default/files/2026-02/ORDENANZAS%202026_1.pdf (Ordenanza 1.03, art. 8.1, págs. 83–84)
+  - Dudoso: no se ha localizado el BOPA que publicó la modificación del Pleno de 10/05/2022; la fecha de inicio es una cota inferior.
+- [ ] `toledo-plusvalia-tipo` (tipo_plusvalia, ES-08-45168, 2022-03-12 → sin fin)
+  - Cargado: 29,88 % de 0 a 5 años, 28,88 % de 6 a 10, 26,89 % de 11 a 15 y 25,90 % de 16 en adelante.
+  - Fuente: https://www.toledo.es/wp-content/uploads/2016/11/of-no-02-impuesto-sobre-el-incremento-del-valor-de-los-terrenos-de-naturaleza-urbana-2024.pdf (Ordenanza n.º 2, art. 11)
+  - Dudoso: la fecha de inicio supone el BOP de Toledo n.º 49 de 11/03/2022. El agente lo descargó antes de ver que el robots.txt del BOP lo prohíbe; lo borró y no lo usó. Hay que confirmarla a mano, igual que si hubo cambios después.
+- Guadalajara, sin regla: guadalajara.es bloquea a los agentes de Anthropic en su robots.txt. El agente descargó la ordenanza con curl; no se ha usado. Para leerla a mano: Ordenanza fiscal n.º 7, art. 11, https://www.guadalajara.es/recursos/doc/portal/2023/12/28/07-ordenanza-fiscal-reguladora-del-impuesto-sobre-el-incremento-del-valor-de-los90546.pdf
+
