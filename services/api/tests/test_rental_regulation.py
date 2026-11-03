@@ -88,7 +88,7 @@ def test_gijon_solo_dos_barrios(book: RuleBook):
 
 def test_territorio_no_revisado_es_un_error(book: RuleBook):
     with pytest.raises(LookupError, match="zona_tensionada"):
-        stressed_zone(book, "ES-15-31201", HOY, allow_unverified=True)
+        stressed_zone(book, "ES-99-99001", HOY, allow_unverified=True)  # sin ninguna regla
 
 
 # --- Régimen por tipo de alquiler --------------------------------------------------------

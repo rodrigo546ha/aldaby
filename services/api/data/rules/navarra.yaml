@@ -1,0 +1,473 @@
+# Comunidad Foral de Navarra (ES-15) y Pamplona/Iruña (ES-15-31201). Régimen foral (ADR-0046).
+# Ver README.md. SIN VERIFICAR: ninguna pasa a verified: true hasta que Rodrigo lea la fuente.
+# Fuentes leídas el 2026-11-03: texto consolidado del IRPF (DFLeg 4/2008) y su Reglamento (DF 174/1999),
+# del ITP y AJD (DFLeg 129/1999) y de la Ley Foral 2/1995 de Haciendas Locales, en lexnavarra; Leyes
+# Forales 22/2023 (BOE-A-2024-1694) y 17/2025 (BOE-A-2026-3910); Orden Foral 157E/2025 (BON 118,
+# 13/06/2025); ordenanzas fiscales 1 y 4 de Pamplona para 2026.
+#
+# PENDIENTE (sin fuente oficial leída o sin modelar):
+# - La escala general del art. 59 sale del BOE (Ley Foral 22/2023): en lexnavarra es una imagen alojada
+#   en otro dominio, que no se descargó. No se ha podido descartar una ley foral de 2026 que cambie el IRPF.
+# - Desde cuándo rige el 28 % del último tramo de la escala del ahorro.
+# - Mínimo personal: si los incrementos por edad (264 € desde 65, 585 € desde 75) se suman o el segundo
+#   sustituye al primero. Se modela que sustituye («el incremento será de»): confirmar.
+# - Incremento del 40 % de la deducción por descendientes con rentas bajas (art. 62.9.b.b'.2.º): no se
+#   modela (la cuota sale algo mayor para rentas de hasta 30.000 €).
+# - Reducción del 50 % del alquiler en zona tensionada: exige además el contrato inscrito en el Registro de
+#   Contratos de Arrendamiento de Vivienda de Navarra; el plan lo supone hecho. Las reducciones del 70 % y
+#   90 % por intermediación de la sociedad pública no se modelan.
+# - Si la base de la amortización del 3 % incluye los gastos y tributos de la compra.
+# - Coeficientes máximos de la plusvalía actualizados para 2026 (la ley dice que se actualizan cada año).
+# - Fecha de publicación en el BON de las ordenanzas fiscales de Pamplona para 2026.
+# - Alquiler turístico: consolidación del Decreto Foral 230/2011 y si una norma posterior sustituye a la
+#   Ley Foral 7/2003; régimen urbanístico de Pamplona (art. 28 del Plan Municipal), solo visto en prensa.
+
+# --- IRPF foral ---------------------------------------------------------------------------------------------
+
+- id: navarra-regimen-irpf
+  kind: regimen_irpf
+  territory: ES-15
+  effective_from: 2008-07-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {regime: foral}
+  source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=29657
+  notes: "Texto refundido de la Ley Foral del IRPF (Decreto Foral Legislativo 4/2008), art. 58: «La cuota íntegra del impuesto se obtendrá por la suma de las cuotas resultantes de la aplicación de lo dispuesto en los artículos 59 y 60»: una escala foral, sin parte estatal ni autonómica. Fecha de inicio: aproximada a la del texto refundido; el régimen foral es anterior."
+
+- id: navarra-irpf-escala-general-2024
+  kind: escala_irpf_general_foral
+  territory: ES-15
+  effective_from: 2024-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.13}
+      - {from: 4458, rate: 0.22}
+      - {from: 10030, rate: 0.25}
+      - {from: 21175, rate: 0.28}
+      - {from: 35663, rate: 0.365}
+      - {from: 51266, rate: 0.415}
+      - {from: 66869, rate: 0.44}
+      - {from: 89159, rate: 0.47}
+      - {from: 139310, rate: 0.49}
+      - {from: 195034, rate: 0.505}
+      - {from: 334344, rate: 0.52}
+  source_url: https://www.boe.es/buscar/doc.php?id=BOE-A-2024-1694
+  notes: "DFLeg 4/2008, art. 59.1, redacción del art. «Ocho» de la Ley Foral 22/2023 (BON 269, 29/12/2023), con efectos desde el 01/01/2024: 13 % hasta 4.458 €; 22 % hasta 10.030; 25 % hasta 21.175; 28 % hasta 35.663; 36,5 % hasta 51.266; 41,5 % hasta 66.869; 44 % hasta 89.159; 47 % hasta 139.310; 49 % hasta 195.034; 50,5 % hasta 334.344; 52 % en adelante (cuotas acumuladas: 579,54 a 4.458 €). La Ley Foral 17/2025 no toca el art. 59."
+
+- id: navarra-irpf-escala-ahorro
+  kind: escala_irpf_ahorro_foral
+  territory: ES-15
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    brackets:
+      - {from: 0, rate: 0.20}
+      - {from: 6000, rate: 0.22}
+      - {from: 10000, rate: 0.24}
+      - {from: 15000, rate: 0.26}
+      - {from: 200000, rate: 0.27}
+      - {from: 300000, rate: 0.28}
+  source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=29657
+  notes: "DFLeg 4/2008, art. 60: «La base liquidable especial del ahorro se gravará a los tipos que se indican en la siguiente escala»: 20 % hasta 6.000 €; 22 % hasta 10.000; 24 % hasta 15.000; 26 % hasta 200.000; 27 % hasta 300.000; 28 % en adelante. Van a ella las ganancias por transmisión (art. 54.1.b), no el alquiler. Fecha de inicio: la del texto consolidado leído; desde cuándo rige el 28 %, pendiente."
+
+- id: navarra-irpf-deducciones-2026
+  kind: deducciones_cuota_irpf_foral
+  territory: ES-15
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    general: 1084
+    general_by_income:
+      - {base: 17500, amount: 1280}
+      - {base: 30000, amount: 150}
+      - {base: 32000, amount: 0}
+    age:
+      - {min_age: 65, amount: 264}
+      - {min_age: 75, amount: 585}
+    descendants: [483, 512, 732, 981, 1111, 1286]
+    young_children:
+      - {under_age: 3, amount: 644}
+  source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=29657
+  notes: "DFLeg 4/2008, art. 62.9 (deducciones personales y familiares en la cuota; la cuota líquida no puede ser negativa, art. 61). a) «La deducción por mínimo personal será con carácter general de 1.084 euros anuales»; más 264 € con 65 años o más y 585 € con 75 o más (se modela que el segundo sustituye al primero: pendiente); más 1.280 € con rentas de hasta 17.500 €, 1.280 − 0,0904 × (rentas − 17.500) hasta 30.000 € y 150 − 0,075 × (rentas − 30.000) hasta 32.000 € (letras c', d' y e', Ley Foral 17/2025, art. «Catorce», efectos 01/01/2026). b) Descendientes: 483, 512, 732, 981, 1.111 y 1.286 € (1.º a 6.º y siguientes), más 644 € por menor de 3 años. Las rentas del art. 64.5 se aproximan con la base liquidable general. Sin modelar: discapacidad, ascendientes y el incremento del 40 % por descendiente con rentas bajas."
+
+- id: navarra-rendimiento-alquiler
+  kind: rendimiento_alquiler_irpf
+  territory: ES-15
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    housing: {base: general, expenses: todos, cap: todos, carryforward_years: 4}
+    other: {base: general, expenses: todos, cap: todos, carryforward_years: 4}
+  source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=29657
+  notes: "DFLeg 4/2008: el rendimiento del capital inmobiliario va a la parte general (art. 53.a; no está en el art. 54). Art. 25.1: «El importe total a deducir no podrá exceder, para cada bien o derecho, de la cuantía de los respectivos rendimientos íntegros [...] El exceso se podrá deducir en los cuatro años inmediatos y sucesivos»; si concurre con gastos del año, «éstos se aplicarán en primer lugar». Gastos deducibles: Reglamento (DF 174/1999), art. 12.1 (intereses, tributos, servicios, conservación y reparación, seguros, amortización…). Fecha de inicio: la de la redacción vigente del art. 25 (Ley Foral 17/2025, efectos 01/01/2025)."
+
+- id: navarra-reduccion-alquiler
+  kind: reduccion_irpf_alquiler
+  territory: ES-15
+  effective_from: 2025-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    cases:
+      - condition: zona-tensionada-vivienda-permanente
+        reduction: 0.50
+        when: {stressed_zone: true}
+  source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=29657
+  notes: "DFLeg 4/2008, art. 25.2.b) (Ley Foral 20/2024; requisito de registro por la Ley Foral 17/2025, art. «Siete», efectos 01/01/2025): «Un 50 por ciento, cuando la vivienda esté situada en una zona de mercado residencial tensionado y el rendimiento proceda del arrendamiento con destino a vivienda permanente [...] excluyéndose [...] los arrendamientos por habitaciones», con el contrato inscrito en el Registro de Contratos de Arrendamiento de Vivienda de Navarra a la fecha de devengo (el plan lo supone hecho). Fuera de zona tensionada y sin intermediación pública no hay reducción. No se modelan el 70 % y el 90 % de la intermediación por la sociedad pública (25.2.a)."
+
+- id: navarra-amortizacion-inmueble
+  kind: amortizacion_inmueble_alquiler
+  territory: ES-15
+  effective_from: 2008-07-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.03}
+  source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=10615
+  notes: "Reglamento del IRPF de Navarra (DF 174/1999), art. 13.1.a): amortización «cuando, en cada año, no exceda del resultado de aplicar el 3 por 100 sobre el coste de adquisición o mejora satisfecho, sin incluir en el cómputo el del suelo» (25 % del coste si no se conoce el valor del suelo). En la venta se resta la amortización mínima aunque no se dedujera (art. 39.1). Fecha de inicio aproximada; si la base incluye los gastos de compra, pendiente."
+
+# --- ITP y AJD ----------------------------------------------------------------------------------------------
+
+- id: navarra-itp-inmuebles
+  kind: impuesto_compra_segunda_mano
+  territory: ES-15
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.06}
+  source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=28044
+  notes: "Texto refundido del ITP y AJD de Navarra (DFLeg 129/1999), art. 8.1.a): «El 6 por ciento, si se trata de transmisiones de bienes inmuebles». Tipo único. Los reducidos del 5 % (familia con dos o más hijos) y 4 % (vivienda habitual en municipio en riesgo de despoblación) no aplican a un inversor. Fecha de inicio: la del texto consolidado leído; el 6 % viene de antes."
+
+- id: navarra-ajd-compra-vivienda
+  kind: ajd_compra_vivienda
+  territory: ES-15
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    bands:
+      - {up_to: null, rate: 0.005}
+    cap_jumps: false
+  source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=28044
+  notes: "DFLeg 129/1999, art. 22.2: las primeras copias de escrituras con cantidad o cosa valuable, inscribibles y no sujetas a TPO, «tributarán, además, al tipo de gravamen del 0,5 por 100» (1 % si se renuncia a la exención del IVA). Fecha de inicio: la del texto consolidado leído."
+
+# --- Alquiler ----------------------------------------------------------------------------------------------
+
+- id: navarra-zonas-tensionadas
+  kind: zona_tensionada
+  territory: ES-15
+  effective_from: 2023-05-26
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {declared: false, checked_through: 2026-07-29}
+  source_url: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  notes: "Fuera de los 21 municipios de la Orden Foral 157E/2025 (reglas de municipio), no consta declaración. Ley 12/2023, art. 18."
+
+# Orden Foral 157E/2025, de 19 de mayo (BON 118, 13/06/2025), apartado 2.º: 21 municipios, cada uno entero.
+# Vigencia de tres años desde el día siguiente a su publicación en el BON (apartado 5.º). La resolución del
+# Ministerio (BOE-A-2025-15728, 29/07/2025) cuenta los tres años desde el día siguiente a la suya: se toma la
+# fecha del BON, la de la norma que declara; la diferencia de unas seis semanas está pendiente.
+
+- id: navarra-zona-tensionada-31010
+  kind: zona_tensionada
+  territory: ES-15-31010
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Altsasu/Alsasua: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31016
+  kind: zona_tensionada
+  territory: ES-15-31016
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Ansoáin/Antsoain: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31023
+  kind: zona_tensionada
+  territory: ES-15-31023
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Aranguren: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31050
+  kind: zona_tensionada
+  territory: ES-15-31050
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Baztan: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31060
+  kind: zona_tensionada
+  territory: ES-15-31060
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Burlada/Burlata: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31072
+  kind: zona_tensionada
+  territory: ES-15-31072
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Cintruénigo: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31077
+  kind: zona_tensionada
+  territory: ES-15-31077
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Corella: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31086
+  kind: zona_tensionada
+  territory: ES-15-31086
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Valle de Egüés/Eguesibar: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31088
+  kind: zona_tensionada
+  territory: ES-15-31088
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Valle de Elorz/Elortzibar: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31097
+  kind: zona_tensionada
+  territory: ES-15-31097
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Estella-Lizarra: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31122
+  kind: zona_tensionada
+  territory: ES-15-31122
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Huarte/Uharte: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31201
+  kind: zona_tensionada
+  territory: ES-15-31201
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Pamplona/Iruña: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31202
+  kind: zona_tensionada
+  territory: ES-15-31202
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Peralta/Azkoien: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31215
+  kind: zona_tensionada
+  territory: ES-15-31215
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "San Adrián: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31227
+  kind: zona_tensionada
+  territory: ES-15-31227
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Tafalla: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31232
+  kind: zona_tensionada
+  territory: ES-15-31232
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Tudela: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31258
+  kind: zona_tensionada
+  territory: ES-15-31258
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Villava/Atarrabia: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31901
+  kind: zona_tensionada
+  territory: ES-15-31901
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Barañáin/Barañain: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31902
+  kind: zona_tensionada
+  territory: ES-15-31902
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Berrioplano/Berriobeiti: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31903
+  kind: zona_tensionada
+  territory: ES-15-31903
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Berriozar: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-zona-tensionada-31907
+  kind: zona_tensionada
+  territory: ES-15-31907
+  effective_from: 2025-06-14
+  effective_to: 2028-06-14
+  status: vigente
+  verified: false
+  params: {declared: true, checked_through: 2026-07-29}
+  source_url: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  notes: "Zizur Mayor/Zizur Nagusia: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona."
+
+- id: navarra-alquiler-turistico
+  kind: regimen_alquiler_turistico
+  territory: ES-15
+  effective_from: 2011-12-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    regime: "Vivienda turística en Navarra (Decreto Foral 230/2011, de ordenación de los apartamentos turísticos): inscripción previa en el Registro de Turismo de Navarra"
+    requirements:
+      - code: declaracion-responsable
+        description: "Inscripción previa en el Registro de Turismo de Navarra mediante declaración responsable"
+        source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=25034
+      - code: superficie-minima-90
+        description: "Modalidad «Vivienda Turística»: superficie útil mínima de 90 m² (art. 3.a)"
+        source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=25034
+      - code: acceso-independiente
+        description: "Acceso independiente y segregación vertical (art. 3.b y c)"
+        source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=25034
+  source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=25034
+  notes: "Decreto Foral 230/2011, de 26 de octubre, en desarrollo de la Ley Foral 7/2003 de Turismo. Estancias de temporada de hasta tres meses (art. 2). Fecha de inicio aproximada. Pendiente: que el texto de lexnavarra sea el consolidado, si una norma posterior sustituye a la Ley Foral 7/2003, y el régimen urbanístico de Pamplona (art. 28 del Plan Municipal, solo visto en prensa)."
+
+# --- Impuestos municipales (Ley Foral 2/1995 de Haciendas Locales) -------------------------------------------
+
+- id: pamplona-contribucion-territorial
+  kind: tipo_ibi
+  territory: ES-15-31201
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.0025}
+  source_url: https://www.pamplona.es/sites/default/files/2025-12/Ordenanza%201.pdf
+  notes: "Contribución territorial (el IBI de Navarra), Ordenanza fiscal n.º 1 de Pamplona para 2026, art. 4: «Tipo de gravamen: 0,25%», único para todo el término (Ley Foral 2/1995, art. 139.2: entre el 0,25 y el 0,50 %). Fecha de publicación en el BON, pendiente."
+
+- id: pamplona-plusvalia-tipo
+  kind: tipo_plusvalia
+  territory: ES-15-31201
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params: {rate: 0.1735}
+  source_url: https://www.pamplona.es/sites/default/files/2025-12/Ordenanza%204%20.pdf
+  notes: "Ordenanza fiscal n.º 4 de Pamplona para 2026, anexo de tarifas: «TIPO DE GRAVAMEN: 17,35%» (Ley Foral 2/1995, art. 176.2: entre el 8 y el 25 %). Los coeficientes son «los máximos permitidos para cada periodo de generación y vigentes en cada momento» (art. 6): la regla de los máximos de Navarra."
+
+- id: navarra-plusvalia-coeficientes-maximos
+  kind: coeficientes_plusvalia
+  territory: ES-15
+  effective_from: 2026-01-01
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    by_years: [0.06, 0.16, 0.13, 0.26, 0.35, 0.37, 0.35, 0.41, 0.47, 0.52, 0.58,
+               0.53, 0.42, 0.37, 0.31, 0.26, 0.25, 0.15, 0.06, 0.06, 0.16]
+  source_url: https://www.lexnavarra.navarra.es/detalle.asp?r=540
+  notes: "Ley Foral 2/1995 de Haciendas Locales de Navarra, art. 175.2, coeficientes máximos por periodo de generación (menos de un año, 1… 19 y 20 o más), tal como constan en el texto consolidado. El mismo artículo dice que «serán actualizados anualmente»: no se ha encontrado la actualización de 2026, así que la tabla puede no estar al día. PENDIENTE de confirmar en el BON o en Hacienda de Navarra."

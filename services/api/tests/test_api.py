@@ -147,8 +147,8 @@ def test_inversion_vivienda_nueva_con_iva_y_ajd():
 
 
 def test_inversion_sin_reglas_del_territorio_es_503():
-    # Pamplona: Navarra es foral y no tiene ITP cargado.
-    resp = client.post("/simulate/investment", json=peticion(property__territory="ES-15-31201"))
+    # Donostia: el ITP de Gipuzkoa no se ha podido leer (su web bloquea a los agentes).
+    resp = client.post("/simulate/investment", json=peticion(property__territory="ES-16-20069"))
     assert resp.status_code == 503
     assert "impuesto_compra_segunda_mano" in resp.json()["detail"]
 

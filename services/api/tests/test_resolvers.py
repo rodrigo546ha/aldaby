@@ -197,7 +197,7 @@ def test_minimos_con_edad_y_descendientes(book: RuleBook):
 def test_residencia_sin_escala_autonomica(book: RuleBook):
     with pytest.raises(LookupError, match="escala_irpf_general_autonomica"):
         income_tax_profile(
-            book, residence="ES-15", tax_year=EJERCICIO, other_base=Decimal(30000), age=40,
+            book, residence="ES-99", tax_year=EJERCICIO, other_base=Decimal(30000), age=40,
             descendant_ages=(), allow_unverified=True,
         )
 
