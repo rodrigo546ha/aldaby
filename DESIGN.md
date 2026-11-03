@@ -320,7 +320,16 @@ Sobrios, de instrumento: mayúsculas espaciadas y sin icono.
 Barra de dos pisos sobre el lienzo con un filete abajo. Arriba, el logotipo a la izquierda (26 px de alto, 22 en móvil) y a la derecha el cliente activo (selector de 34 px con etiqueta en mayúsculas), la cuenta y el interruptor de tema (cuadrado de 34 px, radio de 6, filete fino). Abajo, las secciones en mayúsculas de 12 px a 0,12 em separadas 28 px: inactivas en salvia apagada, en hover y activas en blanco, la activa con un trazo de 2 px en `--mark` pegado al filete. Por debajo de 960 px la fila se desplaza y se desvanece por la derecha; la sección activa se desplaza a la vista. Las pestañas internas repiten el mismo lenguaje.
 
 ### Rejilla de cifras
-La firma de la aplicación. Cada cifra es rótulo, valor, rango opcional y un «Cómo se calcula» plegado con la fórmula y las fuentes. Las cifras se ordenan en una rejilla automática (celdas de 220 px o más) separada por filetes. La fila de cabecera usa celdas de 190 px o más, rótulos en mayúsculas en bruma, valores en stat-glow a 40 px y filetes fuertes arriba y abajo; los rótulos reservan dos líneas para que todos los «Cómo se calcula» queden alineados.
+La firma de la aplicación. Cada cifra es rótulo, valor y rango opcional. Las cifras se ordenan en una rejilla automática (celdas de 220 px o más) separada por filetes. Suelta, una cifra lleva su «Cómo se calcula» plegado y el sello PROVISIONAL. Dentro de un bloque va en modo silencioso: sin fórmula propia y con una marca «provisional» de 10 px en warn-text.
+
+### Veredicto
+Lo primero de un plan o de un resultado del simulador. Panel elevado con radio de 16 y relleno de 32 (24 en móvil): estado de fila, título y tres cifras grandes en stat-glow a 48 px (40 en móvil y en la columna del simulador), con la unidad aparte a menor tamaño y el rótulo en mayúsculas debajo. Al aparecer cuentan desde cero en 600 ms una sola vez; el valor final es el texto exacto de la API. Debajo, el motivo en una frase en warn-text y las acciones con contorno.
+
+### Bloques plegables
+Cada tema del plan es un `details` separado por filetes. Cerrado enseña el título en Bricolage a 20 px y, alineadas a la derecha, sus cifras clave (rótulo en mayúsculas de 11 px y valor a 18 px). Abierto enseña la rejilla de cifras en modo silencioso y, una sola vez, «Fórmulas y fuentes» con el recuento de provisionales. La fila cambia a la capa elevada al pasar el ratón. Lo que no cambia la decisión (notas, ids de reglas) va al final, en «Notas y calidad de los datos».
+
+### Movimiento
+Tres duraciones: `--dur-1` 120 ms (respuesta al toque), `--dur-2` 220 ms (cambios de estado, plegables, tema) y `--dur-3` 360 ms (entrada de página y de resultados), todas con `--ease`. Cada página entra subiendo 8 px y apareciendo (`app/template.tsx`); la barra no se mueve. Los resultados llegan en orden con 50 ms entre uno y otro. Los plegables se abren por su altura (`::details-content` con `interpolate-size`). Las esperas largas enseñan un esqueleto con la forma del resultado y un brillo lento. Los botones se encogen al 98 % al pulsarlos. Con movimiento reducido no se anima nada.
 
 ### Avisos
 Bloque con fondo de aviso, texto warn-text a 14 px y radio de 12. Un aviso que enumera cuatro o más reglas se pliega en una línea con su recuento.

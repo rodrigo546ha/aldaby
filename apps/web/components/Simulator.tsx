@@ -4,7 +4,8 @@ import { useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
 import { amount, formatValue, label, percentToRatio } from "../lib/format";
-import { FigureView, WarningItem } from "./FigureView";
+import { FigureBlock, WarningItem } from "./FigureView";
+import { Skeleton, VerdictFigure } from "./Motion";
 
 type InvestmentRequest = components["schemas"]["InvestmentRequest"];
 type InvestmentResponse = components["schemas"]["InvestmentResponse"];
@@ -222,13 +223,15 @@ function buildRequest(state: Record<string, string>):
   return { request };
 }
 
-const GROUPS: { title: string; keys: string[] }[] = [
+const GROUPS: { title: string; keys: string[]; summary: string[] }[] = [
   {
     title: "Capacidad de compra",
+    summary: ["affordability.max_price"],
     keys: ["affordability.max_price", "affordability.max_loan", "affordability.max_payment", "affordability.years"],
   },
   {
     title: "Compra",
+    summary: ["purchase_costs.total", "cashflow.cash_invested"],
     keys: [
       "purchase_costs.transfer_tax", "purchase_costs.vat", "purchase_costs.stamp_duty",
       "purchase_costs.notary", "purchase_costs.registry", "purchase_costs.other",
@@ -237,10 +240,12 @@ const GROUPS: { title: string; keys: string[] }[] = [
   },
   {
     title: "Hipoteca",
+    summary: ["mortgage.monthly_payment"],
     keys: ["financing.loan", "financing.years", "mortgage.monthly_payment", "mortgage.stressed_payment"],
   },
   {
     title: "Primer año de alquiler",
+    summary: ["cashflow.monthly_after_tax", "cashflow.gross_yield"],
     keys: [
       "cashflow.gross_yield", "holding_costs.ibi_annual", "cashflow.annual_operating",
       "cashflow.annual_tax", "cashflow.monthly_after_tax", "cashflow.cash_on_cash",
@@ -248,10 +253,12 @@ const GROUPS: { title: string; keys: string[] }[] = [
   },
   {
     title: "Plazo recomendado en estrés",
+    summary: ["term.recommended_years"],
     keys: ["term.recommended_years", "term.stressed_monthly_payment", "term.stressed_monthly_cashflow"],
   },
   {
     title: "Venta",
+    summary: ["irr.rate"],
     keys: [
       "irr.sale_price", "sale_costs.notary", "sale_costs.municipal_gains_tax",
       "irr.capital_gains_tax", "irr.net_sale_proceeds", "irr.rate",
@@ -259,6 +266,7 @@ const GROUPS: { title: string; keys: string[] }[] = [
   },
   {
     title: "Escenarios de revalorización",
+    summary: ["valuation.appreciation_base"],
     keys: [
       "valuation.appreciation_conservative", "valuation.appreciation_base",
       "valuation.appreciation_optimistic", "irr.rate_conservative", "irr.rate_optimistic",
@@ -337,10 +345,11 @@ export function Simulator() {
 
       <section className="results" aria-live="polite">
         {failure && <p className="failure">{failure}</p>}
-        {!result && !failure && (
+        {loading && <Skeleton label="Calculando tu plan…" />}
+        {!result && !failure && !loading && (
           <p className="empty">Rellena tus datos y los del piso para ver tu plan.</p>
         )}
-        {result && <Results result={result} />}
+        {result && !loading && <Results result={result} />}
       </section>
     </div>
   );
@@ -422,27 +431,25 @@ function Results({ result }: { result: InvestmentResponse }) {
           ))}
         </ul>
       )}
-      <div className="headline">
+      <div className="verdict-figures">
         {HEADLINE.filter((k) => f[k]).map((k) => (
-          <FigureView key={k} figure={f[k]} />
+          <VerdictFigure key={k} figure={f[k]} />
         ))}
-        {!f["irr.rate"] && result.no_irr_reason && (
-          <div className="figure">
-            <span className="figure-label">TIR</span>
-            <div className="figure-value small">Sin TIR: {result.no_irr_reason}</div>
-          </div>
-        )}
       </div>
-      {GROUPS.map((group) => (
-        <div key={group.title} className="group">
-          <h3>{group.title}</h3>
-          <div className="grid">
-            {group.keys.filter((k) => f[k]).map((k) => (
-              <FigureView key={k} figure={f[k]} />
-            ))}
-          </div>
-        </div>
-      ))}
+      {!f["irr.rate"] && result.no_irr_reason && (
+        <p className="hint">Sin TIR: {result.no_irr_reason}</p>
+      )}
+      <div className="plan-blocks">
+        {GROUPS.map((group) => (
+          <FigureBlock
+            key={group.title}
+            id={group.title}
+            title={group.title}
+            figures={group.keys.filter((k) => f[k]).map((k) => f[k])}
+            keys={group.summary}
+          />
+        ))}
+      </div>
       {result.appreciation_notes.length > 0 && (
         <ul className="warnings">
           {result.appreciation_notes.map((n) => (
@@ -451,7 +458,7 @@ function Results({ result }: { result: InvestmentResponse }) {
         </ul>
       )}
       <div className="group">
-        <h3>Si se aprueban las normas pendientes</h3>
+        <h3>Si se convalidan las normas pendientes</h3>
         {scenario.changes.length === 0 ? (
           <p className="empty">Las normas pendientes de convalidación no cambian tu plan.</p>
         ) : (

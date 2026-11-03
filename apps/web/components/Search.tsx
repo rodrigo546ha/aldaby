@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import type { components } from "../lib/api-types";
 import { amount, percentToRatio } from "../lib/format";
 import { FigureView } from "./FigureView";
+import { Skeleton } from "./Motion";
 
 type SearchOut = components["schemas"]["SearchOut"];
 type ScoredOut = components["schemas"]["ScoredOut"];
@@ -85,7 +86,7 @@ export function Search() {
               : `Te ${plansLeft === 1 ? "queda 1 plan completo" : `quedan ${plansLeft} planes completos`} en el nivel gratuito. Volver a abrir uno no gasta otro.`}
           </p>
         )}
-        {busy && <p className="empty">Calculando tu plan en cada oferta…</p>}
+        {busy && <Skeleton label="Calculando tu plan en cada oferta…" />}
         {failure && <p className="failure">{failure}</p>}
         {missing.length > 0 && (
           <ul className="warnings">
