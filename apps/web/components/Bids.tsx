@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
 import { amount, formatValue } from "../lib/format";
+import { LineChart } from "./Charts";
 import { FigureView } from "./FigureView";
 
 type BidsOut = components["schemas"]["BidsOut"];
@@ -165,6 +166,14 @@ export function Bids({ offerId, auction }: { offerId: string; auction: boolean }
             {result.deposit && <FigureView figure={result.deposit} title="Depósito para pujar" />}
             {result.charges && <FigureView figure={result.charges} title="Cargas que asumes" />}
           </div>
+          <LineChart
+            title="Tu cash flow al mes a cada puja"
+            series={["Cash flow tras impuestos", "Con la subida de tipos"]}
+            points={[...result.levels]
+              .sort((a, b) => Number(a.price.value) - Number(b.price.value))
+              .map((l) => ({ x: l.price, ys: [l.cashflow, l.stressed ?? null], passes: l.passes }))}
+            marker={result.max_bid ? { title: "Tu puja máxima", figure: result.max_bid } : null}
+          />
           <table>
             <thead>
               <tr>

@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
 import { amount, formatValue, label, percentToRatio } from "../lib/format";
+import { TopicCharts } from "./Charts";
 import { FigureBlock, WarningItem } from "./FigureView";
 import { Skeleton, VerdictFigure } from "./Motion";
 
@@ -223,7 +224,7 @@ function buildRequest(state: Record<string, string>):
   return { request };
 }
 
-const GROUPS: { title: string; keys: string[]; summary: string[] }[] = [
+const GROUPS: { title: string; keys: string[]; summary: string[]; topic?: string }[] = [
   {
     title: "Capacidad de compra",
     summary: ["affordability.max_price"],
@@ -253,12 +254,14 @@ const GROUPS: { title: string; keys: string[]; summary: string[] }[] = [
   },
   {
     title: "Plazo recomendado en estrés",
+    topic: "estres",
     summary: ["term.recommended_years"],
     keys: ["term.recommended_years", "term.stressed_monthly_payment", "term.stressed_monthly_cashflow"],
   },
   {
     title: "Venta",
     summary: ["irr.rate"],
+    topic: "venta",
     keys: [
       "irr.sale_price", "sale_costs.notary", "sale_costs.municipal_gains_tax",
       "irr.capital_gains_tax", "irr.net_sale_proceeds", "irr.rate",
@@ -421,6 +424,7 @@ function FieldInput({
 
 function Results({ result }: { result: InvestmentResponse }) {
   const f = result.figures;
+  const figures = new Map(Object.entries(f));
   const scenario = result.pending_scenario;
   return (
     <>
@@ -447,7 +451,9 @@ function Results({ result }: { result: InvestmentResponse }) {
             title={group.title}
             figures={group.keys.filter((k) => f[k]).map((k) => f[k])}
             keys={group.summary}
-          />
+          >
+            {group.topic && <TopicCharts topic={group.topic} figures={figures} />}
+          </FigureBlock>
         ))}
       </div>
       {result.appreciation_notes.length > 0 && (

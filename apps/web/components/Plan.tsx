@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { components } from "../lib/api-types";
 import { formatValue, label } from "../lib/format";
 import { Bids } from "./Bids";
+import { TopicCharts } from "./Charts";
 import { BrandHeader, useBranding } from "./Branding";
 import { FigureBlock, WarningItem } from "./FigureView";
 import { Skeleton, VerdictFigure } from "./Motion";
@@ -135,6 +136,7 @@ export function Plan({ offerId }: { offerId: string }) {
             figures={s.figures}
             keys={BLOCKS[s.id]?.keys ?? []}
           >
+            <TopicCharts topic={s.id} figures={all} />
             {s.id === "hipoteca" && plan.cheapest_mortgage && (
               <p className="hint">
                 Con la trayectoria esperada del Euríbor paga menos intereses{" "}
