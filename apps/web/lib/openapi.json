@@ -2679,9 +2679,9 @@
           },
           "residence": {
             "type": "string",
-            "pattern": "^ES-\\d{2}$",
+            "pattern": "^ES-\\d{2}(-\\d{2})?$",
             "title": "Residence",
-            "description": "Comunidad de residencia (ES-13)"
+            "description": "Comunidad de residencia (ES-13); en el País Vasco, el territorio histórico (ES-16-48)"
           },
           "taxable_base": {
             "anyOf": [

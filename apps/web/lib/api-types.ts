@@ -1039,7 +1039,7 @@ export interface components {
             age: number;
             /**
              * Residence
-             * @description Comunidad de residencia (ES-13)
+             * @description Comunidad de residencia (ES-13); en el País Vasco, el territorio histórico (ES-16-48)
              */
             residence: string;
             /**
