@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { components } from "../lib/api-types";
 import { formatValue, label } from "../lib/format";
+import { Bids } from "./Bids";
 import { BrandHeader, useBranding } from "./Branding";
 import { FigureView } from "./FigureView";
 
@@ -66,6 +67,7 @@ export function Plan({ offerId }: { offerId: string }) {
         )}
       </section>
       <Explanation offerId={offerId} />
+      <Bids offerId={offerId} auction={plan.auction} />
       {plan.sections.map((s) => (
         <section key={s.id} className="plan-section" aria-labelledby={`section-${s.id}`}>
           <h3 id={`section-${s.id}`}>{s.title}</h3>

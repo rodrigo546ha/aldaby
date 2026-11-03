@@ -1572,6 +1572,60 @@
         }
       }
     },
+    "/plans/offers/{offer_id}/bids": {
+      "post": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Offer Bids",
+        "description": "La puja máxima y el plan a cada puja de una subasta. Cuenta como un plan completo.",
+        "operationId": "offer_bids_plans_offers__offer_id__bids_post",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BidsIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BidsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/plans/offers/{offer_id}/pdf": {
       "get": {
         "tags": [
@@ -2516,6 +2570,212 @@
           "attribution"
         ],
         "title": "AuctionNoticeOut"
+      },
+      "BidLevelOut": {
+        "properties": {
+          "share": {
+            "type": "string",
+            "title": "Share"
+          },
+          "price": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "cashflow": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "stressed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "irr": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "passes": {
+            "type": "boolean",
+            "title": "Passes"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "share",
+          "price",
+          "cashflow",
+          "stressed",
+          "irr",
+          "passes",
+          "reasons",
+          "stage"
+        ],
+        "title": "BidLevelOut"
+      },
+      "BidsIn": {
+        "properties": {
+          "auction_value": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auction Value"
+          },
+          "charges": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Charges",
+            "default": "0"
+          },
+          "possession": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Possession",
+            "default": "0"
+          },
+          "cash": {
+            "type": "boolean",
+            "title": "Cash",
+            "default": false
+          },
+          "judicial": {
+            "type": "boolean",
+            "title": "Judicial",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "BidsIn",
+        "description": "Simulador de puja (ADR-0047). Importes en euros."
+      },
+      "BidsOut": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Offer Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "auction_value": {
+            "$ref": "#/components/schemas/FigureOut"
+          },
+          "deposit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "max_bid": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "levels": {
+            "items": {
+              "$ref": "#/components/schemas/BidLevelOut"
+            },
+            "type": "array",
+            "title": "Levels"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "offer_id",
+          "title",
+          "url",
+          "auction_value",
+          "deposit",
+          "max_bid",
+          "levels",
+          "notes"
+        ],
+        "title": "BidsOut"
       },
       "BrandingIn": {
         "properties": {

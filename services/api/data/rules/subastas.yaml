@@ -1,0 +1,27 @@
+# Subasta judicial de inmuebles: depósito y aprobación del remate (Ley de Enjuiciamiento Civil,
+# ADR-0047). Ver README.md. SIN VERIFICAR hasta que Rodrigo lea la fuente.
+# Texto consolidado del BOE leído el 2026-11-03.
+#
+# PENDIENTE (sin modelar): las especialidades de la ejecución hipotecaria (art. 691 y siguientes) y
+# las subastas administrativas (AEAT, Seguridad Social, ayuntamientos), que tienen sus normas; el
+# depósito de esas lo dice cada anuncio. Si el inmueble es la vivienda habitual del deudor no se
+# sabe sin el expediente: el simulador lo avisa.
+
+- id: lec-subasta-judicial-inmuebles-2025
+  kind: subasta_judicial_inmuebles
+  territory: ES
+  effective_from: 2025-04-03
+  effective_to: null
+  status: vigente
+  verified: false
+  params:
+    deposit_rate: 0.20
+    deposit_min: 1000
+    approval_share: 0.70
+    improvement_share: 0.60
+    floor_share: 0.50
+    satisfaction_share: 0.40
+    debtor_home_min_share: 0.60
+    payment_days: 20
+  source_url: https://www.boe.es/buscar/act.php?id=BOE-A-2000-323#a669
+  notes: "LEC, art. 669.1 (redacción de la Ley Orgánica 1/2025, efectos 03/04/2025): para pujar por un inmueble hay que consignar «una cantidad equivalente al 20 por ciento del valor que se haya dado a los bienes [...] o un mínimo de 1.000 euros», que el letrado de la Administración de Justicia puede elevar o reducir; art. 669.2: quien puja acepta subrogarse en las cargas anteriores al crédito. Art. 670.1: con una postura igual o superior al 70 % del valor de subasta se aprueba el remate al día siguiente y el resto del precio se consigna «en el plazo de veinte días»; 670.3: por debajo del 70 %, el ejecutado puede presentar en diez días a quien mejore hasta el 60 % (o lo suficiente para pagar al ejecutante); si no, se aprueba si la postura es «igual o superior al 50 por ciento de su valor de subasta», o si basta para pagar al ejecutante, «sin que pueda ser inferior al 40 por ciento»; si no cumple nada de eso, resuelve el letrado a la vista de las circunstancias. «Tratándose de la vivienda habitual del deudor, no se aprobará el remate por cantidad inferior al 70 por 100 de su valor de subasta, salvo que se haga por la cantidad que se le deba al ejecutante», y nunca por menos del 60 %. Art. 671: subasta sin postores, adjudicación desde el 50 % (o el 40 % si satisface al ejecutante)."

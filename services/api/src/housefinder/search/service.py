@@ -230,22 +230,8 @@ def evaluate(p: Prepared, rules: RuleBook, book: ParamBook, profile: UserProfile
              expected: dict[str, Decimal] | None = None) -> Scored:
     """Restricciones del usuario, cifras de la búsqueda y tipo de alquiler de una oferta."""
     c, plan, inp, rent = p.candidate, p.plan, p.inp, p.rent
-    stressed: Figure | None = None
-    which = stress_rent(profile.risk_tolerance)
-    if which is not None:
-        stress_plan = plan
-        if which == "p25" and rent.low is not None:
-            stress_plan = simulate(replace(inp, rental=replace(inp.rental,
-                                                               monthly_rent=rent.low)),
-                                   rules, book, allow_unverified=True)
-        stressed = _stressed(stress_plan, which)
+    verdict, stressed = judge_plan(plan, inp, rent, rules, book, profile)
     cash = plan.cashflow
-    outcome = Outcome(
-        cashflow=cash.monthly_cashflow_after_tax, stressed_cashflow=stressed, irr=plan.irr.irr,
-        within_budget=plan.within_budget,
-        savings_ok=cash.cash_invested.value <= profile.available_savings)
-    verdict = judge(outcome, profile.risk_tolerance, profile.goal,
-                    profile.min_monthly_cashflow or Decimal(0))
     figures = [p.price, rent, cash.monthly_cashflow_after_tax, cash.cash_invested,
                cash.gross_yield, plan.monthly_payment, plan.loan, plan.ibi_annual]
     if stressed is not None:
@@ -262,6 +248,28 @@ def evaluate(p: Prepared, rules: RuleBook, book: ParamBook, profile: UserProfile
         notes.append(f"Sin recomendación de tipo de alquiler: {exc}")
     return Scored(c.offer_id, c.kind, c.title, c.url, c.asking_price is None, verdict,
                   tuple(figures), tuple(notes), advice)
+
+
+def judge_plan(plan: InvestmentSimulation, inp: SimulationInput, rent: Figure, rules: RuleBook,
+               book: ParamBook, profile: UserProfile) -> tuple[Verdict, Figure | None]:
+    """Si el plan cumple las restricciones del usuario, y su cash flow en estrés si lo hay."""
+    stressed: Figure | None = None
+    which = stress_rent(profile.risk_tolerance)
+    if which is not None:
+        stress_plan = plan
+        if which == "p25" and rent.low is not None:
+            stress_plan = simulate(replace(inp, rental=replace(inp.rental,
+                                                               monthly_rent=rent.low)),
+                                   rules, book, allow_unverified=True)
+        stressed = _stressed(stress_plan, which)
+    cash = plan.cashflow
+    outcome = Outcome(
+        cashflow=cash.monthly_cashflow_after_tax, stressed_cashflow=stressed, irr=plan.irr.irr,
+        within_budget=plan.within_budget,
+        savings_ok=cash.cash_invested.value <= profile.available_savings)
+    verdict = judge(outcome, profile.risk_tolerance, profile.goal,
+                    profile.min_monthly_cashflow or Decimal(0))
+    return verdict, stressed
 
 
 def _score(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProfile,

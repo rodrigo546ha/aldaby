@@ -29,6 +29,35 @@ class RateParams(RuleParams):
     rate: Fraction
 
 
+class JudicialAuctionRules(RuleParams):
+    """Depósito y aprobación del remate en la subasta judicial de inmuebles (LEC, ADR-0047).
+
+    Las partes son del valor de subasta: `approval_share` aprueba el remate al día siguiente;
+    por debajo, el ejecutado puede presentar en diez días quien mejore hasta `improvement_share`;
+    si no, se aprueba desde `floor_share`, o desde `satisfaction_share` si basta para pagar al
+    ejecutante; por debajo decide el letrado de la Administración de Justicia. En la vivienda
+    habitual del deudor no se aprueba por menos de `approval_share`, salvo por lo que se debe y
+    nunca por menos de `debtor_home_min_share`.
+    """
+
+    deposit_rate: Fraction
+    deposit_min: Amount
+    approval_share: Fraction
+    improvement_share: Fraction
+    floor_share: Fraction
+    satisfaction_share: Fraction
+    debtor_home_min_share: Fraction
+    payment_days: int = Field(gt=0)  # para pagar el resto del precio tras el cierre
+
+    @model_validator(mode="after")
+    def _ordered(self) -> JudicialAuctionRules:
+        if not (self.satisfaction_share < self.floor_share < self.improvement_share
+                < self.approval_share):
+            raise ValueError("debe ser satisfaction_share < floor_share < improvement_share "
+                             "< approval_share")
+        return self
+
+
 class IrpfRegime(RuleParams):
     """Régimen del IRPF de quien reside en el territorio: común o foral (ADR-0046)."""
 
@@ -509,6 +538,9 @@ KINDS: dict[str, KindSpec] = {
     ),
     "tipo_plusvalia": KindSpec(
         GainsRate, "Tipo de gravamen de la plusvalía municipal, único o por años de tenencia"
+    ),
+    "subasta_judicial_inmuebles": KindSpec(
+        JudicialAuctionRules, "Depósito y aprobación del remate en la subasta judicial (LEC)"
     ),
     # IRPF foral (ADR-0046): régimen de la residencia, escalas únicas y deducciones en la cuota
     "regimen_irpf": KindSpec(IrpfRegime, "Régimen del IRPF de la residencia: común o foral"),

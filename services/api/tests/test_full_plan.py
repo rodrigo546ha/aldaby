@@ -161,6 +161,12 @@ def test_api_del_plan(searchable, org):  # noqa: F811
         assert explained["failure"] is None
         assert [s["kind"] for s in explained["segments"]] == ["text", "figure", "text"]
         assert explained["extra_arguments"] == []  # el modelo falso no responde
+        # Simulador de puja (ADR-0047): sin valor de subasta en una venta, 404; con él, la tabla
+        assert client.post(f"/plans/offers/{offer}/bids", json={}).status_code == 404
+        bids = client.post(f"/plans/offers/{offer}/bids",
+                           json={"auction_value": "150000", "judicial": True}).json()
+        assert len(bids["levels"]) == 7 and float(bids["deposit"]["value"]) == 30000
+        assert all(level["stage"] for level in bids["levels"])
     finally:
         app.dependency_overrides.clear()
 

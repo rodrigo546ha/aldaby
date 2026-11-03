@@ -644,6 +644,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/plans/offers/{offer_id}/bids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Offer Bids
+         * @description La puja máxima y el plan a cada puja de una subasta. Cuenta como un plan completo.
+         */
+        post: operations["offer_bids_plans_offers__offer_id__bids_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/plans/offers/{offer_id}/pdf": {
         parameters: {
             query?: never;
@@ -999,6 +1019,68 @@ export interface components {
             boe_url: string | null;
             /** Attribution */
             attribution: string;
+        };
+        /** BidLevelOut */
+        BidLevelOut: {
+            /** Share */
+            share: string;
+            price: components["schemas"]["FigureOut"];
+            cashflow: components["schemas"]["FigureOut"];
+            stressed: components["schemas"]["FigureOut"] | null;
+            irr: components["schemas"]["FigureOut"] | null;
+            /** Passes */
+            passes: boolean;
+            /** Reasons */
+            reasons: string[];
+            /** Stage */
+            stage: string | null;
+        };
+        /**
+         * BidsIn
+         * @description Simulador de puja (ADR-0047). Importes en euros.
+         */
+        BidsIn: {
+            /** Auction Value */
+            auction_value?: number | string | null;
+            /**
+             * Charges
+             * @default 0
+             */
+            charges: number | string;
+            /**
+             * Possession
+             * @default 0
+             */
+            possession: number | string;
+            /**
+             * Cash
+             * @default false
+             */
+            cash: boolean;
+            /**
+             * Judicial
+             * @default false
+             */
+            judicial: boolean;
+        };
+        /** BidsOut */
+        BidsOut: {
+            /**
+             * Offer Id
+             * Format: uuid
+             */
+            offer_id: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string | null;
+            auction_value: components["schemas"]["FigureOut"];
+            deposit: components["schemas"]["FigureOut"] | null;
+            max_bid: components["schemas"]["FigureOut"] | null;
+            /** Levels */
+            levels: components["schemas"]["BidLevelOut"][];
+            /** Notes */
+            notes: string[];
         };
         /** BrandingIn */
         BrandingIn: {
@@ -3277,6 +3359,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offer_bids_plans_offers__offer_id__bids_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BidsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BidsOut"];
                 };
             };
             /** @description Validation Error */

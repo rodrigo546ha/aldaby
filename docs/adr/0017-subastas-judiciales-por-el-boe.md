@@ -32,6 +32,10 @@ número del procedimiento y el enlace al Portal, no qué se subasta.
   Portal.
 - **Vía de datos completa:** se pide a la Agencia Estatal BOE una vía de reutilización de los datos
   del Portal (opción B de la investigación). Si llega, otro ADR.
+  Respuesta del soporte del Portal, 2026-11-03 (ticket 2610691902): no ofrece recuperación
+  automatizada ni integración con otras webs, por la disposición adicional segunda de la Ley
+  19/2015 (protección de datos); por eso el Portal entero está en su `robots.txt` y cada página
+  lleva `noindex, nofollow`.
 
 ## Opciones consideradas
 - **Leer el Portal de forma automática:** contra su `robots.txt`. Descartado.

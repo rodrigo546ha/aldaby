@@ -1,0 +1,166 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+
+import type { components } from "../lib/api-types";
+import { amount, formatValue } from "../lib/format";
+import { FigureView } from "./FigureView";
+
+type BidsOut = components["schemas"]["BidsOut"];
+
+// Simulador de puja (ADR-0047): la API rehace el plan a cada puja; la web solo lo muestra
+export function Bids({ offerId, auction }: { offerId: string; auction: boolean }) {
+  const [value, setValue] = useState("");
+  const [charges, setCharges] = useState("");
+  const [possession, setPossession] = useState("");
+  const [cash, setCash] = useState(false);
+  // Los lotes del BOE son subastas administrativas; las judiciales llegan como oferta pegada
+  const [judicial, setJudicial] = useState(!auction);
+  const [result, setResult] = useState<BidsOut | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function simulate(event: FormEvent) {
+    event.preventDefault();
+    setFailure(null);
+    const parsed = [value, charges, possession].map((t) => (t.trim() ? amount(t) : ""));
+    if (parsed.some((p) => p === null)) {
+      setFailure("Escribe los importes con cifras (por ejemplo, 150000 o 150000,50).");
+      return;
+    }
+    const [auctionValue, chargesValue, possessionValue] = parsed;
+    setBusy(true);
+    try {
+      const resp = await fetch(`/api/plans/offers/${offerId}/bids`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...(auctionValue ? { auction_value: auctionValue } : {}),
+          charges: chargesValue || "0",
+          possession: possessionValue || "0",
+          cash,
+          judicial,
+        }),
+      });
+      const body = await resp.json().catch(() => ({}));
+      if (resp.ok) setResult(body as BidsOut);
+      else if (Array.isArray(body.detail)) setFailure(body.detail.join(". "));
+      else setFailure(typeof body.detail === "string" ? body.detail : "No se ha podido simular");
+    } catch {
+      setFailure("No se ha podido conectar con la API.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="plan-section" aria-labelledby="pujas">
+      <h3 id="pujas">Simulador de puja</h3>
+      <p className="hint">
+        El valor de subasta es el precio de salida, no el final. Aquí ves tu plan a cada puja y la
+        más alta con la que sigue cumpliendo lo que pides.
+      </p>
+      <form onSubmit={simulate}>
+        <div className="field">
+          <label htmlFor="bid-value">Valor de subasta (€)</label>
+          <input
+            id="bid-value"
+            inputMode="decimal"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={auction ? "El del anuncio, si lo dejas vacío" : "150000"}
+            required={!auction}
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="bid-charges">Cargas anteriores que subsisten (€)</label>
+          <input
+            id="bid-charges"
+            inputMode="decimal"
+            value={charges}
+            onChange={(e) => setCharges(e.target.value)}
+            placeholder="0"
+          />
+          <span className="hint">Las de la certificación de cargas: las paga quien se adjudica.</span>
+        </div>
+        <div className="field">
+          <label htmlFor="bid-possession">Coste de recuperar la posesión (€)</label>
+          <input
+            id="bid-possession"
+            inputMode="decimal"
+            value={possession}
+            onChange={(e) => setPossession(e.target.value)}
+            placeholder="0"
+          />
+          <span className="hint">Si está ocupado: abogado, procurador y el tiempo sin cobrar.</span>
+        </div>
+        <label className="check">
+          <input type="checkbox" checked={judicial} onChange={(e) => setJudicial(e.target.checked)} />
+          Subasta judicial (depósito y fases de la Ley de Enjuiciamiento Civil)
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={cash} onChange={(e) => setCash(e.target.checked)} />
+          Al contado, sin hipoteca
+        </label>
+        <button type="submit" disabled={busy}>
+          {busy ? "Calculando cada puja…" : "Simular las pujas"}
+        </button>
+      </form>
+      {failure && <p className="failure">{failure}</p>}
+      {result && (
+        <>
+          <div className="grid">
+            {result.max_bid ? (
+              <FigureView figure={result.max_bid} title="Tu puja máxima" />
+            ) : (
+              <p className="failure">Ni con la puja más baja cumple tu plan.</p>
+            )}
+            <FigureView figure={result.auction_value} title="Valor de subasta" />
+            {result.deposit && <FigureView figure={result.deposit} title="Depósito para pujar" />}
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Puja</th>
+                <th scope="col">Del valor</th>
+                <th scope="col">Cash flow al mes</th>
+                <th scope="col">Con subida de tipos</th>
+                <th scope="col">TIR</th>
+                <th scope="col">¿Cumple?</th>
+              </tr>
+            </thead>
+            <tbody>
+              {result.levels.map((lv) => (
+                <tr key={lv.share}>
+                  <td>{formatValue(lv.price.value, "EUR")}</td>
+                  <td>{formatValue(lv.share, "ratio")}</td>
+                  <td>{formatValue(lv.cashflow.value, "EUR")}</td>
+                  <td>{lv.stressed ? formatValue(lv.stressed.value, "EUR") : "—"}</td>
+                  <td>{lv.irr ? formatValue(lv.irr.value, "ratio") : "—"}</td>
+                  <td title={lv.reasons.join(". ")}>{lv.passes ? "Sí" : "No"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {result.levels.some((lv) => lv.stage) && (
+            <>
+              <h4>Qué pasa con cada puja ante el juzgado</h4>
+              <ul className="hint">
+                {result.levels.map((lv) => (
+                  <li key={lv.share}>
+                    <strong>{formatValue(lv.share, "ratio")}</strong>: {lv.stage}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          <ul className="warnings">
+            {result.notes.map((n) => (
+              <li key={n}>{n}</li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  );
+}

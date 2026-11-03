@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from housefinder.advisor.tools import explain_plan
 from housefinder.agent.references import FigureSegment, OfferSegment, Segment
@@ -31,6 +32,7 @@ from housefinder.db.connection import Connection
 from housefinder.db.profiles import latest_profile_id
 from housefinder.db.tiers import record_plan_use
 from housefinder.params.book import ParamBook
+from housefinder.plans.bids import bid_simulation
 from housefinder.plans.service import FullPlan, PlanUnavailable, full_plan
 from housefinder.profiles import store
 from housefinder.profiles.model import UserProfile
@@ -122,6 +124,71 @@ def offer_plan(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: Cl
                          for c in (plan.pending.changed if plan.pending else ())],
         cheapest_mortgage=plan.cheapest_mortgage, safest_mortgage=plan.safest_mortgage,
         notes=list(plan.notes))
+
+
+class BidsIn(BaseModel):
+    """Simulador de puja (ADR-0047). Importes en euros."""
+
+    auction_value: Decimal | None = Field(default=None, gt=0)  # si no lo trae la oferta
+    charges: Decimal = Field(default=Decimal(0), ge=0)  # cargas anteriores que subsisten
+    possession: Decimal = Field(default=Decimal(0), ge=0)  # coste de recuperar la posesión
+    cash: bool = False  # al contado, sin hipoteca
+    judicial: bool = False  # subasta judicial: depósito y fases de la LEC
+
+
+class BidLevelOut(BaseModel):
+    share: Decimal
+    price: FigureOut
+    cashflow: FigureOut
+    stressed: FigureOut | None
+    irr: FigureOut | None
+    passes: bool
+    reasons: list[str]
+    stage: str | None
+
+
+class BidsOut(BaseModel):
+    offer_id: UUID
+    title: str | None
+    url: str | None
+    auction_value: FigureOut
+    deposit: FigureOut | None
+    max_bid: FigureOut | None
+    levels: list[BidLevelOut]
+    notes: list[str]
+
+
+@router.post("/offers/{offer_id}/bids", response_model=BidsOut)
+def offer_bids(offer_id: UUID, body: BidsIn, db: DbDep, keys: KeysDep, org: OrgDep,
+               client: ClientDep, book: ParamBookDep, rules: RuleBookDep,
+               current: SessionDep) -> BidsOut:
+    """La puja máxima y el plan a cada puja de una subasta. Cuenta como un plan completo."""
+    profile_id = latest_profile_id(db, org, client)
+    if profile_id is None:
+        raise HTTPException(status_code=404, detail="Confirma primero tu perfil en /perfil")
+    profile = store.load(db, keys, profile_id, org)
+    record = check_full_plan(db, org, offer_id, is_particular(current))  # nivel gratuito
+    try:
+        sim = bid_simulation(db, book, rules, profile, org, offer_id, body.auction_value,
+                             body.charges, body.possession, body.cash, body.judicial)
+    except SearchUnavailable as exc:
+        raise HTTPException(status_code=422, detail=exc.reasons) from exc
+    except PlanUnavailable as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    if record:
+        record_plan_use(db, org, offer_id)
+        db.commit()
+    return BidsOut(
+        offer_id=sim.offer_id, title=sim.title, url=sim.url,
+        auction_value=figure_out(sim.auction_value),
+        deposit=figure_out(sim.deposit) if sim.deposit else None,
+        max_bid=figure_out(sim.max_bid) if sim.max_bid else None,
+        levels=[BidLevelOut(
+            share=lv.share, price=figure_out(lv.price), cashflow=figure_out(lv.cashflow),
+            stressed=figure_out(lv.stressed) if lv.stressed else None,
+            irr=figure_out(lv.irr) if lv.irr else None, passes=lv.verdict.passes,
+            reasons=list(lv.verdict.reasons), stage=lv.stage) for lv in sim.levels],
+        notes=list(sim.notes))
 
 
 @router.get("/offers/{offer_id}/pdf", response_class=Response,

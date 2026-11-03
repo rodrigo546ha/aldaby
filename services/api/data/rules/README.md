@@ -55,6 +55,7 @@ añade su esquema al catálogo.
 | `minimo_contribuyente` | `general`, `over_65_extra`, `over_75_extra` en euros |
 | `minimo_descendientes` | `first`, `second`, `third`, `fourth_and_more`, `under_3_extra` en euros |
 | `limite_intereses_reparacion` | `carryforward_years`: años a los que se arrastra el exceso |
+| `subasta_judicial_inmuebles` | `deposit_rate`, `deposit_min`, `approval_share`, `improvement_share`, `floor_share`, `satisfaction_share`, `debtor_home_min_share` (partes del valor de subasta) y `payment_days`: depósito y aprobación del remate de la LEC (ADR-0047) |
 | `regimen_irpf` | `regime`: `comun` o `foral`, por la residencia; sin regla, el común (ADR-0046) |
 | `escala_irpf_general_foral`, `escala_irpf_ahorro_foral` | `brackets` como las escalas: la escala única de un IRPF foral |
 | `deducciones_cuota_irpf_foral` | `general`, `general_by_income` (puntos `{base, amount}`), `age` (`{min_age, amount}`, el de mayor edad cumplida), `age_phaseout` (`{from_base, to_base}`), `descendants` (por orden; el último sirve para los demás) y `young_children` (`{under_age, amount}`): deducciones en euros de la cuota |
