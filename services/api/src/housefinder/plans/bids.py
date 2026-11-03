@@ -46,6 +46,14 @@ CASH = SourceRef("user_input", "pago-al-contado")
 
 
 @dataclass(frozen=True)
+class Charge:
+    """Una carga anterior que subsiste, como la ve el usuario en la certificación o el anuncio."""
+
+    concept: str  # «Hipoteca a favor de…», «Embargo…»
+    amount: Decimal
+
+
+@dataclass(frozen=True)
 class BidLevel:
     share: Decimal  # del valor de subasta
     price: Figure
@@ -63,6 +71,7 @@ class BidSimulation:
     url: str | None
     auction_value: Figure
     deposit: Figure | None
+    charges: Figure | None  # suma de las cargas que subsisten
     max_bid: Figure | None  # None: ni con la puja más baja cumple
     levels: tuple[BidLevel, ...]
     notes: tuple[str, ...]
@@ -76,7 +85,7 @@ def bid_simulation(
     org_id: UUID,
     offer_id: UUID,
     auction_value: Decimal | None = None,
-    charges: Decimal = Decimal(0),
+    charges: tuple[Charge, ...] = (),
     possession: Decimal = Decimal(0),
     cash: bool = False,
     judicial: bool = False,
@@ -85,9 +94,10 @@ def bid_simulation(
     """El plan del usuario a cada puja de una subasta.
 
     `auction_value`: el valor de subasta si no lo trae la oferta (o para corregirlo). `charges`:
-    cargas anteriores que subsisten y asume quien puja (LEC, art. 669.2). `possession`: coste
-    supuesto de recuperar la posesión. `cash`: sin hipoteca (el resto del precio se paga en pocos
-    días). `judicial`: subasta judicial, con el depósito y las fases de la LEC.
+    las cargas anteriores que subsisten y asume quien puja (LEC, art. 669.2), una a una.
+    `possession`: coste supuesto de recuperar la posesión. `cash`: sin hipoteca (el resto del
+    precio se paga en pocos días). `judicial`: subasta judicial, con el depósito y las fases de la
+    LEC.
     """
     today = today or date.today()
     missing = missing_inputs(profile)
@@ -111,7 +121,13 @@ def bid_simulation(
         "bids.auction_value", money(value), "EUR",
         "valor de subasta indicado" if auction_value else "tipo de la subasta del anuncio",
         (USER_VALUE,) if auction_value else (AUCTION,))
-    extra = _extra_sources(charges, possession, cash)
+    total_charges = money(sum((c.amount for c in charges), Decimal(0)))
+    charges_figure = Figure(
+        "bids.charges", total_charges, "EUR",
+        "suma de las cargas indicadas: " + "; ".join(
+            f"{c.concept or 'sin concepto'} ({money(c.amount)} €)" for c in charges),
+        (CHARGES,)) if charges else None
+    extra = _extra_sources(total_charges, possession, cash)
     notes: list[str] = list(prepared.notes)
     deposit: Figure | None = None
     stage_rules = None
@@ -127,7 +143,7 @@ def bid_simulation(
     elif candidate.deposit_required:
         deposit = Figure("bids.deposit", money(candidate.deposit_required), "EUR",
                          "depósito que pide el anuncio", (AUCTION,))
-    if charges:
+    if total_charges:
         notes.append("Las cargas anteriores subsisten y las paga quien se adjudica (LEC, art. "
                      "669.2): se suman al coste de compra.")
     else:
@@ -140,7 +156,7 @@ def bid_simulation(
                      "remate, y conseguir el préstamo a tiempo no es seguro.")
 
     def plan_at(price: Decimal) -> tuple[InvestmentSimulation, Verdict, Figure | None]:
-        inp = _input_at(prepared, price, charges + possession, cash)
+        inp = _input_at(prepared, price, total_charges + possession, cash)
         plan = simulate(inp, rules, book, allow_unverified=True)
         verdict, stressed = judge_plan(plan, inp, prepared.rent, rules, book, profile)
         return plan, verdict, stressed
@@ -174,7 +190,7 @@ def bid_simulation(
         notes.append("Ni con la puja más baja cumple tus restricciones: el problema no es el "
                      "precio (renta, gastos o tu ahorro).")
     return BidSimulation(candidate.offer_id, candidate.title, candidate.url, value_figure,
-                         deposit, best_figure, tuple(levels), tuple(notes))
+                         deposit, charges_figure, best_figure, tuple(levels), tuple(notes))
 
 
 def _input_at(p: Prepared, price: Decimal, extra_costs: Decimal, cash: bool) -> SimulationInput:

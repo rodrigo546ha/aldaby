@@ -32,7 +32,7 @@ from housefinder.db.connection import Connection
 from housefinder.db.profiles import latest_profile_id
 from housefinder.db.tiers import record_plan_use
 from housefinder.params.book import ParamBook
-from housefinder.plans.bids import bid_simulation
+from housefinder.plans.bids import Charge, bid_simulation
 from housefinder.plans.service import FullPlan, PlanUnavailable, full_plan
 from housefinder.profiles import store
 from housefinder.profiles.model import UserProfile
@@ -126,11 +126,16 @@ def offer_plan(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: Cl
         notes=list(plan.notes))
 
 
+class ChargeIn(BaseModel):
+    concept: str = Field(default="", max_length=200)  # como aparece en la página
+    amount: Decimal = Field(ge=0)
+
+
 class BidsIn(BaseModel):
     """Simulador de puja (ADR-0047). Importes en euros."""
 
     auction_value: Decimal | None = Field(default=None, gt=0)  # si no lo trae la oferta
-    charges: Decimal = Field(default=Decimal(0), ge=0)  # cargas anteriores que subsisten
+    charges: list[ChargeIn] = Field(default_factory=list, max_length=30)  # las que subsisten
     possession: Decimal = Field(default=Decimal(0), ge=0)  # coste de recuperar la posesión
     cash: bool = False  # al contado, sin hipoteca
     judicial: bool = False  # subasta judicial: depósito y fases de la LEC
@@ -153,6 +158,7 @@ class BidsOut(BaseModel):
     url: str | None
     auction_value: FigureOut
     deposit: FigureOut | None
+    charges: FigureOut | None
     max_bid: FigureOut | None
     levels: list[BidLevelOut]
     notes: list[str]
@@ -170,7 +176,9 @@ def offer_bids(offer_id: UUID, body: BidsIn, db: DbDep, keys: KeysDep, org: OrgD
     record = check_full_plan(db, org, offer_id, is_particular(current))  # nivel gratuito
     try:
         sim = bid_simulation(db, book, rules, profile, org, offer_id, body.auction_value,
-                             body.charges, body.possession, body.cash, body.judicial)
+                             tuple(Charge(" ".join(c.concept.split()), c.amount)
+                                   for c in body.charges if c.amount > 0),
+                             body.possession, body.cash, body.judicial)
     except SearchUnavailable as exc:
         raise HTTPException(status_code=422, detail=exc.reasons) from exc
     except PlanUnavailable as exc:
@@ -182,6 +190,7 @@ def offer_bids(offer_id: UUID, body: BidsIn, db: DbDep, keys: KeysDep, org: OrgD
         offer_id=sim.offer_id, title=sim.title, url=sim.url,
         auction_value=figure_out(sim.auction_value),
         deposit=figure_out(sim.deposit) if sim.deposit else None,
+        charges=figure_out(sim.charges) if sim.charges else None,
         max_bid=figure_out(sim.max_bid) if sim.max_bid else None,
         levels=[BidLevelOut(
             share=lv.share, price=figure_out(lv.price), cashflow=figure_out(lv.cashflow),

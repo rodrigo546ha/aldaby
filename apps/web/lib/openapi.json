@@ -2657,17 +2657,12 @@
             "title": "Auction Value"
           },
           "charges": {
-            "anyOf": [
-              {
-                "type": "number",
-                "minimum": 0.0
-              },
-              {
-                "type": "string"
-              }
-            ],
-            "title": "Charges",
-            "default": "0"
+            "items": {
+              "$ref": "#/components/schemas/ChargeIn"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Charges"
           },
           "possession": {
             "anyOf": [
@@ -2739,6 +2734,16 @@
               }
             ]
           },
+          "charges": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "max_bid": {
             "anyOf": [
               {
@@ -2771,6 +2776,7 @@
           "url",
           "auction_value",
           "deposit",
+          "charges",
           "max_bid",
           "levels",
           "notes"
@@ -3031,6 +3037,33 @@
           "delta"
         ],
         "title": "ChangeOut"
+      },
+      "ChargeIn": {
+        "properties": {
+          "concept": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Concept",
+            "default": ""
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount"
+        ],
+        "title": "ChargeIn"
       },
       "ClientIn": {
         "properties": {

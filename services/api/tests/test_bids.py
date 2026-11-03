@@ -70,14 +70,17 @@ from test_reverse_search import book, org, profile, rules, searchable  # noqa: E
 def test_simulador_de_puja_de_una_subasta_judicial(searchable, org):  # noqa: F811
     from test_offer_valuation import confirmed_offer
 
-    from housefinder.plans.bids import bid_simulation
+    from housefinder.plans.bids import Charge, bid_simulation
 
     offer = confirmed_offer(searchable, org, "venta", "150000")
+    cargas = (Charge("Hipoteca anterior", D(2500)), Charge("Embargo", D("500.40")))
     with psycopg.connect(searchable) as conn:
         sim = bid_simulation(conn, book(), rules(), profile(), org, offer, D(150000),
-                             charges=D(3000), judicial=True, today=TODAY)
+                             charges=cargas, judicial=True, today=TODAY)
     assert sim.auction_value.value == D("150000.00")
     assert sim.deposit is not None and sim.deposit.value == D("30000.00")
+    assert sim.charges is not None and sim.charges.value == D("3000.40")  # 2.500 + 500,40
+    assert "Hipoteca anterior (2500.00 €)" in sim.charges.formula
     assert [lv.price.value for lv in sim.levels] == [
         D("60000.00"), D("75000.00"), D("90000.00"), D("105000.00"), D("120000.00"),
         D("135000.00"), D("150000.00")]

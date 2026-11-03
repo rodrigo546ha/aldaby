@@ -595,6 +595,11 @@ td { color: var(--mist); }
 .group th:not(:first-child), .group td:not(:first-child) { text-align: right; white-space: nowrap; padding: 10px 0 10px 16px; }
 @media (max-width: 560px) { table { display: block; overflow-x: auto; } }
 
+/* Simulador de puja: una fila por carga (ADR-0047) */
+.charge-row { display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: end; }
+.charge-row > button { margin-bottom: 10px; }
+@media (max-width: 560px) { .charge-row { grid-template-columns: 1fr; } .charge-row > button { justify-self: start; margin: 0; } }
+
 /* ───────── Listas de ofertas ───────── */
 
 .offer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }

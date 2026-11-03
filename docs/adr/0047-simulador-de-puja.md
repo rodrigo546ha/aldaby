@@ -19,7 +19,8 @@ ofrece acceso automático, por la disposición adicional segunda de la Ley 19/20
    la búsqueda inversa y cambia:
    - el precio, por el de la puja;
    - la construcción, en la misma proporción del precio;
-   - el coste de compra, al que se suman las cargas que subsisten (LEC, art. 669.2) y el coste
+   - el coste de compra, al que se suman las cargas que subsisten (LEC, art. 669.2), que el
+     usuario apunta una a una con su concepto tal como las ve en la página, y el coste
      supuesto de recuperar la posesión;
    - la hipoteca, que desaparece si el usuario paga al contado.
 

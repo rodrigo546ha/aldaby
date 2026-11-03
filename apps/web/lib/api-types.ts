@@ -1042,11 +1042,8 @@ export interface components {
         BidsIn: {
             /** Auction Value */
             auction_value?: number | string | null;
-            /**
-             * Charges
-             * @default 0
-             */
-            charges: number | string;
+            /** Charges */
+            charges?: components["schemas"]["ChargeIn"][];
             /**
              * Possession
              * @default 0
@@ -1076,6 +1073,7 @@ export interface components {
             url: string | null;
             auction_value: components["schemas"]["FigureOut"];
             deposit: components["schemas"]["FigureOut"] | null;
+            charges: components["schemas"]["FigureOut"] | null;
             max_bid: components["schemas"]["FigureOut"] | null;
             /** Levels */
             levels: components["schemas"]["BidLevelOut"][];
@@ -1150,6 +1148,16 @@ export interface components {
             base: components["schemas"]["FigureOut"];
             scenario: components["schemas"]["FigureOut"];
             delta: components["schemas"]["FigureOut"];
+        };
+        /** ChargeIn */
+        ChargeIn: {
+            /**
+             * Concept
+             * @default
+             */
+            concept: string;
+            /** Amount */
+            amount: number | string;
         };
         /** ClientIn */
         ClientIn: {

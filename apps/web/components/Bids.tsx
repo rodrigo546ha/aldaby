@@ -7,11 +7,14 @@ import { amount, formatValue } from "../lib/format";
 import { FigureView } from "./FigureView";
 
 type BidsOut = components["schemas"]["BidsOut"];
+type ChargeRow = { concept: string; amount: string };
+
+const EMPTY_CHARGE: ChargeRow = { concept: "", amount: "" };
 
 // Simulador de puja (ADR-0047): la API rehace el plan a cada puja; la web solo lo muestra
 export function Bids({ offerId, auction }: { offerId: string; auction: boolean }) {
   const [value, setValue] = useState("");
-  const [charges, setCharges] = useState("");
+  const [charges, setCharges] = useState<ChargeRow[]>([EMPTY_CHARGE]);
   const [possession, setPossession] = useState("");
   const [cash, setCash] = useState(false);
   // Los lotes del BOE son subastas administrativas; las judiciales llegan como oferta pegada
@@ -20,15 +23,25 @@ export function Bids({ offerId, auction }: { offerId: string; auction: boolean }
   const [failure, setFailure] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  function setCharge(index: number, row: ChargeRow) {
+    setCharges((all) => all.map((c, i) => (i === index ? row : c)));
+  }
+
+  function removeCharge(index: number) {
+    setCharges((all) => all.filter((_, i) => i !== index));
+  }
+
   async function simulate(event: FormEvent) {
     event.preventDefault();
     setFailure(null);
-    const parsed = [value, charges, possession].map((t) => (t.trim() ? amount(t) : ""));
-    if (parsed.some((p) => p === null)) {
+    const parsed = [value, possession].map((t) => (t.trim() ? amount(t) : ""));
+    const filled = charges.filter((c) => c.amount.trim());
+    const chargeAmounts = filled.map((c) => amount(c.amount));
+    if (parsed.some((p) => p === null) || chargeAmounts.some((p) => p === null)) {
       setFailure("Escribe los importes con cifras (por ejemplo, 150000 o 150000,50).");
       return;
     }
-    const [auctionValue, chargesValue, possessionValue] = parsed;
+    const [auctionValue, possessionValue] = parsed;
     setBusy(true);
     try {
       const resp = await fetch(`/api/plans/offers/${offerId}/bids`, {
@@ -36,7 +49,7 @@ export function Bids({ offerId, auction }: { offerId: string; auction: boolean }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...(auctionValue ? { auction_value: auctionValue } : {}),
-          charges: chargesValue || "0",
+          charges: filled.map((c, i) => ({ concept: c.concept.trim(), amount: chargeAmounts[i] })),
           possession: possessionValue || "0",
           cash,
           judicial,
@@ -72,17 +85,50 @@ export function Bids({ offerId, auction }: { offerId: string; auction: boolean }
             required={!auction}
           />
         </div>
-        <div className="field">
-          <label htmlFor="bid-charges">Cargas anteriores que subsisten (€)</label>
-          <input
-            id="bid-charges"
-            inputMode="decimal"
-            value={charges}
-            onChange={(e) => setCharges(e.target.value)}
-            placeholder="0"
-          />
-          <span className="hint">Las de la certificación de cargas: las paga quien se adjudica.</span>
-        </div>
+        <fieldset className="charges">
+          <legend>Cargas que subsisten</legend>
+          <p className="hint">
+            Las que veas en la página de la subasta o en la certificación de cargas, una por fila: las
+            paga quien se adjudica. Deja vacías las que se cancelan con la subasta.
+          </p>
+          {charges.map((c, i) => (
+            <div className="charge-row" key={i}>
+              <div className="field">
+                <label htmlFor={`charge-concept-${i}`}>Carga</label>
+                <input
+                  id={`charge-concept-${i}`}
+                  maxLength={200}
+                  value={c.concept}
+                  onChange={(e) => setCharge(i, { ...c, concept: e.target.value })}
+                  placeholder="Hipoteca anterior, embargo, deuda de comunidad…"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor={`charge-amount-${i}`}>Importe (€)</label>
+                <input
+                  id={`charge-amount-${i}`}
+                  inputMode="decimal"
+                  value={c.amount}
+                  onChange={(e) => setCharge(i, { ...c, amount: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+              {charges.length > 1 && (
+                <button type="button" className="link" onClick={() => removeCharge(i)}>
+                  Quitar
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            className="link"
+            onClick={() => setCharges((all) => [...all, EMPTY_CHARGE])}
+            disabled={charges.length >= 30}
+          >
+            Añadir otra carga
+          </button>
+        </fieldset>
         <div className="field">
           <label htmlFor="bid-possession">Coste de recuperar la posesión (€)</label>
           <input
@@ -117,6 +163,7 @@ export function Bids({ offerId, auction }: { offerId: string; auction: boolean }
             )}
             <FigureView figure={result.auction_value} title="Valor de subasta" />
             {result.deposit && <FigureView figure={result.deposit} title="Depósito para pujar" />}
+            {result.charges && <FigureView figure={result.charges} title="Cargas que asumes" />}
           </div>
           <table>
             <thead>
