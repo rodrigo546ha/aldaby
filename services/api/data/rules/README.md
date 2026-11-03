@@ -55,6 +55,10 @@ añade su esquema al catálogo.
 | `minimo_contribuyente` | `general`, `over_65_extra`, `over_75_extra` en euros |
 | `minimo_descendientes` | `first`, `second`, `third`, `fourth_and_more`, `under_3_extra` en euros |
 | `limite_intereses_reparacion` | `carryforward_years`: años a los que se arrastra el exceso |
+| `regimen_irpf` | `regime`: `comun` o `foral`, por la residencia; sin regla, el común (ADR-0046) |
+| `escala_irpf_general_foral`, `escala_irpf_ahorro_foral` | `brackets` como las escalas: la escala única de un IRPF foral |
+| `deducciones_cuota_irpf_foral` | `general`, `general_by_income` (puntos `{base, amount}`), `age` (`{min_age, amount}`, el de mayor edad cumplida), `age_phaseout` (`{from_base, to_base}`), `descendants` (por orden; el último sirve para los demás) y `young_children` (`{under_age, amount}`): deducciones en euros de la cuota |
+| `rendimiento_alquiler_irpf` | `housing` y `other`, cada uno con `base` (`general`/`ahorro`), `expenses` (`todos`/`intereses`), `cap` (`intereses_reparacion`/`todos`/`sin_negativo`), `carryforward_years` y `bonus` (casos como los de la reducción, sobre los ingresos). Con régimen foral, ninguna regla estatal del IRPF le sirve |
 | `bonificacion_itp`, `bonificacion_ajd`, `bonificacion_ibi`, `bonificacion_plusvalia` | `rate`: parte de la cuota que se bonifica en el territorio del inmueble (Ceuta y Melilla). Sin regla no hay bonificación (ADR-0045) |
 | `deduccion_irpf_rentas_territorio` | `rate`: parte que se deduce de la cuota del IRPF que corresponde proporcionalmente a las rentas del inmueble de ese territorio (Ley del IRPF, art. 68.4) |
 | `zona_tensionada` | `declared` (sí o no), `checked_through` (fecha de la última resolución trimestral revisada) y, si solo se declara parte del municipio, `area` con el ámbito (barrios, núcleos) |

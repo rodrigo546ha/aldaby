@@ -1,0 +1,370 @@
+# Verificación de la tanda 9: régimen foral de Navarra y el País Vasco
+
+**Cargadas:** 2026-11-03 · **Estado:** con `verified: false` · **Revisa:** Rodrigo
+**Ficheros:** `services/api/data/rules/navarra.yaml` y `pais_vasco.yaml` · **Diseño:** ADR-0046
+
+## Contexto
+- Un agente por territorio leyó la normativa oficial. Sus informes, con citas, URL y lo pendiente, están en `docs/normativa/informes-forales/`.
+- Navarra y el País Vasco tienen IRPF propio: escala única, mínimos como deducciones en la cuota y, en el País Vasco, el alquiler de vivienda en la base del ahorro con bonificación sobre los ingresos.
+- Mientras sigan sin verificar, los planes de estos territorios salen con cifras provisionales.
+
+## 1. Navarra (ES-15)
+
+- [ ] `navarra-regimen-irpf` (regimen_irpf, ES-15, 2008-07-01 → sin fin)
+  - Cargado: `{"regime": "foral"}`
+  - Fuente: https://www.lexnavarra.navarra.es/detalle.asp?r=29657
+  - Nota: Texto refundido de la Ley Foral del IRPF (Decreto Foral Legislativo 4/2008), art. 58: «La cuota íntegra del impuesto se obtendrá por la suma de las cuotas resultantes de la aplicación de lo dispuesto en los artículos 59 y 60»: una escala foral, sin parte estatal ni autonómica. Fecha de inicio: aproximada a la del texto refundido; el régimen foral es anterior.
+- [ ] `navarra-irpf-escala-general-2024` (escala_irpf_general_foral, ES-15, 2024-01-01 → sin fin)
+  - Cargado: `{"brackets": [{"from": 0, "rate": 0.13}, {"from": 4458, "rate": 0.22}, {"from": 10030, "rate": 0.25}, {"from": 21175, "rate": 0.28}, {"from": 35663, "rate": 0.365}, {"from": 51266, "rate": 0.415}, {"from": 66869, "rate": 0.44}, {"from": 89159, "rate": 0.47}, {"from": 139310, "rate": 0.49}, {"from": …`
+  - Fuente: https://www.boe.es/buscar/doc.php?id=BOE-A-2024-1694
+  - Nota: DFLeg 4/2008, art. 59.1, redacción del art. «Ocho» de la Ley Foral 22/2023 (BON 269, 29/12/2023), con efectos desde el 01/01/2024: 13 % hasta 4.458 €; 22 % hasta 10.030; 25 % hasta 21.175; 28 % hasta 35.663; 36,5 % hasta 51.266; 41,5 % hasta 66.869; 44 % hasta 89.159; 47 % hasta 139.310; 49 % hasta 195.034; 50,5 % hasta 334.344; 52 % en adelante (cuotas acumuladas: 579,54 a 4.458 €). La Ley Foral 17/2025 no toca el art. 59.
+- [ ] `navarra-irpf-escala-ahorro` (escala_irpf_ahorro_foral, ES-15, 2026-01-01 → sin fin)
+  - Cargado: `{"brackets": [{"from": 0, "rate": 0.2}, {"from": 6000, "rate": 0.22}, {"from": 10000, "rate": 0.24}, {"from": 15000, "rate": 0.26}, {"from": 200000, "rate": 0.27}, {"from": 300000, "rate": 0.28}]}`
+  - Fuente: https://www.lexnavarra.navarra.es/detalle.asp?r=29657
+  - Nota: DFLeg 4/2008, art. 60: «La base liquidable especial del ahorro se gravará a los tipos que se indican en la siguiente escala»: 20 % hasta 6.000 €; 22 % hasta 10.000; 24 % hasta 15.000; 26 % hasta 200.000; 27 % hasta 300.000; 28 % en adelante. Van a ella las ganancias por transmisión (art. 54.1.b), no el alquiler. Fecha de inicio: la del texto consolidado leído; desde cuándo rige el 28 %, pendiente.
+- [ ] `navarra-irpf-deducciones-2026` (deducciones_cuota_irpf_foral, ES-15, 2026-01-01 → sin fin)
+  - Cargado: `{"general": 1084, "general_by_income": [{"base": 17500, "amount": 1280}, {"base": 30000, "amount": 150}, {"base": 32000, "amount": 0}], "age": [{"min_age": 65, "amount": 264}, {"min_age": 75, "amount": 585}], "descendants": [483, 512, 732, 981, 1111, 1286], "young_children": [{"under_age": 3, "amoun…`
+  - Fuente: https://www.lexnavarra.navarra.es/detalle.asp?r=29657
+  - Nota: DFLeg 4/2008, art. 62.9 (deducciones personales y familiares en la cuota; la cuota líquida no puede ser negativa, art. 61). a) «La deducción por mínimo personal será con carácter general de 1.084 euros anuales»; más 264 € con 65 años o más y 585 € con 75 o más (se modela que el segundo sustituye al primero: pendiente); más 1.280 € con rentas de hasta 17.500 €, 1.280 − 0,0904 × (rentas − 17.500) hasta 30.000 € y 150 − 0,075 × (rentas − 30.000) hasta 32.000 € (letras c', d' y e', Ley Foral 17/2025, art. «Catorce», efectos 01/01/2026). b) Descendientes: 483, 512, 732, 981, 1.111 y 1.286 € (1.º a 6.º y siguientes), más 644 € por menor de 3 años. Las rentas del art. 64.5 se aproximan con la base liquidable general. Sin modelar: discapacidad, ascendientes y el incremento del 40 % por descendiente con rentas bajas.
+- [ ] `navarra-rendimiento-alquiler` (rendimiento_alquiler_irpf, ES-15, 2025-01-01 → sin fin)
+  - Cargado: `{"housing": {"base": "general", "expenses": "todos", "cap": "todos", "carryforward_years": 4}, "other": {"base": "general", "expenses": "todos", "cap": "todos", "carryforward_years": 4}}`
+  - Fuente: https://www.lexnavarra.navarra.es/detalle.asp?r=29657
+  - Nota: DFLeg 4/2008: el rendimiento del capital inmobiliario va a la parte general (art. 53.a; no está en el art. 54). Art. 25.1: «El importe total a deducir no podrá exceder, para cada bien o derecho, de la cuantía de los respectivos rendimientos íntegros [...] El exceso se podrá deducir en los cuatro años inmediatos y sucesivos»; si concurre con gastos del año, «éstos se aplicarán en primer lugar». Gastos deducibles: Reglamento (DF 174/1999), art. 12.1 (intereses, tributos, servicios, conservación y reparación, seguros, amortización…). Fecha de inicio: la de la redacción vigente del art. 25 (Ley Foral 17/2025, efectos 01/01/2025).
+- [ ] `navarra-reduccion-alquiler` (reduccion_irpf_alquiler, ES-15, 2025-01-01 → sin fin)
+  - Cargado: `{"cases": [{"condition": "zona-tensionada-vivienda-permanente", "reduction": 0.5, "when": {"stressed_zone": true}}]}`
+  - Fuente: https://www.lexnavarra.navarra.es/detalle.asp?r=29657
+  - Nota: DFLeg 4/2008, art. 25.2.b) (Ley Foral 20/2024; requisito de registro por la Ley Foral 17/2025, art. «Siete», efectos 01/01/2025): «Un 50 por ciento, cuando la vivienda esté situada en una zona de mercado residencial tensionado y el rendimiento proceda del arrendamiento con destino a vivienda permanente [...] excluyéndose [...] los arrendamientos por habitaciones», con el contrato inscrito en el Registro de Contratos de Arrendamiento de Vivienda de Navarra a la fecha de devengo (el plan lo supone hecho). Fuera de zona tensionada y sin intermediación pública no hay reducción. No se modelan el 70 % y el 90 % de la intermediación por la sociedad pública (25.2.a).
+- [ ] `navarra-amortizacion-inmueble` (amortizacion_inmueble_alquiler, ES-15, 2008-07-01 → sin fin)
+  - Cargado: `{"rate": 0.03}`
+  - Fuente: https://www.lexnavarra.navarra.es/detalle.asp?r=10615
+  - Nota: Reglamento del IRPF de Navarra (DF 174/1999), art. 13.1.a): amortización «cuando, en cada año, no exceda del resultado de aplicar el 3 por 100 sobre el coste de adquisición o mejora satisfecho, sin incluir en el cómputo el del suelo» (25 % del coste si no se conoce el valor del suelo). En la venta se resta la amortización mínima aunque no se dedujera (art. 39.1). Fecha de inicio aproximada; si la base incluye los gastos de compra, pendiente.
+- [ ] `navarra-itp-inmuebles` (impuesto_compra_segunda_mano, ES-15, 2026-01-01 → sin fin)
+  - Cargado: `{"rate": 0.06}`
+  - Fuente: https://www.lexnavarra.navarra.es/detalle.asp?r=28044
+  - Nota: Texto refundido del ITP y AJD de Navarra (DFLeg 129/1999), art. 8.1.a): «El 6 por ciento, si se trata de transmisiones de bienes inmuebles». Tipo único. Los reducidos del 5 % (familia con dos o más hijos) y 4 % (vivienda habitual en municipio en riesgo de despoblación) no aplican a un inversor. Fecha de inicio: la del texto consolidado leído; el 6 % viene de antes.
+- [ ] `navarra-ajd-compra-vivienda` (ajd_compra_vivienda, ES-15, 2026-01-01 → sin fin)
+  - Cargado: `{"bands": [{"up_to": null, "rate": 0.005}], "cap_jumps": false}`
+  - Fuente: https://www.lexnavarra.navarra.es/detalle.asp?r=28044
+  - Nota: DFLeg 129/1999, art. 22.2: las primeras copias de escrituras con cantidad o cosa valuable, inscribibles y no sujetas a TPO, «tributarán, además, al tipo de gravamen del 0,5 por 100» (1 % si se renuncia a la exención del IVA). Fecha de inicio: la del texto consolidado leído.
+- [ ] `navarra-zonas-tensionadas` (zona_tensionada, ES-15, 2023-05-26 → sin fin)
+  - Cargado: `{"declared": false, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  - Nota: Fuera de los 21 municipios de la Orden Foral 157E/2025 (reglas de municipio), no consta declaración. Ley 12/2023, art. 18.
+- [ ] `navarra-zona-tensionada-31010` (zona_tensionada, ES-15-31010, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Altsasu/Alsasua: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31016` (zona_tensionada, ES-15-31016, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Ansoáin/Antsoain: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31023` (zona_tensionada, ES-15-31023, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Aranguren: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31050` (zona_tensionada, ES-15-31050, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Baztan: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31060` (zona_tensionada, ES-15-31060, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Burlada/Burlata: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31072` (zona_tensionada, ES-15-31072, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Cintruénigo: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31077` (zona_tensionada, ES-15-31077, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Corella: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31086` (zona_tensionada, ES-15-31086, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Valle de Egüés/Eguesibar: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31088` (zona_tensionada, ES-15-31088, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Valle de Elorz/Elortzibar: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31097` (zona_tensionada, ES-15-31097, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Estella-Lizarra: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31122` (zona_tensionada, ES-15-31122, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Huarte/Uharte: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31201` (zona_tensionada, ES-15-31201, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Pamplona/Iruña: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31202` (zona_tensionada, ES-15-31202, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Peralta/Azkoien: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31215` (zona_tensionada, ES-15-31215, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: San Adrián: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31227` (zona_tensionada, ES-15-31227, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Tafalla: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31232` (zona_tensionada, ES-15-31232, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Tudela: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31258` (zona_tensionada, ES-15-31258, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Villava/Atarrabia: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31901` (zona_tensionada, ES-15-31901, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Barañáin/Barañain: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31902` (zona_tensionada, ES-15-31902, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Berrioplano/Berriobeiti: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31903` (zona_tensionada, ES-15-31903, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Berriozar: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-zona-tensionada-31907` (zona_tensionada, ES-15-31907, 2025-06-14 → 2028-06-14)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://bon.navarra.es/es/anuncio/-/texto/2025/118/36
+  - Nota: Zizur Mayor/Zizur Nagusia: declarado zona de mercado residencial tensionado, el municipio entero (Orden Foral 157E/2025, apartado 2.º; código INE comprobado en el diccionario de municipios de 2026). Gran tenedor: más de diez inmuebles urbanos residenciales o más de 1.500 m², o cinco o más en la zona.
+- [ ] `navarra-alquiler-turistico` (regimen_alquiler_turistico, ES-15, 2011-12-01 → sin fin)
+  - Cargado: `{"regime": "Vivienda turística en Navarra (Decreto Foral 230/2011, de ordenación de los apartamentos turísticos): inscripción previa en el Registro de Turismo de Navarra", "requirements": [{"code": "declaracion-responsable", "description": "Inscripción previa en el Registro de Turismo de Navarra med…`
+  - Fuente: https://www.lexnavarra.navarra.es/detalle.asp?r=25034
+  - Nota: Decreto Foral 230/2011, de 26 de octubre, en desarrollo de la Ley Foral 7/2003 de Turismo. Estancias de temporada de hasta tres meses (art. 2). Fecha de inicio aproximada. Pendiente: que el texto de lexnavarra sea el consolidado, si una norma posterior sustituye a la Ley Foral 7/2003, y el régimen urbanístico de Pamplona (art. 28 del Plan Municipal, solo visto en prensa).
+- [ ] `pamplona-contribucion-territorial` (tipo_ibi, ES-15-31201, 2026-01-01 → sin fin)
+  - Cargado: `{"rate": 0.0025}`
+  - Fuente: https://www.pamplona.es/sites/default/files/2025-12/Ordenanza%201.pdf
+  - Nota: Contribución territorial (el IBI de Navarra), Ordenanza fiscal n.º 1 de Pamplona para 2026, art. 4: «Tipo de gravamen: 0,25%», único para todo el término (Ley Foral 2/1995, art. 139.2: entre el 0,25 y el 0,50 %). Fecha de publicación en el BON, pendiente.
+- [ ] `pamplona-plusvalia-tipo` (tipo_plusvalia, ES-15-31201, 2026-01-01 → sin fin)
+  - Cargado: `{"rate": 0.1735}`
+  - Fuente: https://www.pamplona.es/sites/default/files/2025-12/Ordenanza%204%20.pdf
+  - Nota: Ordenanza fiscal n.º 4 de Pamplona para 2026, anexo de tarifas: «TIPO DE GRAVAMEN: 17,35%» (Ley Foral 2/1995, art. 176.2: entre el 8 y el 25 %). Los coeficientes son «los máximos permitidos para cada periodo de generación y vigentes en cada momento» (art. 6): la regla de los máximos de Navarra.
+- [ ] `navarra-plusvalia-coeficientes-maximos` (coeficientes_plusvalia, ES-15, 2026-01-01 → sin fin)
+  - Cargado: `{"by_years": [0.06, 0.16, 0.13, 0.26, 0.35, 0.37, 0.35, 0.41, 0.47, 0.52, 0.58, 0.53, 0.42, 0.37, 0.31, 0.26, 0.25, 0.15, 0.06, 0.06, 0.16]}`
+  - Fuente: https://www.lexnavarra.navarra.es/detalle.asp?r=540
+  - Nota: Ley Foral 2/1995 de Haciendas Locales de Navarra, art. 175.2, coeficientes máximos por periodo de generación (menos de un año, 1… 19 y 20 o más), tal como constan en el texto consolidado. El mismo artículo dice que «serán actualizados anualmente»: no se ha encontrado la actualización de 2026, así que la tabla puede no estar al día. PENDIENTE de confirmar en el BON o en Hacienda de Navarra.
+
+**Pendiente o dudoso:**
+- La escala general sale del BOE (Ley Foral 22/2023): en lexnavarra es una imagen de otro dominio que no se descargó. No se ha podido descartar una ley foral de 2026 que cambie el IRPF.
+- Escala del ahorro: desde cuándo rige el 28 % del último tramo.
+- Mínimo personal por edad: se modela que 585 € (75 años) sustituye a 264 € (65), no que se suman.
+- Reducción del 50 % del alquiler en zona tensionada: exige el contrato inscrito en el Registro de Navarra (el plan lo supone hecho); el hecho «zona tensionada» lo pone el usuario.
+- Zonas tensionadas: la vigencia se cuenta desde el BON (14/06/2025); el BOE la cuenta desde el 30/07/2025.
+- Coeficientes máximos de la plusvalía: la tabla del art. 175.2 puede no estar actualizada para 2026.
+- Fecha de publicación en el BON de las ordenanzas de Pamplona para 2026; alquiler turístico de Pamplona sin texto oficial.
+- Sin modelar: incremento del 40 % por descendientes con rentas bajas, intermediación pública (70 % y 90 %), discapacidad y ascendientes.
+
+## 2. País Vasco (ES-16): Álava, Gipuzkoa y Bizkaia
+
+- [ ] `bizkaia-regimen-irpf` (regimen_irpf, ES-16-48, 2014-01-01 → sin fin)
+  - Cargado: `{"regime": "foral"}`
+  - Fuente: https://www.bizkaia.eus/documents/880307/15187815/ca_13_2013.pdf/ce52e403-4fca-9ef7-bf85-2505ba29f921?t=1784098584068
+  - Nota: Norma Foral 13/2013 del IRPF de Bizkaia, art. 74: «la cuota íntegra será la suma» de la escala general (minorada conforme al art. 77, sin poder ser negativa) y la del ahorro (art. 76). Fecha de inicio: la de esta norma foral.
+- [ ] `alava-regimen-irpf` (regimen_irpf, ES-16-01, 2014-01-01 → sin fin)
+  - Cargado: `{"regime": "foral"}`
+  - Fuente: https://web.araba.eus/documents/d/araba/indice_norma-foral_irpf_cas-7-pdf
+  - Nota: Norma Foral 33/2013 del IRPF de Álava, art. 74: cuota íntegra = escala general (menos la minoración del art. 77, sin bajar de cero) + escala del ahorro. Fecha de inicio: la de esta norma foral.
+- [ ] `gipuzkoa-regimen-irpf` (regimen_irpf, ES-16-20, 2014-01-01 → sin fin)
+  - Cargado: `{"regime": "foral"}`
+  - Fuente: https://www.euskadi.eus/contenidos/informacion/zergak68/es_def/adjuntos/Zergak_Art2_LLano_CAST.pdf
+  - Nota: Gipuzkoa tiene IRPF foral propio (Norma Foral 3/2014, de 17 de enero, citada por la revista Zergak de la Hacienda vasca). La norma no se ha podido leer: gipuzkoa.eus bloquea a los agentes de Anthropic. Sus escalas y deducciones están PENDIENTES, así que un residente en Gipuzkoa no tiene plan hasta cargarlas.
+- [ ] `bizkaia-irpf-escala-general-2025` (escala_irpf_general_foral, ES-16-48, 2025-01-01 → 2026-01-01)
+  - Cargado: `{"brackets": [{"from": 0, "rate": 0.23}, {"from": 17720, "rate": 0.28}, {"from": 35440, "rate": 0.35}, {"from": 53160, "rate": 0.4}, {"from": 75910, "rate": 0.45}, {"from": 105130, "rate": 0.46}, {"from": 140130, "rate": 0.47}, {"from": 204270, "rate": 0.49}]}`
+  - Fuente: https://www.bizkaia.eus/documents/880307/27501802/ca_13_2013.pdf/99c24b02-2b3e-821f-a6c5-5a62df447e32?t=1770098453680
+  - Nota: NF 13/2013 de Bizkaia, art. 75.1 (consolidado a 18/09/2025): 23 % hasta 17.720 €; 28 % hasta 35.440; 35 % hasta 53.160; 40 % hasta 75.910; 45 % hasta 105.130; 46 % hasta 140.130; 47 % hasta 204.270; 49 % en adelante. Fecha de inicio: la del ejercicio 2025 (puede venir de antes).
+- [ ] `bizkaia-irpf-escala-general-2026` (escala_irpf_general_foral, ES-16-48, 2026-01-01 → sin fin)
+  - Cargado: `{"brackets": [{"from": 0, "rate": 0.23}, {"from": 18080, "rate": 0.28}, {"from": 36160, "rate": 0.35}, {"from": 54240, "rate": 0.4}, {"from": 77450, "rate": 0.45}, {"from": 107260, "rate": 0.46}, {"from": 142960, "rate": 0.47}, {"from": 208390, "rate": 0.49}]}`
+  - Fuente: https://www.bizkaia.eus/fitxategiak/05/ogasuna/presupuestos/pdf/2026/1767079012129_NF%20Pptos%202026%20castellano-euskara.pdf
+  - Nota: NF 13/2013 de Bizkaia, art. 75.1, redacción del art. 49 de la NF 7/2025 de Presupuestos para 2026 (BOB 248, 30/12/2025), «Con efectos desde 1 de enero de 2026»: 23 % hasta 18.080 €; 28 % hasta 36.160; 35 % hasta 54.240; 40 % hasta 77.450; 45 % hasta 107.260; 46 % hasta 142.960; 47 % hasta 208.390; 49 % en adelante (cuota acumulada 4.158,40 a 18.080 €).
+- [ ] `bizkaia-irpf-escala-ahorro-2025` (escala_irpf_ahorro_foral, ES-16-48, 2025-01-01 → 2026-01-01)
+  - Cargado: `{"brackets": [{"from": 0, "rate": 0.2}, {"from": 2500, "rate": 0.21}, {"from": 10000, "rate": 0.22}, {"from": 15000, "rate": 0.23}, {"from": 30000, "rate": 0.25}]}`
+  - Fuente: https://www.bizkaia.eus/documents/880307/27501802/ca_13_2013.pdf/99c24b02-2b3e-821f-a6c5-5a62df447e32?t=1770098453680
+  - Nota: NF 13/2013 de Bizkaia, art. 76 (consolidado a 18/09/2025): 20 % hasta 2.500 €; 21 % hasta 10.000; 22 % hasta 15.000; 23 % hasta 30.000; 25 % en adelante. Fecha de inicio: la del ejercicio 2025 (puede venir de antes).
+- [ ] `bizkaia-irpf-escala-ahorro-2026` (escala_irpf_ahorro_foral, ES-16-48, 2026-01-01 → sin fin)
+  - Cargado: `{"brackets": [{"from": 0, "rate": 0.19}, {"from": 7500, "rate": 0.2}, {"from": 15000, "rate": 0.22}, {"from": 30000, "rate": 0.24}, {"from": 50000, "rate": 0.255}, {"from": 90000, "rate": 0.26}, {"from": 120000, "rate": 0.265}, {"from": 240000, "rate": 0.27}, {"from": 300000, "rate": 0.28}]}`
+  - Fuente: https://www.bizkaia.eus/lehendakaritza/Bao_bob/2025/04/22/I-441_cas.pdf
+  - Nota: NF 13/2013 de Bizkaia, art. 76.1, redacción del art. 15.Tres de la NF 2/2025 (BOB 22/04/2025), con efectos desde el 01/01/2026 (disposición final tercera): 19 % hasta 7.500 €; 20 % hasta 15.000; 22 % hasta 30.000; 24 % hasta 50.000; 25,5 % hasta 90.000; 26 % hasta 120.000; 26,5 % hasta 240.000; 27 % hasta 300.000; 28 % en adelante. Van a ella el alquiler de vivienda (art. 63.a) y las ganancias por transmisión (art. 63.c).
+- [ ] `bizkaia-irpf-deducciones-2025` (deducciones_cuota_irpf_foral, ES-16-48, 2025-01-01 → 2026-01-01)
+  - Cargado: `{"general": 1583, "age": [{"min_age": 66, "amount": 385}, {"min_age": 76, "amount": 700}], "age_phaseout": {"from_base": 20000, "to_base": 30000}, "descendants": [668, 827, 1393, 1647, 2151], "young_children": [{"under_age": 6, "amount": 386}]}`
+  - Fuente: https://www.bizkaia.eus/documents/880307/27501802/ca_13_2013.pdf/99c24b02-2b3e-821f-a6c5-5a62df447e32?t=1770098453680
+  - Nota: NF 13/2013 de Bizkaia (consolidado a 18/09/2025): minoración de cuota de 1.583 € (art. 77, solo sobre la cuota general); descendientes 668, 827, 1.393, 1.647 y 2.151 € (1.º a 5.º y siguientes) más 386 € por menor de 6 años (art. 79); por edad, 385 € con más de 65 años y 700 € con más de 75, enteros con base imponible de hasta 20.000 € y menguando en línea recta hasta 30.000 € (art. 83). Sin modelar: ascendientes y discapacidad.
+- [ ] `bizkaia-irpf-deducciones-2026` (deducciones_cuota_irpf_foral, ES-16-48, 2026-01-01 → sin fin)
+  - Cargado: `{"general": 1615, "age": [{"min_age": 66, "amount": 393}, {"min_age": 76, "amount": 714}], "age_phaseout": {"from_base": 20000, "to_base": 30000}, "descendants": [682, 844, 1421, 1680, 2195], "young_children": [{"under_age": 6, "amount": 394}]}`
+  - Fuente: https://www.bizkaia.eus/fitxategiak/05/ogasuna/presupuestos/pdf/2026/1767079012129_NF%20Pptos%202026%20castellano-euskara.pdf
+  - Nota: NF 13/2013 de Bizkaia, redacción de la NF 7/2025 (arts. 50 a 54, efectos 01/01/2026): art. 77, «Los y las contribuyentes aplicarán una minoración de cuota de 1.615 euros por cada declaración» (solo sobre la cuota general, sin dejarla negativa); descendientes 682, 844, 1.421, 1.680 y 2.195 € más 394 € por menor de 6 años; por edad, 393 € con más de 65 años y 714 € con más de 75, enteros con base imponible de hasta 20.000 € y menos 0,0393 (o 0,0714) × (base − 20.000) hasta 30.000 €. Sin modelar: ascendientes, discapacidad y tributación conjunta.
+- [ ] `bizkaia-rendimiento-alquiler` (rendimiento_alquiler_irpf, ES-16-48, 2025-01-01 → sin fin)
+  - Cargado: `{"housing": {"base": "ahorro", "expenses": "intereses", "cap": "sin_negativo", "bonus": [{"condition": "general", "reduction": 0.3}, {"condition": "renta-limitada-al-indice", "reduction": 0.7, "when": {"below_reference_index": true}}]}, "other": {"base": "general", "expenses": "intereses", "cap": "s…`
+  - Fuente: https://www.bizkaia.eus/documents/880307/15187815/ca_13_2013.pdf/ce52e403-4fca-9ef7-bf85-2505ba29f921?t=1784098584068
+  - Nota: NF 13/2013 de Bizkaia, art. 32, redacción del art. 3.Uno de la NF 2/2025 («Con efectos desde 1 de enero de 2025»). 32.2, arrendamiento de vivienda del art. 2 de la LAU: «se aplicará una bonificación del 30 por 100 sobre los rendimientos íntegros obtenidos por cada inmueble» y «será deducible, exclusivamente» el importe de los intereses y demás gastos de financiación (y el seguro de impago hasta 300 €, sin modelar); «La suma de la bonificación y los gastos deducibles no podrá dar lugar, para cada inmueble, a un rendimiento neto negativo»; va a la base del ahorro (art. 63.a). 32.4 y 32.5: 70 % si la renta se limita a los índices de referencia (en zona tensionada o no). 32.1, vivienda cedida de otra forma sin actividad económica: 20 %, solo intereses, base general.
+- [ ] `bizkaia-amortizacion-ganancia` (amortizacion_inmueble_alquiler, ES-16-48, 2025-01-01 → sin fin)
+  - Cargado: `{"rate": 0.02}`
+  - Fuente: https://www.bizkaia.eus/documents/880307/27501806/ca_11_2013.pdf/91f33826-13ce-3625-f9e5-e7f2fe2482a1?t=1770098466884
+  - Nota: PROVISIONAL. En el alquiler de vivienda del art. 32.2 no se deduce amortización (solo intereses), pero el valor de adquisición de la venta se minora en la amortización mínima «en todo caso» (NF 13/2013, art. 45.1; Reglamento DF 47/2014, art. 47.1: el porcentaje del período máximo del IS). NF 11/2013 del IS, art. 17.6: período máximo de 50 años para inmuebles, es decir, el 2 % anual. Se aplica aquí solo a la ganancia. Pendiente de confirmar con la Hacienda Foral si se aplica a las viviendas del art. 32.2 y sobre qué base.
+- [ ] `alava-irpf-escala-general-2024` (escala_irpf_general_foral, ES-16-01, 2024-01-01 → 2026-01-01)
+  - Cargado: `{"brackets": [{"from": 0, "rate": 0.23}, {"from": 17720, "rate": 0.28}, {"from": 35440, "rate": 0.35}, {"from": 53160, "rate": 0.4}, {"from": 75910, "rate": 0.45}, {"from": 105130, "rate": 0.46}, {"from": 140130, "rate": 0.47}, {"from": 204270, "rate": 0.49}]}`
+  - Fuente: https://www.araba.eus/BOTHA/Boletines/2023/150/2023_150_03770_C.pdf
+  - Nota: NF 33/2013 de Álava, art. 75.1, redacción de la NF 26/2023 (BOTHA 150, 29/12/2023), la de 2024 y 2025 (la NF 19/2024 no toca el art. 75): 23 % hasta 17.720 €; 28 % hasta 35.440; 35 % hasta 53.160; 40 % hasta 75.910; 45 % hasta 105.130; 46 % hasta 140.130; 47 % hasta 204.270; 49 % en adelante.
+- [ ] `alava-irpf-escala-general-2026` (escala_irpf_general_foral, ES-16-01, 2026-01-01 → sin fin)
+  - Cargado: `{"brackets": [{"from": 0, "rate": 0.23}, {"from": 18080, "rate": 0.28}, {"from": 36160, "rate": 0.35}, {"from": 54240, "rate": 0.4}, {"from": 77450, "rate": 0.45}, {"from": 107260, "rate": 0.46}, {"from": 142960, "rate": 0.47}, {"from": 208390, "rate": 0.49}]}`
+  - Fuente: https://www.araba.eus/BOTHA/Boletines/2025/147/2025_147_03861_C.pdf
+  - Nota: NF 33/2013 de Álava, art. 75.1, redacción de la NF 21/2025 (BOTHA 147, 29/12/2025), apartado «Cuarto», número Cuatro, efectos 01/01/2026: 23 % hasta 18.080 €; 28 % hasta 36.160; 35 % hasta 54.240; 40 % hasta 77.450; 45 % hasta 107.260; 46 % hasta 142.960; 47 % hasta 208.390; 49 % en adelante.
+- [ ] `alava-irpf-escala-ahorro-2026` (escala_irpf_ahorro_foral, ES-16-01, 2026-01-01 → sin fin)
+  - Cargado: `{"brackets": [{"from": 0, "rate": 0.19}, {"from": 7500, "rate": 0.2}, {"from": 15000, "rate": 0.22}, {"from": 30000, "rate": 0.24}, {"from": 50000, "rate": 0.255}, {"from": 90000, "rate": 0.26}, {"from": 120000, "rate": 0.265}, {"from": 240000, "rate": 0.27}, {"from": 300000, "rate": 0.28}]}`
+  - Fuente: https://www.araba.eus/BOTHA/Boletines/2025/044/2025_044_01182_C.pdf
+  - Nota: NF 33/2013 de Álava, art. 76.1, redacción del art. 11.Cuatro de la NF 3/2025 (BOTHA 44, 16/04/2025), con efectos desde el 01/01/2026 (disposición final primera): 19 % hasta 7.500 €; 20 % hasta 15.000; 22 % hasta 30.000; 24 % hasta 50.000; 25,5 % hasta 90.000; 26 % hasta 120.000; 26,5 % hasta 240.000; 27 % hasta 300.000; 28 % en adelante. La escala anterior a 2026 está pendiente. Van a ella el alquiler de vivienda (art. 63.a) y las ganancias por transmisión (art. 63.c).
+- [ ] `alava-irpf-deducciones-2025` (deducciones_cuota_irpf_foral, ES-16-01, 2025-01-01 → 2026-01-01)
+  - Cargado: `{"general": 1583, "age": [{"min_age": 66, "amount": 385}, {"min_age": 76, "amount": 700}], "age_phaseout": {"from_base": 20000, "to_base": 30000}, "descendants": [734.8, 909.7, 1532.3, 1811.7, 2366.1], "young_children": [{"under_age": 6, "amount": 424.6}, {"under_age": 16, "amount": 68.2}]}`
+  - Fuente: https://www.araba.eus/BOTHA/Boletines/2024/147/2024_147_04143_C.pdf
+  - Nota: NF 33/2013 de Álava en 2025: minoración de cuota de 1.583 € (art. 77.1, NF 19/2024); descendientes 734,80, 909,70, 1.532,30, 1.811,70 y 2.366,10 € más 424,60 € por menor de 6 años o 68,20 € de 6 a 15 años (art. 79, NF 19/2024); por edad 385 € con más de 65 años y 700 € con más de 75, menguando con la base imponible de 20.000 a 30.000 € (art. 83, NF 26/2023). Sin modelar: ascendientes, discapacidad y el 15 % más en municipios de menos de 4.000 habitantes.
+- [ ] `alava-irpf-deducciones-2026` (deducciones_cuota_irpf_foral, ES-16-01, 2026-01-01 → sin fin)
+  - Cargado: `{"general": 1615, "age": [{"min_age": 66, "amount": 393}, {"min_age": 76, "amount": 714}], "age_phaseout": {"from_base": 20000, "to_base": 30000}, "descendants": [734.8, 909.7, 1532.3, 1811.7, 2366.1], "young_children": [{"under_age": 6, "amount": 424.6}, {"under_age": 16, "amount": 68.2}]}`
+  - Fuente: https://www.araba.eus/BOTHA/Boletines/2025/147/2025_147_03861_C.pdf
+  - Nota: NF 33/2013 de Álava en 2026: art. 77.1, «Las y los contribuyentes aplicarán una minoración de cuota de 1.615,00 euros por cada autoliquidación» (NF 21/2025; solo sobre la cuota general); descendientes sin cambios (734,80 a 2.366,10 €, más 424,60 € por menor de 6 años o 68,20 € de 6 a 15); edad 393 € (más de 65) y 714 € (más de 75), menguando con la base imponible de 20.000 a 30.000 € (art. 83, NF 21/2025). Sin modelar: ascendientes, discapacidad y municipios pequeños.
+- [ ] `alava-rendimiento-alquiler` (rendimiento_alquiler_irpf, ES-16-01, 2025-01-01 → sin fin)
+  - Cargado: `{"housing": {"base": "ahorro", "expenses": "intereses", "cap": "sin_negativo", "bonus": [{"condition": "general", "reduction": 0.3}, {"condition": "renta-limitada-al-indice", "reduction": 0.7, "when": {"below_reference_index": true}}]}, "other": {"base": "general", "expenses": "intereses", "cap": "s…`
+  - Fuente: https://www.araba.eus/BOTHA/Boletines/2025/044/2025_044_01182_C.pdf
+  - Nota: NF 33/2013 de Álava, art. 32, redacción de la NF 3/2025 (art. 3.Dos, efectos 01/01/2025). 32.1, vivienda arrendada según el art. 2 de la LAU: «se aplicará una bonificación del 30 por ciento sobre los rendimientos íntegros obtenidos por cada inmueble» (35 % en los núcleos de la DA 34.ª, sin modelar; 70 % en zona tensionada si «la renta de alquiler se limite a los importes que se correspondan con los índices de referencia», o si se limita voluntariamente a ellos); «serán deducibles, exclusivamente» los intereses y gastos de financiación y el seguro de impago hasta 300 € (sin modelar); el neto por inmueble no puede ser negativo; va a la base del ahorro (art. 63.a). 32.3, otras viviendas sin actividad económica: 20 %, base general.
+- [ ] `alava-amortizacion-ganancia` (amortizacion_inmueble_alquiler, ES-16-01, 2025-01-01 → sin fin)
+  - Cargado: `{"rate": 0.02}`
+  - Fuente: https://web.araba.eus/documents/d/araba/indice-reglamento_irpf_cas-2-pdf
+  - Nota: PROVISIONAL. En el alquiler de vivienda del art. 32.1 no se deduce amortización, pero el valor de adquisición se minora en la amortización mínima «computándose en todo caso» (NF 33/2013, art. 45.1; Reglamento DF 40/2014, art. 44.1: el porcentaje del período máximo del IS). La tabla del IS de Álava (NF 37/2013) no se ha leído: se toma el 2 % (50 años) leído en el IS de Bizkaia. Pendiente de confirmar con la Hacienda Foral.
+- [ ] `bizkaia-itp-vivienda` (impuesto_compra_segunda_mano, ES-16-48, 2026-01-01 → sin fin)
+  - Cargado: `{"rate": 0.04}`
+  - Fuente: https://www.bizkaia.eus/documents/880307/15187815/ca_1_2011.pdf/50b78491-3852-b68f-f9d5-2db574a48917?t=1777386142905
+  - Nota: NF 1/2011 del ITP y AJD de Bizkaia, art. 13.b): «la transmisión de viviendas en general, incluidas las plazas de garaje, con un máximo de dos unidades, y anexos [...] tributará al 4 por 100», si el adquirente no es titular de más de 5 viviendas en más del 50 % (si no, el 6 %; el 7 % es para otros inmuebles). El 2,5 % de la letra c) exige vivienda habitual. Fecha de inicio: la del texto consolidado leído (última modificación 20/04/2026).
+- [ ] `bizkaia-ajd-compra-vivienda` (ajd_compra_vivienda, ES-16-48, 2026-01-01 → sin fin)
+  - Cargado: `{"bands": [{"up_to": null, "rate": 0.005}], "cap_jumps": false}`
+  - Fuente: https://www.bizkaia.eus/documents/880307/15187815/ca_1_2011.pdf/50b78491-3852-b68f-f9d5-2db574a48917?t=1777386142905
+  - Nota: NF 1/2011 de Bizkaia, art. 44.1: las primeras copias de escrituras con objeto valuable, inscribibles y no sujetas a TPO «tributarán, además, al tipo de gravamen del 0,50 por 100». Fecha de inicio: la del texto consolidado leído.
+- [ ] `alava-itp-vivienda` (impuesto_compra_segunda_mano, ES-16-01, 2026-01-01 → sin fin)
+  - Cargado: `{"rate": 0.04}`
+  - Fuente: https://web.araba.eus/documents/d/araba/indice_norma-foral-itp-ajd-cas-2-pdf
+  - Nota: NF 11/2003 del ITP y AJD de Álava, art. 43.Uno.b): «la transmisión de viviendas en general [...] tributarán al 4 por ciento», si el adquirente no es titular de más de 5 viviendas en más del 50 % (si no, el 6 %; el 7 % es para otros inmuebles). Redacción de la NF 3/2025; su fecha de efectos está pendiente, así que la de inicio es la del texto consolidado leído.
+- [ ] `alava-ajd-compra-vivienda` (ajd_compra_vivienda, ES-16-01, 2026-01-01 → sin fin)
+  - Cargado: `{"bands": [{"up_to": null, "rate": 0.005}], "cap_jumps": false}`
+  - Fuente: https://web.araba.eus/documents/d/araba/indice_norma-foral-itp-ajd-cas-2-pdf
+  - Nota: NF 11/2003 de Álava, art. 56.2: las primeras copias de escrituras con objeto valuable e inscribibles «tributarán, además, al tipo de gravamen del 0,5%». Fecha de inicio: la del texto consolidado leído.
+- [ ] `bizkaia-plusvalia-coeficientes-maximos` (coeficientes_plusvalia, ES-16-48, 2025-01-01 → sin fin)
+  - Cargado: `{"by_years": [0.16, 0.15, 0.15, 0.15, 0.16, 0.18, 0.2, 0.22, 0.23, 0.21, 0.16, 0.13, 0.11, 0.1, 0.1, 0.1, 0.1, 0.12, 0.16, 0.22, 0.35]}`
+  - Fuente: https://www.bizkaia.eus/documents/880307/15187815/ca_8_1989.pdf/022bd3c2-b768-cdff-fb26-77d630c61ba5?t=1746526040210
+  - Nota: NF 8/1989 de Bizkaia, del impuesto sobre el incremento del valor de los terrenos (última modificación 01/01/2025), art. 4: coeficientes máximos por periodo de generación (menos de un año, 1… 19 y 20 o más); los ayuntamientos fijan los suyos sin superarlos y se actualizan «anualmente mediante Norma Foral» (sin actualización vista para 2026). El tipo no puede pasar del 30 % (art. 5.1).
+- [ ] `vitoria-ibi` (tipo_ibi, ES-16-01059, 2026-01-01 → sin fin)
+  - Cargado: `{"rate": 0.00345}`
+  - Fuente: https://www.vitoria-gasteiz.org/docs/wb021/contenidosEstaticos/adjuntos/es/59/86/105986.pdf
+  - Nota: Ordenanzas fiscales de Vitoria-Gasteiz 2026, Ordenanza n.º 1, art. 16: «El tipo de gravamen será el 0,345 por ciento cuando se trate de bienes urbanos, en general» (el 0,441 % diferenciado es para usos no residenciales). Recargo del 50 % para la vivienda desocupada (art. 16 bis), del que se libra la alquilada. Fecha de aprobación y publicación en el BOTHA, pendiente.
+- [ ] `vitoria-plusvalia-coeficientes` (coeficientes_plusvalia, ES-16-01059, 2026-01-01 → sin fin)
+  - Cargado: `{"by_years": [0.15, 0.15, 0.14, 0.14, 0.16, 0.18, 0.19, 0.18, 0.15, 0.12, 0.1, 0.09, 0.09, 0.09, 0.09, 0.09, 0.1, 0.13, 0.17, 0.23, 0.4]}`
+  - Fuente: https://www.vitoria-gasteiz.org/docs/wb021/contenidosEstaticos/adjuntos/es/59/86/105986.pdf
+  - Nota: Ordenanza n.º 4 de Vitoria-Gasteiz para 2026, art. 10.1: coeficientes por años completos de generación (<1: 0,15; 1: 0,15; 2: 0,14; 3: 0,14; 4: 0,16; 5: 0,18; 6: 0,19; 7: 0,18; 8: 0,15; 9: 0,12; 10: 0,10; 11 a 15: 0,09; 16: 0,10; 17: 0,13; 18: 0,17; 19: 0,23; 20 o más: 0,40). Los máximos de la norma foral de Álava no se han leído.
+- [ ] `vitoria-plusvalia-tipo` (tipo_plusvalia, ES-16-01059, 2026-01-01 → sin fin)
+  - Cargado: `{"rate": 0.3}`
+  - Fuente: https://www.vitoria-gasteiz.org/docs/wb021/contenidosEstaticos/adjuntos/es/59/86/105986.pdf
+  - Nota: Ordenanza n.º 4 de Vitoria-Gasteiz para 2026, art. 10.2: «tipo de gravamen, tipo que será del 30,00 por ciento».
+- [ ] `donostia-plusvalia-coeficientes` (coeficientes_plusvalia, ES-16-20069, 2026-01-01 → sin fin)
+  - Cargado: `{"by_years": [0.16, 0.15, 0.15, 0.15, 0.16, 0.18, 0.2, 0.22, 0.23, 0.21, 0.16, 0.13, 0.11, 0.1, 0.1, 0.1, 0.1, 0.12, 0.16, 0.22, 0.35]}`
+  - Fuente: https://www.donostia.eus/Ordenanzas.nsf/vListadoId/18248C51D10DA186C1258CAF002BC2BC?OpenDocument=&sf=1&id=C671670&idioma=cas
+  - Nota: Ordenanza del impuesto sobre el incremento del valor de los terrenos de Donostia/San Sebastián, anexo a regir desde el 01/01/2026 (última modificación: Pleno de 25/09/2025, BOG 236 de 10/12/2025): coeficientes por periodo de generación (<1: 0,16; 1 a 3: 0,15; 4: 0,16; 5: 0,18; 6: 0,20; 7: 0,22; 8: 0,23; 9: 0,21; 10: 0,16; 11: 0,13; 12: 0,11; 13 a 16: 0,10; 17: 0,12; 18: 0,16; 19: 0,22; 20 o más: 0,35). Los máximos de la norma foral de Gipuzkoa no se han leído: se limitan con los estatales, lo que puede bajarlos en algún año.
+- [ ] `donostia-plusvalia-tipo` (tipo_plusvalia, ES-16-20069, 2026-01-01 → sin fin)
+  - Cargado: `{"by_years": [{"from_years": 0, "rate": 0.178092}, {"from_years": 6, "rate": 0.161364}, {"from_years": 11, "rate": 0.144636}, {"from_years": 16, "rate": 0.133518}]}`
+  - Fuente: https://www.donostia.eus/Ordenanzas.nsf/vListadoId/18248C51D10DA186C1258CAF002BC2BC?OpenDocument=&sf=1&id=C671670&idioma=cas
+  - Nota: Ordenanza de plusvalía de Donostia/San Sebastián, anexo a regir desde el 01/01/2026, tipo de gravamen por periodos (transmisiones con el valor de las nuevas ponencias): hasta 5 años 17,8092 %; hasta 10 años 16,1364 %; hasta 15 años 14,4636 %; hasta 20 años 13,3518 %. Pendiente: cómo incide la STC 46/2024 sobre la norma foral de Gipuzkoa.
+- [ ] `pais-vasco-zonas-tensionadas` (zona_tensionada, ES-16, 2023-05-26 → sin fin)
+  - Cargado: `{"declared": false, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  - Nota: Ley 12/2023, art. 18: declara el Gobierno Vasco (Departamento de Vivienda y Agenda Urbana) por orden en el BOPV y el Ministerio lo recoge cada trimestre en el BOE. Los municipios declarados tienen regla propia; Sopela y Urduliz (órdenes de 27/07/2026, BOPV 154) quedan pendientes de leer el Resuelvo.
+- [ ] `pais-vasco-zona-tensionada-48013` (zona_tensionada, ES-16-48013, 2025-05-01 → 2028-05-01)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-8636
+  - Nota: Barakaldo: zona de mercado residencial tensionado (municipio entero; Orden de 31/03/2025 (BOPV 23/04/2025)); recogida en la resolución del Ministerio BOE-A-2025-8636, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-48036` (zona_tensionada, ES-16-48036, 2025-07-30 → 2028-07-30)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29", "area": "Distrito 2"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-15728
+  - Nota: Galdakao: zona de mercado residencial tensionado (Orden de 03/04/2025 (BOPV 25/04/2025)); recogida en la resolución del Ministerio BOE-A-2025-15728, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-48020` (zona_tensionada, ES-16-48020, 2025-10-31 → 2028-10-31)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-21901
+  - Nota: Bilbao: zona de mercado residencial tensionado (todo el término municipal; Orden de 21/08/2025 (BOPV 167, 04/09/2025)); recogida en la resolución del Ministerio BOE-A-2025-21901, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-48015` (zona_tensionada, ES-16-48015, 2026-07-30 → 2029-07-30)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-16532
+  - Nota: Basauri: zona de mercado residencial tensionado (municipio entero; Orden de 28/05/2026 (BOPV 106, 08/06/2026)); recogida en la resolución del Ministerio BOE-A-2026-16532, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-01059` (zona_tensionada, ES-16-01059, 2025-10-31 → 2028-10-31)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29", "area": "todo el municipio excepto la zona rural constituida por entidades locales menores no incluida en la trama urbana"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-21901
+  - Nota: Vitoria-Gasteiz: zona de mercado residencial tensionado (Orden de 18/09/2025 (BOPV 184, 29/09/2025)); recogida en la resolución del Ministerio BOE-A-2025-21901, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20067` (zona_tensionada, ES-16-20067, 2025-01-31 → 2028-01-31)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-1721
+  - Nota: Errenteria: zona de mercado residencial tensionado (Orden de 01/10/2024 (BOPV 202, 16/10/2024)); recogida en la resolución del Ministerio BOE-A-2025-1721, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20902` (zona_tensionada, ES-16-20902, 2025-05-01 → 2028-05-01)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-8636
+  - Nota: Lasarte-Oria: zona de mercado residencial tensionado (Orden de 18/03/2025 (BOPV 69, 09/04/2025)); recogida en la resolución del Ministerio BOE-A-2025-8636, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20081` (zona_tensionada, ES-16-20081, 2025-05-01 → 2028-05-01)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-8636
+  - Nota: Zumaia: zona de mercado residencial tensionado (Orden de 18/03/2025 (BOPV 69, 09/04/2025)); recogida en la resolución del Ministerio BOE-A-2025-8636, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20045` (zona_tensionada, ES-16-20045, 2025-05-01 → 2028-05-01)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-8636
+  - Nota: Irun: zona de mercado residencial tensionado (Orden de 31/03/2025 (BOPV 76, 23/04/2025)); recogida en la resolución del Ministerio BOE-A-2025-8636, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20069` (zona_tensionada, ES-16-20069, 2025-07-30 → 2028-07-30)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-15728
+  - Nota: Donostia/San Sebastián: zona de mercado residencial tensionado (todo el municipio; Orden de 02/05/2025 (BOPV 96, 23/05/2025)); recogida en la resolución del Ministerio BOE-A-2025-15728, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20903` (zona_tensionada, ES-16-20903, 2025-10-31 → 2028-10-31)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-21901
+  - Nota: Astigarraga: zona de mercado residencial tensionado (Orden de 21/08/2025 (BOPV 173, 12/09/2025)); recogida en la resolución del Ministerio BOE-A-2025-21901, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20073` (zona_tensionada, ES-16-20073, 2025-10-31 → 2028-10-31)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-21901
+  - Nota: Usurbil: zona de mercado residencial tensionado (Orden de 21/08/2025 (BOPV 173, 12/09/2025)); recogida en la resolución del Ministerio BOE-A-2025-21901, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20040` (zona_tensionada, ES-16-20040, 2026-02-03 → 2029-02-03)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-2448
+  - Nota: Hernani: zona de mercado residencial tensionado (Orden de 18/11/2025 (BOPV 229, 27/11/2025)); recogida en la resolución del Ministerio BOE-A-2026-2448, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20053` (zona_tensionada, ES-16-20053, 2026-02-03 → 2029-02-03)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-2448
+  - Nota: Lezo: zona de mercado residencial tensionado (Orden de 11/12/2025 (BOPV 251, 30/12/2025)); recogida en la resolución del Ministerio BOE-A-2026-2448, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20071` (zona_tensionada, ES-16-20071, 2026-02-03 → 2029-02-03)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-2448
+  - Nota: Tolosa: zona de mercado residencial tensionado (Orden de 11/12/2025 (BOPV 251, 30/12/2025)); recogida en la resolución del Ministerio BOE-A-2026-2448, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20064` (zona_tensionada, ES-16-20064, 2026-04-28 → 2029-04-28)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-9175
+  - Nota: Pasaia: zona de mercado residencial tensionado (Orden de 17/02/2026 (BOPV 39, 26/02/2026)); recogida en la resolución del Ministerio BOE-A-2026-9175, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20027` (zona_tensionada, ES-16-20027, 2026-04-28 → 2029-04-28)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-9175
+  - Nota: Zestoa: zona de mercado residencial tensionado (Orden de 17/02/2026 (BOPV 39, 26/02/2026)); recogida en la resolución del Ministerio BOE-A-2026-9175, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-zona-tensionada-20055` (zona_tensionada, ES-16-20055, 2026-04-28 → 2029-04-28)
+  - Cargado: `{"declared": true, "checked_through": "2026-07-29"}`
+  - Fuente: https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-9175
+  - Nota: Arrasate/Mondragón: zona de mercado residencial tensionado (Orden de 03/03/2026 (BOPV 49, 12/03/2026)); recogida en la resolución del Ministerio BOE-A-2026-9175, con vigencia de tres años desde el día siguiente a su publicación. Código INE comprobado en el diccionario de municipios de 2026.
+- [ ] `pais-vasco-alquiler-turistico` (regimen_alquiler_turistico, ES-16, 2025-03-19 → sin fin)
+  - Cargado: `{"regime": "Vivienda para uso turístico en Euskadi (Decreto 101/2018, modificado por el Decreto 52/2025): declaración responsable e inscripción en el Registro de Empresas y Actividades Turísticas de Euskadi", "requirements": [{"code": "declaracion-responsable", "description": "Declaración responsabl…`
+  - Fuente: https://www.euskadi.eus/bopv2/datos/2018/07/1803822a.pdf
+  - Nota: Ley 13/2016 de Turismo y Decreto 101/2018 (BOPV 143, 26/07/2018), modificado por el Decreto 52/2025 (BOPV 53, 18/03/2025; en vigor el día siguiente), que suprime la exclusión del medio rural. Se presume actividad habitual con publicidad en canales turísticos o estancias de 31 días o menos dos o más veces al año (art. 2.4). Pendiente el régimen municipal: Bilbao (modificación del Plan General de 2026), Donostia (PGOU de febrero de 2026 que impide nuevas licencias, según el censo municipal) y Vitoria-Gasteiz.
+
+**Pendiente o dudoso:**
+- GIPUZKOA: sin IRPF, alquiler, ganancia, ITP ni AJD: gipuzkoa.eus bloquea a los agentes de Anthropic. Hay que leer a mano la NF 3/2014 consolidada y sus reformas de 2025 y 2026, y la NF 18/1987 del ITP y AJD. Pistas no oficiales en el informe: escalas iguales a las de Bizkaia y Álava, ITP del 4 %.
+- BILBAO: sin IBI ni plusvalía (bilbao.eus prohíbe el acceso automático); tampoco el IBI de Donostia.
+- Amortización mínima en la ganancia (2 % anual) PROVISIONAL en Bizkaia y Álava; en Álava, por analogía con el IS de Bizkaia.
+- Coeficientes de actualización del valor de adquisición: no se modelan (la ganancia sale mayor).
+- Bonificación del 70 %: no hay definición oficial de los índices de referencia de Euskadi.
+- Deducciones familiares: se restan de la cuota general, no de toda la cuota.
+- Sopela y Urduliz (órdenes de 27/07/2026): sin regla hasta leer el Resuelvo y su resolución del BOE.
+- Escala del ahorro de Álava anterior a 2026 y régimen del alquiler anterior a 2025: sin leer.
+- Fecha de efectos del ITP del 4 % de Álava (NF 3/2025).
+- Máximos de la plusvalía de Álava y Gipuzkoa sin leer: los coeficientes de Vitoria y Donostia se limitan con los estatales.
+- Régimen municipal del alquiler turístico de Bilbao, Donostia y Vitoria-Gasteiz.

@@ -39,7 +39,8 @@ Hay dos partes:
      deducción del 60 % en el IRPF (TRLITPAJD art. 57 bis, TRLRHL art. 159.2, Ley 35/2006
      art. 68.4). Con solo el tipo legal sus planes saldrían muy por encima. Se cargaron
      después, cuando el motor ya aplicaba esas ventajas (ADR-0045).
-   - **El País Vasco y Navarra**, con su IRPF foral, que necesita antes cambios en el motor.
+   - **El País Vasco y Navarra**, con su IRPF foral, que necesitaba antes cambios en el motor.
+     Se cargaron después (ADR-0046).
 5. **Zona tensionada de parte de un municipio.** Asturias declara barrios y núcleos, no concejos
    enteros. La regla `zona_tensionada` del municipio lleva entonces `area` con el ámbito, tal
    como lo nombra la resolución, y el consejo de alquiler pide comprobar si el inmueble está

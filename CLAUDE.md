@@ -225,7 +225,8 @@ make requisitos-api  # versiones de la imagen de la API desde el entorno probado
   cuota = `monthly_payment`, entrada = `down_payment`, capacidad de compra = `affordability`,
   gastos de compra = `purchase_costs`, rentabilidad bruta = `gross_yield`,
   servicer = `servicer`, sección censal = `census_section`, regla = `Rule`.
-- Territorios con códigos INE jerárquicos: `ES`, `ES-13` (comunidad), `ES-13-28079` (municipio).
+- Territorios con códigos INE jerárquicos: `ES`, `ES-13` (comunidad), `ES-16-48` (provincia: los
+  territorios forales, ADR-0046), `ES-13-28079` (municipio).
 - Fechas en ISO 8601. Importes en euros con `Decimal`. Porcentajes en tanto por uno (0.03 = 3 %).
 - Python: tipado estricto, `dataclass(frozen=True)` para resultados, funciones puras en `engines/`.
 
