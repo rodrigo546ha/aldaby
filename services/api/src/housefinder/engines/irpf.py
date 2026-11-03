@@ -7,6 +7,10 @@ resueltos desde las reglas (`regulation/resolvers.py`).
 Cada parte (estatal y autonómica) se calcula como manda la Ley del IRPF (arts. 63.1 y 74.1):
 la escala sobre la base liquidable general menos la escala sobre la parte de la base que
 corresponde al mínimo personal y familiar (art. 56.2: como mucho, la propia base).
+
+Los IRPF forales (Navarra y los territorios históricos vascos, ADR-0046) tienen una sola escala
+y restan los mínimos de la cuota, en euros, algunos menores cuanto mayor es la base: es una sola
+parte con `quota_reduction` y `tapered`, y la otra a cero (`ZERO_PART`).
 """
 
 from __future__ import annotations
@@ -24,11 +28,35 @@ class Bracket:
 
 
 @dataclass(frozen=True)
+class TaperedDeduction:
+    """Deducción en la cuota que depende de la base: tramos lineales entre puntos (base, importe).
+
+    Por debajo del primer punto, su importe; por encima del último, el suyo.
+    """
+
+    points: tuple[tuple[Decimal, Decimal], ...]  # bases crecientes
+
+    def amount(self, base: Decimal) -> Decimal:
+        (first_base, first), *_ = self.points
+        if base <= first_base:
+            return first
+        for (b0, a0), (b1, a1) in zip(self.points, self.points[1:], strict=False):
+            if base <= b1:
+                return a0 + (a1 - a0) * (base - b0) / (b1 - b0)
+        return self.points[-1][1]
+
+
+@dataclass(frozen=True)
 class IrpfPart:
-    """Una de las dos partes de la cuota: estatal o autonómica."""
+    """Una de las dos partes de la cuota: estatal o autonómica (o la foral, que es única)."""
 
     scale: tuple[Bracket, ...]  # primer tramo desde 0, inicios crecientes
     minimum: Decimal  # mínimo personal y familiar de esta parte
+    quota_reduction: Decimal = Decimal(0)  # deducciones fijas en la cuota (forales)
+    tapered: tuple[TaperedDeduction, ...] = ()  # deducciones en la cuota que dependen de la base
+
+
+ZERO_PART = IrpfPart((Bracket(Decimal(0), Decimal(0)),), Decimal(0))  # la otra parte foral
 
 
 @dataclass(frozen=True)
@@ -66,10 +94,13 @@ def scale_tax(base: Decimal, scale: tuple[Bracket, ...]) -> Decimal:
 
 
 def part_tax(base: Decimal, part: IrpfPart) -> Decimal:
-    """Cuota de una parte, redondeada a céntimos: escala(base) − escala(mínimo, hasta la base)."""
+    """Cuota de una parte, redondeada a céntimos: escala(base) − escala(mínimo, hasta la base),
+    menos las deducciones en la cuota, sin bajar de cero."""
     if base <= 0:
         return money(0)
-    return money(scale_tax(base, part.scale) - scale_tax(min(base, part.minimum), part.scale))
+    tax = scale_tax(base, part.scale) - scale_tax(min(base, part.minimum), part.scale)
+    deductions = part.quota_reduction + sum((t.amount(base) for t in part.tapered), Decimal(0))
+    return money(max(tax - deductions, Decimal(0)))
 
 
 def income_tax(base: Decimal, profile: IncomeTaxProfile) -> Decimal:
@@ -117,3 +148,41 @@ def personal_minimum(
         if child_age < 3:
             total += amounts.under_3_extra
     return total
+
+
+@dataclass(frozen=True)
+class ForalAmounts:
+    """Deducciones personales y familiares en la cuota de un IRPF foral (ADR-0046)."""
+
+    general: Decimal  # mínimo personal o minoración de cuota
+    general_by_income: tuple[tuple[Decimal, Decimal], ...] = ()  # (base, importe), decreciente
+    age: tuple[tuple[int, Decimal], ...] = ()  # (edad mínima, importe): el de mayor edad cumplida
+    age_phaseout: tuple[Decimal, Decimal] | None = None  # base desde la que baja y en la que es 0
+    descendants: tuple[Decimal, ...] = (Decimal(0),)  # 1.º, 2.º…; el último sirve para los demás
+    young_children: tuple[tuple[int, Decimal], ...] = ()  # (menor de esta edad, importe)
+
+
+def foral_deductions(
+    amounts: ForalAmounts, age: int, descendant_ages: tuple[int, ...]
+) -> tuple[Decimal, tuple[TaperedDeduction, ...]]:
+    """Deducciones fijas y las que dependen de la base, para la edad y los descendientes.
+
+    `descendant_ages`: solo los que dan derecho a la deducción, en orden. Por cada niño cuenta
+    el primer complemento por edad que cumpla (de menor a mayor edad límite).
+    """
+    fixed = amounts.general
+    tapered: list[TaperedDeduction] = []
+    if amounts.general_by_income:
+        tapered.append(TaperedDeduction(amounts.general_by_income))
+    by_age = max((a for min_age, a in amounts.age if age >= min_age), default=Decimal(0))
+    if by_age and amounts.age_phaseout is not None:
+        start, end = amounts.age_phaseout
+        tapered.append(TaperedDeduction(((start, by_age), (end, Decimal(0)))))
+    else:
+        fixed += by_age
+    extras = sorted(amounts.young_children)
+    for i, child_age in enumerate(descendant_ages):
+        fixed += amounts.descendants[min(i, len(amounts.descendants) - 1)]
+        fixed += next((a for limit, a in extras if child_age < limit), Decimal(0))
+    return fixed, tuple(tapered)
+

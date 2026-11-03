@@ -29,6 +29,62 @@ class RateParams(RuleParams):
     rate: Fraction
 
 
+class IrpfRegime(RuleParams):
+    """Régimen del IRPF de quien reside en el territorio: común o foral (ADR-0046)."""
+
+    regime: Literal["comun", "foral"]
+
+
+class IncomePoint(RuleParams):
+    base: Amount
+    amount: Amount
+
+
+class AgeDeduction(RuleParams):
+    min_age: int = Field(ge=0)  # edad igual o superior a esta
+    amount: Amount
+
+
+class ChildExtra(RuleParams):
+    under_age: int = Field(gt=0)  # descendiente de edad inferior a esta
+    amount: Amount
+
+
+class PhaseOut(RuleParams):
+    from_base: Amount  # hasta esta base, el importe entero
+    to_base: Amount  # desde esta, cero; en medio, en línea recta
+
+    @model_validator(mode="after")
+    def _ordered(self) -> PhaseOut:
+        if self.from_base >= self.to_base:
+            raise ValueError("`from_base` debe ser menor que `to_base`")
+        return self
+
+
+class ForalDeductions(RuleParams):
+    """Deducciones personales y familiares en la cuota de un IRPF foral (ADR-0046).
+
+    `general`: mínimo personal o minoración de cuota; `general_by_income`: lo que se suma según
+    la base, en tramos lineales entre puntos; `age`: el importe de la mayor edad cumplida, que
+    con `age_phaseout` baja con la base; `descendants`: por orden, el último para los demás;
+    `young_children`: complemento del primer límite de edad que cumpla cada descendiente.
+    """
+
+    general: Amount
+    general_by_income: tuple[IncomePoint, ...] = ()
+    age: tuple[AgeDeduction, ...] = ()
+    age_phaseout: PhaseOut | None = None
+    descendants: tuple[Amount, ...] = Field(min_length=1)
+    young_children: tuple[ChildExtra, ...] = ()
+
+    @model_validator(mode="after")
+    def _ordered(self) -> ForalDeductions:
+        bases = [p.base for p in self.general_by_income]
+        if any(a >= b for a, b in zip(bases, bases[1:], strict=False)):
+            raise ValueError("las bases de `general_by_income` deben ser crecientes")
+        return self
+
+
 class GainsRateStep(RuleParams):
     from_years: int = Field(ge=0)  # años completos de tenencia desde los que rige `rate`
     rate: Fraction
@@ -429,6 +485,17 @@ KINDS: dict[str, KindSpec] = {
     ),
     "tipo_plusvalia": KindSpec(
         GainsRate, "Tipo de gravamen de la plusvalía municipal, único o por años de tenencia"
+    ),
+    # IRPF foral (ADR-0046): régimen de la residencia, escalas únicas y deducciones en la cuota
+    "regimen_irpf": KindSpec(IrpfRegime, "Régimen del IRPF de la residencia: común o foral"),
+    "escala_irpf_general_foral": KindSpec(
+        BracketScale, "Escala foral única de la base liquidable general"
+    ),
+    "escala_irpf_ahorro_foral": KindSpec(
+        BracketScale, "Escala foral única de la base liquidable del ahorro"
+    ),
+    "deducciones_cuota_irpf_foral": KindSpec(
+        ForalDeductions, "Deducciones personales y familiares en la cuota del IRPF foral"
     ),
     # Bonificaciones de la cuota por el territorio del inmueble (`rate`: parte de la cuota que se
     # bonifica). Sin regla no hay bonificación: son la excepción, no la norma (ADR-0045).

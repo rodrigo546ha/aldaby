@@ -120,3 +120,48 @@ def test_minimo_por_descendientes():
 def test_cuarto_y_siguientes():
     extra = personal_minimum(MIN_ESTATAL, 40, (20, 18, 15, 12, 9)) - Decimal(5550)
     assert extra == Decimal(2400 + 2700 + 4000 + 4500 + 4500)
+
+
+# --- IRPF foral (ADR-0046) ---------------------------------------------------------------
+
+
+def test_deduccion_que_baja_con_la_base():
+    from housefinder.engines.irpf import TaperedDeduction
+
+    # Navarra, mínimo personal por renta: 1.280 € hasta 17.500; 150 € a 30.000; 0 a 32.000
+    t = TaperedDeduction(((Decimal(17500), Decimal(1280)), (Decimal(30000), Decimal(150)),
+                          (Decimal(32000), Decimal(0))))
+    assert t.amount(Decimal(10000)) == Decimal(1280)
+    assert t.amount(Decimal(25000)) == Decimal(1280) - Decimal("0.0904") * 7500  # 602
+    assert t.amount(Decimal(31000)) == Decimal(75)
+    assert t.amount(Decimal(40000)) == Decimal(0)
+
+
+def test_deducciones_forales_por_edad_y_descendientes():
+    from housefinder.engines.irpf import ForalAmounts, foral_deductions
+
+    amounts = ForalAmounts(
+        general=Decimal(1615),
+        age=((66, Decimal(393)), (76, Decimal(714))),
+        age_phaseout=(Decimal(20000), Decimal(30000)),
+        descendants=(Decimal(682), Decimal(844), Decimal(1421)),
+        young_children=((6, Decimal(394)),),
+    )
+    fixed, tapered = foral_deductions(amounts, 40, (4, 8, 10, 12))
+    # 1.615 + 682 + 844 + 1.421 + 1.421 (el último sirve para los demás) + 394 (menor de 6)
+    assert fixed == Decimal(6377) and tapered == ()
+    fixed, tapered = foral_deductions(amounts, 70, ())
+    assert fixed == Decimal(1615)
+    assert tapered[0].amount(Decimal(25000)) == Decimal("196.5")  # 393 − 0,0393 × 5.000
+
+
+def test_cuota_foral_con_minoracion_sin_bajar_de_cero():
+    from housefinder.engines.irpf import ZERO_PART
+
+    scale = (Bracket(Decimal(0), Decimal("0.23")), Bracket(Decimal(18080), Decimal("0.28")))
+    profile = IncomeTaxProfile(other_base=Decimal(30000),
+                               state=IrpfPart(scale, Decimal(0), Decimal(1615)),
+                               regional=ZERO_PART)
+    # 18.080 × 23 % + 11.920 × 28 % = 7.496,00 − 1.615 = 5.881,00
+    assert income_tax(Decimal(30000), profile) == Decimal("5881.00")
+    assert income_tax(Decimal(5000), profile) == Decimal("0.00")  # 1.150 − 1.615 → 0

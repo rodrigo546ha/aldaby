@@ -17,10 +17,14 @@ from decimal import Decimal
 from housefinder.core.figures import Figure, SourceRef, combine_sources, money
 from housefinder.engines.cashflow import TaxParams
 from housefinder.engines.irpf import (
+    ZERO_PART,
     Bracket,
+    ForalAmounts,
     IncomeTaxProfile,
     IrpfPart,
     MinimumAmounts,
+    TaperedDeduction,
+    foral_deductions,
     personal_minimum,
     scale_tax,
 )
@@ -28,7 +32,9 @@ from housefinder.regulation.kinds import (
     RENTAL_TYPES,
     BracketScale,
     DescendantsMinimum,
+    ForalDeductions,
     InterestRepairLimit,
+    IrpfRegime,
     LeaseExtension,
     RateParams,
     ReductionCases,
@@ -239,6 +245,19 @@ def income_tax_profile(
     heredar la estatal) y sus mínimos (heredando los estatales si no los ha sustituido).
     `descendant_ages`: solo los descendientes que dan derecho al mínimo, en orden.
     """
+    regime, regime_refs = irpf_regime(book, residence, tax_year, allow_unverified)
+    if regime == "foral":
+        foral_scale = _rule(book, "escala_irpf_general_foral", residence, tax_year, False,
+                            allow_unverified)
+        fixed, tapered, deduction_refs = _foral_deductions(book, residence, tax_year, age,
+                                                           descendant_ages, allow_unverified)
+        return IncomeTaxProfile(
+            other_base=other_base,
+            state=IrpfPart(_scale(foral_scale), Decimal(0), fixed, tapered),
+            regional=ZERO_PART,
+            sources=combine_sources(other_base_sources, regime_refs, (foral_scale.ref,),
+                                    deduction_refs),
+        )
     state_scale = _rule(book, "escala_irpf_general_estatal", "ES", tax_year, False,
                         allow_unverified)
     regional_scale = _rule(book, "escala_irpf_general_autonomica", residence, tax_year, False,
@@ -258,6 +277,45 @@ def income_tax_profile(
             regional_refs,
         ),
     )
+
+
+def irpf_regime(
+    book: RuleBook, residence: str, on: date, allow_unverified: bool = False
+) -> tuple[str, tuple[SourceRef, ...]]:
+    """«comun» o «foral» según la residencia; sin regla, el común (ADR-0046)."""
+    rule = book.resolve("regimen_irpf", residence, on, False, allow_unverified)
+    if rule is None:
+        return "comun", ()
+    params = parse_params(rule.kind, rule.params)
+    if not isinstance(params, IrpfRegime):
+        raise TypeError(f"{rule.id}: se esperaba un régimen del IRPF")
+    return params.regime, (rule.ref,)
+
+
+def _foral_deductions(
+    book: RuleBook,
+    residence: str,
+    tax_year: date,
+    age: int,
+    descendant_ages: tuple[int, ...],
+    allow_unverified: bool,
+) -> tuple[Decimal, tuple[TaperedDeduction, ...], tuple[SourceRef, ...]]:
+    rule = _rule(book, "deducciones_cuota_irpf_foral", residence, tax_year, False,
+                 allow_unverified)
+    p = parse_params(rule.kind, rule.params)
+    if not isinstance(p, ForalDeductions):
+        raise TypeError(f"{rule.id}: se esperaban deducciones forales")
+    amounts = ForalAmounts(
+        general=p.general,
+        general_by_income=tuple((i.base, i.amount) for i in p.general_by_income),
+        age=tuple((a.min_age, a.amount) for a in p.age),
+        age_phaseout=(None if p.age_phaseout is None
+                      else (p.age_phaseout.from_base, p.age_phaseout.to_base)),
+        descendants=p.descendants,
+        young_children=tuple((c.under_age, c.amount) for c in p.young_children),
+    )
+    fixed, tapered = foral_deductions(amounts, age, descendant_ages)
+    return fixed, tapered, (rule.ref,)
 
 
 def _minimum(

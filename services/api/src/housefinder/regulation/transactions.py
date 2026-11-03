@@ -17,7 +17,7 @@ from typing import Literal
 
 from housefinder.core.dated import province_of
 from housefinder.core.figures import Figure, SourceRef, combine_sources, money
-from housefinder.engines.irpf import IncomeTaxProfile, IrpfPart
+from housefinder.engines.irpf import ZERO_PART, IncomeTaxProfile, IrpfPart
 from housefinder.engines.taxes import (
     FeeBand,
     FeeSchedule,
@@ -39,6 +39,7 @@ from housefinder.regulation.resolvers import (
     _rate,
     _rule,
     _scale,
+    irpf_regime,
     purchase_tax,
     tax_rebate,
     with_rebate,
@@ -224,6 +225,17 @@ def savings_tax_profile(
     ahorro solo llega lo que sobra. Sin la base general, se supone que la base general lo
     absorbe entero, y se cita como supuesto.
     """
+    regime, regime_refs = irpf_regime(book, residence, tax_year, allow_unverified)
+    if regime == "foral":
+        # Escala única y sin mínimos: las deducciones forales van en la cuota general (ADR-0046)
+        foral_scale = _rule(book, "escala_irpf_ahorro_foral", residence, tax_year, False,
+                            allow_unverified)
+        return IncomeTaxProfile(
+            other_base=other_savings_base,
+            state=IrpfPart(_scale(foral_scale), Decimal(0)),
+            regional=ZERO_PART,
+            sources=combine_sources(sources, regime_refs, (foral_scale.ref,)),
+        )
     state_scale = _rule(book, "escala_irpf_ahorro_estatal", "ES", tax_year, False,
                         allow_unverified)
     regional_scale = _rule(book, "escala_irpf_ahorro_autonomica", residence, tax_year, False,
