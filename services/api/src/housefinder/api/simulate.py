@@ -36,7 +36,7 @@ from housefinder.regulation.kinds import RentalFacts
 from housefinder.valuation.scenarios import NoScenarios
 
 from .deps import ParamBookDep, RuleBookDep, ScenarioFinderDep
-from .figures import FigureOut, SourceOut, figure_out
+from .figures import FigureOut, SeriesOut, SourceOut, figure_out, series_out
 
 router = APIRouter(prefix="/simulate", tags=["simuladores"])
 
@@ -255,6 +255,9 @@ class InvestmentResponse(BaseModel):
     pending_scenario: ScenarioOut
     warnings: list[str]
     appreciation_notes: list[str] = []  # de dónde salen los escenarios, si se usaron
+    # Para las gráficas (ADR-0050): año a año y el primer año por partes, en €/año
+    series: list[SeriesOut] = []
+    breakdown: list[FigureOut] = []
 
 
 def _with_scenarios(inp: SimulationInput, find: ScenarioFinderDep,
@@ -303,6 +306,8 @@ def simulate_investment(
     comparison = sim.comparison
     return InvestmentResponse(
         figures={f.key: figure_out(f) for f in (*sim.figures(), *extra)},
+        series=[series_out(x) for x in sim.series],
+        breakdown=[figure_out(f) for f in sim.cashflow.breakdown],
         within_budget=sim.within_budget,
         binding_constraint=sim.affordability.binding_constraint,
         term_feasible=sim.term.feasible,

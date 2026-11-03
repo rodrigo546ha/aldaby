@@ -47,7 +47,7 @@ de alquiler, gestión activa o pasiva, pruebas de estrés, escenarios normativos
 apps/web/                 Next.js (App Router, TypeScript): interfaz
 services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, agente
   src/housefinder/
-    core/figures.py       Figure, SourceRef, money() y ratio(): trazabilidad de cifras
+    core/figures.py       Figure, Series (año a año, ADR-0050), SourceRef, money() y ratio(): trazabilidad de cifras
     core/dated.py         lector común de registros con fecha y territorio
     engines/mortgage.py   cuota, amortización, capacidad, estrés, comparación fija/variable/mixta
     engines/rates.py      trayectoria del índice (RatePath) y condiciones de tipo

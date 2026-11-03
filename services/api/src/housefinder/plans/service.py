@@ -12,7 +12,7 @@ from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
-from housefinder.core.figures import Figure
+from housefinder.core.figures import Figure, Series
 from housefinder.db.connection import Connection
 from housefinder.db.offers import rent_expectations, search_candidate
 from housefinder.engines.rates import MortgageTerms
@@ -66,6 +66,9 @@ class FullPlan:
     cheapest_mortgage: str | None  # etiqueta con menos intereses esperados
     safest_mortgage: str | None  # etiqueta con la menor cuota máxima en estrés
     notes: tuple[str, ...]
+    # Para las gráficas (ADR-0050); fuera de las secciones y del agente
+    series: tuple[Series, ...] = ()
+    breakdown: tuple[Figure, ...] = ()
 
     def figures(self) -> tuple[Figure, ...]:
         """Todas las cifras del plan, cada clave una vez (las del agente y la web)."""
@@ -173,7 +176,7 @@ def full_plan(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserP
         scored.verdict, _sections(figures), advice, found, steps, pending,
         comparison.cheapest_expected if comparison else None,
         comparison.lowest_stressed_payment if comparison else None,
-        (*scored.notes, *notes))
+        (*scored.notes, *notes), plan.series, plan.cashflow.breakdown)
     # Un fallo de coherencia es un error del programa: el plan lo avisa (ADR-0027)
     issues = check_plan(result)
     if issues:

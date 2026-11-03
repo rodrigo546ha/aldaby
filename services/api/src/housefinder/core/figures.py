@@ -83,3 +83,37 @@ class Figure:
             "low": str(self.low) if self.low is not None else None,
             "high": str(self.high) if self.high is not None else None,
         }
+
+
+@dataclass(frozen=True)
+class Series:
+    """Una cifra año a año (ADR-0050): cada punto sale del mismo motor que la cifra equivalente."""
+
+    key: str  # "dominio.nombre": "mortgage.balance_by_year"
+    unit: str  # unidad del valor: "EUR", "EUR/año"
+    points: tuple[tuple[int, Decimal], ...]  # (año, valor); el año 0 es la compra
+    formula: str
+    sources: tuple[SourceRef, ...] = field(default_factory=tuple)
+    x_unit: str = "año"
+
+    def __post_init__(self) -> None:
+        if "." not in self.key:
+            raise ValueError(f"La clave de una serie debe tener dominio: {self.key!r}")
+        years = [x for x, _ in self.points]
+        if years != sorted(set(years)):
+            raise ValueError(f"Los años de {self.key} deben ir en orden y sin repetir")
+
+    @property
+    def provisional(self) -> bool:
+        return any(ref.provisional for ref in self.sources)
+
+    def to_dict(self) -> dict:
+        return {
+            "key": self.key,
+            "unit": self.unit,
+            "x_unit": self.x_unit,
+            "points": [{"x": x, "y": str(y)} for x, y in self.points],
+            "formula": self.formula,
+            "sources": [ref.to_dict() for ref in self.sources],
+            "provisional": self.provisional,
+        }

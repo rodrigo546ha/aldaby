@@ -74,6 +74,7 @@ export const LABELS: Record<string, string> = {
   "cashflow.gross_yield": "Rentabilidad bruta",
   "cashflow.annual_operating": "Cash flow antes de impuestos",
   "cashflow.annual_tax": "IRPF por el alquiler",
+  "cashflow.annual_after_tax": "Cash flow del año tras impuestos",
   "cashflow.monthly_after_tax": "Cash flow tras impuestos",
   "cashflow.cash_invested": "Dinero aportado",
   "cashflow.cash_on_cash": "Cash-on-cash",

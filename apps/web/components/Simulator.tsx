@@ -242,14 +242,17 @@ const GROUPS: { title: string; keys: string[]; summary: string[]; topic?: string
   {
     title: "Hipoteca",
     summary: ["mortgage.monthly_payment"],
+    topic: "hipoteca",
     keys: ["financing.loan", "financing.years", "mortgage.monthly_payment", "mortgage.stressed_payment"],
   },
   {
     title: "Primer año de alquiler",
+    topic: "explotacion",
     summary: ["cashflow.monthly_after_tax", "cashflow.gross_yield"],
     keys: [
       "cashflow.gross_yield", "holding_costs.ibi_annual", "cashflow.annual_operating",
-      "cashflow.annual_tax", "cashflow.monthly_after_tax", "cashflow.cash_on_cash",
+      "cashflow.annual_tax", "cashflow.annual_after_tax", "cashflow.monthly_after_tax",
+      "cashflow.cash_on_cash",
     ],
   },
   {
@@ -452,7 +455,9 @@ function Results({ result }: { result: InvestmentResponse }) {
             figures={group.keys.filter((k) => f[k]).map((k) => f[k])}
             keys={group.summary}
           >
-            {group.topic && <TopicCharts topic={group.topic} figures={figures} />}
+            {group.topic && (
+              <TopicCharts topic={group.topic} figures={figures} series={result.series} breakdown={result.breakdown} />
+            )}
           </FigureBlock>
         ))}
       </div>

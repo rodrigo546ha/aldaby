@@ -215,3 +215,48 @@ def test_regimen_navarro_todos_los_gastos_hasta_los_ingresos():
     res = compute_cashflow(replace(INV, first_year_interest=Decimal(9000)), RENT, navarro)
     assert res.annual_tax.value == Decimal("0.00")
     assert res.pending_excess == (PendingExcess(Decimal("2423.00"), 4),)
+
+
+def test_desglose_del_primer_ano_calculado_a_mano():
+    # ADR-0050. Con los mismos datos que el cash-on-cash, en €/año y los gastos en negativo:
+    #   renta 900 × 12 = 10.800; vacío 5 % = −540; comunidad 60 × 12 = −720; IBI −300;
+    #   seguros −350; gestión 0; mantenimiento 5 % de 10.260 cobrados = −513;
+    #   intereses −3.100; capital 442,68 × 12 − 3.100 = −2.212,16; IRPF −521,55
+    #   total = 3.064,84 de cash flow operativo − 521,55 de impuesto = 2.543,29
+    res = compute_cashflow(INV, RENT, TAX)
+    by = {f.key: f.value for f in res.breakdown}
+    assert by == {
+        "cashflow.breakdown.rent": Decimal("10800.00"),
+        "cashflow.breakdown.vacancy": Decimal("-540.00"),
+        "cashflow.breakdown.management": Decimal("0.00"),
+        "cashflow.breakdown.community": Decimal("-720.00"),
+        "cashflow.breakdown.ibi": Decimal("-300.00"),
+        "cashflow.breakdown.insurance": Decimal("-350.00"),
+        "cashflow.breakdown.maintenance": Decimal("-513.00"),
+        "cashflow.breakdown.interest": Decimal("-3100.00"),
+        "cashflow.breakdown.principal": Decimal("-2212.16"),
+        "cashflow.breakdown.tax": Decimal("-521.55"),
+    }
+    assert res.annual_after_tax.key == "cashflow.annual_after_tax"
+    assert res.annual_after_tax.value == Decimal("2543.29")
+    assert sum(by.values()) == res.annual_after_tax.value
+    assert all(f.unit == "EUR/año" for f in (*res.breakdown, res.annual_after_tax))
+
+
+def test_el_desglose_cita_las_fuentes_de_cada_parte():
+    res = compute_cashflow(INV, RENT, TAX)
+    by = {f.key: f for f in res.breakdown}
+    assert RENTA in by["cashflow.breakdown.rent"].sources
+    assert OFERTA in by["cashflow.breakdown.interest"].sources
+    assert REGLA in by["cashflow.breakdown.tax"].sources
+    assert REGLA in res.annual_after_tax.sources
+
+
+def test_un_ahorro_fiscal_suma_en_el_desglose():
+    # Rendimiento negativo con cuota incremental: el impuesto es negativo y en el desglose suma
+    cara = replace(INV, first_year_interest=Decimal(9000))
+    res = compute_cashflow(cara, RENT, TAX_INCREMENTAL)
+    tax = next(f for f in res.breakdown if f.key == "cashflow.breakdown.tax")
+    assert tax.value == -res.annual_tax.value
+    assert res.annual_after_tax.value == (res.annual_operating_cashflow.value
+                                          - res.annual_tax.value)

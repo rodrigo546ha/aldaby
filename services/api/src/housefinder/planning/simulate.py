@@ -25,8 +25,13 @@ from dataclasses import dataclass, field, replace
 from datetime import date
 from decimal import Decimal
 
-from housefinder.core.figures import Figure, SourceRef, combine_sources, money, ratio
-from housefinder.engines.cashflow import CashflowResult, InvestmentInputs, RentalAssumptions
+from housefinder.core.figures import Figure, Series, SourceRef, combine_sources, money, ratio
+from housefinder.engines.cashflow import (
+    CashflowResult,
+    InvestmentInputs,
+    RentalAssumptions,
+    TaxParams,
+)
 from housefinder.engines.irpf import IncomeTaxProfile
 from housefinder.engines.irr import (
     IrrResult,
@@ -39,10 +44,12 @@ from housefinder.engines.mortgage import (
     BuyerFinances,
     MortgageComparison,
     affordability,
+    amortization_schedule,
     compare_mortgages,
     first_year_interest,
     monthly_payment,
     stressed_payment,
+    yearly_amortization,
 )
 from housefinder.engines.rates import MortgageTerms
 from housefinder.engines.taxes import municipal_gains_tax
@@ -195,6 +202,7 @@ class InvestmentSimulation:
     comparison: MortgageComparison | None
     warnings: tuple[str, ...] = field(default_factory=tuple)
     irr_alternatives: tuple[Figure, ...] = ()  # TIR de los otros escenarios (irr.rate_<nombre>)
+    series: tuple[Series, ...] = ()  # año a año, para las gráficas (ADR-0050)
 
     def figures(self) -> tuple[Figure, ...]:
         """Todas las cifras del plan, cada clave una vez."""
@@ -205,7 +213,7 @@ class InvestmentSimulation:
             self.loan, self.loan_years, self.monthly_payment, self.stressed_payment,
             self.ibi_annual,
             c.gross_yield, c.annual_operating_cashflow, c.annual_tax,
-            c.monthly_cashflow_after_tax, c.cash_invested, c.cash_on_cash,
+            c.annual_after_tax, c.monthly_cashflow_after_tax, c.cash_invested, c.cash_on_cash,
             t.years, t.stressed_monthly_payment, t.stressed_monthly_cashflow,
             self.irr.sale_price,
         ]
@@ -399,6 +407,8 @@ def simulate(
         if alt_irr is not None:
             alternatives.append(replace(alt_irr, key=f"irr.rate_{alt.name}"))
 
+    series = _series(investment, rent, tax, fin.annual_rate, years, exit_, loan.sources)
+
     # 7. Comparación de ofertas.
     comparison = None
     if fin.alternatives:
@@ -424,9 +434,49 @@ def simulate(
         irr=irr,
         comparison=comparison,
         irr_alternatives=tuple(alternatives),
+        series=series,
     )
     return replace(sim, warnings=(*zone_warnings,
                                   *_warnings(sim, inp, criteria.max_ltv, max_years)))
+
+
+def _series(investment: InvestmentInputs, rent: RentalAssumptions, tax: TaxParams,
+            annual_rate: Decimal, loan_years: int, exit_: ExitInput,
+            loan_sources: tuple[SourceRef, ...]) -> tuple[Series, ...]:
+    """Lo que el plan calcula año a año, para dibujarlo sin calcular nada en la web (ADR-0050)."""
+    result: list[Series] = []
+    if investment.loan > 0:
+        years = yearly_amortization(amortization_schedule(investment.loan, annual_rate, loan_years))
+        sources = combine_sources(loan_sources, (FINANCING,))
+        terms = f"cuota francesa con tipo {annual_rate} a {loan_years} años"
+        result += [
+            Series("mortgage.balance_by_year", "EUR",
+                   ((0, investment.loan), *((y.year, y.balance) for y in years)),
+                   f"capital pendiente al acabar cada año; {terms}", sources),
+            Series("mortgage.interest_by_year", "EUR/año",
+                   tuple((y.year, y.interest) for y in years),
+                   f"intereses de las cuotas de cada año; {terms}", sources),
+            Series("mortgage.principal_by_year", "EUR/año",
+                   tuple((y.year, y.principal) for y in years),
+                   f"capital amortizado con las cuotas de cada año; {terms}", sources),
+        ]
+    flows = yearly_cashflows(investment, rent, tax, annual_rate, loan_years, exit_.horizon_years)
+    first = flows[0].annual_after_tax
+    result.append(Series(
+        "cashflow.after_tax_by_year", "EUR/año",
+        tuple((year, f.annual_after_tax.value) for year, f in enumerate(flows, start=1)),
+        "cash flow operativo − impuesto de cada año, con las cuotas e intereses del cuadro y "
+        "el exceso de intereses que pasa de un año a otro", first.sources))
+    scenarios = [("", exit_.appreciation_rate, exit_.appreciation_sources),
+                 *((f"_{a.name}", a.rate, a.sources) for a in exit_.alternatives)]
+    for suffix, rate, sources in scenarios:
+        result.append(Series(
+            f"valuation.price_by_year{suffix}", "EUR",
+            tuple((t, projected_sale_price(investment.price, rate, t))
+                  for t in range(exit_.horizon_years + 1)),
+            f"precio × (1 + revalorización {rate})^año",
+            combine_sources((PROPERTY,), sources)))
+    return tuple(result)
 
 
 def _zone_fact(

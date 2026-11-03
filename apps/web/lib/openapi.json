@@ -4286,6 +4286,22 @@
             "type": "array",
             "title": "Appreciation Notes",
             "default": []
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesOut"
+            },
+            "type": "array",
+            "title": "Series",
+            "default": []
+          },
+          "breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "array",
+            "title": "Breakdown",
+            "default": []
           }
         },
         "type": "object",
@@ -5303,6 +5319,22 @@
             },
             "type": "array",
             "title": "Notes"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesOut"
+            },
+            "type": "array",
+            "title": "Series",
+            "default": []
+          },
+          "breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "type": "array",
+            "title": "Breakdown",
+            "default": []
           }
         },
         "type": "object",
@@ -5324,6 +5356,24 @@
           "notes"
         ],
         "title": "PlanOut"
+      },
+      "PointOut": {
+        "properties": {
+          "x": {
+            "type": "integer",
+            "title": "X"
+          },
+          "y": {
+            "type": "string",
+            "title": "Y"
+          }
+        },
+        "type": "object",
+        "required": [
+          "x",
+          "y"
+        ],
+        "title": "PointOut"
       },
       "ProfileOut": {
         "properties": {
@@ -6163,6 +6213,56 @@
           "kind"
         ],
         "title": "SegmentOut"
+      },
+      "SeriesOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "x_unit": {
+            "type": "string",
+            "title": "X Unit"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/PointOut"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "formula": {
+            "type": "string",
+            "title": "Formula"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceOut"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "provisional": {
+            "type": "boolean",
+            "title": "Provisional"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "unit",
+          "x_unit",
+          "points",
+          "formula",
+          "sources",
+          "provisional"
+        ],
+        "title": "SeriesOut",
+        "description": "Una cifra año a año (ADR-0050), con fórmula y fuentes como una cifra."
       },
       "SkippedOut": {
         "properties": {

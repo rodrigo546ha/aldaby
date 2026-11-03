@@ -119,3 +119,19 @@ def test_estres_sube_la_cuota():
     assert stressed.value > base
     assert stressed.key == "mortgage.stressed_payment"
     assert SourceRef("assumption", "escenario-estres") in stressed.sources
+
+
+def test_cuadro_por_anos():
+    # ADR-0050: el cuadro mensual resumido por años para la serie de la hipoteca
+    rows = m.amortization_schedule(Decimal(150000), Decimal("0.035"), 25)
+    years = m.yearly_amortization(rows)
+    assert [y.year for y in years] == list(range(1, 26))
+    assert years[0].interest == m.first_year_interest(Decimal(150000), Decimal("0.035"), 25)
+    assert years[0].balance == rows[11].balance
+    assert years[0].principal == sum((r.principal for r in rows[:12]), Decimal(0))
+    assert sum((y.principal for y in years), Decimal(0)) == Decimal(150000)
+    assert years[-1].balance == 0
+
+
+def test_cuadro_por_anos_sin_prestamo():
+    assert m.yearly_amortization([]) == []

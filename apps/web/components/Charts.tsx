@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
+import type { components } from "../lib/api-types";
 import { formatValue, type FigureOut } from "../lib/format";
+
+type SeriesOut = components["schemas"]["SeriesOut"];
 
 // Gráficas del plan (ADR-0048): cada tramo, barra o punto lleva la cifra de la API como etiqueta; aquí
 // solo se calculan posiciones y longitudes. Si falta una cifra, la gráfica no se dibuja.
@@ -302,9 +305,196 @@ export function LineChart({
   );
 }
 
+/**
+ * Cascada: de un primer importe a un total, parte a parte (ADR-0050). Cada barra flota entre lo
+ * acumulado antes y después; el total es una cifra de la API, no la suma que hace la web.
+ */
+export function Waterfall({
+  title,
+  parts,
+  total,
+}: {
+  title: string;
+  parts: { title: string; note?: string; figure: FigureOut; tone: number }[];
+  total: { title: string; figure: FigureOut };
+}) {
+  const shown = parts.filter((p) => n(p.figure) !== 0);
+  if (shown.length < 2) return null;
+  const steps: { from: number; to: number }[] = [];
+  let at = 0;
+  for (const p of shown) {
+    steps.push({ from: at, to: at + n(p.figure) });
+    at += n(p.figure);
+  }
+  const ends = [0, n(total.figure), ...steps.map((x) => x.to)];
+  const lo = Math.min(...ends);
+  const hi = Math.max(...ends);
+  if (!(hi > lo)) return null;
+  const pos = (v: number) => ((v - lo) / (hi - lo)) * 100;
+  const bar = (from: number, to: number) => ({
+    left: `${pos(Math.min(from, to))}%`,
+    width: `${Math.max(pos(Math.max(from, to)) - pos(Math.min(from, to)), 0.4)}%`,
+  });
+  const summary = [...shown.map((p) => `${p.title}: ${text(p.figure)}`), `${total.title}: ${text(total.figure)}`].join(". ");
+  return (
+    <Chart title={title} summary={summary}>
+      <div className="waterfall" style={{ "--zero": `${pos(0)}%` } as CSSProperties}>
+        {shown.map((p, i) => (
+          <div key={p.title} className="waterfall-row">
+            <span className="chart-row-label">
+              {p.title}
+              {p.note && <span className="chart-note">{p.note}</span>}
+            </span>
+            <div className="waterfall-track">
+              <span className={`bar tone-${p.tone}`} style={{ ...bar(steps[i].from, steps[i].to), ...delay(i) }} />
+            </div>
+            <span className="chart-value">{text(p.figure)}</span>
+          </div>
+        ))}
+        <div className="waterfall-row total">
+          <span className="chart-row-label">{total.title}</span>
+          <div className="waterfall-track">
+            <span className="bar total" style={{ ...bar(0, n(total.figure)), ...delay(shown.length) }} />
+          </div>
+          <span className="chart-value">{text(total.figure)}</span>
+        </div>
+      </div>
+    </Chart>
+  );
+}
+
+/** Una o varias series año a año sobre el mismo eje; la principal, más gruesa y en latón. */
+export function SeriesLines({
+  title,
+  lines,
+}: {
+  title: string;
+  lines: { label: string; series: SeriesOut | undefined; main?: boolean }[];
+}) {
+  const shown = lines.filter((l): l is { label: string; series: SeriesOut; main?: boolean } =>
+    Boolean(l.series && l.series.points.length >= 2));
+  if (shown.length === 0) return null;
+  const all = shown.flatMap((l) => l.series.points);
+  const xs = all.map((p) => p.x);
+  const ys = all.map((p) => Number(p.y));
+  const x0 = Math.min(...xs);
+  const x1 = Math.max(...xs);
+  // En una línea el eje no empieza en cero: se ajusta a los datos con un margen. El cero se marca
+  // solo si cae dentro, para que se vea cuándo una serie es negativa.
+  const lowest = Math.min(...ys);
+  const highest = Math.max(...ys);
+  const margin = (highest - lowest || Math.abs(highest) || 1) * 0.12;
+  const y0 = lowest - margin;
+  const y1 = highest + margin;
+  if (!(x1 > x0)) return null;
+  const hasZero = y0 < 0 && y1 > 0;
+  const px = (v: number) => 2 + ((v - x0) / (x1 - x0)) * 96;
+  const py = (v: number) => 6 + (1 - (v - y0) / (y1 - y0)) * 88;
+  const fmt = (s: SeriesOut, y: string) => formatValue(y, s.unit);
+  const summary = shown
+    .map((l) => {
+      const first = l.series.points[0];
+      const last = l.series.points[l.series.points.length - 1];
+      return `${l.label}: ${fmt(l.series, first.y)} el año ${first.x} y ${fmt(l.series, last.y)} el año ${last.x}`;
+    })
+    .join(". ");
+  const unit = shown[0].series.unit;
+  return (
+    <Chart title={title} summary={summary}>
+      <div className="line-area">
+        <svg className="line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          {hasZero && (
+            <line className="axis-zero" x1={0} x2={100} y1={py(0)} y2={py(0)} vectorEffect="non-scaling-stroke" />
+          )}
+          {shown.map((l, k) => (
+            <path
+              key={l.label}
+              d={l.series.points.map((p, j) => `${j ? "L" : "M"}${px(p.x).toFixed(2)},${py(Number(p.y)).toFixed(2)}`).join(" ")}
+              className={`line tone-${l.main ? 2 : k === 0 ? 1 : 3}${l.main ? " main" : ""}`}
+              vectorEffect="non-scaling-stroke"
+            />
+          ))}
+        </svg>
+        {hasZero && (
+          <span className="axis-zero-label" style={{ top: `${py(0)}%` }}>
+            {formatValue("0", unit)}
+          </span>
+        )}
+        {shown.map((l, k) => {
+          const last = l.series.points[l.series.points.length - 1];
+          return (
+            <span
+              key={l.label}
+              className={`line-dot pass tone-${l.main ? 2 : k === 0 ? 1 : 3}`}
+              style={{ left: `${px(last.x)}%`, top: `${py(Number(last.y))}%` }}
+            />
+          );
+        })}
+      </div>
+      <div className="line-axis">
+        <span>Año {x0}</span>
+        <span>Año {x1}</span>
+      </div>
+      <div className="chart-legend">
+        {shown.map((l, k) => {
+          const first = l.series.points[0];
+          const last = l.series.points[l.series.points.length - 1];
+          return (
+            <span key={l.label} className="legend-item">
+              <span className={`swatch line tone-${l.main ? 2 : k === 0 ? 1 : 3}`} aria-hidden="true" />
+              {l.label} <strong>{fmt(l.series, first.y)}</strong> → <strong>{fmt(l.series, last.y)}</strong>
+            </span>
+          );
+        })}
+      </div>
+    </Chart>
+  );
+}
+
+const BREAKDOWN: { key: string; title: string; note?: string; tone: number }[] = [
+  { key: "rent", title: "Renta del año", tone: 1 },
+  { key: "vacancy", title: "Meses vacío", tone: 2 },
+  { key: "management", title: "Gestión", tone: 2 },
+  { key: "community", title: "Comunidad", tone: 2 },
+  { key: "ibi", title: "IBI", tone: 2 },
+  { key: "insurance", title: "Seguros", tone: 2 },
+  { key: "maintenance", title: "Mantenimiento", tone: 2 },
+  { key: "interest", title: "Intereses de la hipoteca", tone: 2 },
+  { key: "principal", title: "Capital que amortizas", note: "sale de tu bolsillo, pero se queda en el piso", tone: 3 },
+  { key: "tax", title: "IRPF del alquiler", tone: 2 },
+];
+
 /** Las gráficas de un tema del plan o del simulador, con las cifras que haya de ese tema. */
-export function TopicCharts({ topic, figures }: { topic: string; figures: Map<string, FigureOut> }) {
+export function TopicCharts({
+  topic,
+  figures,
+  series = [],
+  breakdown = [],
+}: {
+  topic: string;
+  figures: Map<string, FigureOut>;
+  series?: SeriesOut[];
+  breakdown?: FigureOut[];
+}) {
   const get = (k: string) => figures.get(k);
+  const line = (k: string) => series.find((s) => s.key === k);
+  if (topic === "explotacion") {
+    const total = get("cashflow.annual_after_tax");
+    const parts = BREAKDOWN.flatMap((b) => {
+      const f = breakdown.find((x) => x.key === `cashflow.breakdown.${b.key}`);
+      // Un ahorro de IRPF suma: se pinta como ingreso
+      return f ? [{ title: b.title, note: b.note, figure: f, tone: b.key === "tax" && Number(f.value) > 0 ? 1 : b.tone }] : [];
+    });
+    return (
+      <>
+        {total && <Waterfall title="El primer año, de la renta a lo que te queda" parts={parts} total={{ title: "Te queda en el año", figure: total }} />}
+        <SeriesLines
+          title="Tu cash flow tras impuestos, año a año"
+          lines={[{ label: "Cash flow del año", series: line("cashflow.after_tax_by_year"), main: true }]}
+        />
+      </>
+    );
+  }
   const seg = (title: string, k: string): Segment[] => {
     const f = get(k);
     return f ? [{ title, figure: f }] : [];
@@ -354,6 +544,18 @@ export function TopicCharts({ topic, figures }: { topic: string; figures: Map<st
       return a && b ? [{ title, a, b }] : [];
     };
     return (
+      <>
+      <SeriesLines
+        title="Lo que debes al banco al acabar cada año"
+        lines={[{ label: "Capital pendiente", series: line("mortgage.balance_by_year"), main: true }]}
+      />
+      <SeriesLines
+        title="Lo que pagas cada año: intereses y capital"
+        lines={[
+          { label: "Intereses", series: line("mortgage.interest_by_year") },
+          { label: "Capital", series: line("mortgage.principal_by_year"), main: true },
+        ]}
+      />
       <PairedBars
         title="Hipoteca fija frente a variable"
         names={["Fija", "Variable"]}
@@ -363,6 +565,7 @@ export function TopicCharts({ topic, figures }: { topic: string; figures: Map<st
           ...pair("Intereses en toda la hipoteca", "expected_total_interest"),
         ]}
       />
+      </>
     );
   }
   if (topic === "venta") {
@@ -374,7 +577,19 @@ export function TopicCharts({ topic, figures }: { topic: string; figures: Map<st
       const f = get(x.key);
       return f ? [{ title: x.title, figure: f, main: x.main }] : [];
     });
-    return <ScenarioStrip title="Rentabilidad anual (TIR) según cómo evolucione el precio" items={items} />;
+    return (
+      <>
+        <SeriesLines
+          title="El precio del piso año a año, en cada escenario"
+          lines={[
+            { label: "Conservador", series: line("valuation.price_by_year_conservative") },
+            { label: "Base", series: line("valuation.price_by_year"), main: true },
+            { label: "Optimista", series: line("valuation.price_by_year_optimistic") },
+          ]}
+        />
+        <ScenarioStrip title="Rentabilidad anual (TIR) según cómo evolucione el precio" items={items} />
+      </>
+    );
   }
   return null;
 }

@@ -24,7 +24,7 @@ from housefinder.api.deps import (
     check_full_plan,
     is_particular,
 )
-from housefinder.api.figures import FigureOut, figure_out
+from housefinder.api.figures import FigureOut, SeriesOut, figure_out, series_out
 from housefinder.api.search import RentalAdviceOut, advice_out
 from housefinder.branding import service as branding
 from housefinder.crypto.envelope import KeyProvider
@@ -87,6 +87,9 @@ class PlanOut(BaseModel):
     cheapest_mortgage: str | None
     safest_mortgage: str | None
     notes: list[str]
+    # Para las gráficas (ADR-0050): año a año y el primer año por partes, en €/año
+    series: list[SeriesOut] = []
+    breakdown: list[FigureOut] = []
 
 
 class SegmentOut(BaseModel):
@@ -123,7 +126,8 @@ def offer_plan(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: Cl
                                    scenario=figure_out(c.scenario), delta=figure_out(c.delta))
                          for c in (plan.pending.changed if plan.pending else ())],
         cheapest_mortgage=plan.cheapest_mortgage, safest_mortgage=plan.safest_mortgage,
-        notes=list(plan.notes))
+        notes=list(plan.notes), series=[series_out(x) for x in plan.series],
+        breakdown=[figure_out(f) for f in plan.breakdown])
 
 
 class ChargeIn(BaseModel):

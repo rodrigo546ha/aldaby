@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from housefinder.core.figures import Figure
+from housefinder.core.figures import Figure, Series
 
 
 class SourceOut(BaseModel):
@@ -27,3 +27,24 @@ class FigureOut(BaseModel):
 
 def figure_out(figure: Figure) -> FigureOut:
     return FigureOut.model_validate(figure.to_dict())
+
+
+class PointOut(BaseModel):
+    x: int
+    y: str
+
+
+class SeriesOut(BaseModel):
+    """Una cifra año a año (ADR-0050), con fórmula y fuentes como una cifra."""
+
+    key: str
+    unit: str
+    x_unit: str
+    points: list[PointOut]
+    formula: str
+    sources: list[SourceOut]
+    provisional: bool
+
+
+def series_out(series: Series) -> SeriesOut:
+    return SeriesOut.model_validate(series.to_dict())

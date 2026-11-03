@@ -110,6 +110,20 @@ def test_inversion_devuelve_cifras_por_clave_y_avisos():
     assert body["comparison"] is None
 
 
+def test_inversion_devuelve_series_y_desglose():
+    # ADR-0050: fuera del diccionario de cifras, con fórmula y fuentes como una cifra
+    body = client.post("/simulate/investment", json=peticion()).json()
+    series = {s["key"]: s for s in body["series"]}
+    balance = series["mortgage.balance_by_year"]
+    assert balance["x_unit"] == "año" and balance["unit"] == "EUR"
+    assert balance["points"][0]["x"] == 0 and balance["formula"] and balance["sources"]
+    assert "valuation.price_by_year" in series and "cashflow.after_tax_by_year" in series
+    parts = {f["key"] for f in body["breakdown"]}
+    assert {"cashflow.breakdown.rent", "cashflow.breakdown.tax"} <= parts
+    assert "cashflow.breakdown.rent" not in body["figures"]
+    assert "cashflow.annual_after_tax" in body["figures"]
+
+
 def test_inversion_con_escenario_normativo():
     situation = {"contract": "primer-alquiler", "large_holder": False, "young_tenant": True}
     body = client.post(

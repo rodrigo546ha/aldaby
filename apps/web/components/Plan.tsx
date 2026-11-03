@@ -136,7 +136,7 @@ export function Plan({ offerId }: { offerId: string }) {
             figures={s.figures}
             keys={BLOCKS[s.id]?.keys ?? []}
           >
-            <TopicCharts topic={s.id} figures={all} />
+            <TopicCharts topic={s.id} figures={all} series={plan.series} breakdown={plan.breakdown} />
             {s.id === "hipoteca" && plan.cheapest_mortgage && (
               <p className="hint">
                 Con la trayectoria esperada del Euríbor paga menos intereses{" "}

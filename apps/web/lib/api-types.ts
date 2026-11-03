@@ -1541,6 +1541,16 @@ export interface components {
              * @default []
              */
             appreciation_notes: string[];
+            /**
+             * Series
+             * @default []
+             */
+            series: components["schemas"]["SeriesOut"][];
+            /**
+             * Breakdown
+             * @default []
+             */
+            breakdown: components["schemas"]["FigureOut"][];
         };
         /** LegalDocumentOut */
         LegalDocumentOut: {
@@ -1850,6 +1860,23 @@ export interface components {
             safest_mortgage: string | null;
             /** Notes */
             notes: string[];
+            /**
+             * Series
+             * @default []
+             */
+            series: components["schemas"]["SeriesOut"][];
+            /**
+             * Breakdown
+             * @default []
+             */
+            breakdown: components["schemas"]["FigureOut"][];
+        };
+        /** PointOut */
+        PointOut: {
+            /** X */
+            x: number;
+            /** Y */
+            y: string;
         };
         /** ProfileOut */
         ProfileOut: {
@@ -2139,6 +2166,26 @@ export interface components {
             offer?: string | null;
             /** Label */
             label?: string | null;
+        };
+        /**
+         * SeriesOut
+         * @description Una cifra año a año (ADR-0050), con fórmula y fuentes como una cifra.
+         */
+        SeriesOut: {
+            /** Key */
+            key: string;
+            /** Unit */
+            unit: string;
+            /** X Unit */
+            x_unit: string;
+            /** Points */
+            points: components["schemas"]["PointOut"][];
+            /** Formula */
+            formula: string;
+            /** Sources */
+            sources: components["schemas"]["SourceOut"][];
+            /** Provisional */
+            provisional: boolean;
         };
         /** SkippedOut */
         SkippedOut: {

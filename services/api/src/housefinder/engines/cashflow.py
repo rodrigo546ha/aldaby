@@ -89,6 +89,9 @@ class CashflowResult:
     monthly_cashflow_after_tax: Figure
     cash_invested: Figure
     cash_on_cash: Figure
+    annual_after_tax: Figure
+    # Componentes del año en €/año, los gastos en negativo (ADR-0050)
+    breakdown: tuple[Figure, ...] = ()
     pending_excess: tuple[PendingExcess, ...] = ()  # para el ejercicio siguiente
 
 
@@ -144,6 +147,28 @@ def compute_cashflow(
 
     operating_sources = combine_sources(inv.sources, rent.sources)
     all_sources = combine_sources(inv.sources, rent.sources, tax_sources)
+
+    def part(name: str, value: Decimal, formula: str, sources: tuple[SourceRef, ...]) -> Figure:
+        rounded = money(value)
+        # Un gasto que no hay va como 0,00 y no como −0,00
+        return Figure(f"cashflow.breakdown.{name}", rounded if rounded else Decimal("0.00"),
+                      "EUR/año", formula, sources)
+
+    interest = inv.first_year_interest
+    breakdown = (
+        part("rent", annual_rent, "renta × 12", rent.sources),
+        part("vacancy", collected - annual_rent, "− renta × 12 × meses vacío", rent.sources),
+        part("management", -management, "− renta cobrada × gestión", rent.sources),
+        part("community", -community, "− comunidad × 12", rent.sources),
+        part("ibi", -rent.ibi_annual, "− IBI del año", rent.sources),
+        part("insurance", -rent.insurance_annual, "− seguros del año", rent.sources),
+        part("maintenance", -maintenance, "− renta cobrada × reserva de mantenimiento",
+             rent.sources),
+        part("interest", -interest, "− intereses de las cuotas del año", inv.sources),
+        part("principal", -(mortgage_annual - interest),
+             "− (cuotas del año − intereses): capital que amortizas", inv.sources),
+        part("tax", -annual_tax, f"− impuesto del alquiler: {tax_formula}", all_sources),
+    )
     return CashflowResult(
         gross_yield=Figure(
             "cashflow.gross_yield", gross, "ratio", "renta anual / precio", operating_sources
@@ -183,6 +208,14 @@ def compute_cashflow(
             "cash flow anual tras impuestos / dinero aportado",
             all_sources,
         ),
+        annual_after_tax=Figure(
+            "cashflow.annual_after_tax",
+            money(operating_cashflow - annual_tax),
+            "EUR/año",
+            "cash flow operativo − impuesto",
+            all_sources,
+        ),
+        breakdown=breakdown,
         pending_excess=next_pending,
     )
 

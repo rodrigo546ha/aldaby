@@ -963,6 +963,30 @@ td { color: var(--mist); }
 .line-dot.tone-1.pass { background: var(--chart-1); }
 .line-dot.tone-2.pass { background: var(--chart-2); }
 @media (max-width: 640px) { .line-area { height: 200px; } }
+.line-chart .line.tone-3 { stroke: var(--chart-3); }
+.line-chart .line.main { stroke-width: 3; }
+.line-dot.tone-3 { border-color: var(--chart-3); }
+.line-dot.tone-3.pass { background: var(--chart-3); }
+
+/* Cascada del primer año: cada barra flota entre lo acumulado antes y después */
+.waterfall { display: flex; flex-direction: column; gap: 10px; }
+.waterfall-row { display: grid; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr) 130px; gap: 16px; align-items: center; }
+.waterfall-row.total { padding-top: 10px; border-top: 1px solid var(--line-strong); }
+.waterfall-row.total .chart-row-label, .waterfall-row.total .chart-value { color: var(--strong); font-weight: 500; }
+.waterfall-track {
+  position: relative;
+  height: 20px;
+  background: linear-gradient(var(--line-strong), var(--line-strong)) no-repeat;
+  background-size: 1px 100%;
+  background-position: var(--zero) 0;
+}
+.waterfall .bar { position: absolute; top: 2px; bottom: 2px; border-radius: 3px; }
+.waterfall .bar.total { background: var(--stat); }
+@media (max-width: 640px) {
+  .waterfall-row { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+  .waterfall-track { grid-column: 1 / -1; grid-row: 2; }
+}
+
 .line-axis { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .line-marker-label strong { color: var(--stat); font-weight: 500; }
 

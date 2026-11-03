@@ -269,3 +269,37 @@ def test_ceuta_con_bonificaciones_y_deduccion(rules, params):
     assert 0 < v["irr.capital_gains_tax"] < madrid["irr.capital_gains_tax"]
     figures = {f.key: f for f in sim.figures()}
     assert "Ceuta o Melilla" in figures["cashflow.annual_tax"].formula
+
+
+def test_series_ano_a_ano_y_desglose(rules, params):
+    # ADR-0050: cada punto sale del mismo motor que la cifra equivalente
+    other = (SourceRef("dataset", "ine-ipv-80270@2026T2"),)
+    exit_ = replace(caso().exit, alternatives=(
+        AppreciationAlternative("conservative", D("-0.0009"), other),
+        AppreciationAlternative("optimistic", D("0.0599"), other)))
+    sim = simulate(caso(exit=exit_), rules, params, allow_unverified=True)
+    series = {s.key: s for s in sim.series}
+    v = by_key(sim)
+
+    balance = series["mortgage.balance_by_year"]
+    assert balance.points[0] == (0, D("140000.00"))  # el préstamo al firmar
+    assert balance.points[-1] == (25, D("0.00"))
+    assert len(series["mortgage.interest_by_year"].points) == 25
+    assert sum(y for _, y in series["mortgage.principal_by_year"].points) == D("140000.00")
+
+    cash = series["cashflow.after_tax_by_year"]
+    assert [x for x, _ in cash.points] == list(range(1, 11))  # el horizonte de venta
+    assert cash.points[0][1] == v["cashflow.annual_after_tax"]
+    assert cash.unit == "EUR/año"
+
+    price = series["valuation.price_by_year"]
+    assert price.points[0] == (0, D("200000.00"))
+    assert price.points[-1] == (10, v["irr.sale_price"])
+    low = series["valuation.price_by_year_conservative"].points[-1][1]
+    high = series["valuation.price_by_year_optimistic"].points[-1][1]
+    assert low < v["irr.sale_price"] < high
+    assert all(s.sources and s.x_unit == "año" for s in sim.series)
+
+    # El desglose del primer año suma, céntimo arriba o abajo, el cash flow anual tras impuestos
+    total = sum((f.value for f in sim.cashflow.breakdown), D(0))
+    assert abs(total - v["cashflow.annual_after_tax"]) <= D("0.10")

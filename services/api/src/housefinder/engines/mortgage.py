@@ -102,6 +102,28 @@ def amortization_schedule_segments(
     return rows
 
 
+@dataclass(frozen=True)
+class AmortizationYear:
+    year: int
+    interest: Decimal
+    principal: Decimal
+    balance: Decimal  # capital pendiente al acabar el año
+
+
+def yearly_amortization(rows: list[AmortizationRow]) -> list[AmortizationYear]:
+    """El cuadro mensual resumido por años: intereses y capital pagados y lo que queda."""
+    years = []
+    for start in range(0, len(rows), 12):
+        chunk = rows[start:start + 12]
+        years.append(AmortizationYear(
+            year=start // 12 + 1,
+            interest=money(sum((r.interest for r in chunk), Decimal(0))),
+            principal=money(sum((r.principal for r in chunk), Decimal(0))),
+            balance=chunk[-1].balance,
+        ))
+    return years
+
+
 def first_year_interest(principal: Decimal, annual_rate: Decimal, years: int) -> Decimal:
     """Intereses pagados en los 12 primeros meses (gasto deducible del alquiler)."""
     rows = amortization_schedule(principal, annual_rate, years)[:12]
