@@ -20,6 +20,13 @@ schedules:
     every_hours: 24
     payload: {days: 7}
 
+  # Subastas de inmuebles del Portal de Subastas del BOE como lotes (ADR-0049, ADR-0053)
+  - name: oferta-boe-portal-subastas
+    kind: offers_boe_portal
+    at: "09:25"
+    every_hours: 24
+    payload: {province: "28"}
+
   - name: oferta-extraccion-boe
     kind: extract_offers
     at: "10:00"

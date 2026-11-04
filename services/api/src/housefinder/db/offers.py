@@ -57,7 +57,13 @@ def upsert_offer(
         ON CONFLICT (channel, external_id) DO UPDATE SET
             last_seen = now(),
             title = EXCLUDED.title, url = EXCLUDED.url, description = EXCLUDED.description,
-            raw = EXCLUDED.raw, raw_sha256 = EXCLUDED.raw_sha256
+            raw = EXCLUDED.raw, raw_sha256 = EXCLUDED.raw_sha256,
+            -- Lo que trae el canal pisa lo anterior; lo que no trae (lo extraído después con el
+            -- modelo en los anuncios del BOE) se conserva (ADR-0053)
+            auction_min_bid = coalesce(EXCLUDED.auction_min_bid, offers.auction_min_bid),
+            deposit_required = coalesce(EXCLUDED.deposit_required, offers.deposit_required),
+            built_area_m2 = coalesce(EXCLUDED.built_area_m2, offers.built_area_m2),
+            extracted = coalesce(EXCLUDED.extracted, offers.extracted)
         RETURNING id, (xmax = 0) AS created
         """,
         (offer.channel, offer.external_id, offer.kind, offer.title, offer.url,
@@ -215,6 +221,19 @@ def rss_dates(conn: psycopg.Connection, channel: str) -> dict[str, str]:
         """
         SELECT external_id, raw->'rss'->>'pubDate' FROM offers
         WHERE channel = %s AND kind = 'anuncio' AND raw->'rss'->>'pubDate' IS NOT NULL
+        """,
+        (channel,),
+    ).fetchall()
+    return {r[0]: r[1] for r in rows}
+
+
+def portal_states(conn: psycopg.Connection, channel: str) -> dict[str, str]:
+    """Estado de la búsqueda del Portal de Subastas con el que se guardó cada subasta (ADR-0053):
+    si no cambia, no se vuelve a descargar."""
+    rows = conn.execute(
+        """
+        SELECT DISTINCT raw->'search'->>'portal_id', raw->'search'->>'state' FROM offers
+        WHERE channel = %s AND raw->'search'->>'state' IS NOT NULL
         """,
         (channel,),
     ).fetchall()

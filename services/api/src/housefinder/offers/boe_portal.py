@@ -832,51 +832,104 @@ def search_boe_auctions(
     return parse_search_results(resp.text)
 
 
-def to_normalized_offers(auction: ScrapedAuction) -> list[NormalizedOffer]:
-    """Convierte los lotes de la subasta a ofertas normalizadas para HouseFinder."""
-    offers: list[NormalizedOffer] = []
+# Tipo de bien del Portal → tipo de inmueble de la extracción (agent/extraction.PropertyType)
+PROPERTY_TYPES = (("vivienda", "vivienda"), ("garaje", "garaje"), ("trastero", "trastero"),
+                  ("local", "local"), ("oficina", "oficina"), ("nave", "otro"),
+                  ("solar", "suelo"), ("suelo", "suelo"), ("rústic", "rustica"),
+                  ("rustic", "rustica"), ("edificio", "edificio"))
+ORIGIN = {"J": "judicial", "A": "administrativa", "N": "notarial"}
+
+
+def property_type(tipo_bien: str | None) -> str | None:
+    """«Inmueble (Vivienda)» → «vivienda». Sin tipo conocido, «otro»; sin tipo, None."""
+    if not tipo_bien:
+        return None
+    lowered = tipo_bien.lower()
+    return next((kind for word, kind in PROPERTY_TYPES if word in lowered), "otro")
+
+
+def lot_records(auction: ScrapedAuction, search: AuctionSearchResult | None = None
+                ) -> list[dict[str, Any]]:
+    """Cada lote como registro plano y serializable (ADR-0053): lo que se guarda con lo recibido
+    y de lo que sale la oferta. Los importes, como texto exacto."""
     notice = auction.notice
-
-    # Si hay lotes con bienes individuales
+    multi = len(auction.lots) > 1
+    records = []
     for lot in auction.lots:
-        primary_bien = lot.bienes[0] if lot.bienes else None
-        asking_price = lot.valor_subasta or notice.valor_subasta
+        bien = lot.bienes[0] if lot.bienes else None
+        value = lot.valor_subasta or notice.valor_subasta
         deposit = lot.deposito or notice.importe_deposito
-        min_bid = lot.puja_minima if lot.puja_minima is not None else notice.puja_minima
+        records.append({
+            "external_id": f"{auction.portal_id}_L{lot.lote_num}" if multi else auction.portal_id,
+            "url": build_auction_url(auction.portal_id, 3, lot.lote_num) if multi
+            else auction.portal_url,
+            "portal_id": auction.portal_id,
+            "lot": lot.lote_num,
+            "title": lot.titulo,
+            "auction_value": str(value) if value is not None else None,
+            "deposit": str(deposit) if deposit is not None else None,
+            "address": bien.direccion if bien else None,
+            "cadastral_ref": bien.referencia_catastral if bien else None,
+            "municipality": bien.localidad if bien else None,
+            "province": bien.provincia if bien else None,
+            "description": bien.descripcion if bien else None,
+            "property_kind": bien.tipo_bien if bien else None,
+            "habitual_residence": bien.vivienda_habitual if bien else None,
+            "possession": bien.situacion_posesoria if bien else None,
+            "visitable": bien.visitable if bien else None,
+            "status": search.status if search else None,
+            "concludes": search.conclusion_date if search else notice.fecha_conclusion,
+        })
+    return records
 
-        external_id = (
-            f"{auction.portal_id}_L{lot.lote_num}" if len(auction.lots) > 1 else auction.portal_id
-        )
-        title = f"Subasta {notice.tipo_subasta or 'judicial'} · {auction.portal_id}"
-        if lot.titulo:
-            title += f" · {lot.titulo}"
 
-        desc_parts = []
-        if lot.titulo:
-            desc_parts.append(lot.titulo)
-        if primary_bien and primary_bien.descripcion:
-            desc_parts.append(primary_bien.descripcion)
+def offer_from_record(record: dict[str, Any], unit: dict[str, Any] | None = None
+                      ) -> NormalizedOffer:
+    """La oferta pública de un lote (ADR-0053): sin precio pedido, con el valor de subasta como
+    tipo. `unit`: superficie y uso del inmueble en el Catastro, si se pudo pedir."""
+    origin = ORIGIN.get(record["portal_id"].split("-")[1][:1], "")
+    place = record.get("address") or record.get("title") or record["portal_id"]
+    portal = {k: record.get(k) for k in ("property_kind", "habitual_residence", "possession",
+                                         "visitable", "status", "concludes")}
+    extracted: dict[str, Any] = {"property_type": property_type(record.get("property_kind")),
+                                 "portal": portal}
+    if unit:
+        extracted["catastro"] = unit
+    value = record.get("auction_value")
+    deposit = record.get("deposit")
+    return NormalizedOffer(
+        external_id=record["external_id"],
+        kind="lote",
+        url=record["url"],
+        title=" ".join(f"Subasta {origin} · {place}".split()),
+        description="\n".join(x for x in (record.get("title"), record.get("description")) if x)
+        or None,
+        asking_price=None,  # una subasta no tiene precio pedido (search: auction)
+        auction_min_bid=Decimal(value) if value else None,
+        deposit_required=Decimal(deposit) if deposit else None,
+        address=record.get("address"),
+        cadastral_ref=record.get("cadastral_ref"),
+        municipality=record.get("municipality"),
+        province=record.get("province"),
+        built_area_m2=Decimal(str(unit["built_area_m2"])) if unit and _area_fits(extracted, unit)
+        else None,
+        extraction_status="no_aplica",
+        extracted=extracted,
+    )
 
-        offers.append(
-            NormalizedOffer(
-                external_id=external_id,
-                kind="lote" if len(auction.lots) > 1 else "anuncio",
-                url=auction.portal_url,
-                title=title,
-                published_on=None,
-                description="\n".join(desc_parts) or None,
-                asking_price=asking_price,
-                auction_min_bid=min_bid,
-                deposit_required=deposit,
-                address=primary_bien.direccion if primary_bien else None,
-                cadastral_ref=primary_bien.referencia_catastral if primary_bien else None,
-                municipality=primary_bien.localidad if primary_bien else None,
-                province=primary_bien.provincia if primary_bien else None,
-                extraction_status="pendiente",
-            )
-        )
 
-    return offers
+def _area_fits(extracted: dict[str, Any], unit: dict[str, Any] | None) -> bool:
+    """La superficie del Catastro vale si la referencia es de lo que se subasta: una vivienda con
+    una referencia de uso residencial (no la del garaje de la misma finca)."""
+    if not unit:
+        return False
+    return extracted["property_type"] != "vivienda" or str(unit.get("use", "")).lower().startswith(
+        "residencial")
+
+
+def to_normalized_offers(auction: ScrapedAuction) -> list[NormalizedOffer]:
+    """Los lotes de la subasta como ofertas públicas, sin datos del Catastro."""
+    return [offer_from_record(r) for r in lot_records(auction)]
 
 
 if __name__ == "__main__":

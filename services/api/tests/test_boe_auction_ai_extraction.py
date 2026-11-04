@@ -88,8 +88,14 @@ def test_rule_based_fallback():
     assert report.finca_registral == "23778"
     assert report.cru_idufir == "28177001763770"
     assert report.cadastral_reference == "9402504VK3790C0005KT"
-    assert report.risk_level in ("bajo", "medio")
+    # Sin modelo no se leen las cargas de la certificación: el riesgo no se puede evaluar y el
+    # total de cargas no es cero, es desconocido
+    assert report.analysis == "reglas"
+    assert report.risk_level == "sin_evaluar"
+    assert report.subsisting_charges_total is None
+    assert "certificación" in report.warnings[0]
     assert any("No es vivienda habitual" in w for w in report.warnings)
+    assert not any(ch.isdigit() for ch in report.executive_summary)
 
 
 def test_llm_structured_extraction_with_verified_evidence():
@@ -216,8 +222,14 @@ def test_llm_structured_extraction_with_verified_evidence():
     assert report.cru_idufir == "28177001763770"
     assert len(report.subsisting_prior_charges) == 1
     assert report.subsisting_prior_charges[0].verified is True
-    assert report.risk_level == "medio"
-    assert len(report.warnings) == 1
+    # El riesgo lo decide el código: una carga previa comprobada lo sube a alto, diga lo que
+    # diga el modelo
+    assert report.analysis == "modelo"
+    assert report.risk_level == "alto"
+    assert report.warnings[0].startswith("Hay cargas anteriores")
+    assert "Cargas anteriores subsistirán" in report.warnings
+    assert report.executive_summary == (
+        "Subasta de vivienda en Madrid con cargas anteriores subsistentes.")
 
 
 def test_evidence_rejection_on_hallucinated_data():
@@ -300,3 +312,61 @@ def test_as_dict_serializable():
     assert d["auction_value"] == "130560.00"
     assert isinstance(d["warnings"], list)
     assert isinstance(d["fields"], dict)
+
+
+def test_si_el_modelo_falla_se_dice_y_no_se_da_riesgo_bajo():
+    from housefinder.agent.llm import LLMTruncated
+
+    auction = load_fixture_auction()
+    edicto = load_fixture_edicto_doc()
+
+    def fails(inst, doc, out):
+        raise LLMTruncated("Respuesta cortada por longitud")
+
+    report = extract_auction_ai(FakeLLMClient(fails), auction, [edicto])
+    assert report.analysis == "reglas"
+    assert "se cortó" in (report.analysis_note or "")
+    assert report.risk_level == "sin_evaluar"
+    assert report.as_dict()["subsisting_charges_total"] is None
+
+
+def test_el_texto_para_el_modelo_cabe_y_empieza_por_la_certificacion():
+    from housefinder.agent.boe_auction_extraction import MAX_CORPUS_CHARS, build_corpus
+
+    def doc(title: str, size: int) -> DownloadedDocument:
+        return DownloadedDocument(id_doc=title, title=title, content_bytes=b"", text="x" * size,
+                                  pages=1, method="pypdf")
+
+    corpus, cut = build_corpus("RESUMEN", [doc("EDICTO", 15_000),
+                                           doc("CERTIFICACION REGISTRAL FR 1", 12_000),
+                                           doc("TESTIMONIO", 9_000)])
+    assert len(corpus) <= MAX_CORPUS_CHARS
+    assert corpus.startswith("RESUMEN")
+    assert corpus.index("CERTIFICACION") < corpus.index("EDICTO")
+    assert cut == ["EDICTO", "TESTIMONIO"]  # la certificación entra entera
+
+
+def test_resumen_del_modelo_con_numeros_se_descarta():
+    auction = load_fixture_auction()
+    edicto = load_fixture_edicto_doc()
+    response = FullAuctionExtractionSchema(
+        conditions=AuctionConditionsExtraction(**{
+            name: Quoted(value=None, evidence=None)
+            for name in AuctionConditionsExtraction.model_fields if name != "special_conditions"}),
+        registry_charges=RegistryAndChargesExtraction(**{
+            name: Quoted(value=None, evidence=None)
+            for name in RegistryAndChargesExtraction.model_fields
+            if name != "subsisting_prior_charges"}),
+        occupancy=OccupancyAndPossessionExtraction(**{
+            name: Quoted(value=None, evidence=None)
+            for name in OccupancyAndPossessionExtraction.model_fields}),
+        risk_assessment=RiskAssessmentExtraction(
+            risk_level="bajo", warnings=[],
+            executive_summary="Buena compra: pujando 90.000 € ganas un 30 %."),
+    )
+    report = extract_auction_ai(FakeLLMClient(lambda i, d, o: response), auction, [edicto])
+    assert "90.000" not in report.executive_summary
+    assert not any(ch.isdigit() for ch in report.executive_summary)
+    # Sin certificación entre los documentos, las cargas no se han podido leer
+    assert report.risk_level == "sin_evaluar"
+

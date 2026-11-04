@@ -106,6 +106,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     offers/channels/      canales: BOE sección V (anuncios) y sección IV (avisos de subastas judiciales, ADR-0017);
                           ventas directas del Patrimonio del Estado (patrimonio.py, ADR-0037)
                           y feeds XML de agencias en formato Kyero v3 (agency_feed.py, ADR-0038)
+                          y subastas del Portal del BOE como lotes (subastas_portal.py, ADR-0053)
     feeds/                feeds de agencias: alta con consentimiento, URL cifrada y lectura diaria (ADR-0038)
     legal/                textos legales versionados y qué falta por aceptar (ADR-0039)
     analytics/            recuento de visitas sin cookies y embudo de alta (ADR-0042)
@@ -133,6 +134,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     watch/                vigilancia del BOE y del BOCM: filtros, lectura y tareas (F2.6)
     geo/cartociudad.py    geocodificador de CartoCiudad (ADR-0009); solo geo/ e ingestion/ usan la red
     geo/catastro.py       centroide de una parcela por referencia catastral (Catastro, ADR-0016)
+                          y superficie y uso de un inmueble por su referencia completa (ADR-0053)
                           y referencia de una finca rústica por polígono y parcela (ADR-0031)
     geo/foral.py          parcelas de los catastros forales: País Vasco y Navarra (ADR-0032)
     geo/names.py          nombres de lugar comparables entre las lenguas oficiales (ADR-0035)

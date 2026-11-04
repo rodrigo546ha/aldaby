@@ -5,13 +5,15 @@ Servicio `Consulta_CPMRC` de la Sede Electrónica del Catastro, versión WCF con
 información catastral no protegida, sin registro. Devuelve el centroide de la parcela y su
 dirección catastral (`ldt`). Solo se envían los 14 primeros caracteres de la referencia, los de la
 parcela. `Consulta_DNPPP`, del mismo servicio, da la referencia a partir de provincia, municipio,
-polígono y parcela. Cita: «Fuente: Dirección General del Catastro».
+polígono y parcela. `Consulta_DNPRC` da la superficie construida y el uso de un inmueble por su
+referencia completa de 20 caracteres (ADR-0053). Cita: «Fuente: Dirección General del Catastro».
 """
 
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 import httpx
@@ -25,12 +27,16 @@ CPMRC_URL = (
 DNPPP_URL = (
     "https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejero.svc/json/Consulta_DNPPP"
 )
+DNPRC_URL = (
+    "https://ovc.catastro.meh.es/OVCServWeb/OVCWcfCallejero/COVCCallejero.svc/json/Consulta_DNPRC"
+)
 SOURCE_ID = "catastro-coordenadas"
 SOURCE_NAME = "Servicio de coordenadas de la Sede Electrónica del Catastro (Consulta_CPMRC)"
 ATTRIBUTION = "Fuente: Dirección General del Catastro"
 LICENSE_URL = "https://www.catastro.hacienda.gob.es/es-ES/avisolegal.html"
 SRS = "EPSG:4326"
 PARCEL = re.compile(r"^[0-9A-Z]{14}$")
+PROPERTY = re.compile(r"^[0-9A-Z]{20}$")
 
 
 class ParcelNotFound(LookupError):
@@ -47,6 +53,16 @@ class Parcel:
     lat: float
     parcel_ref: str  # 14 caracteres
     address: str  # dirección catastral: «CR CAMARMA 21 ALCALA DE HENARES (MADRID)»
+
+
+@dataclass(frozen=True)
+class CadastralUnit:
+    """Un inmueble del Catastro (bien inmueble, no parcela)."""
+
+    ref: str  # 20 caracteres
+    built_area_m2: Decimal  # superficie construida (`sfc`), con la parte de elementos comunes
+    use: str  # «Residencial», «Almacen-Estacionamiento»…
+    built_year: int | None
 
 
 def parcel_ref(cadastral_ref: str) -> str:
@@ -88,6 +104,39 @@ def find_parcel(client: httpx.Client, cadastral_ref: str) -> Parcel:
     ubica por otra vía o se queda sin ubicar, y la ingesta sigue."""
     ref = parcel_ref(cadastral_ref)
     return parse_cpmrc(_get(client, CPMRC_URL, {"SRS": SRS, "RefCat": ref}))
+
+
+def parse_dnprc(payload: Any) -> CadastralUnit:
+    """Inmueble de la respuesta de `Consulta_DNPRC` para una referencia de 20 caracteres."""
+    result = payload.get("consulta_dnprcResult") if isinstance(payload, dict) else None
+    if not isinstance(result, dict):
+        raise ParcelNotFound("Respuesta del Catastro sin resultado")
+    errors = result.get("lerr") or []
+    if errors:
+        first = errors[0] if isinstance(errors, list) else errors
+        raise ParcelNotFound(f"Catastro: {first.get('des', 'error')} ({first.get('cod', '?')})")
+    bi = (result.get("bico") or {}).get("bi")
+    if not isinstance(bi, dict):
+        raise ParcelNotFound("El Catastro no devuelve un único inmueble para la referencia")
+    rc = (bi.get("idbi") or {}).get("rc") or {}
+    debi = bi.get("debi") or {}
+    try:
+        area = Decimal(str(debi["sfc"]).replace(",", "."))
+    except (KeyError, InvalidOperation) as exc:
+        raise ParcelNotFound("El Catastro no da la superficie del inmueble") from exc
+    year = str(debi.get("ant") or "")
+    return CadastralUnit(
+        ref="".join(str(rc.get(k, "")) for k in ("pc1", "pc2", "car", "cc1", "cc2")),
+        built_area_m2=area, use=str(debi.get("luso") or ""),
+        built_year=int(year) if year.isdigit() else None)
+
+
+def find_unit(client: httpx.Client, cadastral_ref: str) -> CadastralUnit:
+    """Superficie construida y uso del inmueble de una referencia completa (20 caracteres)."""
+    ref = re.sub(r"\s", "", cadastral_ref).upper()
+    if not PROPERTY.match(ref):
+        raise ParcelNotFound("Hace falta la referencia completa del inmueble (20 caracteres)")
+    return parse_dnprc(_get(client, DNPRC_URL, {"RefCat": ref}))
 
 
 def parse_dnppp(payload: Any) -> str:

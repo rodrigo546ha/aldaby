@@ -16,6 +16,7 @@ from housefinder.offers.run import (
     extract_boe_v,
     extract_pasted,
     run_boe_auctions,
+    run_boe_portal,
     run_boe_v,
     run_patrimonio,
 )
@@ -65,6 +66,12 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
             return run_boe_auctions(conninfo, client, date.today(), int(payload.get("days", 7)))
 
+    def offers_boe_portal(payload: dict[str, Any]) -> dict[str, Any]:
+        from housefinder.offers import boe_portal
+
+        with boe_portal.make_client() as client:
+            return run_boe_portal(conninfo, client, str(payload.get("province", "28")))
+
     def offers_patrimonio(payload: dict[str, Any]) -> dict[str, Any]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
             return run_patrimonio(conninfo, client)
@@ -83,6 +90,7 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
     return {"ine_sections": sections, "ine_adrh": adrh, "watch_boe": boe, "watch_bocm": bocm,
             "offers_boe_v": offers_boe_v, "extract_offers": extract_offers,
             "extract_link": extract_link, "offers_boe_auctions": offers_boe_auctions,
-            "offers_patrimonio": offers_patrimonio, "offers_agency_feeds": offers_agency_feeds,
+            "offers_patrimonio": offers_patrimonio, "offers_boe_portal": offers_boe_portal,
+            "offers_agency_feeds": offers_agency_feeds,
             "ine_ipv": price_index,
             "ine_ipc_alquiler": rent_index}

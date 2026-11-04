@@ -1,0 +1,92 @@
+{
+    "consulta_dnprcResult": {
+        "control": {
+            "cudnp": 1,
+            "cucons": 2
+        },
+        "bico": {
+            "bi": {
+                "idbi": {
+                    "cn": "UR",
+                    "rc": {
+                        "pc1": "9402504",
+                        "pc2": "VK3790C",
+                        "car": "0005",
+                        "cc1": "K",
+                        "cc2": "T"
+                    }
+                },
+                "dt": {
+                    "loine": {
+                        "cp": "28",
+                        "cm": "79"
+                    },
+                    "cmc": "900",
+                    "np": "MADRID",
+                    "nm": "MADRID",
+                    "locs": {
+                        "lous": {
+                            "lourb": {
+                                "dir": {
+                                    "cv": "2170",
+                                    "tv": "CL",
+                                    "nv": "FERMIN DONAIRE",
+                                    "pnp": "15",
+                                    "snp": "0"
+                                },
+                                "loint": {
+                                    "pt": "02",
+                                    "pu": "A"
+                                },
+                                "dp": "28026",
+                                "dm": "12"
+                            }
+                        }
+                    }
+                },
+                "ldt": "CL FERMIN DONAIRE 15 Pl:02 Pt:A 28026 MADRID (MADRID)",
+                "debi": {
+                    "luso": "Residencial",
+                    "sfc": "60",
+                    "cpt": "9,380000",
+                    "ant": "1960"
+                }
+            },
+            "finca": {
+                "ldt": "CL FERMIN DONAIRE 15  MADRID (MADRID)",
+                "ltp": "Parcela con varios inmuebles (division horizontal)",
+                "dff": {
+                    "ss": "127"
+                },
+                "infgraf": {
+                    "igraf": "https://www1.sedecatastro.gob.es/Cartografia/mapa.aspx?del=28&mun=900&refcat=9402504VK3790C"
+                }
+            },
+            "lcons": [
+                {
+                    "lcd": "VIVIENDA",
+                    "dt": {
+                        "lourb": {
+                            "loint": {
+                                "pt": "02",
+                                "pu": "A"
+                            }
+                        }
+                    },
+                    "dfcons": {
+                        "stl": "56"
+                    },
+                    "dvcons": {
+                        "dtip": "VIVIENDA COLECTIVA"
+                    }
+                },
+                {
+                    "lcd": "ELEMENTOS COMUNES",
+                    "dfcons": {
+                        "stl": "4"
+                    }
+                }
+            ]
+        }
+    }
+}

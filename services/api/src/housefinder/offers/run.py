@@ -11,13 +11,13 @@ import httpx
 
 from housefinder.agent.llm import LLMClient
 from housefinder.db.connection import connect
-from housefinder.db.offers import link_corrections, rss_dates
+from housefinder.db.offers import link_corrections, portal_states, rss_dates
 from housefinder.db.review_tasks import mark_issue_read, read_issues
 from housefinder.db.sections import SourceRecord, upsert_source
 from housefinder.geo.cartociudad import Geocoded, geocode, municipality_codes
-from housefinder.geo.catastro import Parcel, find_parcel, find_rustic_parcel
+from housefinder.geo.catastro import CadastralUnit, Parcel, find_parcel, find_rustic_parcel
 from housefinder.geo.foral import find_foral_parcel
-from housefinder.offers.channels import boe_subastas, boe_v, patrimonio
+from housefinder.offers.channels import boe_subastas, boe_v, patrimonio, subastas_portal
 from housefinder.offers.extract import extract_pending
 from housefinder.offers.ingest import IngestReport, ingest
 from housefinder.offers.locate import RusticFinder, offer_locator
@@ -94,6 +94,32 @@ def run_boe_auctions(conninfo: str, client: httpx.Client, today: date,
             for key, value in report.as_dict().items():
                 setattr(total, key, getattr(total, key) + value)
     return {**total.as_dict(), "unparsed": unparsed, "court_seats_verified": seats.verified}
+
+
+def run_boe_portal(
+    conninfo: str,
+    client: httpx.Client,
+    province: str = "28",
+    geocoder: Callable[[str], Geocoded] | None = None,
+    parcels: Callable[[str], Parcel] | None = None,
+    units: Callable[[str], CadastralUnit] | None = None,
+    pause_s: float = subastas_portal.PAUSE_S,
+) -> dict[str, Any]:
+    """Subastas de inmuebles del Portal del BOE nuevas o cambiadas, como lotes ubicados
+    (ADR-0053)."""
+    with connect(conninfo) as conn:
+        upsert_source(conn, SourceRecord(subastas_portal.SOURCE_ID, subastas_portal.SOURCE_NAME,
+                                         boe_v.LICENSE_URL, boe_v.LICENSE, datetime.now(UTC)))
+        conn.commit()
+        locate = offer_locator(conn, geocoder or (lambda address: geocode(client, address)),
+                               parcels or (lambda ref: find_parcel(client, ref)),
+                               municipalities=lambda name: municipality_codes(client, name),
+                               foral=lambda province, key: find_foral_parcel(client, province, key))
+        channel = subastas_portal.PortalAuctions(portal_states(conn, subastas_portal.NAME),
+                                                 province, units, pause_s)
+        report = ingest(conn, channel, channel.fetch(client), locate)
+    return {**report.as_dict(), "unchanged": channel.unchanged, "postponed": channel.postponed,
+            "failed": channel.failed}
 
 
 def run_patrimonio(conninfo: str, client: httpx.Client,

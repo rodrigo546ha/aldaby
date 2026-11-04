@@ -150,5 +150,5 @@ def _row(channel: Channel, offer: NormalizedOffer) -> OfferRow:
         auction_min_bid=offer.auction_min_bid, deposit_required=offer.deposit_required,
         address=offer.address, cadastral_ref=offer.cadastral_ref,
         built_area_m2=offer.built_area_m2, extraction_status=offer.extraction_status,
-        source_id=channel.source_id,
+        source_id=channel.source_id, extracted=offer.extracted or None,
     )

@@ -6,10 +6,15 @@ pliego de condiciones).
 
 Aplica la Regla de Oro de HouseFinder: cada dato extraído se verifica contra una cita literal
 del texto de origen. Ninguna carga, deuda o condición se inventa.
+
+El nivel de riesgo no lo da el modelo: lo decide `assess_risk` con los datos comprobados. Si el
+modelo falla, el informe lo dice (`analysis = "reglas"`) y el riesgo queda sin evaluar: unas
+reglas que no encuentran cargas no prueban que no las haya.
 """
 
 from __future__ import annotations
 
+import logging
 import re
 import unicodedata
 from collections.abc import Sequence
@@ -20,9 +25,17 @@ from typing import Any, Literal, Protocol, runtime_checkable
 from pydantic import BaseModel, Field
 
 from housefinder.agent.extraction import Quoted
-from housefinder.agent.llm import LLMClient, LLMOutputError
+from housefinder.agent.llm import LLMClient, LLMOutputError, LLMTruncated
+from housefinder.agent.references import NUMBER
 
-RiskLevel = Literal["bajo", "medio", "alto", "critico"]
+RiskLevel = Literal["bajo", "medio", "alto", "critico", "sin_evaluar"]
+Analysis = Literal["modelo", "reglas"]
+log = logging.getLogger(__name__)
+# Texto que va al modelo: unos siete mil tokens. Con las instrucciones, el esquema y la respuesta
+# cabe en una ventana de 16.384 (Ollama recorta el principio sin avisar si no cabe).
+MAX_CORPUS_CHARS = 24_000
+CERTIFICATE = re.compile(r"certifi", re.IGNORECASE)  # «CERTIFIACION REGISTRAL» también
+OCCUPIED = re.compile(r"ocupad|arrendat|inquilin|precar|sin t[ií]tulo", re.IGNORECASE)
 FieldStatus = Literal["verificado", "rechazado", "ausente"]
 
 
@@ -222,7 +235,8 @@ class RiskAssessmentExtraction(BaseModel):
     """Evaluación sintética de riesgo y resumen ejecutivo."""
 
     risk_level: RiskLevel = Field(
-        description="Nivel de riesgo jurídico/económico global: bajo, medio, alto o critico"
+        description="Nivel de riesgo jurídico/económico global: bajo, medio, alto o critico "
+        "(orientativo: el programa lo recalcula con los datos comprobados)"
     )
     warnings: list[Quoted] = Field(
         default_factory=list, description="Alertas críticas detectadas con su cita textual"
@@ -299,12 +313,14 @@ class VerifiedAuctionAiReport:
     cadastral_reference: str | None
     executed_charge: str | None
     subsisting_prior_charges: list[VerifiedPriorCharge]
-    subsisting_charges_total: Decimal
+    subsisting_charges_total: Decimal | None  # None: las cargas no se han podido evaluar
     risk_level: RiskLevel
     warnings: list[str]
     executive_summary: str
     fields: dict[str, VerifiedField]
     documents_analyzed: list[dict[str, Any]] = field(default_factory=list)
+    analysis: Analysis = "modelo"  # quién leyó los documentos: el modelo o las reglas de reserva
+    analysis_note: str | None = None  # por qué no los leyó el modelo, o qué se quedó fuera
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -328,12 +344,16 @@ class VerifiedAuctionAiReport:
             "cadastral_reference": self.cadastral_reference,
             "executed_charge": self.executed_charge,
             "subsisting_prior_charges": [c.as_dict() for c in self.subsisting_prior_charges],
-            "subsisting_charges_total": str(self.subsisting_charges_total),
+            "subsisting_charges_total": str(self.subsisting_charges_total)
+            if self.subsisting_charges_total is not None
+            else None,
             "risk_level": self.risk_level,
             "warnings": list(self.warnings),
             "executive_summary": self.executive_summary,
             "fields": {k: v.as_dict() for k, v in self.fields.items()},
             "documents_analyzed": list(self.documents_analyzed),
+            "analysis": self.analysis,
+            "analysis_note": self.analysis_note,
         }
 
 
@@ -390,6 +410,9 @@ def verify_full_extraction(
     source_text: str,
     raw_extraction: FullAuctionExtractionSchema,
     documents_meta: list[dict[str, Any]],
+    analysis: Analysis = "modelo",
+    certificate_read: bool = False,
+    analysis_note: str | None = None,
 ) -> VerifiedAuctionAiReport:
     """Verifica todas las citas de la extracción y calcula la síntesis final."""
     norm_source = _normalize(source_text)
@@ -506,6 +529,11 @@ def verify_full_extraction(
     days_val = parse_decimal_value(fields_dict["payment_period_days"].value)
     payment_days = int(days_val) if days_val is not None else None
 
+    risk, risk_warnings = assess_risk(fields_dict, verified_charges, analysis, certificate_read)
+    summary = raw_extraction.risk_assessment.executive_summary.strip()
+    if analysis == "reglas" or not summary or NUMBER.search(summary):
+        summary = PLAIN_SUMMARY[risk]  # el modelo no escribe cifras (regla de oro 1)
+
     return VerifiedAuctionAiReport(
         portal_id=portal_id,
         procedural_type=fields_dict["procedural_type"].value,
@@ -525,13 +553,53 @@ def verify_full_extraction(
         cadastral_reference=fields_dict["cadastral_reference"].value,
         executed_charge=fields_dict["executed_charge"].value,
         subsisting_prior_charges=verified_charges,
-        subsisting_charges_total=charges_total,
-        risk_level=raw_extraction.risk_assessment.risk_level,
-        warnings=verified_warnings,
-        executive_summary=raw_extraction.risk_assessment.executive_summary,
+        subsisting_charges_total=None if risk == "sin_evaluar" else charges_total,
+        risk_level=risk,
+        warnings=risk_warnings + [w for w in verified_warnings if w not in risk_warnings],
+        executive_summary=summary,
         fields=fields_dict,
         documents_analyzed=documents_meta,
+        analysis=analysis,
+        analysis_note=analysis_note,
     )
+
+
+PLAIN_SUMMARY: dict[RiskLevel, str] = {
+    "sin_evaluar": "Solo se han podido comprobar los datos del portal: las cargas y la "
+                   "ocupación de los documentos están sin analizar. Léelos antes de pujar.",
+    "alto": "Hay cargas que subsisten o el inmueble está ocupado: revisa las alertas antes de "
+            "pujar.",
+    "medio": "No consta ninguna carga anterior comprobada, pero falta confirmar la ocupación o la "
+             "carga que se ejecuta.",
+    "bajo": "La certificación no muestra cargas anteriores comprobadas y el inmueble consta libre.",
+    "critico": "Hay riesgos graves en la documentación: revisa las alertas antes de pujar.",
+}
+
+
+def assess_risk(
+    fields: dict[str, VerifiedField],
+    charges: Sequence[VerifiedPriorCharge],
+    analysis: Analysis,
+    certificate_read: bool,
+) -> tuple[RiskLevel, list[str]]:
+    """Riesgo de la subasta con reglas fijas sobre los datos comprobados, y sus motivos.
+
+    «Bajo» exige pruebas: la certificación leída por el modelo, la carga ejecutada con su cita y
+    el inmueble libre con la suya. Que no se encuentren cargas no es lo mismo que no haberlas.
+    """
+    if any(c.verified for c in charges):
+        return "alto", ["Hay cargas anteriores que subsisten: las asume quien se adjudique la "
+                        "subasta y se suman a lo que pagas."]
+    occupancy = fields["occupancy_status"]
+    if occupancy.status == "verificado" and OCCUPIED.search(occupancy.value or ""):
+        return "alto", ["El inmueble consta ocupado: la posesión puede retrasarse."]
+    if analysis == "reglas" or not certificate_read:
+        return "sin_evaluar", ["No se han leído las cargas de la certificación registral: "
+                               "revísala antes de pujar."]
+    free = occupancy.status == "verificado" and "libre" in (occupancy.value or "").lower()
+    if fields["executed_charge"].status == "verificado" and free:
+        return "bajo", []
+    return "medio", []
 
 
 def rule_based_fallback_extraction(
@@ -625,8 +693,8 @@ def rule_based_fallback_extraction(
             )
         )
 
-    # Riesgo
-    risk: RiskLevel = "medio" if prior_charges or not pos_m else "bajo"
+    # Riesgo: lo recalcula `assess_risk`; sin modelo queda sin evaluar
+    risk: RiskLevel = "sin_evaluar"
 
     return FullAuctionExtractionSchema(
         conditions=AuctionConditionsExtraction(
@@ -738,13 +806,32 @@ def rule_based_fallback_extraction(
         risk_assessment=RiskAssessmentExtraction(
             risk_level=risk,
             warnings=warnings,
-            executive_summary=(
-                f"Subasta judicial {auction.portal_id} por importe de "
-                f"{auction.notice.valor_subasta or 'desconocido'} €. "
-                "Las cargas anteriores subsisten según la certificación."
-            ),
+            executive_summary=PLAIN_SUMMARY["sin_evaluar"],
         ),
     )
+
+
+def build_corpus(
+    summary: str, documents: Sequence[DocumentInput], limit: int = MAX_CORPUS_CHARS
+) -> tuple[str, list[str]]:
+    """El texto para el modelo: el resumen del portal y los documentos, la certificación de
+    cargas primero, hasta `limit` caracteres. Devuelve también los documentos que no entraron
+    enteros."""
+    ordered = sorted(documents, key=lambda d: (not CERTIFICATE.search(d.title),
+                                               "edicto" not in d.title.lower()))
+    parts, cut = [summary], []
+    room = limit - len(summary)
+    for d in ordered:
+        head = f"\n\n=== DOCUMENTO: {d.title} (idDoc: {d.id_doc}, {d.pages} págs) ===\n"
+        if room <= len(head):
+            cut.append(d.title)
+            continue
+        body = d.text[: room - len(head)]
+        if len(body) < len(d.text):
+            cut.append(d.title)
+        parts.append(head + body)
+        room -= len(head) + len(body)
+    return "".join(parts), cut
 
 
 def extract_auction_ai(
@@ -763,20 +850,32 @@ def extract_auction_ai(
         {"id_doc": d.id_doc, "title": d.title, "pages": d.pages, "method": d.method}
         for d in documents
     ]
+    corpus, cut = build_corpus(summary, documents)
+    certificates = [d.title for d in documents if CERTIFICATE.search(d.title) and d.text.strip()]
 
-    raw_extraction: FullAuctionExtractionSchema
-    if llm is not None:
+    note: str | None = None
+    analysis: Analysis = "reglas"
+    if llm is None:
+        note = "No hay modelo configurado: solo se han leído los datos del portal."
+        raw_extraction = rule_based_fallback_extraction(auction, documents)
+    else:
         try:
-            # Enviamos el corpus recortado si excede el límite del modelo
-            truncated_corpus = full_corpus[:65_000]
             raw_extraction = llm.structured(
                 instructions=AUCTION_INSTRUCTIONS,
-                document=truncated_corpus,
+                document=corpus,
                 output=FullAuctionExtractionSchema,
             )
-        except LLMOutputError:
+            analysis = "modelo"
+            if cut:
+                note = "Se ha leído solo una parte de: " + ", ".join(cut) + "."
+        except LLMOutputError as exc:
+            # Los datos son públicos: el motivo se puede registrar
+            log.warning("Extracción de %s sin modelo: %s", auction.portal_id, exc)
+            reason = ("se cortó la respuesta del modelo por larga" if isinstance(exc, LLMTruncated)
+                      else "el modelo no devolvió una respuesta válida")
+            note = f"No se han analizado los documentos ({reason}): solo los datos del portal."
             raw_extraction = rule_based_fallback_extraction(auction, documents)
-    else:
-        raw_extraction = rule_based_fallback_extraction(auction, documents)
 
-    return verify_full_extraction(auction.portal_id, full_corpus, raw_extraction, docs_meta)
+    certificate_read = analysis == "modelo" and any(t not in cut for t in certificates)
+    return verify_full_extraction(auction.portal_id, full_corpus, raw_extraction, docs_meta,
+                                  analysis, certificate_read, note)

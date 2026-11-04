@@ -13,14 +13,17 @@ from conftest import add_section
 from housefinder.geo.catastro import (
     CPMRC_URL,
     DNPPP_URL,
+    DNPRC_URL,
     CatastroUnavailable,
     Parcel,
     ParcelNotFound,
     find_parcel,
     find_rustic_parcel,
+    find_unit,
     parcel_ref,
     parse_cpmrc,
     parse_dnppp,
+    parse_dnprc,
 )
 from housefinder.offers.locate import parcel_in_municipality
 
@@ -177,3 +180,33 @@ def test_el_catastro_va_primero_y_la_direccion_es_la_reserva(migrated_database: 
         # Sin dirección, sin ubicar, con el motivo; no se reintenta.
         assert locate(offer("9999999XX9999X")) == Unlocated(
             "9999999XX9999X: LA REFERENCIA CATASTRAL NO EXISTE", retry=False)
+
+
+# --- Superficie y uso del inmueble (Consulta_DNPRC, ADR-0053), respuestas reales del 2026-11-04 ---
+
+
+def test_superficie_y_uso_del_inmueble():
+    unit = parse_dnprc(json.loads((FIXTURES / "dnprc-9402504VK3790C0005KT.json").read_text()))
+    assert unit.ref == "9402504VK3790C0005KT"
+    assert str(unit.built_area_m2) == "60" and unit.use == "Residencial"
+    assert unit.built_year == 1960
+    with pytest.raises(ParcelNotFound, match="CORRECTAMENTE FORMADA"):
+        parse_dnprc(json.loads((FIXTURES / "dnprc-no-existe.json").read_text()))
+
+
+def test_la_superficie_pide_la_referencia_completa():
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, content=(FIXTURES / "dnprc-9402504VK3790C0005KT.json"
+                                            ).read_bytes())
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    with pytest.raises(ParcelNotFound, match="20 caracteres"):
+        find_unit(client, "9402504VK3790C")  # solo la parcela: no se pregunta
+    assert not seen
+    assert find_unit(client, "9402504 VK3790C 0005 KT").use == "Residencial"
+    assert str(seen[0].url).startswith(DNPRC_URL)
+    assert seen[0].url.params["RefCat"] == "9402504VK3790C0005KT"
+

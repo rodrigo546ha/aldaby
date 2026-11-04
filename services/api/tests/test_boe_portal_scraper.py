@@ -255,12 +255,17 @@ def test_to_normalized_offers_single_lot():
     assert len(offers) == 1
     offer = offers[0]
     assert offer.external_id == "SUB-JA-2026-267866"
-    assert offer.kind == "anuncio"
-    assert offer.asking_price == Decimal("130560.00")
+    # Un lote público sin precio pedido: el plan lo trata como subasta y el simulador de puja
+    # parte del valor de subasta, no de la puja mínima (200 €) (ADR-0053)
+    assert offer.kind == "lote"
+    assert offer.asking_price is None
+    assert offer.auction_min_bid == Decimal("130560.00")
     assert offer.deposit_required == Decimal("6528.00")
-    assert offer.auction_min_bid == Decimal("200.00")
     assert offer.cadastral_ref == "9402504VK3790C0005KT"
     assert offer.municipality == "MADRID"
+    assert offer.extracted["property_type"] == "vivienda"
+    assert offer.built_area_m2 is None  # sin el Catastro, sin superficie
+    assert offer.title.startswith("Subasta judicial · ")
 
 
 def test_scrape_auction_offline_mock():
