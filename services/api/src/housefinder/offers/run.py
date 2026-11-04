@@ -11,15 +11,15 @@ import httpx
 
 from housefinder.agent.llm import LLMClient
 from housefinder.db.connection import connect
-from housefinder.db.offers import link_corrections, portal_states, rss_dates
+from housefinder.db.offers import link_corrections, portal_states, rss_dates, unlocated_lots
 from housefinder.db.review_tasks import mark_issue_read, read_issues
 from housefinder.db.sections import SourceRecord, upsert_source
 from housefinder.geo.cartociudad import Geocoded, geocode, municipality_codes
 from housefinder.geo.catastro import CadastralUnit, Parcel, find_parcel, find_rustic_parcel
 from housefinder.geo.foral import find_foral_parcel
 from housefinder.offers.channels import boe_subastas, boe_v, patrimonio, subastas_portal
-from housefinder.offers.extract import extract_pending
-from housefinder.offers.ingest import IngestReport, ingest
+from housefinder.offers.extract import extract_pending, relocated_offer
+from housefinder.offers.ingest import IngestReport, ingest, locate_and_link
 from housefinder.offers.locate import RusticFinder, offer_locator
 from housefinder.offers.pasted import extract_link
 
@@ -172,3 +172,38 @@ def extract_pasted(conninfo: str, llm: LLMClient, offer_id: UUID) -> dict[str, A
     """Extrae una oferta pegada por el usuario (F4.1)."""
     with connect(conninfo) as conn:
         return extract_link(conn, llm, offer_id)
+
+
+def relocate_unlocated(conninfo: str, client: httpx.Client,
+                       geocoder: Callable[[str], Geocoded] | None = None) -> dict[str, Any]:
+    """Vuelve a ubicar todos los lotes públicos sin inmueble, con la dirección limpia y, si aun
+    así no se puede, con el centro de su municipio como punto aproximado (ADR-0054)."""
+    from housefinder.offers.boe_portal import offer_from_record
+
+    located = approximate = still = 0
+    with connect(conninfo) as conn:
+        locate = offer_locator(
+            conn, geocoder or (lambda address: geocode(client, address)),
+            lambda ref: find_parcel(client, ref),
+            rustic=lambda province, municipality, polygon, parcel: find_rustic_parcel(
+                client, province, municipality, polygon, parcel),
+            municipalities=lambda name: municipality_codes(client, name),
+            foral=lambda province, key: find_foral_parcel(client, province, key))
+        report = IngestReport()
+        for item in unlocated_lots(conn):
+            offer = relocated_offer(item.lot)
+            if item.channel == subastas_portal.NAME:
+                record = next((r for r in item.raw.get("lots") or []
+                               if r.get("external_id") == item.lot.external_id), None)
+                if record is None:
+                    continue
+                offer = offer_from_record(record)
+            missed = locate_and_link(conn, item.lot.id, offer, locate, report)
+            if missed is None:
+                located += 1
+            elif missed.approx is not None:
+                approximate += 1
+            else:
+                still += 1
+            conn.commit()
+    return {"located": located, "approximate": approximate, "unlocated": still}

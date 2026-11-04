@@ -173,7 +173,13 @@ function geojson(places: Place[]) {
     features: places.map((p) => ({
       type: "Feature" as const,
       geometry: { type: "Point" as const, coordinates: [p.lon, p.lat] },
-      properties: { id: p.offer_id, channel: p.channel, fit: p.plan ? (p.plan.passes ? 1 : 0) : -1, label: pill(p) },
+      properties: {
+        id: p.offer_id,
+        channel: p.channel,
+        fit: p.plan ? (p.plan.passes ? 1 : 0) : -1,
+        approx: p.approximate ? 1 : 0,
+        label: p.approximate ? `≈ ${pill(p)}` : pill(p),
+      },
     })),
   };
 }
@@ -218,6 +224,8 @@ function addOffers(map: MapLibre, t: Theme, places: Place[]) {
     paint: {
       "circle-radius": 7,
       "circle-color": byChannel as maplibregl.ExpressionSpecification,
+      // En el centro de su municipio, no en su sitio: el punto, apagado (y «≈» en la pastilla)
+      "circle-opacity": ["case", ["==", ["get", "approx"], 1], 0.4, 1],
       "circle-stroke-color": ["case", ["==", ["get", "fit"], 1], t.pass, t.canvas],
       "circle-stroke-width": ["case", ["==", ["get", "fit"], 1], 3.5, 2],
     },
@@ -506,7 +514,7 @@ export function OfferMap() {
       const wide = matchMedia("(min-width: 921px)").matches;
       map.current.flyTo({
         center: [p.lon, p.lat],
-        zoom: Math.max(map.current.getZoom(), 15),
+        zoom: p.approximate ? Math.min(Math.max(map.current.getZoom(), 10), 12) : Math.max(map.current.getZoom(), 15),
         padding: wide ? { ...pad, left: pad.left + 440 } : { ...pad, bottom: 420 },
         duration: still() ? 0 : 800,
         essential: true,
@@ -556,7 +564,15 @@ export function OfferMap() {
         {chosen && (
           <OfferSheet
             offer={chosen}
-            note={!located(chosen) ? "Sin ubicar: no sale en el mapa." : !inside(coverage, chosen) ? "Queda fuera de la zona que cubre el mapa." : null}
+            note={
+              !located(chosen)
+                ? "Sin ubicar: no sale en el mapa."
+                : chosen.approximate
+                  ? "Ubicación aproximada: el punto es el centro del municipio, porque la dirección del anuncio no se ha podido situar."
+                  : !inside(coverage, chosen)
+                    ? "Queda fuera de la zona que cubre el mapa."
+                    : null
+            }
             planHint={hint}
             onClose={() => setSelected(null)}
           />
@@ -713,7 +729,12 @@ function Listing({ offer: o, current, onSelect }: { offer: Offer; current: boole
           {when && <span className="listing-when">{when}</span>}
         </span>
         <span className="listing-title">{o.title}</span>
-        {(o.address || o.place) && <span className="listing-place">{o.address ?? o.place}</span>}
+        {(o.address || o.place) && (
+          <span className="listing-place">
+            {o.approximate && <span title="Ubicación aproximada">≈ </span>}
+            {o.address ?? o.place}
+          </span>
+        )}
         <span className="listing-price">
           {o.price ? (
             <>

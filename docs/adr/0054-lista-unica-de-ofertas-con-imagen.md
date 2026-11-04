@@ -2,7 +2,8 @@
 
 **Estado:** Aceptada · **Fecha:** 2026-11-04 · **Decide:** Rodrigo («no hay que duplicar la info, ni
 separarlas, además faltan imágenes, mejor estructuración de la información, filtrar los datos que nos
-sean relevantes para el usuario, hacer la información más visible»)
+sean relevantes para el usuario, hacer la información más visible»; después, «confirmado que podemos
+enseñar las fotos, ampliamos el mapa a toda España, se incluyen todas las ofertas»)
 
 ## Contexto
 Tras U5 y U6 (ADR-0051, docs/PROPUESTA_UX.md) la misma oferta seguía saliendo en cuatro sitios:
@@ -61,10 +62,30 @@ Además:
    - Filtros por forma de venta y por tipo de inmueble, con su recuento.
    - En el mapa, el color dice el canal y un aro verde marca las que encajan.
 
+6. **Todas las ofertas en el mapa** (2026-11-04, Rodrigo: «ampliamos el mapa a toda España, se
+   incluyen todas las ofertas»):
+   - **Teselas de toda España** (Península, Baleares, Canarias, Ceuta y Melilla) hasta zoom 15,
+     también en local: `make mapa MAPA_BBOX=-18.4,27.5,4.6,44.0`. Son unos 4 GB y se descargan en
+     8 minutos.
+   - **Direcciones del Portal limpias** antes de CartoCiudad (`locate.clean_street`): sin piso,
+     puerta, escalera, bloque ni código postal, con «Nº 4» → «4» y «NTRA SRA» → «Nuestra Señora».
+   - **Municipios que coinciden en parte:** «Las Rozas» con «LAS ROZAS DE MADRID (MADRID)» y
+     «Galapagar Parquelagos» con «GALAPAGAR».
+   - **Punto aproximado:** si aun así no se ubica y el nombre del municipio da uno solo de su
+     provincia, la oferta guarda el centro del municipio (`offers.approx_location`, migración
+     0024). Se calcula con sus secciones censales. Sale en el mapa apagada, con «≈» y una nota en la
+     ficha. No crea inmueble ni sección, así que el plan no la usa, y sin ortofoto, que sería de
+     otro sitio.
+   - **Trabajo `offers_relocate`:** vuelve a intentar a diario todos los lotes sin ubicar.
+
 ## Consecuencias
-- Las condiciones de las fotos de fachada no están escritas: el aviso legal del Catastro autoriza
-  reproducir sus contenidos citando el origen, sin más detalle. **Rodrigo: confirmarlo.** Las fotos
-  pueden sacar personas o matrículas: no se guardan y solo se enseñan del inmueble que se mira.
+- Rodrigo confirmó el 2026-11-04 que se pueden enseñar las fotos de fachada. El aviso legal del
+  Catastro autoriza reproducir sus contenidos citando el origen. Las fotos pueden sacar personas o
+  matrículas: no se guardan y solo se enseñan del inmueble que se mira.
+- Con la primera pasada se ubicaron 13 lotes más y 10 quedaron en su municipio. Quedan 4 fincas
+  cuyo anuncio no da bien el municipio y una oferta pegada sin confirmar.
+- La lectura del Portal de Subastas sigue siendo de la provincia de Madrid (ADR-0053). El BOE y el
+  Patrimonio son de toda España.
 - Una foto de fachada es la de la parcela: en un edificio con varios portales puede no ser la del
   portal del piso.
 - El catálogo va entero en una petición (unas 300 ofertas). Con miles hará falta paginar o pedir por

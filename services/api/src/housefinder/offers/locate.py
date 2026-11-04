@@ -26,7 +26,12 @@ import httpx
 import yaml
 
 from housefinder.db.connection import Connection
-from housefinder.db.sections import latest_vintage, loaded_provinces, section_at
+from housefinder.db.sections import (
+    latest_vintage,
+    loaded_provinces,
+    municipality_point,
+    section_at,
+)
 from housefinder.geo.cartociudad import AddressNotFound, AddressTooVague, Geocoded
 from housefinder.geo.catastro import CatastroUnavailable, Parcel, ParcelNotFound
 from housefinder.geo.foral import FORAL, NAVARRA, SERVICES, foral_key, navarra_key
@@ -67,12 +72,26 @@ NUMBER_WORDS = {
 }
 # Para CartoCiudad: «nº 5» es «5», y sin el tipo de vía encuentra lo que no conoce por su tipo
 # («Callejuela del Cuartel 2, Frechilla» no; «Cuartel 2, Frechilla» sí).
-NUMBER_SIGN = re.compile(r"\b(?:n(?:\.\s*)?[º°o]\.?|núm\.?|número)\s*(?=\d)", re.IGNORECASE)
+NUMBER_SIGN = re.compile(r"\b(?:n(?:\.\s*)?[º°o]\.?|n[úu]m\.?|número)\s*(?=\d)", re.IGNORECASE)
 VIA_TYPE = re.compile(
-    r"^(?:calle|c/|avenida|avda\.?|plaza|pza\.?|paseo|callejuela|calleja|callejón|camino|"
+    r"^(?:calle|cl\.?|c/|avenida|avda\.?|plaza|pza\.?|paseo|callejuela|calleja|callejón|camino|"
     r"carretera|ctra\.?|travesía|ronda|glorieta|pasaje|cuesta|costanilla)\s+"
     r"(?:(?:de la|de los|de las|del|de)\s+)?", re.IGNORECASE)
 ALL_PARENS = re.compile(r"\([^()]*\)")
+# Lo que el Portal de Subastas escribe alrededor de la calle y el número (ADR-0054): «PISO 2º 1 DE
+# LA CALLE DIAMANTE Nº 65», «Calle Alcala, 204 - Piso: 8ª - Puerta: A - CP: 28000», «CALLE
+# MONTEJURRA Nº 33 BLOQUE 1 BAJO A». CartoCiudad no encuentra ninguna así.
+BEFORE_STREET = re.compile(
+    r"^.*?\b(?=(?:calle|cl|c/|avenida|avda|plaza|paseo|camino|carretera|ctra|ronda|travesía)\b)",
+    re.IGNORECASE)
+DWELLING = re.compile(
+    r"(?:\s*[-,.]\s*|\s+)\b(?:piso|planta|pl|puerta|pta|pt|escalera|esc|bloque|bl|portal|bajo|"
+    r"[aá]tico|entreplanta|cp|c\.p|finca|registro|integrad[oa])\b.*$", re.IGNORECASE)
+FLOOR = re.compile(r"[,\s]+\d+\s*[ºª°]\s*[A-Za-z0-9]?(?:\s.*)?$")
+WHAT = re.compile(r"^(?:casa|piso|vivienda|chalet|local|nave)\s+(?:sit[oa]\s+)?en\s+",
+                  re.IGNORECASE)
+SHORT = {"ntra": "Nuestra", "sra": "Señora", "sto": "Santo", "sta": "Santa", "sr": "Señor"}
+CONNECTORS = {"de", "del", "la", "las", "los", "el", "y", "e", "i", "d'", "l'"}
 NUMBER_PART = re.compile(r"\d+\s*[A-Za-z]?")
 
 
@@ -315,7 +334,34 @@ def offer_locator(
                 return point
         if not notes and not pending:
             return None
-        return Unlocated("; ".join(pending + notes), retry=bool(pending))
+        return Unlocated("; ".join(pending + notes), retry=bool(pending),
+                         approx=approximate(offer))
+
+    def approximate(offer: NormalizedOffer) -> Point | None:
+        """El centro del municipio, si su nombre da un solo municipio de su provincia: para que la
+        oferta salga en el mapa como aproximada (ADR-0054). No es una ubicación para el plan."""
+        if municipalities is None or not offer.municipality:
+            return None
+        province = province_code(offer)
+        vintage = latest_vintage(conn)
+        if vintage is None:
+            return None
+        name = municipality_name(offer.municipality)
+        words = name.split()
+        names = [name] + ([w for w in words if len(w) >= 6]
+                          if len(words) > 1 and not CONNECTORS & {w.lower() for w in words}
+                          else [])
+        for candidate in names:
+            try:
+                codes = set(municipalities(candidate))
+            except (httpx.HTTPError, json.JSONDecodeError):
+                return None
+            if province:
+                codes = {c for c in codes if c.startswith(province)}
+            if len(codes) == 1:
+                found = municipality_point(conn, codes.pop(), vintage)
+                return Point(found[0], found[1], "municipio") if found else None
+        return None
 
     return locate
 
@@ -349,8 +395,31 @@ def address_queries(offer: NormalizedOffer) -> list[str]:
     street = " ".join(", ".join(kept).split())
     bare = VIA_TYPE.sub("", street, count=1)
     queries = [street, bare] if bare and bare != street else [street]
+    tidy = clean_street(address, town)
+    if tidy and tidy != street:  # la del Portal, sin piso, puerta ni código postal
+        queries = [tidy, VIA_TYPE.sub("", tidy, count=1), *queries]
     queries = [f"{q}, {town}" if town else q for q in queries if q] + [address]
     return list(dict.fromkeys(queries))
+
+
+def clean_street(address: str, town: str | None = None) -> str | None:
+    """Solo la calle y el número: «PISO 2º 1 DE LA CALLE DIAMANTE Nº 65 DE MADRID» → «CALLE
+    DIAMANTE 65». None si no hay piso, puerta ni nada delante de la calle que quitar."""
+    text = ALL_PARENS.sub("", address)
+    noisy = any(p.search(text) for p in (WHAT, DWELLING, FLOOR)) or (
+        BEFORE_STREET.sub("", text, count=1) != text)
+    if not noisy:
+        return None  # nada que limpiar: valen las formas de siempre
+    text = WHAT.sub("", BEFORE_STREET.sub("", text, count=1))
+    text = DWELLING.sub("", text)
+    text = NUMBER_SIGN.sub("", text)
+    text = FLOOR.sub("", text)
+    text = re.sub(r"\b(\w+)\.?(?=\s)", lambda m: SHORT.get(m.group(1).lower(), m.group(0)), text)
+    if town:
+        text = re.sub(rf"\s+de\s+{re.escape(town)}\s*$", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s*,\s*(\d+\s*[A-Za-z]?)\s*$", r" \1", text)  # «Calle Alcala, 204»
+    text = " ".join(text.split()).strip(" ,.-")
+    return text or None
 
 
 def polygon_and_parcel(text: str) -> tuple[str, str] | None:
@@ -405,7 +474,10 @@ def parcel_in_municipality(expected: str, address: str | None) -> bool:
     if not address:
         return False
     place = place_key(IN_PARENS.sub("", address))
-    return any(re.search(rf"(?<!\w){re.escape(wanted)}$", place) is not None
+    # «LAS ROZAS DE MADRID (MADRID)» es Las Rozas: el nombre lleva a veces detrás su provincia
+    stated = IN_PARENS.search(address)
+    province = f"(?: {re.escape(place_key(stated.group(1)))})?" if stated else ""
+    return any(re.search(rf"(?<!\w){re.escape(wanted)}{province}$", place) is not None
                for wanted in _wanted(expected))
 
 
@@ -428,6 +500,11 @@ def _wanted(expected: str) -> list[str]:
     los dos), vale cualquiera."""
     name = municipality_name(expected)
     names = [name, *re.split(r"\s+(?:y|e|i)\s+", name)]
+    words = name.split()
+    # El Portal da la localidad con su núcleo: «Galapagar Parquelagos». Sin artículos ni «de»,
+    # cada palabra larga vale por sí sola.
+    if len(words) > 1 and not CONNECTORS & {w.lower() for w in words}:
+        names += [w for w in words if len(w) >= 6]
     return [key for key in dict.fromkeys(place_key(n) for n in names) if key]
 
 

@@ -96,17 +96,26 @@ def link_offer(
     conn.execute(
         """
         UPDATE offers SET property_id = %s, location_source = %s, location_issue = NULL,
-                          location_retry = false
+                          location_retry = false, approx_location = NULL
         WHERE id = %s
         """,
         (property_id, location_source, offer_id),
     )
 
 
-def mark_unlocated(conn: psycopg.Connection, offer_id: UUID, issue: str, retry: bool) -> None:
-    """Por qué la oferta se quedó sin ubicar y si merece otro intento (ADR-0031)."""
-    conn.execute("UPDATE offers SET location_issue = %s, location_retry = %s WHERE id = %s",
-                 (issue, retry, offer_id))
+def mark_unlocated(conn: psycopg.Connection, offer_id: UUID, issue: str, retry: bool,
+                   approx: tuple[float, float] | None = None) -> None:
+    """Por qué la oferta se quedó sin ubicar y si merece otro intento (ADR-0031); con `approx`,
+    el centro de su municipio para el mapa (ADR-0054)."""
+    conn.execute(
+        """
+        UPDATE offers SET location_issue = %s, location_retry = %s,
+            approx_location = CASE WHEN %s::float8 IS NULL THEN NULL
+                                   ELSE ST_SetSRID(ST_Point(%s, %s), 4326)::geography END
+        WHERE id = %s
+        """,
+        (issue, retry, approx[0] if approx else None, approx[0] if approx else None,
+         approx[1] if approx else None, offer_id))
 
 
 @dataclass(frozen=True)
@@ -135,6 +144,30 @@ def lots_to_relocate(conn: psycopg.Connection, channel: str) -> list[LotToReloca
         (channel,),
     ).fetchall()
     return [LotToRelocate(*r) for r in rows]
+
+
+@dataclass(frozen=True)
+class UnlocatedLot:
+    """Un lote público sin ubicar, con lo recibido de su canal (ADR-0054)."""
+
+    lot: LotToRelocate
+    channel: str
+    raw: dict[str, Any]
+
+
+def unlocated_lots(conn: psycopg.Connection) -> list[UnlocatedLot]:
+    """Todos los lotes públicos vigentes sin inmueble, de cualquier canal, reintentables o no."""
+    rows = conn.execute(
+        """
+        SELECT id, external_id, url, title, published_on, address, cadastral_ref, built_area_m2,
+               coalesce(extracted, '{}'::jsonb), channel, coalesce(raw, '{}'::jsonb)
+        FROM offers
+        WHERE org_id IS NULL AND kind = 'lote' AND property_id IS NULL
+          AND extraction_status <> 'retirada' AND corrects_id IS NULL
+        ORDER BY channel, external_id
+        """,
+    ).fetchall()
+    return [UnlocatedLot(LotToRelocate(*r[:9]), r[9], r[10]) for r in rows]
 
 
 def unlink_offer(conn: psycopg.Connection, offer_id: UUID) -> None:
@@ -844,6 +877,8 @@ class CatalogRow:
     deadline: str | None  # ventas directas: «Fecha límite presentación solicitudes»
     source_name: str | None
     corrected: bool = False  # el BOE publicó después una corrección del anuncio
+    approx_lon: float | None = None  # centro del municipio de una oferta sin ubicar (ADR-0054)
+    approx_lat: float | None = None
 
 
 _CATALOG = """
@@ -855,7 +890,8 @@ _CATALOG = """
            coalesce(o.raw->>'town', o.raw->'lots'->0->>'municipality'),
            o.extraction_status, coalesce(o.published_on, a.published_on), a.url,
            a.raw->'ficha'->>'Fecha límite presentación solicitudes', s.name,
-           a.id IS NOT NULL AND EXISTS (SELECT 1 FROM offers c WHERE c.corrects_id = a.id)
+           a.id IS NOT NULL AND EXISTS (SELECT 1 FROM offers c WHERE c.corrects_id = a.id),
+           ST_X(o.approx_location::geometry), ST_Y(o.approx_location::geometry)
     FROM offers o
     LEFT JOIN properties p ON p.id = o.property_id
     LEFT JOIN offers a ON a.id = o.parent_id

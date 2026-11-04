@@ -175,6 +175,7 @@ class CatalogOut(BaseModel):
     source_url: str | None
     original_title: str | None
     corrected: bool
+    approximate: bool  # el punto es el centro del municipio: no se pudo ubicar el inmueble
 
 
 PHOTO_ATTRIBUTION = {"fachada": photos.FACADE_ATTRIBUTION, "aerea": photos.AERIAL_ATTRIBUTION}
@@ -199,8 +200,8 @@ def get_catalog(db: DbDep, org: OrgDep) -> list[CatalogOut]:
         kinds: list[Literal["fachada", "aerea"]] = []
         if item.has_facade:
             kinds.append("fachada")
-        if item.lon is not None and item.lat is not None:
-            kinds.append("aerea")
+        if item.exact:
+            kinds.append("aerea")  # con un punto aproximado, la ortofoto sería de otro sitio
         out.append(CatalogOut(
             offer_id=item.offer_id, channel=item.channel, auction=item.auction,
             title=item.title, address=item.address, place=item.place,
@@ -213,7 +214,7 @@ def get_catalog(db: DbDep, org: OrgDep) -> list[CatalogOut]:
             status=item.status, lon=item.lon, lat=item.lat, photos=kinds,
             images=list(item.images), source_name=item.source_name,
             source_url=item.source_url, original_title=item.original_title,
-            corrected=item.corrected,
+            corrected=item.corrected, approximate=item.approximate,
         ))
     return out
 

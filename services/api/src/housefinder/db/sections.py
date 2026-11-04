@@ -161,3 +161,22 @@ def stable_vintages(
         (code, vintage, tolerance),
     ).fetchall()
     return {int(r[0]) for r in rows}
+
+
+def municipality_point(conn: psycopg.Connection, municipality: str,
+                       vintage: int) -> tuple[float, float] | None:
+    """Un punto dentro del municipio (código INE): el de la superficie de su sección más grande que
+    contiene el centro de todas, o el centro si cae fuera (ADR-0054). None si no tiene secciones."""
+    row = conn.execute(
+        """
+        WITH m AS (SELECT geom FROM census_sections WHERE municipality = %s AND vintage = %s),
+             c AS (SELECT ST_Centroid(ST_Collect(geom)) AS p FROM m)
+        SELECT ST_X(pt), ST_Y(pt) FROM (
+            SELECT coalesce(
+                (SELECT c.p FROM c, m WHERE ST_Covers(m.geom, c.p) LIMIT 1),
+                (SELECT ST_PointOnSurface(geom) FROM m ORDER BY ST_Area(geom) DESC LIMIT 1)) AS pt
+        ) x WHERE pt IS NOT NULL
+        """,
+        (municipality, vintage),
+    ).fetchone()
+    return (float(row[0]), float(row[1])) if row else None

@@ -15,6 +15,7 @@ from housefinder.offers.channels import boe_v
 from housefinder.offers.run import (
     extract_boe_v,
     extract_pasted,
+    relocate_unlocated,
     run_boe_auctions,
     run_boe_portal,
     run_boe_v,
@@ -82,6 +83,10 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
             return run_feeds(conninfo, client, provider_from_env)
 
+    def offers_relocate(payload: dict[str, Any]) -> dict[str, Any]:
+        with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
+            return relocate_unlocated(conninfo, client)
+
     def extract_link(payload: dict[str, Any]) -> dict[str, Any]:
         from housefinder.agent.llm import llm_from_env
 
@@ -91,6 +96,6 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
             "offers_boe_v": offers_boe_v, "extract_offers": extract_offers,
             "extract_link": extract_link, "offers_boe_auctions": offers_boe_auctions,
             "offers_patrimonio": offers_patrimonio, "offers_boe_portal": offers_boe_portal,
-            "offers_agency_feeds": offers_agency_feeds,
+            "offers_agency_feeds": offers_agency_feeds, "offers_relocate": offers_relocate,
             "ine_ipv": price_index,
             "ine_ipc_alquiler": rent_index}

@@ -45,6 +45,7 @@ class Unlocated:
 
     reason: str
     retry: bool  # otro intento puede ubicarla: un servicio falló o falta cargar su provincia
+    approx: Point | None = None  # el centro de su municipio, solo para el mapa (ADR-0054)
 
 
 # Ubica una oferta: punto, o por qué no se puede (None si no hay nada que contar).
@@ -113,7 +114,8 @@ def locate_and_link(
              if offer.lon is not None and offer.lat is not None else locate(offer))
     if not isinstance(point, Point):
         if point is not None:
-            mark_unlocated(conn, offer_id, point.reason, point.retry)
+            mark_unlocated(conn, offer_id, point.reason, point.retry,
+                           (point.approx.lon, point.approx.lat) if point.approx else None)
         return point
     report.located += 1
     property_id = _match_property(conn, offer, point)

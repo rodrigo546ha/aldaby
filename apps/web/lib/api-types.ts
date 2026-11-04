@@ -135,7 +135,8 @@ export interface paths {
         };
         /**
          * Get Catalog
-         * @description Todas las ofertas que el usuario puede ver, de todos los canales, en una lista.
+         * @description Todas las ofertas que el usuario puede ver, de todos los canales, en una lista. Las que ya
+         *     terminaron (subasta concluida, plazo de venta directa vencido) no salen.
          */
         get: operations["get_catalog_offers_catalog_get"];
         put?: never;
@@ -1394,6 +1395,8 @@ export interface components {
             original_title: string | null;
             /** Corrected */
             corrected: boolean;
+            /** Approximate */
+            approximate: boolean;
         };
         /** ChangeOut */
         ChangeOut: {

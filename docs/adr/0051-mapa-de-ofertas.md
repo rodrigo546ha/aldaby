@@ -49,4 +49,5 @@ Opciones leídas el 2026-11-04:
 ## Consecuencias
 - En el servidor hace falta subir el extracto de España (varios GB) al volumen del mapa y añadir la ruta a
   Caddy. Mientras no esté, el mapa enseña las ofertas sobre un fondo liso con un aviso.
+- Desde el 2026-11-04 el extracto local también es de toda España: zoom 15 y unos 4 GB (ADR-0054).
 - Actualizar el mapa base es repetir `make mapa` con un build más reciente.

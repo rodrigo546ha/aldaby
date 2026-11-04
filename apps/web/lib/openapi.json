@@ -312,7 +312,7 @@
           "ofertas"
         ],
         "summary": "Get Catalog",
-        "description": "Todas las ofertas que el usuario puede ver, de todos los canales, en una lista.",
+        "description": "Todas las ofertas que el usuario puede ver, de todos los canales, en una lista. Las que ya\nterminaron (subasta concluida, plazo de venta directa vencido) no salen.",
         "operationId": "get_catalog_offers_catalog_get",
         "responses": {
           "200": {
@@ -3647,6 +3647,10 @@
           "corrected": {
             "type": "boolean",
             "title": "Corrected"
+          },
+          "approximate": {
+            "type": "boolean",
+            "title": "Approximate"
           }
         },
         "type": "object",
@@ -3675,7 +3679,8 @@
           "source_name",
           "source_url",
           "original_title",
-          "corrected"
+          "corrected",
+          "approximate"
         ],
         "title": "CatalogOut",
         "description": "Una oferta en la lista única (ADR-0054): lo que decide, sin datos de la extracción."

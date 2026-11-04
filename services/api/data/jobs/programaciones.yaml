@@ -35,6 +35,14 @@ schedules:
     requires_env: [LLM_PROVIDER, LLM_BASE_URL, LLM_MODEL_ID]
 
   # Ventas directas del Patrimonio del Estado (ADR-0037): las subastas entran por el BOE.
+  # Los lotes que se quedaron sin ubicar, otra vez: la dirección limpia y, si no, el centro de su
+  # municipio como punto aproximado para el mapa (ADR-0054). Después de leer y extraer.
+  - name: oferta-reubicar-lotes
+    kind: offers_relocate
+    at: "11:30"
+    every_hours: 24
+    payload: {}
+
   - name: oferta-patrimonio-ventas-directas
     kind: offers_patrimonio
     at: "09:20"

@@ -69,6 +69,12 @@ class CatalogItem:
     source_url: str | None
     original_title: str | None  # el título largo de la fuente, para el detalle
     corrected: bool = False  # hay una corrección posterior del anuncio en el BOE
+    approximate: bool = False  # el punto es el centro del municipio, no el del inmueble
+
+    @property
+    def exact(self) -> bool:
+        """Ubicada de verdad: con inmueble y sección (la ortofoto y el plan la usan)."""
+        return self.lon is not None and not self.approximate
 
     @property
     def auction(self) -> bool:
@@ -208,7 +214,9 @@ def catalog_item(row: CatalogRow, provinces: Provinces) -> CatalogItem:
         published_on=row.published_on,
         status="por_confirmar" if row.kind == "enlace" and row.extraction_status != "confirmada"
         else "publicada",
-        lon=row.lon, lat=row.lat,
+        lon=row.lon if row.lon is not None else row.approx_lon,
+        lat=row.lat if row.lat is not None else row.approx_lat,
+        approximate=row.lon is None and row.approx_lon is not None,
         has_facade=bool(PARCEL_REF.match(ref.upper())),
         images=tuple(str(i) for i in (row.images or []) if str(i).startswith("https://"))[:4],
         source_name=row.source_name if channel == "agencia" and row.source_name

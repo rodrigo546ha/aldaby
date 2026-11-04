@@ -425,7 +425,8 @@ def test_el_municipio_con_otro_nombre_se_reconoce_por_su_codigo_ine(conn, databa
     assert locate(offer("j2", cadastral_ref="1991501YK5219S0001GF", municipality="Utiel")
                   ) == Unlocated("la parcela 1991501YK5219S0001GF es de otro municipio: "
                                  "CL RIO EBRO 33 CASTELLO DE LA PLANA (CASTELLÓN)", retry=False)
-    assert asked == ["Castellón de la Plana", "Utiel"]
+    # La segunda «Utiel» es el punto aproximado del municipio (ADR-0054): aquí no da ninguno
+    assert asked == ["Castellón de la Plana", "Utiel", "Utiel"]
     # Si CartoCiudad no responde al comprobarlo, se reintentará.
     down = offer_locator(conn, geocoder, lambda ref: castello,
                          municipalities=lambda name: (_ for _ in ()).throw(
