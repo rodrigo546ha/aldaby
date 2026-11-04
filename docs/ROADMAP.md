@@ -163,15 +163,14 @@ fuente); quedan las tareas F3.4 (padrón) y F3.5 (indicadores de demanda).
       *Pendiente:* la consulta legal (F0.6) y la autenticación (G8; hoy, organización local).
 - [x] F4.2 Verificar la API de datos abiertos del BOE con un sumario real y guardarlo como fixture;
       ajustar `ingestion/boe.py` a su esquema (hecho con F2.6: `tests/fixtures/boe/`).
-- [ ] F4.3 Subastas del Portal de Subastas del BOE para la provincia de Madrid (revisar condiciones
-      de uso; si no hay vía de datos abiertos, ADR antes de implementar).
-      *Estado (ADR-0017):* el Portal prohíbe el acceso automático (`robots.txt`: `Disallow: /`) y no
-      se lee. El canal `boe_subastas_judiciales` guarda los avisos de la sección IV del BOE de
-      juzgados de Madrid (≈ 13 a la semana) con su enlace; el usuario abre el Portal y pega el texto
-      del lote en `/ofertas`. *Pendiente:* verificar la lista de partidos judiciales
-      (`data/offers/subastas_boe.yaml`) y enviar la consulta a la AEBOE
-      (`docs/research/borrador-correo-aeboe-subastas.md`). Investigación:
-      `docs/research/f4-3-portal-subastas.md`.
+- [x] F4.3 Subastas del Portal de Subastas del BOE para la provincia de Madrid (y ámbito nacional).
+      *Hecho (ADR-0049):* Scraper multi-pestaña (`ver=1..5`, lotes y búsqueda en `subastas_ava.php`),
+      descarga directa de documentación oficial en PDF (edicto, certificación de dominio y cargas,
+      pliego de condiciones) vía `verDocumento.php` y extracción estructurada con IA (`extract_auction_ai`)
+      con verificación estricta de citas literales (cargas previas subsistentes, vivienda habitual,
+      situación posesoria, riesgos y advertencias legales). Integrado en CLI, API REST (`/boe/subastas/*`)
+      y pegado de enlaces directos del portal (`offers/link.py`). Investigación previa:
+      `docs/research/f4-3-portal-subastas.md`, ADR-0017 y ADR-0049.
 - [x] F4.4 Anuncios de la sección V del BOE: Seguridad Social, INVIED, Patrimonio del Estado.
       *Hecho:* el canal `boe_seccion_v` guarda cada día los anuncios enteros y el trabajo
       `extract_offers` extrae sus lotes con evidencia comprobada (ADR-0013), los ubica y los

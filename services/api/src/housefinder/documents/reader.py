@@ -38,17 +38,17 @@ def read_text(text: str) -> DocumentText:
     return DocumentText(text.strip(), "texto", 1)
 
 
-def read_document(content: bytes) -> DocumentText:
+def read_document(content: bytes, max_pages: int = MAX_PAGES) -> DocumentText:
     if len(content) > MAX_BYTES:
         raise UnreadableDocument("El documento pasa de 10 MB")
     if content.startswith(b"%PDF"):
-        return _pdf(content)
+        return _pdf(content, max_pages=max_pages)
     if content.startswith((b"\x89PNG", b"\xff\xd8\xff")):
         return DocumentText(_ocr(_image(content)), "ocr", 1)
     raise UnreadableDocument("Solo se leen PDF, JPG y PNG")
 
 
-def _pdf(content: bytes) -> DocumentText:
+def _pdf(content: bytes, max_pages: int = MAX_PAGES) -> DocumentText:
     from pypdf import PdfReader
     from pypdf.errors import PdfReadError
 
@@ -57,8 +57,8 @@ def _pdf(content: bytes) -> DocumentText:
         if reader.is_encrypted:
             raise UnreadableDocument("El PDF está protegido con contraseña: descárgalo sin ella")
         pages = reader.pages
-        if len(pages) > MAX_PAGES:
-            raise UnreadableDocument(f"El PDF tiene más de {MAX_PAGES} páginas")
+        if len(pages) > max_pages:
+            raise UnreadableDocument(f"El PDF tiene más de {max_pages} páginas")
         texts = [(page.extract_text() or "").strip() for page in pages]
     except PdfReadError as exc:
         raise UnreadableDocument("El PDF está dañado o no es un PDF") from exc
@@ -97,8 +97,11 @@ def _ocr(image: object) -> str:
     try:
         return str(pytesseract.image_to_string(image, lang=OCR_LANG)).strip()
     except pytesseract.TesseractNotFoundError as exc:
-        raise OcrUnavailable("Para leer escaneos y fotos hace falta Tesseract: "
-                             "`brew install tesseract tesseract-lang`") from exc
+        raise OcrUnavailable(
+            "Para leer escaneos y fotos hace falta Tesseract: "
+            "`brew install tesseract tesseract-lang`"
+        ) from exc
     except pytesseract.TesseractError as exc:
-        raise OcrUnavailable("Tesseract no tiene el idioma español: "
-                             "`brew install tesseract-lang`") from exc
+        raise OcrUnavailable(
+            "Tesseract no tiene el idioma español: `brew install tesseract-lang`"
+        ) from exc

@@ -114,12 +114,14 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/agency_feeds.py    feeds de agencias (solo la URL cifrada)
     offers/corrections.py correcciones del BOE: cita, página y anuncio que corrigen (F4.4)
     offers/link.py        descarga única del enlace pegado: robots.txt, bloqueos y veto a la red interna (ADR-0015)
+    offers/boe_portal.py  Portal de Subastas del BOE: pestañas, lotes, búsqueda y PDF oficiales (ADR-0049)
     offers/pasted.py      enlace o texto pegado: oferta privada, extracción en la cola y confirmación
     agent/llm.py          cliente del LLM (modelo abierto en servidor propio, API compatible con OpenAI) y cliente falso (ADR-0014); solo agent/ llama al LLM
     agent/extraction.py   extracción con cita literal comprobada: ninguna cifra extraída es inventada
     agent/documents.py    campos de nómina, declaración y extracto con cita y etiqueta comprobadas (ADR-0021)
     agent/profiling.py    datos del perfil en la respuesta libre, con cita comprobada (ADR-0020)
     agent/plan_arguments.py  argumentos del asesor para no comprar, sin números (ADR-0025)
+    agent/boe_auction_extraction.py  condiciones, cargas y ocupación de una subasta con cita comprobada (ADR-0049)
     agent/sense.py        contradicciones de sentido junto a los marcadores del asesor (ADR-0027)
     agent/references.py   el agente escribe marcadores {{fig:clave}}, no cifras: comprobación y segmentos (ADR-0012)
     agent/loop.py         bucle del agente con herramientas; el texto final se comprueba con references (ADR-0019)

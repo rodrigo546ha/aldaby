@@ -26,8 +26,16 @@ MAX_BYTES = 3_000_000
 TIMEOUT_S = 15.0
 MAX_REDIRECTS = 3
 MIN_TEXT_CHARS = 500  # menos texto que esto y con marcas de comprobación: página de bloqueo
-CHALLENGE_MARKERS = ("captcha", "datadome", "challenge-platform", "cf-chl", "are you a robot",
-                     "eres un robot", "pardon our interruption", "access denied")
+CHALLENGE_MARKERS = (
+    "captcha",
+    "datadome",
+    "challenge-platform",
+    "cf-chl",
+    "are you a robot",
+    "eres un robot",
+    "pardon our interruption",
+    "access denied",
+)
 BLOCKED_STATUS = {401, 403, 429}
 REDIRECTS = {301, 302, 303, 307, 308}
 PASTE_HINT = "Copia el texto del anuncio y pégalo en su lugar."
@@ -54,14 +62,20 @@ class FetchedPage:
     images: list[str]
 
     def raw(self) -> dict[str, Any]:
-        return {"url": self.url, "final_url": self.final_url,
-                "fetched_at": self.fetched_at.isoformat(), "title": self.title,
-                "text": self.text, "images": self.images}
+        return {
+            "url": self.url,
+            "final_url": self.final_url,
+            "fetched_at": self.fetched_at.isoformat(),
+            "title": self.title,
+            "text": self.text,
+            "images": self.images,
+        }
 
 
 def link_client() -> httpx.Client:
-    return httpx.Client(headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT_S,
-                        follow_redirects=False)
+    return httpx.Client(
+        headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT_S, follow_redirects=False
+    )
 
 
 def system_resolve(host: str, port: int) -> list[str]:
@@ -103,6 +117,28 @@ def fetch_listing(
 ) -> FetchedPage:
     """Descarga la página del anuncio o explica por qué no (`LinkRefused`)."""
     target = check_url(url, resolve)
+    if target.host == "subastas.boe.es":
+        from housefinder.offers import boe_portal
+
+        try:
+            auction = boe_portal.scrape_auction(client, str(target))
+            docs = boe_portal.download_documents(client, auction, max_docs=2)
+            docs_text = "\n\n".join(f"[{d.title}]\n{d.text}" for d in docs)
+            full_text = f"{auction.summary_text()}\n\n{docs_text}".strip()
+            title = f"Subasta {auction.notice.tipo_subasta or 'judicial'} · {auction.portal_id}"
+            return FetchedPage(
+                url=url.strip(),
+                final_url=auction.portal_url,
+                fetched_at=now(),
+                title=title,
+                text=full_text,
+                images=[],
+            )
+        except Exception as exc:
+            raise LinkRefused(
+                f"No se pudo descargar la subasta del BOE: {exc}. {PASTE_HINT}"
+            ) from exc
+
     robots: dict[str, bool] = {}  # por origen: cada sitio al que se redirige, el suyo
     for _ in range(MAX_REDIRECTS + 1):
         origin = f"{target.scheme}://{target.host}:{target.port or ''}"
@@ -127,8 +163,14 @@ def fetch_listing(
     page = page_text(html)
     if len(page.text) < MIN_TEXT_CHARS and any(m in html.lower() for m in CHALLENGE_MARKERS):
         raise LinkRefused(f"El sitio pide comprobar que no somos un robot. {PASTE_HINT}")
-    return FetchedPage(url=url.strip(), final_url=str(target), fetched_at=now(),
-                       title=page.title, text=page.text, images=page.images)
+    return FetchedPage(
+        url=url.strip(),
+        final_url=str(target),
+        fetched_at=now(),
+        title=page.title,
+        text=page.text,
+        images=page.images,
+    )
 
 
 def _get(client: httpx.Client, url: httpx.URL) -> tuple[int, str | None, str, bytes]:
@@ -142,8 +184,12 @@ def _get(client: httpx.Client, url: httpx.URL) -> tuple[int, str | None, str, by
                     if size > MAX_BYTES:
                         raise LinkRefused("La página es demasiado grande.")
                     chunks.append(chunk)
-            return (response.status_code, response.headers.get("location"),
-                    response.headers.get("content-type", "").lower(), b"".join(chunks))
+            return (
+                response.status_code,
+                response.headers.get("location"),
+                response.headers.get("content-type", "").lower(),
+                b"".join(chunks),
+            )
     except httpx.TimeoutException as exc:
         raise LinkRefused("El sitio tarda demasiado en responder.") from exc
     except httpx.HTTPError as exc:
@@ -152,8 +198,7 @@ def _get(client: httpx.Client, url: httpx.URL) -> tuple[int, str | None, str, by
 
 def _robots_allow(client: httpx.Client, url: httpx.URL, resolve: Resolver) -> bool:
     """`robots.txt` del sitio para nuestro agente (RFC 9309), siguiendo sus redirecciones."""
-    target = check_url(str(url.copy_with(path="/robots.txt", query=None, fragment=None)),
-                       resolve)
+    target = check_url(str(url.copy_with(path="/robots.txt", query=None, fragment=None)), resolve)
     for _ in range(MAX_REDIRECTS + 1):
         status, location, _, body = _get(client, target)
         if status in REDIRECTS and location:

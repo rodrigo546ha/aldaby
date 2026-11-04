@@ -67,8 +67,10 @@ DbDep = Annotated[Connection, Depends(get_db)]
 GeocoderDep = Annotated[Callable[[str], Geocoded], Depends(get_geocoder)]
 
 DEV_ORG = "Desarrollo local"
-LEGAL_PENDING = ("Acepta las condiciones de uso, la política de privacidad y el contrato de "
-                 "encargo del tratamiento para seguir")
+LEGAL_PENDING = (
+    "Acepta las condiciones de uso, la política de privacidad y el contrato de "
+    "encargo del tratamiento para seguir"
+)
 SESSION_COOKIE = "hf_sesion"
 
 
@@ -151,19 +153,28 @@ def get_llm() -> LLMClient:
     try:
         return llm_from_env()
     except ValueError as exc:
-        raise HTTPException(status_code=503,
-                            detail=f"El modelo no está configurado: {exc}") from exc
+        raise HTTPException(
+            status_code=503, detail=f"El modelo no está configurado: {exc}"
+        ) from exc
+
+
+def get_optional_llm() -> LLMClient | None:
+    try:
+        return llm_from_env()
+    except ValueError:
+        return None
 
 
 OrgDep = Annotated[UUID, Depends(get_org)]
 KeysDep = Annotated[KeyProvider, Depends(get_keys)]
 LLMDep = Annotated[LLMClient, Depends(get_llm)]
+OptionalLlmDep = Annotated[LLMClient | None, Depends(get_optional_llm)]
 ScenarioFinderDep = Annotated[
-    Callable[[str, int, bool], AppreciationReport], Depends(get_scenario_finder)]
+    Callable[[str, int, bool], AppreciationReport], Depends(get_scenario_finder)
+]
 ParcelFinderDep = Annotated[Callable[[str], Parcel], Depends(get_parcel_finder)]
 ForalFinderDep = Annotated[Callable[[str, str], Parcel], Depends(get_foral_finder)]
-MunicipalityFinderDep = Annotated[Callable[[str], frozenset[str]],
-                                  Depends(get_municipality_finder)]
+MunicipalityFinderDep = Annotated[Callable[[str], frozenset[str]], Depends(get_municipality_finder)]
 LinkClientDep = Annotated[httpx.Client, Depends(get_link_client)]
 ResolverDep = Annotated[Resolver, Depends(get_resolver)]
 
@@ -190,8 +201,9 @@ def is_particular(current: Session | None) -> bool:
     return current is not None and current.role == "particular"
 
 
-def get_client(request: Request, db: DbDep, org: OrgDep, keys: KeysDep,
-               current: SessionDep) -> UUID:
+def get_client(
+    request: Request, db: DbDep, org: OrgDep, keys: KeysDep, current: SessionDep
+) -> UUID:
     """Cliente activo del profesional: perfil, búsqueda, plan y asesor trabajan con él. Un
     particular tiene un solo perfil, el suyo: se crea la primera vez (ADR-0041)."""
     client = active_client(request, db, org)
@@ -199,8 +211,11 @@ def get_client(request: Request, db: DbDep, org: OrgDep, keys: KeysDep,
         client = clients.create(db, keys, org, OWN_PROFILE, informed=True)
         db.commit()
     if client is None:
-        detail = ("Elige un cliente en la barra de arriba" if client_ids(db, org)
-                  else "Crea primero un cliente en Clientes")
+        detail = (
+            "Elige un cliente en la barra de arriba"
+            if client_ids(db, org)
+            else "Crea primero un cliente en Clientes"
+        )
         raise HTTPException(status_code=409, detail=detail)
     return client
 
@@ -208,8 +223,10 @@ def get_client(request: Request, db: DbDep, org: OrgDep, keys: KeysDep,
 ClientDep = Annotated[UUID, Depends(get_client)]
 
 OWN_PROFILE = "Mi perfil"
-FREE_TIER_EXHAUSTED = ("Has usado los {n} planes completos del nivel gratuito. Puedes volver a "
-                       "abrir esos y seguir usando la búsqueda; el pase de compra llegará pronto.")
+FREE_TIER_EXHAUSTED = (
+    "Has usado los {n} planes completos del nivel gratuito. Puedes volver a "
+    "abrir esos y seguir usando la búsqueda; el pase de compra llegará pronto."
+)
 
 
 def free_plans_left(db: Connection, org: UUID, particular: bool) -> int | None:
