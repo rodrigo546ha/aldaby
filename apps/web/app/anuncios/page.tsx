@@ -1,19 +1,6 @@
-import { PublicOffers } from "../../components/PublicOffers";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Anuncios públicos · Aldaby" };
-
+// Los lotes del BOE y del Patrimonio están en la lista única de ofertas (ADR-0054)
 export default function AnnouncementsPage() {
-  return (
-    <main>
-      <header className="intro">
-        <h1>Anuncios públicos</h1>
-        <p>
-          Ventas y subastas de inmuebles del Estado: las que se publican en el BOE y las ventas
-          directas del Patrimonio del Estado. Los datos de cada lote los extrae un modelo y van con
-          la frase de la que salen: compruébalos antes de usarlos.
-        </p>
-      </header>
-      <PublicOffers />
-    </main>
-  );
+  redirect("/mapa");
 }

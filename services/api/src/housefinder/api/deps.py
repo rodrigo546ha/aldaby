@@ -137,6 +137,12 @@ def get_link_client() -> Iterator[httpx.Client]:
         yield client
 
 
+def get_photo_client() -> Iterator[httpx.Client]:
+    """Cliente para las imágenes públicas de un inmueble (ADR-0054)."""
+    with httpx.Client(headers={"User-Agent": "HouseFinder/0.1 (datos abiertos)"}) as client:
+        yield client
+
+
 def get_resolver() -> Resolver:
     return system_resolve
 
@@ -176,6 +182,7 @@ ParcelFinderDep = Annotated[Callable[[str], Parcel], Depends(get_parcel_finder)]
 ForalFinderDep = Annotated[Callable[[str, str], Parcel], Depends(get_foral_finder)]
 MunicipalityFinderDep = Annotated[Callable[[str], frozenset[str]], Depends(get_municipality_finder)]
 LinkClientDep = Annotated[httpx.Client, Depends(get_link_client)]
+PhotoClientDep = Annotated[httpx.Client, Depends(get_photo_client)]
 ResolverDep = Annotated[Resolver, Depends(get_resolver)]
 
 

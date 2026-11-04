@@ -306,6 +306,85 @@
         }
       }
     },
+    "/offers/catalog": {
+      "get": {
+        "tags": [
+          "ofertas"
+        ],
+        "summary": "Get Catalog",
+        "description": "Todas las ofertas que el usuario puede ver, de todos los canales, en una lista.",
+        "operationId": "get_catalog_offers_catalog_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogOut"
+                  },
+                  "type": "array",
+                  "title": "Response Get Catalog Offers Catalog Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/offers/{offer_id}/photo/{kind}": {
+      "get": {
+        "tags": [
+          "ofertas"
+        ],
+        "summary": "Get Photo",
+        "description": "Foto de fachada del Catastro u ortofoto del PNOA de una oferta que el usuario puede ver.\n\n404 si no hay: la web prueba la siguiente. La cita va en la cabecera `X-Attribution`.",
+        "operationId": "get_photo_offers__offer_id__photo__kind__get",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "fachada",
+                "aerea"
+              ],
+              "type": "string",
+              "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "image/jpeg": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/offers/{offer_id}": {
       "get": {
         "tags": [
@@ -3334,6 +3413,272 @@
           "figure"
         ],
         "title": "CardOut"
+      },
+      "CatalogOut": {
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Offer Id"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "subasta_judicial",
+              "subasta_administrativa",
+              "subasta_notarial",
+              "venta_directa",
+              "agencia",
+              "tu_anuncio"
+            ],
+            "title": "Channel"
+          },
+          "auction": {
+            "type": "boolean",
+            "title": "Auction"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          },
+          "property_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Property Type"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "price_kind": {
+            "type": "string",
+            "enum": [
+              "precio",
+              "valor_subasta"
+            ],
+            "title": "Price Kind"
+          },
+          "deposit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit"
+          },
+          "built_area_m2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Built Area M2"
+          },
+          "ends_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends On"
+          },
+          "auction_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auction State"
+          },
+          "possession": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Possession"
+          },
+          "habitual_residence": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Habitual Residence"
+          },
+          "published_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published On"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "publicada",
+              "por_confirmar"
+            ],
+            "title": "Status"
+          },
+          "lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lon"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "photos": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "fachada",
+                "aerea"
+              ]
+            },
+            "type": "array",
+            "title": "Photos"
+          },
+          "images": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Images"
+          },
+          "source_name": {
+            "type": "string",
+            "title": "Source Name"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "original_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Title"
+          },
+          "corrected": {
+            "type": "boolean",
+            "title": "Corrected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "offer_id",
+          "channel",
+          "auction",
+          "title",
+          "address",
+          "place",
+          "property_type",
+          "price",
+          "price_kind",
+          "deposit",
+          "built_area_m2",
+          "ends_on",
+          "auction_state",
+          "possession",
+          "habitual_residence",
+          "published_on",
+          "status",
+          "lon",
+          "lat",
+          "photos",
+          "images",
+          "source_name",
+          "source_url",
+          "original_title",
+          "corrected"
+        ],
+        "title": "CatalogOut",
+        "description": "Una oferta en la lista única (ADR-0054): lo que decide, sin datos de la extracción."
       },
       "ChangeOut": {
         "properties": {

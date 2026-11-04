@@ -62,7 +62,7 @@ DB_DRIVERS = {"psycopg", "psycopg_pool"}
 # Solo la ingesta descarga datos de la red.
 # La ingesta lee además PDF y Excel antiguos de fuentes públicas (ADR-0022).
 ALLOWED_EXTERNAL = {"ingestion": {"httpx", "pypdf", "xlrd"}, "geo": {"httpx"}, "jobs": {"httpx"},
-                    "watch": {"httpx"}, "offers": {"httpx"}, "agent": {"httpx"},
+                    "watch": {"httpx"}, "offers": {"httpx", "PIL"}, "agent": {"httpx"},
                     "feeds": {"httpx"},
                     # Solo documents/ lee PDF y hace OCR (ADR-0021)
                     "documents": {"pypdf", "pypdfium2", "pytesseract", "PIL"},

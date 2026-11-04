@@ -192,3 +192,16 @@ export const ANNOUNCEMENT_STATUS: Record<string, string> = {
   confirmada: "Confirmado",
   no_aplica: "Sin lotes",
 };
+
+const dateFormat = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short", year: "numeric" });
+const shortDateFormat = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short" });
+
+/** «2026-10-29» → «29 oct 2026»; vacío si no hay fecha. */
+export function formatDate(iso: string | null | undefined): string {
+  return iso ? dateFormat.format(new Date(`${iso}T00:00:00`)) : "";
+}
+
+/** «2026-11-09» → «9 nov». */
+export function formatShortDate(iso: string): string {
+  return shortDateFormat.format(new Date(`${iso}T00:00:00`));
+}

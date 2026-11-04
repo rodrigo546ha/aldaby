@@ -276,6 +276,7 @@ Ordenado para que cada fase se pueda usar sola y no espere a la siguiente.
 | **U5** (hecha, ADR-0051)| Mapa: endpoint por caja con agrupación, MapLibre, teselas, geolocalización, lista sincronizada, hoja de oferta, títulos cortos | Sí | Sí (teselas y librería; leer condiciones del IGN antes) | grande |
 | **U6** (hecha)| Navegación en 4 destinos y «Pegar un anuncio» como acción del mapa | No | No | pequeño |
 | **U7** (hecha, ADR-0052) | Asesor en fichas con salida estructurada y etapas en directo (el texto no se puede enseñar a trozos: se comprueba entero) | Sí | Sí (esquema de salida) | medio |
+| **U8** (hecha, ADR-0054) | Una sola lista de ofertas de todos los canales, también sin perfil; foto de fachada del Catastro u ortofoto del PNOA; color por forma de venta; solo los datos que deciden; fuera las secciones por canal | Sí | Sí (catálogo e imágenes) | medio |
 
 Para empezar recomiendo **U1 + U2**: no tocan la API, quitan la mayor parte del texto de entrada y dejan
 el terreno listo para las gráficas y el mapa.

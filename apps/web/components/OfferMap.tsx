@@ -6,34 +6,68 @@ import { layers, namedFlavor, type Flavor } from "@protomaps/basemaps";
 import * as maplibregl from "maplibre-gl";
 import type { GeoJSONSource, MapLayerMouseEvent, Map as MapLibre, StyleSpecification } from "maplibre-gl";
 import { PMTiles, Protocol } from "pmtiles";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
 import type { components } from "../lib/api-types";
-import { formatValue, type FigureOut } from "../lib/format";
+import { formatShortDate, formatValue, type FigureOut } from "../lib/format";
 import { Amount } from "./FigureView";
 import { Skeleton } from "./Motion";
+import { OfferPhoto } from "./OfferPhoto";
 
 type SearchOut = components["schemas"]["SearchOut"];
 type ScoredOut = components["schemas"]["ScoredOut"];
+type CatalogOut = components["schemas"]["CatalogOut"];
+type Channel = CatalogOut["channel"];
 
-// Mapa de ofertas (ADR-0051): teselas propias de OpenStreetMap con los colores de Aldaby, y las
-// ofertas de la búsqueda inversa donde están. La web pinta lo que devuelve la API, no calcula nada.
+// Ofertas (ADR-0051 y ADR-0054): una sola lista de inmuebles, venga del canal que venga, en el mapa
+// y en la lista. El catálogo se ve siempre; con el perfil confirmado, cada oferta lleva además el
+// plan del usuario (la búsqueda inversa). La web pinta lo que devuelve la API, no calcula nada.
 
 const TILES = "/mapa/teselas.pmtiles";
 const MADRID: [number, number] = [-3.7, 40.42];
-const SOURCE = {
-  catastro: "Catastro",
-  cartociudad: "CartoCiudad",
-  canal: "el propio anuncio",
-} as Record<string, string>;
 
-type Place = ScoredOut & { lon: number; lat: number };
+type Group = "todas" | "subastas" | "directas" | "agencias" | "tuyos";
+const CHANNEL: Record<Channel, { label: string; group: Group }> = {
+  subasta_judicial: { label: "Subasta judicial", group: "subastas" },
+  subasta_administrativa: { label: "Subasta administrativa", group: "subastas" },
+  subasta_notarial: { label: "Subasta notarial", group: "subastas" },
+  venta_directa: { label: "Venta directa", group: "directas" },
+  agencia: { label: "Agencia", group: "agencias" },
+  tu_anuncio: { label: "Tu anuncio", group: "tuyos" },
+};
+const GROUPS: { id: Group; label: string }[] = [
+  { id: "todas", label: "Todas" },
+  { id: "subastas", label: "Subastas" },
+  { id: "directas", label: "Ventas directas" },
+  { id: "agencias", label: "Agencias" },
+  { id: "tuyos", label: "Tus anuncios" },
+];
+type TypeGroup = "todos" | "viviendas" | "locales" | "garajes" | "suelo";
+const TYPES: { id: TypeGroup; label: string; types: string[] }[] = [
+  { id: "todos", label: "Todos los tipos", types: [] },
+  { id: "viviendas", label: "Viviendas", types: ["vivienda", "edificio"] },
+  { id: "locales", label: "Locales y oficinas", types: ["local", "oficina"] },
+  { id: "garajes", label: "Garajes y trasteros", types: ["garaje", "trastero"] },
+  { id: "suelo", label: "Suelo y fincas", types: ["suelo", "rustica"] },
+];
+// Primero lo que más se busca: viviendas; al final, el campo
+const TYPE_ORDER: Record<string, number> = {
+  vivienda: 0, edificio: 1, local: 2, oficina: 2, garaje: 3, trastero: 3, otro: 4, suelo: 5, rustica: 6,
+};
+
+type Offer = CatalogOut & {
+  plan: ScoredOut | null;
+  skipped: string | null; // por qué la búsqueda no puede calcular el plan de esta oferta
+  rank: number; // orden de la búsqueda inversa
+};
+type Place = Offer & { lon: number; lat: number };
 /** Lo que cubre el extracto de teselas (`make mapa`): fuera de ahí no hay mapa que enseñar. */
 type Bounds = [[number, number], [number, number]];
 
 let protocol: Protocol | null = null;
 
-const inside = (b: Bounds | null, p: Place) =>
+const located = (o: Offer): o is Place => o.lon != null && o.lat != null;
+const inside = (b: Bounds | null, p: { lon: number; lat: number }) =>
   !b || (p.lon >= b[0][0] && p.lon <= b[1][0] && p.lat >= b[0][1] && p.lat <= b[1][1]);
 
 /** Mezcla de dos colores #rrggbb: el relieve del mapa sale de la paleta, no de otra. */
@@ -60,6 +94,9 @@ function readTheme() {
     pass: v("--pass"),
     mark: v("--mark"),
     stat: v("--stat"),
+    channel: Object.fromEntries(
+      (Object.keys(CHANNEL) as Channel[]).map((c) => [c, v(`--ch-${c.replace("_", "-")}`)]),
+    ) as Record<Channel, string>,
   };
 }
 
@@ -119,13 +156,15 @@ function baseStyle(t: Theme): StyleSpecification {
   };
 }
 
-const fig = (s: ScoredOut, key: string): FigureOut | undefined => s.figures.find((f) => f.key === key);
-const title = (s: ScoredOut) => s.title ?? (s.kind === "enlace" ? "Oferta pegada" : "Lote del BOE");
+const fig = (s: ScoredOut | null, key: string): FigureOut | undefined => s?.figures.find((f) => f.key === key);
+const compact = new Intl.NumberFormat("es-ES", { notation: "compact", maximumFractionDigits: 1 });
+const area = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
 
-/** El texto de la pastilla: el cash flow del usuario, que es lo que decide, no el precio. */
-function pill(s: ScoredOut): string {
-  const f = fig(s, "cashflow.monthly_after_tax");
-  return f ? formatValue(f.value, f.unit).replace(" al mes", "/mes") : "";
+/** La pastilla del punto: el cash flow del usuario si hay plan; si no, el precio del anuncio. */
+function pill(o: Offer): string {
+  const f = fig(o.plan, "cashflow.monthly_after_tax");
+  if (f) return formatValue(f.value, f.unit).replace(" al mes", "/mes");
+  return o.price ? `${compact.format(Number(o.price))} €` : "";
 }
 
 function geojson(places: Place[]) {
@@ -134,7 +173,7 @@ function geojson(places: Place[]) {
     features: places.map((p) => ({
       type: "Feature" as const,
       geometry: { type: "Point" as const, coordinates: [p.lon, p.lat] },
-      properties: { id: p.offer_id, passes: p.passes, label: pill(p) },
+      properties: { id: p.offer_id, channel: p.channel, fit: p.plan ? (p.plan.passes ? 1 : 0) : -1, label: pill(p) },
     })),
   };
 }
@@ -167,7 +206,10 @@ function addOffers(map: MapLibre, t: Theme, places: Place[]) {
     layout: { "text-field": ["get", "point_count_abbreviated"], "text-font": ["Noto Sans Medium"], "text-size": 13 },
     paint: { "text-color": t.strong },
   });
-  // Lleno si encaja con el plan, hueco si no: la misma marca que en toda la web
+  // El color dice cómo se vende; el aro verde, que encaja con el plan. La pastilla lo dice en texto.
+  const byChannel: unknown[] = ["match", ["get", "channel"]];
+  for (const [c, color] of Object.entries(t.channel)) byChannel.push(c, color || t.mark);
+  byChannel.push(t.mark);
   map.addLayer({
     id: "puntos",
     type: "circle",
@@ -175,9 +217,9 @@ function addOffers(map: MapLibre, t: Theme, places: Place[]) {
     filter: ["!", ["has", "point_count"]],
     paint: {
       "circle-radius": 7,
-      "circle-color": ["case", ["get", "passes"], t.pass, t.canvas],
-      "circle-stroke-color": ["case", ["get", "passes"], t.pass, t.mark],
-      "circle-stroke-width": 2.5,
+      "circle-color": byChannel as maplibregl.ExpressionSpecification,
+      "circle-stroke-color": ["case", ["==", ["get", "fit"], 1], t.pass, t.canvas],
+      "circle-stroke-width": ["case", ["==", ["get", "fit"], 1], 3.5, 2],
     },
   });
   map.addLayer({
@@ -210,31 +252,42 @@ function addHere(map: MapLibre, t: Theme, here: [number, number] | null) {
 
 const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-type Failure = { status: number; text: string };
+type PlanState = { status: "cargando" } | { status: "ok"; result: SearchOut } | { status: "sin_plan"; code: number; text: string };
 
-/** Qué hacer cuando no hay búsqueda: sin cliente, a Clientes; con el perfil a medias, al perfil. */
-function failureAction(f: Failure): { title: string; text: string; href: string | null; cta: string | null } {
-  if (f.status === 409)
-    return f.text.startsWith("Elige")
-      ? { title: "Elige un cliente", text: "Arriba, en Cliente. El mapa se rehace con su plan en cada oferta.", href: null, cta: null }
-      : {
-          title: "¿Para quién buscas?",
-          text: "El mapa enseña el plan de cada cliente en cada oferta: si encaja, su cash flow y si es subasta. Empieza por crear el primero.",
-          href: "/clientes",
-          cta: "Crear un cliente",
-        };
-  if (f.status === 404 || f.status === 422)
-    return { title: "Falta el perfil", text: f.text, href: "/perfil", cta: "Completar el perfil" };
-  return { title: "No se ha podido buscar", text: f.text, href: null, cta: null };
+/** Sin plan la lista se ve igual; arriba, una línea dice qué falta para verlo. */
+function planHint(p: PlanState): { text: string; href: string | null; cta: string | null } | null {
+  if (p.status !== "sin_plan") return null;
+  if (p.code === 409)
+    return p.text.startsWith("Elige")
+      ? { text: "Elige un cliente arriba para ver su plan en cada oferta.", href: null, cta: null }
+      : { text: "Crea un cliente para ver su plan en cada oferta.", href: "/clientes", cta: "Crear un cliente" };
+  if (p.code === 404 || p.code === 422)
+    return { text: "Completa tu perfil y verás si cada oferta encaja contigo y tu cash flow.", href: "/perfil", cta: "Completar el perfil" };
+  return { text: p.text, href: null, cta: null };
 }
+
+function sortKey(o: Offer): [number, number, number, string] {
+  const fit = o.plan ? (o.plan.passes ? 0 : 1) : 2;
+  return [fit, TYPE_ORDER[o.property_type ?? "otro"] ?? 4, o.rank, o.ends_on ?? "9999"];
+}
+
+function compare(a: Offer, b: Offer): number {
+  const [x, y] = [sortKey(a), sortKey(b)];
+  for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return x[i] < y[i] ? -1 : 1;
+  return 0;
+}
+
+const channelStyle = (c: Channel) => ({ "--ch": `var(--ch-${c.replace("_", "-")})` }) as CSSProperties;
 
 export function OfferMap() {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibre | null>(null);
-  const [result, setResult] = useState<SearchOut | null>(null);
-  const [failure, setFailure] = useState<Failure | null>(null);
+  const [catalog, setCatalog] = useState<CatalogOut[] | null>(null);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [planState, setPlanState] = useState<PlanState>({ status: "cargando" });
+  const [group, setGroup] = useState<Group>("todas");
+  const [typeGroup, setTypeGroup] = useState<TypeGroup>("todos");
   const [onlyPass, setOnlyPass] = useState(false);
-  const [onlyAuction, setOnlyAuction] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [view, setView] = useState<"mapa" | "lista">("mapa");
   const [here, setHere] = useState<[number, number] | null>(null);
@@ -244,36 +297,57 @@ export function OfferMap() {
   const [coverage, setCoverage] = useState<Bounds | null>(null);
 
   useEffect(() => {
+    fetch("/api/offers/catalog")
+      .then(async (resp) => {
+        if (resp.ok) setCatalog((await resp.json()) as CatalogOut[]);
+        else setCatalogError("No se han podido cargar las ofertas. Vuelve a cargar la página.");
+      })
+      .catch(() => setCatalogError("No se ha podido conectar con la API."));
     (async () => {
       try {
         const resp = await fetch("/api/search");
         const body = await resp.json().catch(() => ({}));
-        if (resp.ok) setResult(body as SearchOut);
-        else if (resp.status === 404)
-          setFailure({ status: 404, text: "Con tu perfil confirmado se calcula tu plan en cada oferta." });
-        else if (resp.status === 422 && Array.isArray(body.detail))
-          setFailure({ status: 422, text: `Falta en tu perfil: ${body.detail.join(", ")}.` });
+        if (resp.ok) setPlanState({ status: "ok", result: body as SearchOut });
         else
-          setFailure({
-            status: resp.status,
-            text: typeof body.detail === "string" ? body.detail : "La búsqueda no ha respondido. Vuelve a cargar la página.",
+          setPlanState({
+            status: "sin_plan",
+            code: resp.status,
+            text: typeof body.detail === "string" ? body.detail : "La búsqueda no ha respondido.",
           });
       } catch {
-        setFailure({ status: 0, text: "No se ha podido conectar con la API." });
+        setPlanState({ status: "sin_plan", code: 0, text: "No se ha podido calcular tu plan." });
       }
     })();
   }, []);
 
-  const located = useMemo(
-    () => (result?.ranked ?? []).filter((s): s is Place => s.lon != null && s.lat != null),
-    [result],
+  const offers = useMemo<Offer[]>(() => {
+    if (!catalog) return [];
+    const result = planState.status === "ok" ? planState.result : null;
+    const plans = new Map(result?.ranked.map((s, i) => [s.offer_id, { s, i }]) ?? []);
+    const skipped = new Map(result?.skipped.map((s) => [s.offer_id, s.reason]) ?? []);
+    return catalog
+      .map((c) => {
+        const found = plans.get(c.offer_id);
+        return { ...c, plan: found?.s ?? null, skipped: skipped.get(c.offer_id) ?? null, rank: found?.i ?? Infinity };
+      })
+      .sort(compare);
+  }, [catalog, planState]);
+
+  const withPlan = planState.status === "ok";
+  const byType = useMemo(() => {
+    const t = TYPES.find((x) => x.id === typeGroup);
+    return offers.filter((o) => !t || t.types.length === 0 || t.types.includes(o.property_type ?? ""));
+  }, [offers, typeGroup]);
+  const shown = useMemo(
+    () => byType.filter((o) => (group === "todas" || CHANNEL[o.channel].group === group) && (!onlyPass || o.plan?.passes)),
+    [byType, group, onlyPass],
   );
-  const places = useMemo(
-    () => located.filter((s) => (!onlyPass || s.passes) && (!onlyAuction || s.auction)),
-    [located, onlyPass, onlyAuction],
-  );
-  // En el mapa, solo lo que cae dentro de las teselas; lo de fuera sigue en la lista
-  const onMap = useMemo(() => places.filter((p) => inside(coverage, p)), [places, coverage]);
+  const groupCount = (g: Group) => byType.filter((o) => g === "todas" || CHANNEL[o.channel].group === g).length;
+  const typeCount = (t: (typeof TYPES)[number]) =>
+    offers.filter((o) => t.types.length === 0 || t.types.includes(o.property_type ?? "")).length;
+
+  // En el mapa, solo lo ubicado y dentro de las teselas; lo demás sigue en la lista
+  const onMap = useMemo(() => shown.filter(located).filter((p) => inside(coverage, p)), [shown, coverage]);
   const onMapRef = useRef<Place[]>([]);
   onMapRef.current = onMap;
   const hereRef = useRef(here);
@@ -387,7 +461,7 @@ export function OfferMap() {
         const m = map.current;
         if (!m) return;
         const b = coverageRef.current;
-        if (b && !inside(b, { lon: point[0], lat: point[1] } as Place)) {
+        if (b && !inside(b, { lon: point[0], lat: point[1] })) {
           if (!quiet) setLocateError("Estás fuera de la zona que cubre el mapa.");
           return;
         }
@@ -406,21 +480,21 @@ export function OfferMap() {
 
   useEffect(() => {
     const m = map.current;
-    if (!m || !result || framed.current) return;
-    const shown = located.filter((p) => inside(coverage, p));
-    if (shown.length === 0) return; // sin ofertas en el mapa, se queda encuadrado en las teselas
+    if (!m || !catalog || framed.current) return;
+    const all = offers.filter(located).filter((p) => inside(coverage, p));
+    if (all.length === 0) return; // sin ofertas en el mapa, se queda encuadrado en las teselas
     framed.current = true;
-    if (shown.length === 1) m.jumpTo({ center: [shown[0].lon, shown[0].lat], zoom: 13 });
+    if (all.length === 1) m.jumpTo({ center: [all[0].lon, all[0].lat], zoom: 13 });
     else {
       const bounds = new maplibregl.LngLatBounds();
-      shown.forEach((p) => bounds.extend([p.lon, p.lat]));
+      all.forEach((p) => bounds.extend([p.lon, p.lat]));
       m.fitBounds(bounds, { padding: framePadding(), maxZoom: 14, duration: still() ? 0 : 900 });
     }
     navigator.permissions
       ?.query({ name: "geolocation" as PermissionName })
       .then((p) => p.state === "granted" && locate(true))
       .catch(() => undefined);
-  }, [result, located, coverage, locate]);
+  }, [catalog, offers, coverage, locate]);
 
   const select = useCallback((id: string) => {
     setSelected(id);
@@ -432,22 +506,21 @@ export function OfferMap() {
       const wide = matchMedia("(min-width: 921px)").matches;
       map.current.flyTo({
         center: [p.lon, p.lat],
-        zoom: Math.max(map.current.getZoom(), 14),
-        padding: { ...pad, bottom: wide ? 280 : 340 },
+        zoom: Math.max(map.current.getZoom(), 15),
+        padding: wide ? { ...pad, left: pad.left + 440 } : { ...pad, bottom: 420 },
         duration: still() ? 0 : 800,
         essential: true,
       });
     }
   }, []);
 
-  const chosen = places.find((p) => p.offer_id === selected) ?? null;
-  const total = result?.ranked.length ?? 0;
-  const unlocated = total - located.length;
-  const outside = places.length - onMap.length;
-  const passing = places.filter((p) => p.passes).length;
-  const auctions = places.filter((p) => p.auction).length;
-  const filtered = onlyPass || onlyAuction;
-  const action = failure ? failureAction(failure) : null;
+  const chosen = offers.find((p) => p.offer_id === selected) ?? null;
+  const passing = shown.filter((p) => p.plan?.passes).length;
+  const auctions = shown.filter((p) => p.auction).length;
+  const unlocated = shown.filter((o) => !located(o)).length;
+  const outside = shown.filter(located).length - onMap.length;
+  const filtered = group !== "todas" || typeGroup !== "todos" || onlyPass;
+  const hint = planHint(planState);
 
   return (
     <div className={`offer-map view-${view}`}>
@@ -480,48 +553,81 @@ export function OfferMap() {
             {locateError}
           </p>
         )}
-        {chosen && <OfferSheet offer={chosen} offMap={!inside(coverage, chosen)} onClose={() => setSelected(null)} />}
+        {chosen && (
+          <OfferSheet
+            offer={chosen}
+            note={!located(chosen) ? "Sin ubicar: no sale en el mapa." : !inside(coverage, chosen) ? "Queda fuera de la zona que cubre el mapa." : null}
+            planHint={hint}
+            onClose={() => setSelected(null)}
+          />
+        )}
       </div>
 
-      <aside className={`map-panel${places.length === 0 ? " is-short" : ""}`} aria-label="Ofertas de la búsqueda">
+      <aside className="map-panel" aria-label="Ofertas">
         <header className="map-panel-head">
           <h2 className="map-panel-title">
-            {action ? action.title : result ? (places.length === 1 ? "1 oferta" : `${places.length} ofertas`) : "Ofertas"}
+            {catalog ? (shown.length === 1 ? "1 oferta" : `${shown.length} ofertas`) : "Ofertas"}
           </h2>
-          {result && places.length > 0 && (
+          {catalog && shown.length > 0 && (
             <p className="map-panel-sub">
-              {passing === 1 ? "1 encaja" : `${passing} encajan`} con el plan
-              {auctions > 0 && ` · ${auctions === 1 ? "1 subasta" : `${auctions} subastas`}`}
+              {[
+                auctions > 0 && (auctions === 1 ? "1 subasta" : `${auctions} subastas`),
+                withPlan && (passing === 1 ? "1 encaja con tu plan" : `${passing} encajan con tu plan`),
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
           )}
         </header>
 
-        {result && total > 0 && (
-          <div className="map-filters" role="group" aria-label="Filtros">
-            <button type="button" className="chip" aria-pressed={onlyPass} onClick={() => setOnlyPass((v) => !v)}>
-              Solo las que encajan
-            </button>
-            <button type="button" className="chip" aria-pressed={onlyAuction} onClick={() => setOnlyAuction((v) => !v)}>
-              Subastas
-            </button>
+        {catalog && offers.length > 0 && (
+          <div className="map-filters">
+            <div className="chip-row" role="group" aria-label="Cómo se vende">
+              {GROUPS.map((g) => {
+                const n = groupCount(g.id);
+                if (g.id !== "todas" && n === 0) return null;
+                return (
+                  <button key={g.id} type="button" className="chip" aria-pressed={group === g.id} onClick={() => setGroup(g.id)}>
+                    {g.label} <span className="chip-n">{n}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="chip-row" role="group" aria-label="Tipo de inmueble">
+              {TYPES.map((t) => {
+                const n = typeCount(t);
+                if (t.id !== "todos" && n === 0) return null;
+                return (
+                  <button key={t.id} type="button" className="chip quiet" aria-pressed={typeGroup === t.id} onClick={() => setTypeGroup(t.id)}>
+                    {t.label}
+                  </button>
+                );
+              })}
+              {withPlan && (
+                <button type="button" className="chip fit" aria-pressed={onlyPass} onClick={() => setOnlyPass((v) => !v)}>
+                  Solo las que encajan
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {hint && (
+          <div className="plan-hint">
+            <p>{hint.text}</p>
+            {hint.href && (
+              <a className="button-link primary" href={hint.href}>
+                {hint.cta}
+              </a>
+            )}
           </div>
         )}
 
         <div className="map-panel-body">
-          {!result && !failure && <Skeleton label="Calculando el plan en cada oferta…" shape="text" />}
+          {!catalog && !catalogError && <Skeleton label="Cargando las ofertas…" shape="text" />}
+          {catalogError && <p className="failure">{catalogError}</p>}
 
-          {failure && action && (
-            <div className="map-empty">
-              <p>{action.text}</p>
-              {action.href && (
-                <a className="button-link primary" href={action.href}>
-                  {action.cta}
-                </a>
-              )}
-            </div>
-          )}
-
-          {result && places.length === 0 && (
+          {catalog && shown.length === 0 && (
             <div className="map-empty">
               <h3>{filtered ? "Ninguna con estos filtros" : "Aún no hay ofertas"}</h3>
               <p>
@@ -534,8 +640,9 @@ export function OfferMap() {
                   type="button"
                   className="button-link"
                   onClick={() => {
+                    setGroup("todas");
+                    setTypeGroup("todos");
                     setOnlyPass(false);
-                    setOnlyAuction(false);
                   }}
                 >
                   Quitar los filtros
@@ -548,47 +655,19 @@ export function OfferMap() {
             </div>
           )}
 
-          <ol className="map-items">
-            {places.map((p) => {
-              const cash = fig(p, "cashflow.monthly_after_tax");
-              const price = fig(p, "offer.price");
-              const off = !inside(coverage, p);
-              return (
-                <li key={p.offer_id}>
-                  <button type="button" aria-current={p.offer_id === selected} onClick={() => select(p.offer_id)}>
-                    <span className="map-item-top">
-                      <span className={p.passes ? "status pass" : "status fail"}>{p.passes ? "Encaja" : "No encaja"}</span>
-                      {p.auction && <span className="map-tag">Subasta</span>}
-                      {off && <span className="map-tag quiet">Fuera del mapa</span>}
-                    </span>
-                    <span className="map-item-title">{title(p)}</span>
-                    <span className="map-item-figures">
-                      {cash && (
-                        <strong>
-                          <Amount text={formatValue(cash.value, cash.unit)} />
-                        </strong>
-                      )}
-                      {price && <span>{formatValue(price.value, price.unit)}</span>}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
+          <ol className="listings">
+            {shown.map((o) => (
+              <li key={o.offer_id}>
+                <Listing offer={o} current={o.offer_id === selected} onSelect={select} />
+              </li>
+            ))}
           </ol>
         </div>
 
         <footer className="map-panel-foot">
-          {places.length > 0 && (
-            <span className="map-legend" aria-hidden="true">
-              <span className="status pass">Encaja</span>
-              <span className="status fail">No encaja</span>
-            </span>
-          )}
           {(unlocated > 0 || outside > 0) && (
             <span className="hint">
-              {[unlocated > 0 && `${unlocated} sin ubicar`, outside > 0 && `${outside} fuera del mapa`]
-                .filter(Boolean)
-                .join(" · ")}
+              {[unlocated > 0 && `${unlocated} sin ubicar`, outside > 0 && `${outside} fuera del mapa`].filter(Boolean).join(" · ")}
             </span>
           )}
           <a className="map-add" href="/ofertas">
@@ -611,64 +690,174 @@ function framePadding() {
   return { top: 72, right: 72, bottom: 72, left };
 }
 
-function OfferSheet({ offer, offMap, onClose }: { offer: Place; offMap: boolean; onClose: () => void }) {
+function priceLabel(o: Offer): string {
+  return o.price_kind === "valor_subasta" ? "valor de subasta" : "precio";
+}
+
+/** Cuándo acaba: la subasta del Portal o el plazo de la venta directa. */
+function ending(o: Offer): string | null {
+  if (!o.ends_on) return o.auction_state === "Próxima apertura" ? "Abre pronto" : null;
+  return `${o.channel === "venta_directa" ? "Hasta el" : "Termina el"} ${formatShortDate(o.ends_on)}`;
+}
+
+function Listing({ offer: o, current, onSelect }: { offer: Offer; current: boolean; onSelect: (id: string) => void }) {
+  const cash = fig(o.plan, "cashflow.monthly_after_tax");
+  const when = ending(o);
+  return (
+    <button type="button" className="listing" style={channelStyle(o.channel)} aria-current={current} onClick={() => onSelect(o.offer_id)}>
+      <OfferPhoto offerId={o.offer_id} kinds={o.photos} images={o.images} propertyType={o.property_type} className="listing-photo" />
+      <span className="listing-body">
+        <span className="listing-top">
+          <span className="ch-badge">{CHANNEL[o.channel].label}</span>
+          {o.status === "por_confirmar" && <span className="map-tag quiet">Por confirmar</span>}
+          {when && <span className="listing-when">{when}</span>}
+        </span>
+        <span className="listing-title">{o.title}</span>
+        {(o.address || o.place) && <span className="listing-place">{o.address ?? o.place}</span>}
+        <span className="listing-price">
+          {o.price ? (
+            <>
+              <strong>{formatValue(o.price, "EUR")}</strong>
+              <small>{priceLabel(o)}</small>
+            </>
+          ) : (
+            <small>Sin precio en el anuncio</small>
+          )}
+          {o.built_area_m2 && <small className="listing-area">{area.format(Number(o.built_area_m2))} m²</small>}
+        </span>
+        {o.plan ? (
+          <span className={`listing-fit ${o.plan.passes ? "pass" : "fail"}`}>
+            <span className={o.plan.passes ? "status pass" : "status fail"}>{o.plan.passes ? "Encaja" : "No encaja"}</span>
+            {cash && (
+              <strong>
+                <Amount text={formatValue(cash.value, cash.unit)} />
+              </strong>
+            )}
+          </span>
+        ) : o.skipped ? (
+          <span className="listing-fit none">Sin plan: {o.skipped.replace(/\.$/, "").toLowerCase()}</span>
+        ) : null}
+      </span>
+    </button>
+  );
+}
+
+function OfferSheet({
+  offer: o,
+  note,
+  planHint: hint,
+  onClose,
+}: {
+  offer: Offer;
+  note: string | null;
+  planHint: ReturnType<typeof planHint>;
+  onClose: () => void;
+}) {
   const close = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     close.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [offer.offer_id, onClose]);
-  const shown = [
+  }, [o.offer_id, onClose]);
+
+  const facts: [string, string][] = [];
+  if (o.price) facts.push([o.price_kind === "valor_subasta" ? "Valor de subasta" : "Precio", formatValue(o.price, "EUR")]);
+  if (o.deposit) facts.push(["Depósito para pujar", formatValue(o.deposit, "EUR")]);
+  if (o.built_area_m2) facts.push(["Superficie construida", `${area.format(Number(o.built_area_m2))} m²`]);
+  const when = ending(o);
+  if (when) facts.push([o.channel === "venta_directa" ? "Plazo" : "Subasta", when]);
+  else if (o.auction_state) facts.push(["Subasta", o.auction_state]);
+  if (o.possession) facts.push(["Posesión", o.possession]);
+  if (o.habitual_residence !== null && o.habitual_residence !== undefined)
+    facts.push(["Vivienda habitual del deudor", o.habitual_residence ? "Sí" : "No"]);
+
+  const verdict = [
     ["cashflow.monthly_after_tax", "Tu cash flow"],
-    ["offer.price", "Precio"],
     ["irr.rate", "TIR"],
+    ["cashflow.cash_invested", "Lo que pones"],
   ] as const;
+
   return (
-    <section className="offer-sheet" aria-labelledby="ficha-titulo">
-      <div className="offer-sheet-head">
-        <span className={offer.passes ? "status pass" : "status fail"}>
-          {offer.passes ? "Encaja con tu plan" : "No encaja con tu plan"}
-          {offer.auction ? " · subasta" : ""}
-        </span>
+    <section className="offer-sheet" style={channelStyle(o.channel)} aria-labelledby="ficha-titulo">
+      <div className="sheet-media">
+        <OfferPhoto offerId={o.offer_id} kinds={o.photos} images={o.images} propertyType={o.property_type} credit className="sheet-photo" />
         <button ref={close} type="button" className="sheet-close" onClick={onClose} aria-label="Cerrar la ficha">
           <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
             <path d="M5 5l10 10M15 5 5 15" />
           </svg>
         </button>
       </div>
-      <h2 id="ficha-titulo" title={title(offer)}>
-        {title(offer)}
-      </h2>
-      <div className="offer-sheet-figures">
-        {shown.map(([key, label]) => {
-          const f = fig(offer, key);
-          return f ? (
-            <div key={key}>
-              <span className="verdict-label">{label}</span>
-              <span className="sheet-value">
-                <Amount text={formatValue(f.value, f.unit)} />
-              </span>
-            </div>
-          ) : null;
-        })}
-      </div>
-      {offer.reasons.length > 0 && <p className="verdict-reason">{offer.reasons.join(". ")}.</p>}
-      {offer.location_source && (
-        <p className="hint">
-          Ubicación: {SOURCE[offer.location_source] ?? offer.location_source}.
-          {offMap && " Queda fuera de la zona que cubre el mapa."}
-        </p>
-      )}
-      <div className="verdict-actions">
-        <a className="button-link primary" href={`/plan/${offer.offer_id}`}>
-          Ver mi plan
-        </a>
-        {offer.url && (
-          <a href={offer.url} target="_blank" rel="noreferrer">
-            Ver la oferta
-          </a>
+      <div className="sheet-body">
+        <div className="listing-top">
+          <span className="ch-badge">{CHANNEL[o.channel].label}</span>
+          {o.status === "por_confirmar" && <span className="map-tag quiet">Por confirmar</span>}
+        </div>
+        <h2 id="ficha-titulo">{o.title}</h2>
+        {(o.address || o.place) && (
+          <p className="sheet-address">
+            {o.address ?? o.place}
+            {o.address && o.place && <span>{o.place}</span>}
+          </p>
         )}
+
+        {facts.length > 0 && (
+          <dl className="sheet-facts">
+            {facts.map(([k, v]) => (
+              <div key={k}>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        {o.plan ? (
+          <div className={`sheet-verdict ${o.plan.passes ? "pass" : "fail"}`}>
+            <span className={o.plan.passes ? "status pass" : "status fail"}>
+              {o.plan.passes ? "Encaja con tu plan" : "No encaja con tu plan"}
+            </span>
+            <div className="offer-sheet-figures">
+              {verdict.map(([key, label]) => {
+                const f = fig(o.plan, key);
+                return f ? (
+                  <div key={key}>
+                    <span className="verdict-label">{label}</span>
+                    <span className="sheet-value">
+                      <Amount text={formatValue(f.value, f.unit)} />
+                    </span>
+                  </div>
+                ) : null;
+              })}
+            </div>
+            {o.plan.reasons.length > 0 && <p className="verdict-reason">{o.plan.reasons.join(". ")}.</p>}
+          </div>
+        ) : o.skipped ? (
+          <p className="sheet-noplan">No se puede calcular tu plan: {o.skipped.replace(/\.$/, "").toLowerCase()}.</p>
+        ) : hint ? (
+          <p className="sheet-noplan">{hint.text}</p>
+        ) : null}
+
+        {o.corrected && <p className="sheet-warning">El BOE publicó una corrección de este anuncio: compruébala en la fuente antes de pujar.</p>}
+        {note && <p className="hint">{note}</p>}
+
+        <div className="verdict-actions">
+          {o.plan && (
+            <a className="button-link primary" href={`/plan/${o.offer_id}`}>
+              Ver mi plan
+            </a>
+          )}
+          {o.status === "por_confirmar" && (
+            <a className="button-link primary" href={`/ofertas?id=${o.offer_id}`}>
+              Confirmar los datos
+            </a>
+          )}
+          {o.source_url && (
+            <a href={o.source_url} target="_blank" rel="noreferrer">
+              Ver en {o.source_name === "Tu anuncio" ? "el anuncio" : o.source_name}
+            </a>
+          )}
+        </div>
       </div>
     </section>
   );

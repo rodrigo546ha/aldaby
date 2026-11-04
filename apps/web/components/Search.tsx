@@ -1,19 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
-import { amount, percentToRatio } from "../lib/format";
-import { FigureView } from "./FigureView";
-import { Skeleton } from "./Motion";
+import { percentToRatio } from "../lib/format";
 
-type SearchOut = components["schemas"]["SearchOut"];
-type ScoredOut = components["schemas"]["ScoredOut"];
 type ProfileOut = components["schemas"]["ProfileOut"];
-type RentalAdviceOut = components["schemas"]["RentalAdviceOut"];
-type RentalTypeOut = components["schemas"]["RentalTypeOut"];
 
-// Búsqueda inversa (F6.5, ADR-0023): el plan del usuario en cada oferta; el orden lo hace la API.
+// Supuestos de la búsqueda inversa (F6.5, ADR-0023). Las ofertas, con el plan del usuario en cada
+// una, están en el mapa (ADR-0054): aquí solo lo que el usuario pone y no tiene fuente pública.
 const ASSUMPTIONS: { id: string; label: string; kind: "pct" | "eur" | "bool"; hint?: string }[] = [
   { id: "vacancy_rate", label: "Meses vacío al año", kind: "pct", hint: "% del año" },
   { id: "management_fee_rate", label: "Gestión si la delegas", kind: "pct", hint: "% de la renta" },
@@ -22,341 +17,41 @@ const ASSUMPTIONS: { id: string; label: string; kind: "pct" | "eur" | "bool"; hi
   { id: "min_monthly_cashflow", label: "Cash flow mínimo al mes", kind: "eur", hint: "€; vacío = 0" },
   { id: "large_holder", label: "¿Tienes más de diez viviendas?", kind: "bool" },
 ];
-const SHOWN = [
-  "offer.price",
-  "valuation.rent_monthly",
-  "cashflow.monthly_after_tax",
-  "search.stressed_cashflow",
-  "irr.rate",
-  "cashflow.cash_invested",
-];
 
 export function Search() {
   const [profile, setProfile] = useState<ProfileOut | null>(null);
-  const [result, setResult] = useState<SearchOut | null>(null);
-  const [missing, setMissing] = useState<string[]>([]);
   const [failure, setFailure] = useState<string | null>(null);
-  const [busy, setBusy] = useState(true);
-
-  const load = useCallback(async () => {
-    setBusy(true);
-    setFailure(null);
-    setMissing([]);
-    try {
-      const current = await fetch("/api/profile/current");
-      if (!current.ok) {
-        const body = await current.json().catch(() => ({}));
-        setFailure(current.status === 404 ? "Confirma primero tu perfil en /perfil." : body.detail);
-        setBusy(false);
-        return;
-      }
-      setProfile((await current.json()) as ProfileOut);
-      const found = await fetch("/api/search");
-      const body = await found.json().catch(() => ({}));
-      if (found.ok) setResult(body as SearchOut);
-      else if (found.status === 422 && Array.isArray(body.detail)) setMissing(body.detail);
-      else setFailure(typeof body.detail === "string" ? body.detail : "Error en la búsqueda");
-    } catch {
-      setFailure("No se ha podido conectar con la API. ¿Está arrancada con make api?");
-    }
-    setBusy(false);
-  }, []);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    load();
-  }, [load]);
-
-  // Nivel gratuito de un particular (ADR-0041): cuántos planes completos le quedan
-  const [plansLeft, setPlansLeft] = useState<number | null>(null);
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then(async (resp) => (resp.ok ? setPlansLeft((await resp.json()).free_plans_left ?? null) : null))
-      .catch(() => undefined);
+    fetch("/api/profile/current")
+      .then(async (resp) => {
+        const body = await resp.json().catch(() => ({}));
+        if (resp.ok) setProfile(body as ProfileOut);
+        else setFailure(resp.status === 404 ? "Confirma primero tu perfil." : String(body.detail ?? "Error"));
+      })
+      .catch(() => setFailure("No se ha podido conectar con la API."));
   }, []);
 
-  return (
-    <div className="search">
-      {profile && <Assumptions profile={profile} onSaved={load} />}
-      <section className="results" aria-live="polite" aria-labelledby="ranking-title">
-        <h2 id="ranking-title">Ofertas para ti</h2>
-        {plansLeft !== null && (
-          <p className="hint">
-            {plansLeft === 0
-              ? "Has usado los planes completos del nivel gratuito: puedes volver a abrir esos."
-              : `Te ${plansLeft === 1 ? "queda 1 plan completo" : `quedan ${plansLeft} planes completos`} en el nivel gratuito. Volver a abrir uno no gasta otro.`}
-          </p>
-        )}
-        {busy && <Skeleton label="Calculando tu plan en cada oferta…" />}
-        {failure && <p className="failure">{failure}</p>}
-        {missing.length > 0 && (
-          <ul className="warnings">
-            {missing.map((m) => (
-              <li key={m}>{m}</li>
-            ))}
-          </ul>
-        )}
-        {result && !busy && <Ranking result={result} onReload={load} />}
-      </section>
-    </div>
-  );
-}
-
-function Ranking({ result, onReload }: { result: SearchOut; onReload: () => void }) {
+  if (failure)
+    return (
+      <div className="map-empty">
+        <p className="failure">{failure}</p>
+        <a className="button-link primary" href="/perfil">
+          Ir al perfil
+        </a>
+      </div>
+    );
+  if (!profile) return null;
   return (
     <>
-      <div className="grid">
-        {result.market.map((f) => (
-          <FigureView key={f.key} figure={f} />
-        ))}
-      </div>
-      {result.ranked.length === 0 && (
-        <p className="empty">No hay ofertas que se puedan puntuar todavía.</p>
+      <Assumptions profile={profile} onSaved={() => setSaved(true)} />
+      {saved && (
+        <p className="hint" role="status">
+          Guardados. <a href="/mapa">Ver las ofertas con estos supuestos</a>.
+        </p>
       )}
-      <ol className="ranking">
-        {result.ranked.map((s) => (
-          <OfferCard key={s.offer_id} scored={s} onReload={onReload} />
-        ))}
-      </ol>
-      {result.skipped.length > 0 && (
-        <details className="hint">
-          <summary>{result.skipped.length} ofertas sin puntuar</summary>
-          <ul>
-            {result.skipped.map((s) => (
-              <li key={s.offer_id}>
-                {s.title ?? "Oferta"}: {s.reason}
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-      <ul className="warnings">
-        {result.notes.map((n) => (
-          <li key={n}>{n}</li>
-        ))}
-      </ul>
     </>
-  );
-}
-
-function OfferCard({ scored, onReload }: { scored: ScoredOut; onReload: () => void }) {
-  const byKey = new Map(scored.figures.map((f) => [f.key, f]));
-  const assumptions = scored.figures.filter((f) => f.key.startsWith("assumption."));
-  return (
-    <li className="offer-card">
-      <div className="offer-head">
-        <h3>
-          {scored.title ?? (scored.kind === "enlace" ? "Oferta pegada" : "Lote del BOE")}
-        </h3>
-        <span className={scored.passes ? "status pass" : "status fail"}>
-          {scored.passes ? "Encaja" : "No encaja"}
-          {scored.auction ? " · subasta" : ""}
-        </span>
-        {scored.url && (
-          <a href={scored.url} target="_blank" rel="noreferrer">
-            Ver la oferta
-          </a>
-        )}
-        <a href={`/plan/${scored.offer_id}`}>Ver el plan completo</a>
-      </div>
-      {scored.reasons.length > 0 && (
-        <ul className="warnings">
-          {scored.reasons.map((r) => (
-            <li key={r}>{r}</li>
-          ))}
-        </ul>
-      )}
-      <div className="grid">
-        {SHOWN.map((key) => {
-          const f = byKey.get(key);
-          return f ? <FigureView key={key} figure={f} /> : null;
-        })}
-      </div>
-      {scored.advice && (
-        <RentalAdvice offerId={scored.offer_id} advice={scored.advice} onSaved={onReload} />
-      )}
-      <details>
-        <summary>Supuestos estimados para esta oferta</summary>
-        <div className="grid">
-          {assumptions.map((f) => (
-            <FigureView key={f.key} figure={f} />
-          ))}
-        </div>
-      </details>
-      {scored.notes.length > 0 && (
-        <details>
-          <summary>Avisos</summary>
-          <ul className="warnings">
-            {scored.notes.map((n) => (
-              <li key={n}>{n}</li>
-            ))}
-          </ul>
-        </details>
-      )}
-    </li>
-  );
-}
-
-// Tipo de alquiler y gestión (F6.6, ADR-0024): la recomendación la hace la API
-const RENTAL_LABEL: Record<string, string> = {
-  habitual: "Habitual",
-  temporada: "De temporada",
-  habitaciones: "Por habitaciones",
-  turistico: "Turístico",
-};
-const FIGURE_TITLE: Record<string, string> = {
-  income: "Renta al mes",
-  cashflow: "Cash flow al mes con su gestión",
-  delegation_cost: "Lo que cuesta delegar al mes",
-};
-const REDUCTION: Record<string, string> = {
-  true: "con reducción del IRPF",
-  false: "sin reducción del IRPF",
-  null: "reducción del IRPF por confirmar",
-};
-
-function RentalAdvice({
-  offerId,
-  advice,
-  onSaved,
-}: {
-  offerId: string;
-  advice: RentalAdviceOut;
-  onSaved: () => void;
-}) {
-  return (
-    <section className="rental-advice" aria-label="Tipo de alquiler y gestión">
-      <h4>
-        {advice.recommended
-          ? `Cómo alquilarla: ${RENTAL_LABEL[advice.recommended].toLowerCase()}`
-          : "Cómo alquilarla"}
-      </h4>
-      <ul className="hint">
-        {advice.reasons.map((r) => (
-          <li key={r}>{r}</li>
-        ))}
-      </ul>
-      {advice.types.map((t) => (
-        <RentalType
-          key={t.rental_type}
-          offerId={offerId}
-          type={t}
-          recommended={t.rental_type === advice.recommended}
-          onSaved={onSaved}
-        />
-      ))}
-      {advice.scenario.length > 0 && (
-        <details>
-          <summary>Si se convalidan las normas pendientes</summary>
-          <ul className="warnings">
-            {advice.scenario.map((c) => (
-              <li key={c}>{c}</li>
-            ))}
-          </ul>
-        </details>
-      )}
-      <ul className="warnings">
-        {advice.notes.map((n) => (
-          <li key={n}>{n}</li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function RentalType({
-  offerId,
-  type,
-  recommended,
-  onSaved,
-}: {
-  offerId: string;
-  type: RentalTypeOut;
-  recommended: boolean;
-  onSaved: () => void;
-}) {
-  const income = type.figures.find((f) => f.key.endsWith(".income"));
-  const [value, setValue] = useState(
-    type.rental_type !== "habitual" && income ? income.value.replace(".", ",") : "",
-  );
-  const [error, setError] = useState<string | null>(null);
-
-  async function save(event: FormEvent) {
-    event.preventDefault();
-    const parsed = value.trim() ? amount(value) : null;
-    if (value.trim() && parsed === null) {
-      setError("Escribe un importe, por ejemplo 1500 o 1500,50");
-      return;
-    }
-    const resp = await fetch(`/api/search/offers/${offerId}/rent`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rental_type: type.rental_type, monthly_income: parsed }),
-    });
-    if (!resp.ok) {
-      const body = await resp.json().catch(() => ({}));
-      setError(typeof body.detail === "string" ? body.detail : "No se ha podido guardar");
-      return;
-    }
-    setError(null);
-    onSaved();
-  }
-
-  const summary = [
-    RENTAL_LABEL[type.rental_type],
-    type.allowed ? null : "no se puede ejercer",
-    REDUCTION[String(type.irpf_reduction)],
-    `gestión ${type.management}`,
-  ].filter(Boolean);
-  return (
-    <details className={recommended ? "rental-type recommended" : "rental-type"} open={recommended}>
-      <summary>
-        {summary.join(" · ")}
-        {recommended && <span className="status pass"> · recomendado</span>}
-      </summary>
-      <p className="hint">{type.management_reason}</p>
-      <div className="grid">
-        {type.figures.map((f) => (
-          <FigureView key={f.key} figure={f} title={FIGURE_TITLE[f.key.split(".")[2]]} />
-        ))}
-      </div>
-      {type.notes.length > 0 && (
-        <ul className="warnings">
-          {type.notes.map((n) => (
-            <li key={n}>{n}</li>
-          ))}
-        </ul>
-      )}
-      {type.rental_type !== "habitual" && (
-        <form className="rent-expectation" onSubmit={save}>
-          <label htmlFor={`rent-${offerId}-${type.rental_type}`}>
-            Lo que esperas sacar al mes de media (con los meses vacíos, sin limpieza, suministros
-            ni comisiones)
-          </label>
-          <input
-            id={`rent-${offerId}-${type.rental_type}`}
-            inputMode="decimal"
-            value={value}
-            placeholder="€ al mes; vacío = sin cifras"
-            onChange={(e) => setValue(e.target.value)}
-          />
-          <button type="submit">Guardar</button>
-          {error && <p className="failure">{error}</p>}
-        </form>
-      )}
-      <p className="hint">{type.regime}</p>
-      {type.requirements.length > 0 && (
-        <ul className="requirements">
-          {type.requirements.map((r) => (
-            <li key={r.code}>
-              {r.description}{" "}
-              <a href={r.source_url} target="_blank" rel="noreferrer">
-                fuente
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
-    </details>
   );
 }
 
@@ -434,7 +129,7 @@ function Assumptions({ profile, onSaved }: { profile: ProfileOut; onSaved: () =>
       {error && <p className="failure">{error}</p>}
       <div className="actions">
         <button type="submit" disabled={saving}>
-          {saving ? "Guardando…" : "Guardar y buscar"}
+          {saving ? "Guardando…" : "Guardar"}
         </button>
       </div>
     </form>

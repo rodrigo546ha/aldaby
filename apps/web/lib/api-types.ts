@@ -126,6 +126,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/offers/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Catalog
+         * @description Todas las ofertas que el usuario puede ver, de todos los canales, en una lista.
+         */
+        get: operations["get_catalog_offers_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/offers/{offer_id}/photo/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Photo
+         * @description Foto de fachada del Catastro u ortofoto del PNOA de una oferta que el usuario puede ver.
+         *
+         *     404 si no hay: la web prueba la siguiente. La cita va en la cabecera `X-Attribution`.
+         */
+        get: operations["get_photo_offers__offer_id__photo__kind__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/offers/{offer_id}": {
         parameters: {
             query?: never;
@@ -1284,6 +1326,74 @@ export interface components {
             /** Text */
             text: components["schemas"]["SegmentOut"][];
             figure: components["schemas"]["FigureOut"] | null;
+        };
+        /**
+         * CatalogOut
+         * @description Una oferta en la lista única (ADR-0054): lo que decide, sin datos de la extracción.
+         */
+        CatalogOut: {
+            /**
+             * Offer Id
+             * Format: uuid
+             */
+            offer_id: string;
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "subasta_judicial" | "subasta_administrativa" | "subasta_notarial" | "venta_directa" | "agencia" | "tu_anuncio";
+            /** Auction */
+            auction: boolean;
+            /** Title */
+            title: string;
+            /** Address */
+            address: string | null;
+            /** Place */
+            place: string | null;
+            /** Property Type */
+            property_type: string | null;
+            /** Price */
+            price: string | null;
+            /**
+             * Price Kind
+             * @enum {string}
+             */
+            price_kind: "precio" | "valor_subasta";
+            /** Deposit */
+            deposit: string | null;
+            /** Built Area M2 */
+            built_area_m2: string | null;
+            /** Ends On */
+            ends_on: string | null;
+            /** Auction State */
+            auction_state: string | null;
+            /** Possession */
+            possession: string | null;
+            /** Habitual Residence */
+            habitual_residence: boolean | null;
+            /** Published On */
+            published_on: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "publicada" | "por_confirmar";
+            /** Lon */
+            lon: number | null;
+            /** Lat */
+            lat: number | null;
+            /** Photos */
+            photos: ("fachada" | "aerea")[];
+            /** Images */
+            images: string[];
+            /** Source Name */
+            source_name: string;
+            /** Source Url */
+            source_url: string | null;
+            /** Original Title */
+            original_title: string | null;
+            /** Corrected */
+            corrected: boolean;
         };
         /** ChangeOut */
         ChangeOut: {
@@ -2767,6 +2877,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuctionNoticeOut"][];
+                };
+            };
+        };
+    };
+    get_catalog_offers_catalog_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogOut"][];
+                };
+            };
+        };
+    };
+    get_photo_offers__offer_id__photo__kind__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+                kind: "fachada" | "aerea";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

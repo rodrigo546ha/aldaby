@@ -8,25 +8,32 @@ confirmada y ubicada se valora con `GET /offers/{id}/valuation` (F5.4).
 
 from __future__ import annotations
 
+from datetime import date
+from decimal import Decimal
+from functools import lru_cache
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+import httpx
+from fastapi import APIRouter, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 
 from housefinder.agent.extraction import LISTING_KINDS
 from housefinder.api.figures import FigureOut, figure_out
 from housefinder.db.offers import (
     PrivateOffer,
+    catalog_rows,
     get_private_offer,
     list_auction_notices,
     list_private_offers,
 )
-from housefinder.geo import cartociudad, catastro
+from housefinder.geo import cartociudad, catastro, photos
+from housefinder.offers.catalog import catalog_item, parcel_ref
 from housefinder.offers.channels import boe_subastas
 from housefinder.offers.link import LinkRefused
-from housefinder.offers.locate import offer_locator
+from housefinder.offers.locate import Provinces, load_provinces, offer_locator
 from housefinder.offers.pasted import ConfirmationError, confirm, submit_link, submit_text
+from housefinder.offers.photos import PhotoCache, PhotoKind, card_image
 from housefinder.valuation.offer import CannotValue, value_offer
 from housefinder.valuation.service import OutsideCoverage
 
@@ -39,6 +46,7 @@ from .deps import (
     OrgDep,
     ParamBookDep,
     ParcelFinderDep,
+    PhotoClientDep,
     ResolverDep,
 )
 
@@ -136,6 +144,114 @@ def get_auctions(db: DbDep) -> list[AuctionNoticeOut]:
         published_on=n.published_on.isoformat() if n.published_on else None,
         court=n.court, kind=n.kind, boe_url=n.boe_url, attribution=BOE_ATTRIBUTION,
     ) for n in list_auction_notices(db, boe_subastas.NAME)]
+
+
+class CatalogOut(BaseModel):
+    """Una oferta en la lista única (ADR-0054): lo que decide, sin datos de la extracción."""
+
+    offer_id: UUID
+    channel: Literal["subasta_judicial", "subasta_administrativa", "subasta_notarial",
+                     "venta_directa", "agencia", "tu_anuncio"]
+    auction: bool
+    title: str
+    address: str | None
+    place: str | None
+    property_type: str | None
+    price: Decimal | None  # tal como viene en el anuncio
+    price_kind: Literal["precio", "valor_subasta"]
+    deposit: Decimal | None
+    built_area_m2: Decimal | None
+    ends_on: str | None
+    auction_state: str | None
+    possession: str | None
+    habitual_residence: bool | None
+    published_on: str | None
+    status: Literal["publicada", "por_confirmar"]
+    lon: float | None
+    lat: float | None
+    photos: list[Literal["fachada", "aerea"]]  # en orden de preferencia
+    images: list[str]
+    source_name: str
+    source_url: str | None
+    original_title: str | None
+    corrected: bool
+
+
+PHOTO_ATTRIBUTION = {"fachada": photos.FACADE_ATTRIBUTION, "aerea": photos.AERIAL_ATTRIBUTION}
+_photo_cache = PhotoCache()
+
+
+@lru_cache
+def _provinces() -> Provinces:
+    return load_provinces()
+
+
+@router.get("/catalog")
+def get_catalog(db: DbDep, org: OrgDep) -> list[CatalogOut]:
+    """Todas las ofertas que el usuario puede ver, de todos los canales, en una lista. Las que ya
+    terminaron (subasta concluida, plazo de venta directa vencido) no salen."""
+    out = []
+    today = date.today()
+    for row in catalog_rows(db, org):
+        item = catalog_item(row, _provinces())
+        if item.ends_on is not None and item.ends_on < today:
+            continue  # subasta terminada o plazo de venta directa vencido: ya no se puede comprar
+        kinds: list[Literal["fachada", "aerea"]] = []
+        if item.has_facade:
+            kinds.append("fachada")
+        if item.lon is not None and item.lat is not None:
+            kinds.append("aerea")
+        out.append(CatalogOut(
+            offer_id=item.offer_id, channel=item.channel, auction=item.auction,
+            title=item.title, address=item.address, place=item.place,
+            property_type=item.property_type, price=item.price, price_kind=item.price_kind,
+            deposit=item.deposit, built_area_m2=item.built_area_m2,
+            ends_on=item.ends_on.isoformat() if item.ends_on else None,
+            auction_state=item.auction_state,
+            possession=item.possession, habitual_residence=item.habitual_residence,
+            published_on=item.published_on.isoformat() if item.published_on else None,
+            status=item.status, lon=item.lon, lat=item.lat, photos=kinds,
+            images=list(item.images), source_name=item.source_name,
+            source_url=item.source_url, original_title=item.original_title,
+            corrected=item.corrected,
+        ))
+    return out
+
+
+@router.get("/{offer_id}/photo/{kind}", response_class=Response,
+            responses={200: {"content": {"image/jpeg": {}}}})
+def get_photo(offer_id: UUID, kind: PhotoKind, db: DbDep, org: OrgDep,
+              client: PhotoClientDep) -> Response:
+    """Foto de fachada del Catastro u ortofoto del PNOA de una oferta que el usuario puede ver.
+
+    404 si no hay: la web prueba la siguiente. La cita va en la cabecera `X-Attribution`.
+    """
+    rows = catalog_rows(db, org, offer_id)
+    if not rows:
+        raise HTTPException(status_code=404, detail="Oferta no encontrada")
+    row = rows[0]
+
+    def load() -> bytes | None:
+        try:
+            if kind == "fachada":
+                ref = parcel_ref(row)
+                raw = photos.facade(client, ref) if ref else None
+            elif row.lon is not None and row.lat is not None:
+                raw = photos.aerial(client, row.lon, row.lat)
+            else:
+                raw = None
+        except httpx.HTTPError:
+            return None
+        return card_image(raw, mark_center=kind == "aerea") if raw else None
+
+    key = f"{kind}:{parcel_ref(row) if kind == 'fachada' else (row.lon, row.lat)}"
+    image = _photo_cache.get(key, load)
+    if image is None:
+        raise HTTPException(status_code=404, detail="No hay imagen pública de este inmueble")
+    return Response(image, media_type="image/jpeg", headers={
+        "Cache-Control": "private, max-age=86400",
+        "X-Attribution": PHOTO_ATTRIBUTION[kind].encode("ascii", "xmlcharrefreplace").decode(),
+    })
 
 
 @router.get("/{offer_id}")

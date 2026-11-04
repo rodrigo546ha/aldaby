@@ -29,7 +29,7 @@ const stroke = { fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeL
 const DESTINATIONS: Destination[] = [
   {
     href: "/mapa",
-    label: "Mapa",
+    label: "Ofertas",
     professional: false,
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true" {...stroke}>
@@ -37,13 +37,9 @@ const DESTINATIONS: Destination[] = [
         <circle cx="12" cy="10" r="2.4" />
       </svg>
     ),
-    sections: [
-      { href: "/mapa", label: "Mapa" },
-      { href: "/busqueda", label: "Lista detallada" },
-      { href: "/ofertas", label: "Tus anuncios" },
-      { href: "/anuncios", label: "Anuncios públicos" },
-    ],
-    also: ["/plan/"],
+    // Una sola lista de ofertas, en mapa o en lista (ADR-0054): sin secciones por canal
+    sections: [{ href: "/mapa", label: "Ofertas" }],
+    also: ["/plan/", "/ofertas", "/anuncios"],
   },
   {
     href: "/perfil",
@@ -56,6 +52,7 @@ const DESTINATIONS: Destination[] = [
     ),
     sections: [
       { href: "/perfil", label: "Perfil" },
+      { href: "/busqueda", label: "Supuestos" },
       { href: "/simulador", label: "Simulador" },
     ],
   },

@@ -812,3 +812,68 @@ def list_feed_listings(conn: psycopg.Connection, org_id: UUID,
         (org_id, limit),
     ).fetchall()
     return [FeedListing(*r) for r in rows]
+
+
+# --- Catálogo de ofertas para la web (ADR-0054) -------------------------------------------------
+
+
+@dataclass(frozen=True)
+class CatalogRow:
+    """Una oferta que el usuario puede ver, venga del canal que venga, con lo que enseña la web."""
+
+    id: UUID
+    channel: str
+    kind: str
+    title: str | None
+    url: str | None
+    asking_price: Decimal | None
+    auction_min_bid: Decimal | None
+    deposit_required: Decimal | None
+    built_area_m2: Decimal | None
+    address: str | None
+    cadastral_ref: str | None
+    municipality_code: str | None  # código INE del inmueble ubicado
+    lon: float | None
+    lat: float | None
+    extracted: dict[str, Any] | None
+    images: list[str] | None  # las del enlace pegado
+    town: str | None  # municipio según el canal (feeds y Portal de Subastas)
+    extraction_status: str
+    published_on: date | None
+    parent_url: str | None
+    deadline: str | None  # ventas directas: «Fecha límite presentación solicitudes»
+    source_name: str | None
+    corrected: bool = False  # el BOE publicó después una corrección del anuncio
+
+
+_CATALOG = """
+    SELECT o.id, o.channel, o.kind, o.title, o.url, o.asking_price, o.auction_min_bid,
+           o.deposit_required, coalesce(o.built_area_m2, p.built_area_m2), o.address,
+           coalesce(o.cadastral_ref, p.cadastral_ref), p.municipality,
+           ST_X(p.location::geometry), ST_Y(p.location::geometry), o.extracted,
+           CASE WHEN jsonb_typeof(o.raw->'images') = 'array' THEN o.raw->'images' END,
+           coalesce(o.raw->>'town', o.raw->'lots'->0->>'municipality'),
+           o.extraction_status, coalesce(o.published_on, a.published_on), a.url,
+           a.raw->'ficha'->>'Fecha límite presentación solicitudes', s.name,
+           a.id IS NOT NULL AND EXISTS (SELECT 1 FROM offers c WHERE c.corrects_id = a.id)
+    FROM offers o
+    LEFT JOIN properties p ON p.id = o.property_id
+    LEFT JOIN offers a ON a.id = o.parent_id
+    LEFT JOIN sources s ON s.id = o.source_id
+    WHERE o.extraction_status <> 'retirada'
+      AND ((o.org_id IS NULL AND o.kind = 'lote' AND o.corrects_id IS NULL)
+           OR (o.org_id = %(org)s AND o.kind = 'enlace')
+           OR (o.channel = 'feed_agencia' AND o.kind = 'anuncio'
+               AND o.extraction_status = 'no_aplica'
+               AND (o.org_id IS NULL OR o.org_id = %(org)s)))
+"""
+
+
+def catalog_rows(conn: psycopg.Connection, org_id: UUID,
+                 offer_id: UUID | None = None) -> list[CatalogRow]:
+    """Lo que el usuario puede ver: los lotes públicos (BOE, Portal de Subastas, Patrimonio), los
+    anuncios de los feeds que puede ver y sus anuncios pegados, confirmados o no."""
+    sql = _CATALOG + (" AND o.id = %(offer)s" if offer_id else "") + \
+        " ORDER BY coalesce(o.published_on, a.published_on) DESC NULLS LAST, o.first_seen DESC"
+    rows = conn.execute(sql, {"org": org_id, "offer": offer_id}).fetchall()
+    return [CatalogRow(*r) for r in rows]

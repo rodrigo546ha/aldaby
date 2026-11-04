@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { components } from "../lib/api-types";
 import { formatValue, label } from "../lib/format";
@@ -10,6 +10,8 @@ import { TopicCharts } from "./Charts";
 import { BrandHeader, useBranding } from "./Branding";
 import { FigureBlock, WarningItem } from "./FigureView";
 import { Skeleton, VerdictFigure } from "./Motion";
+import { OfferPhoto } from "./OfferPhoto";
+import { RentalAdvice } from "./RentalAdvice";
 
 type PlanOut = components["schemas"]["PlanOut"];
 
@@ -49,19 +51,21 @@ export function Plan({ offerId }: { offerId: string }) {
   const [plan, setPlan] = useState<PlanOut | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const resp = await fetch(`/api/plans/offers/${offerId}`);
-        const body = await resp.json().catch(() => ({}));
-        if (resp.ok) setPlan(body as PlanOut);
-        else if (Array.isArray(body.detail)) setFailure(body.detail.join(". "));
-        else setFailure(typeof body.detail === "string" ? body.detail : "Error en el plan");
-      } catch {
-        setFailure("No se ha podido conectar con la API. ¿Está arrancada con make api?");
-      }
-    })();
+  const load = useCallback(async () => {
+    try {
+      const resp = await fetch(`/api/plans/offers/${offerId}`);
+      const body = await resp.json().catch(() => ({}));
+      if (resp.ok) setPlan(body as PlanOut);
+      else if (Array.isArray(body.detail)) setFailure(body.detail.join(". "));
+      else setFailure(typeof body.detail === "string" ? body.detail : "Error en el plan");
+    } catch {
+      setFailure("No se ha podido conectar con la API. ¿Está arrancada con make api?");
+    }
   }, [offerId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   if (failure) return <p className="failure">{failure}</p>;
   if (!plan) return <Skeleton label="Calculando tu plan…" />;
@@ -80,6 +84,7 @@ export function Plan({ offerId }: { offerId: string }) {
   return (
     <div className="plan stagger">
       <BrandHeader brand={brand} version={brandVersion} />
+      <OfferPhoto offerId={offerId} credit hideEmpty className="plan-photo" />
       <section className="verdict" aria-labelledby="verdict-title">
         <div className="verdict-head">
           <span className={plan.passes ? "status pass" : "status fail"}>
@@ -169,13 +174,7 @@ export function Plan({ offerId }: { offerId: string }) {
               </span>
             </summary>
             <div className="block-body">
-              <ul className="hint">
-                {plan.advice.reasons.map((r) => (
-                  <li key={r}>{r}</li>
-                ))}
-                {recommended && <li>{recommended.management_reason}</li>}
-              </ul>
-              <p className="hint">Los demás tipos, con sus requisitos, en la búsqueda.</p>
+              <RentalAdvice offerId={offerId} advice={plan.advice} onSaved={() => void load()} />
             </div>
           </details>
         )}

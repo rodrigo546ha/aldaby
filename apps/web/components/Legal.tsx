@@ -5,7 +5,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 
 import type { components } from "../lib/api-types";
-import { formatDate } from "./Announcements";
+import { formatDate } from "../lib/format";
 import { Markdown } from "./Markdown";
 
 type Summary = components["schemas"]["LegalSummaryOut"];
