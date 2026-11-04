@@ -16,7 +16,7 @@ from housefinder.agent.llm import (
     ToolCall,
     ToolSpec,
 )
-from housefinder.agent.loop import Tool, ToolFailed, ToolResult, run_agent
+from housefinder.agent.loop import Progress, Tool, ToolFailed, ToolResult, run_agent
 from housefinder.agent.references import FigureSegment, TextSegment
 from housefinder.core.figures import Figure
 
@@ -150,6 +150,54 @@ def test_respuesta_cortada_se_reintenta_una_vez():
     assert "pocas frases" in llm.chats[2][-1]["content"]
     llm = FakeLLMClient(turns=[call('{"oferta_id": "a1"}'), LLMTruncated("x"), LLMTruncated("x")])
     assert run_agent(llm, "x", "¿Renta?", TOOLS).failure == "respuesta_cortada"
+
+
+# --- Salida estructurada (ADR-0052) ----------------------------------------------------------
+
+
+class Card(BaseModel):
+    titulo: str
+    texto: str
+
+
+class Cards(BaseModel):
+    resumen: str
+    claves: list[Card]
+
+
+def test_salida_estructurada_con_marcadores_en_cada_texto():
+    reply = ('```json\n{"resumen": "Se alquilaría bien.", "claves": [{"titulo": "La renta", '
+             '"texto": "Sería de {{fig:oferta_a1.valuation.rent_monthly}}."}]}\n```')
+    seen: list[Progress] = []
+    llm = FakeLLMClient(turns=[call('{"oferta_id": "a1"}'), ChatTurn(reply)])
+    answer = run_agent(llm, "x", "¿Renta?", TOOLS, output=Cards, progress=seen.append)
+    assert answer.failure is None and answer.segments is None
+    assert answer.output == Cards(resumen="Se alquilaría bien.", claves=[Card(
+        titulo="La renta", texto="Sería de {{fig:oferta_a1.valuation.rent_monthly}}.")])
+    assert seen == [Progress("modelo"), Progress("herramienta", "valorar_oferta"),
+                    Progress("modelo")]
+
+
+def test_salida_estructurada_mal_escrita_vuelve_con_el_campo_que_falla():
+    llm = FakeLLMClient(turns=[
+        call('{"oferta_id": "a1"}'),
+        ChatTurn("La renta es buena."),  # no es JSON
+        ChatTurn('{"resumen": "Bien.", "claves": [{"titulo": "Renta", "texto": "Unos 800 al '
+                 'mes."}]}'),  # un número a mano en una ficha
+    ])
+    seen: list[Progress] = []
+    answer = run_agent(llm, "x", "¿Renta?", TOOLS, output=Cards, progress=seen.append)
+    assert answer.failure == "texto_rechazado" and answer.output is None
+    assert "objeto JSON" in llm.chats[2][-1]["content"]
+    assert len(answer.rejected) == 2 and "claves.0.texto" in answer.rejected[1][0]
+    assert Progress("corrigiendo") in seen
+    llm = FakeLLMClient(turns=[
+        ChatTurn('{"resumen": "Bien.", "claves": [{"titulo": "Renta", "texto": "800"}]}'),
+        ChatTurn('{"resumen": "Bien.", "claves": [{"titulo": "Renta", "texto": "Buena."}]}'),
+    ])
+    answer = run_agent(llm, "x", "?", TOOLS, output=Cards)
+    assert answer.failure is None and answer.output.claves[0].texto == "Buena."
+    assert "«claves.0.texto»" in llm.chats[1][-1]["content"]
 
 
 def test_pasos_agotados_y_modelo_caido():

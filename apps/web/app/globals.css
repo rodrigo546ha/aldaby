@@ -767,8 +767,85 @@ td { color: var(--mist); }
 .arguments, .roadmap, .changes { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; line-height: 1.55; }
 .roadmap li::marker { color: var(--mark); font-family: var(--font-head); }
 .explanation { padding: 28px; border-top: 0; border-radius: var(--radius); background: var(--sunk); }
-.explanation > button { align-self: flex-start; }
-.agent-text { margin: 0; max-width: 72ch; font-size: 1.0625rem; line-height: 1.7; color: var(--mist); }
+
+/* El asesor en fichas (ADR-0052): resumen, tres fichas con su cifra, riesgos y siguiente paso */
+.advisor-start { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.advisor-stages { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
+.advisor-stages li { display: flex; align-items: center; gap: 10px; animation: rise var(--dur-2) var(--ease) both; }
+.advisor-stages li::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--mark); }
+.advisor-stages li.done::before { opacity: 0.45; }
+.advisor-stages li.current { color: var(--strong); }
+.advisor-stages li.current::before { animation: beat 1.2s var(--ease) infinite; }
+@keyframes beat { 50% { transform: scale(0.55); opacity: 0.5; } }
+.advisor { display: flex; flex-direction: column; gap: 24px; }
+.advisor-summary {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--strong);
+  font-family: var(--font-head);
+  font-size: 1.375rem;
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+  text-wrap: pretty;
+}
+.advisor-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.advisor-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 20px 22px 22px;
+  border-radius: var(--radius);
+  background: var(--raised);
+  animation: rise var(--dur-3) var(--ease) both;
+}
+.advisor-card h4, .advisor-risks h4, .advisor-next-label {
+  margin: 0;
+  color: var(--mist);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.advisor-card p { margin: 0; color: var(--mist); font-size: 15px; line-height: 1.55; }
+.advisor-chip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-self: flex-start;
+  column-gap: 0.2em;
+  min-height: 0;
+  padding: 0 0 4px;
+  border-radius: 0;
+  border-bottom: 1px dashed var(--line-strong);
+  background: none;
+  color: var(--stat);
+  font-family: var(--font-head);
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+  transition: border-color var(--dur-1) var(--ease);
+}
+.advisor-chip .figure-unit { font-size: 0.45em; letter-spacing: 0; }
+.advisor-chip:hover { filter: none; border-bottom-color: var(--stat); }
+.advisor-risks { display: flex; flex-direction: column; gap: 10px; }
+.advisor-risks ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding-left: 18px; line-height: 1.55; }
+.advisor-risks li::marker { color: var(--warn-text); }
+.advisor-next { display: flex; flex-direction: column; gap: 8px; padding-top: 20px; border-top: 1px solid var(--line); }
+.advisor-next p { margin: 0; max-width: 70ch; line-height: 1.55; }
+.advisor-extra summary { color: var(--mist); font-size: 14px; cursor: pointer; }
+.advisor-extra[open] { display: flex; flex-direction: column; gap: 10px; }
+@media (max-width: 640px) {
+  .explanation { padding: 24px 20px; }
+  .advisor-summary { font-size: 1.1875rem; }
+  .advisor-cards { gap: 12px; }
+  .advisor-card { padding: 18px 18px 20px; }
+  .advisor-chip { font-size: 1.75rem; }
+}
 .figure-ref {
   white-space: nowrap;
   color: var(--stat);
@@ -1506,7 +1583,10 @@ details[open]::details-content { block-size: auto; }
 .skeleton-row span { height: 64px; border-radius: var(--radius-sm); }
 .skeleton-line { height: 14px; border-radius: 4px; }
 .skeleton-line.short { width: 60%; }
-.skeleton-row span, .skeleton-line {
+.skeleton-card-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 10px; }
+.skeleton-card { display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; border: 1px solid var(--line); border-radius: var(--radius); }
+.skeleton-chip { width: 55%; height: 34px; border-radius: 4px; }
+.skeleton-row span, .skeleton-line, .skeleton-chip {
   background: linear-gradient(90deg, var(--raised) 0%, var(--raised-2) 50%, var(--raised) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;

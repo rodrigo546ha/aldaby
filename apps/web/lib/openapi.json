@@ -551,6 +551,137 @@
         }
       }
     },
+    "/boe/subastas/scrape": {
+      "post": {
+        "tags": [
+          "anuncios del BOE"
+        ],
+        "summary": "Post Scrape Auction",
+        "description": "Descarga una subasta del Portal del BOE, sus documentos y extrae sus condiciones con IA.\nSolo con sesión: cada llamada sale al Portal y al modelo (ADR-0049).",
+        "operationId": "post_scrape_auction_boe_subastas_scrape_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuctionScrapeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScrapedAuctionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boe/subastas/{portal_id}": {
+      "get": {
+        "tags": [
+          "anuncios del BOE"
+        ],
+        "summary": "Get Scrape Auction",
+        "description": "Consulta directa y extracción de una subasta por su identificador SUB-...",
+        "operationId": "get_scrape_auction_boe_subastas__portal_id__get",
+        "parameters": [
+          {
+            "name": "portal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Portal Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScrapedAuctionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boe/subastas/search": {
+      "post": {
+        "tags": [
+          "anuncios del BOE"
+        ],
+        "summary": "Post Search Auctions",
+        "description": "Búsqueda avanzada de subastas activas en el Portal del BOE.",
+        "operationId": "post_search_auctions_boe_subastas_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuctionSearchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuctionSearchResultOut"
+                  },
+                  "type": "array",
+                  "title": "Response Post Search Auctions Boe Subastas Search Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/patrimonio/sales": {
       "get": {
         "tags": [
@@ -1687,7 +1818,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "text/event-stream: eventos «etapa» ({etapa, herramienta}) mientras el asesor trabaja y uno «resultado» con el ExplanationOut, o «error» (ADR-0052)",
             "content": {
               "application/json": {
                 "schema": {
@@ -2571,6 +2702,165 @@
         ],
         "title": "AuctionNoticeOut"
       },
+      "AuctionScrapeIn": {
+        "properties": {
+          "url_or_id": {
+            "type": "string",
+            "title": "Url Or Id",
+            "description": "URL o identificador de la subasta (ej: SUB-JA-2026-267866 o https://subastas.boe.es/detalleSubasta.php?idSub=...)"
+          },
+          "download_docs": {
+            "type": "boolean",
+            "title": "Download Docs",
+            "description": "Descargar y leer documentos oficiales adjuntos (edicto, certificación)",
+            "default": true
+          },
+          "run_ai": {
+            "type": "boolean",
+            "title": "Run Ai",
+            "description": "Si se ejecuta el extractor de IA y análisis jurídico de condiciones y cargas",
+            "default": true
+          },
+          "max_docs": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Max Docs",
+            "default": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "url_or_id"
+        ],
+        "title": "AuctionScrapeIn"
+      },
+      "AuctionSearchIn": {
+        "properties": {
+          "province": {
+            "type": "string",
+            "title": "Province",
+            "description": "Código INE de la provincia (28 = Madrid)",
+            "default": "28"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "EJ",
+              "PU",
+              "SU",
+              "CA"
+            ],
+            "title": "Status",
+            "description": "Estado: EJ (celebrándose), PU (próxima apertura)",
+            "default": "EJ"
+          },
+          "goods_type": {
+            "type": "string",
+            "enum": [
+              "I",
+              "V",
+              "M"
+            ],
+            "title": "Goods Type",
+            "description": "Tipo de bien: I (inmuebles), V (vehículos)",
+            "default": "I"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Page",
+            "default": 1
+          },
+          "page_hits": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 5.0,
+            "title": "Page Hits",
+            "default": 20
+          }
+        },
+        "type": "object",
+        "title": "AuctionSearchIn"
+      },
+      "AuctionSearchResultOut": {
+        "properties": {
+          "portal_id": {
+            "type": "string",
+            "title": "Portal Id"
+          },
+          "court": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Court"
+          },
+          "procedure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Procedure"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "conclusion_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conclusion Date"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "portal_id",
+          "court",
+          "procedure",
+          "status",
+          "conclusion_date",
+          "summary",
+          "url"
+        ],
+        "title": "AuctionSearchResultOut"
+      },
       "BidLevelOut": {
         "properties": {
           "share": {
@@ -3012,6 +3302,38 @@
           "residence"
         ],
         "title": "BuyerRequest"
+      },
+      "CardOut": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "text": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentOut"
+            },
+            "type": "array",
+            "title": "Text"
+          },
+          "figure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "text",
+          "figure"
+        ],
+        "title": "CardOut"
       },
       "ChangeOut": {
         "properties": {
@@ -3637,7 +3959,7 @@
       },
       "ExplanationOut": {
         "properties": {
-          "segments": {
+          "summary": {
             "anyOf": [
               {
                 "items": {
@@ -3649,7 +3971,38 @@
                 "type": "null"
               }
             ],
-            "title": "Segments"
+            "title": "Summary"
+          },
+          "cards": {
+            "items": {
+              "$ref": "#/components/schemas/CardOut"
+            },
+            "type": "array",
+            "title": "Cards"
+          },
+          "risks": {
+            "items": {
+              "items": {
+                "$ref": "#/components/schemas/SegmentOut"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Risks"
+          },
+          "next_step": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SegmentOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Step"
           },
           "failure": {
             "anyOf": [
@@ -3679,12 +4032,16 @@
         },
         "type": "object",
         "required": [
-          "segments",
+          "summary",
+          "cards",
+          "risks",
+          "next_step",
           "failure",
           "notes",
           "extra_arguments"
         ],
-        "title": "ExplanationOut"
+        "title": "ExplanationOut",
+        "description": "Las fichas del asesor (ADR-0052). `summary` None: el texto no pasó la comprobación."
       },
       "FeedIn": {
         "properties": {
@@ -6119,6 +6476,250 @@
           "advice"
         ],
         "title": "ScoredOut"
+      },
+      "ScrapedAuctionOut": {
+        "properties": {
+          "portal_id": {
+            "type": "string",
+            "title": "Portal Id"
+          },
+          "portal_url": {
+            "type": "string",
+            "title": "Portal Url"
+          },
+          "tipo_subasta": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tipo Subasta"
+          },
+          "cuenta_expediente": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cuenta Expediente"
+          },
+          "anuncio_boe": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anuncio Boe"
+          },
+          "fecha_inicio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fecha Inicio"
+          },
+          "fecha_conclusion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fecha Conclusion"
+          },
+          "cantidad_reclamada": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cantidad Reclamada"
+          },
+          "valor_subasta": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valor Subasta"
+          },
+          "tasacion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tasacion"
+          },
+          "deposito": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposito"
+          },
+          "puja_minima": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Puja Minima"
+          },
+          "tramos": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tramos"
+          },
+          "highest_bid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Highest Bid"
+          },
+          "bid_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bid Status"
+          },
+          "bidding_state": {
+            "type": "string",
+            "title": "Bidding State",
+            "default": "sin_pujas"
+          },
+          "lot_bids": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Lot Bids"
+          },
+          "court": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Court"
+          },
+          "court_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Court Address"
+          },
+          "lots": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Lots"
+          },
+          "documents": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Documents"
+          },
+          "ai_report": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Report"
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "portal_id",
+          "portal_url",
+          "tipo_subasta",
+          "cuenta_expediente",
+          "anuncio_boe",
+          "fecha_inicio",
+          "fecha_conclusion",
+          "cantidad_reclamada",
+          "valor_subasta",
+          "tasacion",
+          "deposito",
+          "puja_minima",
+          "tramos",
+          "court",
+          "court_address",
+          "lots",
+          "documents",
+          "ai_report",
+          "attribution"
+        ],
+        "title": "ScrapedAuctionOut"
       },
       "SearchAssumptionsIn": {
         "properties": {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { components } from "../lib/api-types";
 import { formatValue, label } from "../lib/format";
+import { Advisor } from "./Advisor";
 import { Bids } from "./Bids";
 import { TopicCharts } from "./Charts";
 import { BrandHeader, useBranding } from "./Branding";
@@ -11,8 +12,6 @@ import { FigureBlock, WarningItem } from "./FigureView";
 import { Skeleton, VerdictFigure } from "./Motion";
 
 type PlanOut = components["schemas"]["PlanOut"];
-type ExplanationOut = components["schemas"]["ExplanationOut"];
-type SegmentOut = components["schemas"]["SegmentOut"];
 
 // Plan completo (F6.7, ADR-0025): las cifras las calcula la API; el asesor solo las explica
 const STAGES: Record<string, string> = {
@@ -68,6 +67,7 @@ export function Plan({ offerId }: { offerId: string }) {
   if (!plan) return <Skeleton label="Calculando tu plan…" />;
 
   const all = new Map(plan.sections.flatMap((s) => s.figures).map((f) => [f.key, f]));
+  const blockOf = new Map(plan.sections.flatMap((s) => s.figures.map((f) => [f.key, s.id] as const)));
   const verdict = VERDICT.flatMap((v) => {
     const f = all.get(v.key);
     return f ? [{ ...v, figure: f }] : [];
@@ -111,7 +111,7 @@ export function Plan({ offerId }: { offerId: string }) {
         </div>
       </section>
 
-      <Explanation offerId={offerId} />
+      <Advisor offerId={offerId} blockOf={blockOf} />
 
       {plan.arguments.length > 0 && (
         <section className="plan-section" aria-labelledby="motivos">
@@ -204,7 +204,7 @@ export function Plan({ offerId }: { offerId: string }) {
           </details>
         )}
 
-        <details className="block">
+        <details className="block" id="bloque-pasos">
           <summary className="block-head">
             <span className="block-title">Pasos para comprar</span>
             <span className="block-keys">
@@ -252,82 +252,4 @@ export function Plan({ offerId }: { offerId: string }) {
       )}
     </div>
   );
-}
-
-function Explanation({ offerId }: { offerId: string }) {
-  const [result, setResult] = useState<ExplanationOut | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
-
-  async function ask() {
-    setBusy(true);
-    setFailure(null);
-    try {
-      const resp = await fetch(`/api/plans/offers/${offerId}/explanation`, { method: "POST" });
-      const body = await resp.json().catch(() => ({}));
-      if (resp.ok) setResult(body as ExplanationOut);
-      else setFailure(typeof body.detail === "string" ? body.detail : "El asesor no ha respondido");
-    } catch {
-      setFailure("No se ha podido conectar con la API.");
-    }
-    setBusy(false);
-  }
-
-  return (
-    <section className="plan-section explanation" aria-live="polite">
-      <h3>Lo que dice el asesor</h3>
-      {!result && (
-        <button type="button" onClick={ask} disabled={busy}>
-          {busy ? "El asesor está leyendo tu plan… (unos treinta segundos)" : "Explícame el plan"}
-        </button>
-      )}
-      {busy && <Skeleton label="El asesor está leyendo tu plan" shape="text" />}
-      {failure && <p className="failure">{failure}</p>}
-      {result && result.segments === null && (
-        <p className="failure">
-          El asesor no ha dado una explicación que se pueda comprobar ({result.failure}). Las
-          cifras de abajo son las del plan.
-        </p>
-      )}
-      {result?.segments && (
-        <p className="agent-text">
-          {result.segments.map((s, i) => (
-            <SegmentView key={i} segment={s} />
-          ))}
-        </p>
-      )}
-      {result && result.extra_arguments.length > 0 && (
-        <>
-          <h4>Otros motivos para pensarlo, del asesor</h4>
-          <p className="hint">No salen de las cifras del plan: son su opinión.</p>
-          <ul className="arguments">
-            {result.extra_arguments.map((a) => (
-              <li key={a}>{a}</li>
-            ))}
-          </ul>
-        </>
-      )}
-    </section>
-  );
-}
-
-function SegmentView({ segment }: { segment: SegmentOut }) {
-  if (segment.kind === "figure" && segment.figure) {
-    const f = segment.figure;
-    const text =
-      segment.part === "low" && f.low !== null
-        ? formatValue(f.low, f.unit)
-        : segment.part === "high" && f.high !== null
-          ? formatValue(f.high, f.unit)
-          : segment.part === "range" && f.low !== null && f.high !== null
-            ? `entre ${formatValue(f.low, f.unit)} y ${formatValue(f.high, f.unit)}`
-            : formatValue(f.value, f.unit);
-    return (
-      <strong className="figure-ref" title={`${label(f.key)}: ${f.formula}`}>
-        {text}
-      </strong>
-    );
-  }
-  if (segment.kind === "offer") return <em>{segment.label ?? "la oferta"}</em>;
-  return <>{segment.text}</>;
 }

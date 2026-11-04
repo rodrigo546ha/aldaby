@@ -214,6 +214,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/boe/subastas/scrape": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Scrape Auction
+         * @description Descarga una subasta del Portal del BOE, sus documentos y extrae sus condiciones con IA.
+         *     Solo con sesión: cada llamada sale al Portal y al modelo (ADR-0049).
+         */
+        post: operations["post_scrape_auction_boe_subastas_scrape_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/boe/subastas/{portal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Scrape Auction
+         * @description Consulta directa y extracción de una subasta por su identificador SUB-...
+         */
+        get: operations["get_scrape_auction_boe_subastas__portal_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/boe/subastas/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Search Auctions
+         * @description Búsqueda avanzada de subastas activas en el Portal del BOE.
+         */
+        post: operations["post_search_auctions_boe_subastas_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/patrimonio/sales": {
         parameters: {
             query?: never;
@@ -1020,6 +1081,81 @@ export interface components {
             /** Attribution */
             attribution: string;
         };
+        /** AuctionScrapeIn */
+        AuctionScrapeIn: {
+            /**
+             * Url Or Id
+             * @description URL o identificador de la subasta (ej: SUB-JA-2026-267866 o https://subastas.boe.es/detalleSubasta.php?idSub=...)
+             */
+            url_or_id: string;
+            /**
+             * Download Docs
+             * @description Descargar y leer documentos oficiales adjuntos (edicto, certificación)
+             * @default true
+             */
+            download_docs: boolean;
+            /**
+             * Run Ai
+             * @description Si se ejecuta el extractor de IA y análisis jurídico de condiciones y cargas
+             * @default true
+             */
+            run_ai: boolean;
+            /**
+             * Max Docs
+             * @default 3
+             */
+            max_docs: number;
+        };
+        /** AuctionSearchIn */
+        AuctionSearchIn: {
+            /**
+             * Province
+             * @description Código INE de la provincia (28 = Madrid)
+             * @default 28
+             */
+            province: string;
+            /**
+             * Status
+             * @description Estado: EJ (celebrándose), PU (próxima apertura)
+             * @default EJ
+             * @enum {string}
+             */
+            status: "EJ" | "PU" | "SU" | "CA";
+            /**
+             * Goods Type
+             * @description Tipo de bien: I (inmuebles), V (vehículos)
+             * @default I
+             * @enum {string}
+             */
+            goods_type: "I" | "V" | "M";
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
+            /**
+             * Page Hits
+             * @default 20
+             */
+            page_hits: number;
+        };
+        /** AuctionSearchResultOut */
+        AuctionSearchResultOut: {
+            /** Portal Id */
+            portal_id: string;
+            /** Court */
+            court: string | null;
+            /** Procedure */
+            procedure: string | null;
+            /** Status */
+            status: string | null;
+            /** Conclusion Date */
+            conclusion_date: string | null;
+            /** Summary */
+            summary: string | null;
+            /** Url */
+            url: string;
+        };
         /** BidLevelOut */
         BidLevelOut: {
             /** Share */
@@ -1140,6 +1276,14 @@ export interface components {
              * @default 0
              */
             savings_base: number | string;
+        };
+        /** CardOut */
+        CardOut: {
+            /** Title */
+            title: string;
+            /** Text */
+            text: components["schemas"]["SegmentOut"][];
+            figure: components["schemas"]["FigureOut"] | null;
         };
         /** ChangeOut */
         ChangeOut: {
@@ -1344,10 +1488,19 @@ export interface components {
              */
             horizon_years: number;
         };
-        /** ExplanationOut */
+        /**
+         * ExplanationOut
+         * @description Las fichas del asesor (ADR-0052). `summary` None: el texto no pasó la comprobación.
+         */
         ExplanationOut: {
-            /** Segments */
-            segments: components["schemas"]["SegmentOut"][] | null;
+            /** Summary */
+            summary: components["schemas"]["SegmentOut"][] | null;
+            /** Cards */
+            cards: components["schemas"]["CardOut"][];
+            /** Risks */
+            risks: components["schemas"]["SegmentOut"][][];
+            /** Next Step */
+            next_step: components["schemas"]["SegmentOut"][] | null;
             /** Failure */
             failure: string | null;
             /** Notes */
@@ -2135,6 +2288,66 @@ export interface components {
             /** Location Source */
             location_source?: string | null;
         };
+        /** ScrapedAuctionOut */
+        ScrapedAuctionOut: {
+            /** Portal Id */
+            portal_id: string;
+            /** Portal Url */
+            portal_url: string;
+            /** Tipo Subasta */
+            tipo_subasta: string | null;
+            /** Cuenta Expediente */
+            cuenta_expediente: string | null;
+            /** Anuncio Boe */
+            anuncio_boe: string | null;
+            /** Fecha Inicio */
+            fecha_inicio: string | null;
+            /** Fecha Conclusion */
+            fecha_conclusion: string | null;
+            /** Cantidad Reclamada */
+            cantidad_reclamada: string | null;
+            /** Valor Subasta */
+            valor_subasta: string | null;
+            /** Tasacion */
+            tasacion: string | null;
+            /** Deposito */
+            deposito: string | null;
+            /** Puja Minima */
+            puja_minima: string | null;
+            /** Tramos */
+            tramos: string | null;
+            /** Highest Bid */
+            highest_bid?: string | null;
+            /** Bid Status */
+            bid_status?: string | null;
+            /**
+             * Bidding State
+             * @default sin_pujas
+             */
+            bidding_state: string;
+            /** Lot Bids */
+            lot_bids?: {
+                [key: string]: unknown;
+            };
+            /** Court */
+            court: string | null;
+            /** Court Address */
+            court_address: string | null;
+            /** Lots */
+            lots: {
+                [key: string]: unknown;
+            }[];
+            /** Documents */
+            documents: {
+                [key: string]: string;
+            }[];
+            /** Ai Report */
+            ai_report: {
+                [key: string]: unknown;
+            } | null;
+            /** Attribution */
+            attribution: string;
+        };
         /** SearchAssumptionsIn */
         SearchAssumptionsIn: {
             /**
@@ -2698,6 +2911,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AnnouncementDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_scrape_auction_boe_subastas_scrape_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuctionScrapeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScrapedAuctionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_scrape_auction_boe_subastas__portal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                portal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScrapedAuctionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_search_auctions_boe_subastas_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuctionSearchIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuctionSearchResultOut"][];
                 };
             };
             /** @description Validation Error */
@@ -3510,7 +3820,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description text/event-stream: eventos «etapa» ({etapa, herramienta}) mientras el asesor trabaja y uno «resultado» con el ExplanationOut, o «error» (ADR-0052) */
             200: {
                 headers: {
                     [name: string]: unknown;

@@ -81,15 +81,22 @@ def test_el_asesor_explica_el_plan_y_anade_argumentos(searchable, org):  # noqa:
 
     llm = FakeLLMClient(respond=respond, turns=[
         ChatTurn(None, (ToolCall("c1", "plan_completo", json.dumps({"oferta": short})),)),
-        ChatTurn(f"Para {{{{oferta:{short}}}}} puedes pagar hasta "
-                 "{{fig:affordability.max_price}} y la cuota sería "
-                 "{{fig:mortgage.monthly_payment}}."),
+        ChatTurn(json.dumps({
+            "resumen": f"Para {{{{oferta:{short}}}}} puedes pagar hasta "
+                       "{{fig:affordability.max_price}}.",
+            "claves": [{"titulo": "La cuota", "texto": "Sería de "
+                        "{{fig:mortgage.monthly_payment}}.",
+                        "cifra": "{{fig:mortgage.monthly_payment}}"}],
+            "riesgos": ["Si suben los tipos, la cuota sube."],
+            "siguiente_paso": "Pide la nota simple."}, ensure_ascii=False)),
     ])
     with psycopg.connect(searchable) as conn:
         user = profile(management_fee_rate=D("0.08"))
         plan = full_plan(conn, book(), rules(), user, org, offer, TODAY)
         explained = explain_plan(conn, book(), llm, org, plan, user, rules())
     assert explained.answer.failure is None, explained.answer.rejected
+    assert explained.answer.output.claves[0].cifra == "{{fig:mortgage.monthly_payment}}"
+    assert "esta forma" in llm.chats[0][0]["content"]  # el esquema de las fichas (ADR-0052)
     assert explained.extra_arguments == [
         "Una sola vivienda concentra todo tu ahorro en un activo poco líquido."]
     sent = json.loads(llm.chats[1][-1]["content"])
@@ -101,6 +108,7 @@ def test_el_asesor_explica_el_plan_y_anade_argumentos(searchable, org):  # noqa:
 
 @pytest.mark.db
 def test_api_del_plan(searchable, org):  # noqa: F811
+    import json
     import os
 
     from fastapi.testclient import TestClient
@@ -124,7 +132,10 @@ def test_api_del_plan(searchable, org):  # noqa: F811
     short = offer.hex[:8]
     llm = FakeLLMClient(turns=[
         ChatTurn(None, (ToolCall("c1", "plan_completo", f'{{"oferta": "{short}"}}'),)),
-        ChatTurn("Te queda {{fig:cashflow.monthly_after_tax}}."),
+        ChatTurn('{"resumen": "Te queda {{fig:cashflow.monthly_after_tax}}.", "claves": '
+                 '[{"titulo": "Cada mes", "texto": "Lo que te queda.", '
+                 '"cifra": "{{fig:cashflow.monthly_after_tax}}"}], "riesgos": [], '
+                 '"siguiente_paso": "Pide la nota simple."}'),
     ])
 
     def db():
@@ -157,9 +168,25 @@ def test_api_del_plan(searchable, org):  # noqa: F811
             assert pdf.status_code == 200 and pdf.content.startswith(b"%PDF")
             assert pdf.headers["cache-control"] == "no-store"
             assert pdf.headers["content-disposition"].endswith(f'plan-{short}.pdf"')
-        explained = client.post(f"/plans/offers/{offer}/explanation").json()
-        assert explained["failure"] is None
-        assert [s["kind"] for s in explained["segments"]] == ["text", "figure", "text"]
+        # Etapas mientras trabaja y, al final, las fichas ya comprobadas (ADR-0052)
+        streamed = client.post(f"/plans/offers/{offer}/explanation")
+        assert streamed.headers["content-type"].startswith("text/event-stream")
+        assert "no-transform" in streamed.headers["cache-control"]
+        events = [(block.split("\n")[0].removeprefix("event: "),
+                   json.loads(block.split("\n")[1].removeprefix("data: ")))
+                  for block in streamed.text.strip().split("\n\n")]
+        assert [e for e in events if e[0] == "etapa"][:2] == [
+            ("etapa", {"etapa": "modelo", "herramienta": None}),
+            ("etapa", {"etapa": "herramienta", "herramienta": "plan_completo"})]
+        name, explained = events[-1]
+        assert name == "resultado" and explained["failure"] is None
+        assert [s["kind"] for s in explained["summary"]] == ["text", "figure", "text"]
+        card = explained["cards"][0]
+        assert card["title"] == "Cada mes"
+        assert card["figure"]["key"] == "cashflow.monthly_after_tax"
+        assert explained["next_step"] == [{"kind": "text", "text": "Pide la nota simple.",
+                                           "figure": None, "part": None, "offer": None,
+                                           "label": None}]
         assert explained["extra_arguments"] == []  # el modelo falso no responde
         # Simulador de puja (ADR-0047): sin valor de subasta en una venta, 404; con él, la tabla
         assert client.post(f"/plans/offers/{offer}/bids", json={}).status_code == 404

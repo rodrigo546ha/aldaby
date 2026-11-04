@@ -7,8 +7,31 @@ import { Amount } from "./FigureView";
 
 // Movimiento compartido (docs/PROPUESTA_UX.md, U1): esperas con forma y cifras que llegan.
 
-/** Lo que se está calculando, con la forma que tendrá: filas de cifras o un bloque de texto. */
-export function Skeleton({ label: text, shape = "figures" }: { label: string; shape?: "figures" | "text" }) {
+/** Lo que se está calculando, con la forma que tendrá: filas de cifras, texto o fichas. */
+export function Skeleton({
+  label: text,
+  shape = "figures",
+}: {
+  label: string;
+  shape?: "figures" | "text" | "cards";
+}) {
+  if (shape === "cards")
+    return (
+      <div className="skeleton skeleton-cards" role="status">
+        <span className="visually-hidden">{text}</span>
+        <div className="skeleton-line" />
+        <div className="skeleton-card-row">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="skeleton-card">
+              <div className="skeleton-line short" />
+              <div className="skeleton-chip" />
+              <div className="skeleton-line" />
+              <div className="skeleton-line short" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   return (
     <div className={`skeleton skeleton-${shape}`} role="status">
       <span className="visually-hidden">{text}</span>

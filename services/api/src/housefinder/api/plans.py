@@ -2,16 +2,23 @@
 
 from __future__ import annotations
 
+import json
+import logging
+import queue
+import threading
+from collections.abc import Iterator, Mapping
 from datetime import date
 from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Response
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from housefinder.advisor.tools import explain_plan
-from housefinder.agent.references import FigureSegment, OfferSegment, Segment
+from housefinder.advisor.tools import ExplainedPlan, PlanExplanation, explain_plan
+from housefinder.agent.loop import Progress
+from housefinder.agent.references import FigureSegment, OfferSegment, Segment, segments
 from housefinder.api.deps import (
     ClientDep,
     DbDep,
@@ -27,6 +34,7 @@ from housefinder.api.deps import (
 from housefinder.api.figures import FigureOut, SeriesOut, figure_out, series_out
 from housefinder.api.search import RentalAdviceOut, advice_out
 from housefinder.branding import service as branding
+from housefinder.core.figures import Figure
 from housefinder.crypto.envelope import KeyProvider
 from housefinder.db.connection import Connection
 from housefinder.db.profiles import latest_profile_id
@@ -41,6 +49,9 @@ from housefinder.reports.pdf import plan_html, plan_pdf, plan_sources
 from housefinder.search.service import SearchUnavailable
 
 router = APIRouter(prefix="/plans", tags=["plan"])
+log = logging.getLogger(__name__)
+# Para que ni Caddy ni el proxy de Next acumulen ni compriman las etapas (ADR-0052)
+STREAM_HEADERS = {"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"}
 
 
 class SectionOut(BaseModel):
@@ -101,8 +112,19 @@ class SegmentOut(BaseModel):
     label: str | None = None
 
 
+class CardOut(BaseModel):
+    title: str
+    text: list[SegmentOut]
+    figure: FigureOut | None  # la cifra que resume la ficha
+
+
 class ExplanationOut(BaseModel):
-    segments: list[SegmentOut] | None  # None: el texto no pasó la comprobación
+    """Las fichas del asesor (ADR-0052). `summary` None: el texto no pasó la comprobación."""
+
+    summary: list[SegmentOut] | None
+    cards: list[CardOut]
+    risks: list[list[SegmentOut]]
+    next_step: list[SegmentOut] | None
     failure: str | None
     notes: list[str]
     extra_arguments: list[str]  # del asesor: no salen de las cifras
@@ -223,17 +245,64 @@ def offer_plan_pdf(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client
         "Cache-Control": "no-store"})
 
 
-@router.post("/offers/{offer_id}/explanation", response_model=ExplanationOut)
+@router.post("/offers/{offer_id}/explanation", response_class=StreamingResponse,
+             responses={200: {"model": ExplanationOut, "description": (
+                 "text/event-stream: eventos «etapa» ({etapa, herramienta}) mientras el asesor "
+                 "trabaja y uno «resultado» con el ExplanationOut, o «error» (ADR-0052)")}})
 def explanation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
                 book: ParamBookDep, rules: RuleBookDep, llm: LLMDep,
-                current: SessionDep) -> ExplanationOut:
+                current: SessionDep) -> StreamingResponse:
+    # Lo que puede fallar con un código HTTP (sin perfil, nivel gratuito) va antes de empezar
     profile, plan = _plan(db, keys, org, client, book, rules, offer_id, is_particular(current))
-    explained = explain_plan(db, book, llm, org, plan, profile, rules)
+    events: queue.Queue[str | None] = queue.Queue()
+
+    def tell(step: Progress) -> None:
+        events.put(_event("etapa", {"etapa": step.stage, "herramienta": step.tool}))
+
+    def work() -> None:
+        try:
+            explained = explain_plan(db, book, llm, org, plan, profile, rules, progress=tell)
+            events.put(_event("resultado", explanation_out(explained).model_dump(mode="json")))
+        except Exception as exc:  # el usuario ve una línea; el registro, solo el tipo
+            log.error("La explicación del plan falló: %s", type(exc).__name__)
+            events.put(_event("error", {"detail": "El asesor no ha podido terminar"}))
+        finally:
+            events.put(None)
+
+    def stream() -> Iterator[str]:
+        threading.Thread(target=work, daemon=True).start()
+        while (item := events.get()) is not None:
+            yield item
+
+    return StreamingResponse(stream(), media_type="text/event-stream", headers=STREAM_HEADERS)
+
+
+def explanation_out(explained: ExplainedPlan) -> ExplanationOut:
     answer = explained.answer
+    cards = answer.output if isinstance(answer.output, PlanExplanation) else None
+    if cards is None:
+        return ExplanationOut(summary=None, cards=[], risks=[], next_step=None,
+                              failure=answer.failure, notes=answer.notes,
+                              extra_arguments=explained.extra_arguments)
+
+    def parts(text: str) -> list[SegmentOut]:  # ya comprobado en el bucle
+        return [_segment(s) for s in segments(text, answer.figures, answer.offers)]
+
     return ExplanationOut(
-        segments=[_segment(s) for s in answer.segments] if answer.segments is not None else None,
-        failure=answer.failure, notes=answer.notes,
-        extra_arguments=explained.extra_arguments)
+        summary=parts(cards.resumen),
+        cards=[CardOut(title=c.titulo, text=parts(c.texto),
+                       figure=_card_figure(c.cifra, answer.figures)) for c in cards.claves],
+        risks=[parts(r) for r in cards.riesgos], next_step=parts(cards.siguiente_paso),
+        failure=None, notes=answer.notes, extra_arguments=explained.extra_arguments)
+
+
+def _card_figure(marker: str | None, figures: Mapping[str, Figure]) -> FigureOut | None:
+    found = segments(marker, figures) if marker else []
+    return figure_out(found[0].figure) if found and isinstance(found[0], FigureSegment) else None
+
+
+def _event(name: str, data: object) -> str:
+    return f"event: {name}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
 def _plan(db: Connection, keys: KeyProvider, org: UUID, client: UUID, book: ParamBook,

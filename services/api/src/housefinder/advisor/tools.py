@@ -8,16 +8,23 @@ lo pregunta al usuario.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from housefinder.advisor.glossary import describe
 from housefinder.agent.llm import LLMClient
-from housefinder.agent.loop import AgentAnswer, Tool, ToolFailed, ToolResult, run_agent
+from housefinder.agent.loop import (
+    AgentAnswer,
+    Progress,
+    Tool,
+    ToolFailed,
+    ToolResult,
+    run_agent,
+)
 from housefinder.agent.plan_arguments import extra_arguments
 from housefinder.agent.references import without_numbers
 from housefinder.core.figures import Figure
@@ -61,6 +68,24 @@ alquilarían, cuánto valen frente a lo que piden, cómo puede evolucionar su pr
   delegar la gestión, usa recomendar_alquiler con el identificador de su marcador: la
   recomendación la hace el programa; tú la explicas con sus motivos y requisitos.
 """
+# Forma de la explicación del plan (ADR-0052): la web la pinta en fichas
+PLAN_OUTPUT = """
+Cuando tengas el plan, contesta solo con un objeto JSON, sin texto alrededor, con esta forma:
+{"resumen": "una frase con lo que dicen las cifras para este usuario",
+ "claves": [{"titulo": "pocas palabras y sin cifras", "texto": "una o dos frases con marcadores",
+             "cifra": "{{fig:clave}}"}],
+ "riesgos": ["una frase por riesgo"],
+ "siguiente_paso": "una frase con lo primero que conviene hacer"}
+- «claves» son las tres cosas más importantes del plan para este usuario, de más a menos
+  importante: por ejemplo lo que le queda cada mes, lo que pone de su bolsillo o qué pasa si suben
+  los tipos. Cada una dice algo distinto.
+- «cifra» es solo el marcador de la cifra que resume la ficha, sin texto; si ninguna la resume,
+  null.
+- «riesgos»: hasta tres, de la prueba de estrés, las normas pendientes y los argumentos para no
+  comprar que da el programa. No repitas lo que ya dicen las fichas.
+- «siguiente_paso»: el primer paso de la hoja de ruta del plan, dicho en una frase.
+"""
+PLAN_FIGURE = r"^\{\{fig:[a-z0-9_]+(\.[a-z0-9_]+)+\}\}$"
 SEARCH_FIGURES = ("offer.price", "valuation.rent_monthly", "cashflow.monthly_after_tax",
                   "search.stressed_cashflow", "irr.rate", "cashflow.cash_invested")
 SEARCH_SHOWN = 5  # las primeras del orden: el contexto del modelo es corto
@@ -68,6 +93,33 @@ SEARCH_SHOWN = 5  # las primeras del orden: el contexto del modelo es corto
 # («población de sesenta y cinco…») y el texto se rechaza (ADR-0012)
 SPOKEN = {"poblacion_65_y_mas": "poblacion_mayor", "poblacion_menor_18": "poblacion_menor_de_edad",
           "change_5y": "cambio_lustro"}
+
+
+class KeyPoint(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    titulo: str = Field(description="Lo importante en pocas palabras, sin cifras ni marcadores")
+    texto: str = Field(description="Una o dos frases con marcadores {{fig:clave}}")
+    cifra: str | None = Field(default=None, pattern=PLAN_FIGURE,
+                              description="El marcador de la cifra que resume la ficha")
+
+    @field_validator("titulo")
+    @classmethod
+    def _plain(cls, value: str) -> str:
+        if "{{" in value:
+            raise ValueError("el título va sin marcadores: la cifra va en «cifra»")
+        return value
+
+
+class PlanExplanation(BaseModel):
+    """La explicación del plan en fichas (ADR-0052); cada texto pasa `check_text`."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    resumen: str = Field(description="Una frase con lo que dicen las cifras")
+    claves: list[KeyPoint] = Field(min_length=1, max_length=3)
+    riesgos: list[str] = Field(default_factory=list, max_length=3)
+    siguiente_paso: str
 
 
 class NoArguments(BaseModel):
@@ -320,14 +372,19 @@ class ExplainedPlan:
 
 
 def explain_plan(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID,
-                 plan: FullPlan, profile: UserProfile, rules: RuleBook) -> ExplainedPlan:
-    """El asesor explica el plan (con marcadores) y añade sus argumentos (ADR-0025)."""
+                 plan: FullPlan, profile: UserProfile, rules: RuleBook,
+                 progress: Callable[[Progress], None] | None = None) -> ExplainedPlan:
+    """El asesor explica el plan en fichas con marcadores (ADR-0052) y añade sus argumentos
+    (ADR-0025). `answer.output` es un `PlanExplanation` si el texto pasa la comprobación."""
     short = plan.offer_id.hex[:8]
     question = (f"Explícame mi plan completo para la oferta {{{{oferta:{short}}}}} (usa "
                 f"plan_completo con oferta {short}): qué puedo pagar, la hipoteca, lo que me "
                 "queda cada mes, qué pasa si suben los tipos y por qué podría no comprarla.")
-    answer = run_agent(llm, INSTRUCTIONS, question,
-                       offer_tools(conn, book, org_id, profile, rules))
+    answer = run_agent(llm, INSTRUCTIONS + PLAN_OUTPUT, question,
+                       offer_tools(conn, book, org_id, profile, rules),
+                       output=PlanExplanation, progress=progress)
+    if progress is not None:
+        progress(Progress("argumentos"))
     extra = extra_arguments(llm, plan_summary(plan), [a.text for a in plan.arguments])
     return ExplainedPlan(answer, extra)
 

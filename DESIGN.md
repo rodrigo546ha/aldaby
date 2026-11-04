@@ -251,7 +251,7 @@ Verdes abisales casi monocromos con un solo metal cálido; en claro, arena con t
 - **Stat** (500, 2.5rem, 1, −0,04 em, en stat-glow): las cifras de cabecera del plan. La unidad («al mes», «años») va aparte a 0,5 em.
 - **Title** (500, 1.5rem, 1,15, −0,02 em): títulos de resultados y bloques. Escalones intermedios: 2rem en la cabecera del plan, 1.75rem en la de una oferta, 1.375rem en subtítulos y textos legales, 1.25rem en grupos (−0,015 em).
 - **Figure** (500, 1.375rem, 1,1, −0,02 em): cada cifra de la rejilla. Unidad a 0,62 em.
-- **Body** (400, 15px, 1,5): todo el texto de interfaz. Las entradillas usan **Lead** (1.0625rem, 1,55, máx. 62ch) y el texto del asesor 1.0625rem con interlínea 1,7 a 72ch.
+- **Body** (400, 15px, 1,5): todo el texto de interfaz. Las entradillas usan **Lead** (1.0625rem, 1,55, máx. 62ch) y el resumen del asesor en Display a 1.375rem (60ch), sobre sus fichas: título en etiqueta, cifra en latón a 2rem y texto Body.
 - **Label** (500, 11–12px, 0,12 em, MAYÚSCULAS): navegación, leyendas de formulario, cabeceras de tabla, rótulos de cifra de cabecera, estados y enlaces del pie. El sello PROVISIONAL es la variante de 10px y peso 600.
 - **Button** (500, 13px, 0,08 em, MAYÚSCULAS): botones; el de portada a 0,1 em.
 - **Hint** (400, 12.5px, 1,45): pistas, errores, rangos y «Cómo se calcula».

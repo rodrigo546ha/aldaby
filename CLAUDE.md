@@ -125,6 +125,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     agent/sense.py        contradicciones de sentido junto a los marcadores del asesor (ADR-0027)
     agent/references.py   el agente escribe marcadores {{fig:clave}}, no cifras: comprobación y segmentos (ADR-0012)
     agent/loop.py         bucle del agente con herramientas; el texto final se comprueba con references (ADR-0019)
+                          y, con modelo de salida, la respuesta es un JSON en fichas (ADR-0052)
     advisor/              herramientas del agente sobre los motores (solo lectura, argumentos sin números),
                           glosario de cifras para el modelo, banco de preguntas (evaluation.py) y CLI
     documents/            texto de un documento del usuario: PDF, escaneo o foto con OCR local; solo aquí
