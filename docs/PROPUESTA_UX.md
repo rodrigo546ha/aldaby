@@ -274,7 +274,7 @@ Ordenado para que cada fase se pueda usar sola y no espere a la siguiente.
 | **U3** (hecha, ADR-0048) | Gráficas con datos que ya existen: lo que cuesta y cómo se paga, estrés, fija frente a variable, abanico de la TIR y curva de puja. Componentes SVG propios | No | Sí (gráficas sin dependencia) | medio |
 | **U4** (hecha, ADR-0050) | `Series` en la API: amortización, cash flow anual, revalorización año a año; gráficas de hipoteca y venta. También la cascada del cash flow mensual, que en U3 no se pudo hacer: el vacío, la gestión y los intereses no salen como cifras y las unidades mezclan año y mes | Sí | Sí (contrato `Series`) | medio |
 | **U5** (hecha, ADR-0051)| Mapa: endpoint por caja con agrupación, MapLibre, teselas, geolocalización, lista sincronizada, hoja de oferta, títulos cortos | Sí | Sí (teselas y librería; leer condiciones del IGN antes) | grande |
-| **U6** | Navegación en 4 destinos y «Pegar un anuncio» como acción del mapa | No | No | pequeño |
+| **U6** (hecha)| Navegación en 4 destinos y «Pegar un anuncio» como acción del mapa | No | No | pequeño |
 | **U7** | Asesor en fichas con salida estructurada y streaming | Sí | Sí (esquema de salida) | medio |
 
 Para empezar recomiendo **U1 + U2**: no tocan la API, quitan la mayor parte del texto de entrada y dejan
