@@ -5,7 +5,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { layers, namedFlavor, type Flavor } from "@protomaps/basemaps";
 import * as maplibregl from "maplibre-gl";
 import type { GeoJSONSource, MapLayerMouseEvent, Map as MapLibre, StyleSpecification } from "maplibre-gl";
-import { Protocol } from "pmtiles";
+import { PMTiles, Protocol } from "pmtiles";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { components } from "../lib/api-types";
@@ -20,7 +20,7 @@ type ScoredOut = components["schemas"]["ScoredOut"];
 // ofertas de la búsqueda inversa donde están. La web pinta lo que devuelve la API, no calcula nada.
 
 const TILES = "/mapa/teselas.pmtiles";
-const SPAIN: [number, number] = [-3.7, 40.4];
+const MADRID: [number, number] = [-3.7, 40.42];
 const SOURCE = {
   catastro: "Catastro",
   cartociudad: "CartoCiudad",
@@ -28,8 +28,21 @@ const SOURCE = {
 } as Record<string, string>;
 
 type Place = ScoredOut & { lon: number; lat: number };
+/** Lo que cubre el extracto de teselas (`make mapa`): fuera de ahí no hay mapa que enseñar. */
+type Bounds = [[number, number], [number, number]];
 
-let protocolAdded = false;
+let protocol: Protocol | null = null;
+
+const inside = (b: Bounds | null, p: Place) =>
+  !b || (p.lon >= b[0][0] && p.lon <= b[1][0] && p.lat >= b[0][1] && p.lat <= b[1][1]);
+
+/** Mezcla de dos colores #rrggbb: el relieve del mapa sale de la paleta, no de otra. */
+function mix(a: string, b: string, amount: number): string {
+  const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  if (!/^#[0-9a-f]{6}$/i.test(a) || !/^#[0-9a-f]{6}$/i.test(b)) return a;
+  const [x, y] = [rgb(a), rgb(b)];
+  return `#${x.map((v, i) => Math.round(v + (y[i] - v) * amount).toString(16).padStart(2, "0")).join("")}`;
+}
 
 function readTheme() {
   const css = getComputedStyle(document.documentElement);
@@ -80,6 +93,16 @@ function baseStyle(t: Theme): StyleSpecification {
     ocean_label: t.muted,
     address_label: t.muted,
     address_label_halo: t.canvas,
+    // El campo y el monte, apenas insinuados: sin esto el mapa claro sale moteado de verdes ajenos
+    landcover: {
+      barren: t.canvas,
+      farmland: mix(t.canvas, t.sunk, 0.35),
+      forest: mix(t.canvas, t.pass, 0.12),
+      glacier: t.raised,
+      grassland: mix(t.canvas, t.pass, 0.06),
+      scrub: mix(t.canvas, t.pass, 0.08),
+      urban_area: mix(t.canvas, t.raised2, 0.6),
+    },
   };
   delete flavor.pois; // sin iconos de puntos de interés: no hay sprites propios
   return {
@@ -187,11 +210,29 @@ function addHere(map: MapLibre, t: Theme, here: [number, number] | null) {
 
 const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+type Failure = { status: number; text: string };
+
+/** Qué hacer cuando no hay búsqueda: sin cliente, a Clientes; con el perfil a medias, al perfil. */
+function failureAction(f: Failure): { title: string; text: string; href: string | null; cta: string | null } {
+  if (f.status === 409)
+    return f.text.startsWith("Elige")
+      ? { title: "Elige un cliente", text: "Arriba, en Cliente. El mapa se rehace con su plan en cada oferta.", href: null, cta: null }
+      : {
+          title: "¿Para quién buscas?",
+          text: "El mapa enseña el plan de cada cliente en cada oferta: si encaja, su cash flow y si es subasta. Empieza por crear el primero.",
+          href: "/clientes",
+          cta: "Crear un cliente",
+        };
+  if (f.status === 404 || f.status === 422)
+    return { title: "Falta el perfil", text: f.text, href: "/perfil", cta: "Completar el perfil" };
+  return { title: "No se ha podido buscar", text: f.text, href: null, cta: null };
+}
+
 export function OfferMap() {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibre | null>(null);
   const [result, setResult] = useState<SearchOut | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
+  const [failure, setFailure] = useState<Failure | null>(null);
   const [onlyPass, setOnlyPass] = useState(false);
   const [onlyAuction, setOnlyAuction] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
@@ -200,6 +241,7 @@ export function OfferMap() {
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
   const [baseMissing, setBaseMissing] = useState(false);
+  const [coverage, setCoverage] = useState<Bounds | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -207,47 +249,70 @@ export function OfferMap() {
         const resp = await fetch("/api/search");
         const body = await resp.json().catch(() => ({}));
         if (resp.ok) setResult(body as SearchOut);
-        else if (resp.status === 404) setFailure("Confirma primero tu perfil: con él se calcula tu plan en cada oferta.");
-        else if (resp.status === 422 && Array.isArray(body.detail)) setFailure(`Falta en tu perfil: ${body.detail.join(", ")}.`);
-        else setFailure(typeof body.detail === "string" ? body.detail : "No se ha podido hacer la búsqueda.");
+        else if (resp.status === 404)
+          setFailure({ status: 404, text: "Con tu perfil confirmado se calcula tu plan en cada oferta." });
+        else if (resp.status === 422 && Array.isArray(body.detail))
+          setFailure({ status: 422, text: `Falta en tu perfil: ${body.detail.join(", ")}.` });
+        else
+          setFailure({
+            status: resp.status,
+            text: typeof body.detail === "string" ? body.detail : "La búsqueda no ha respondido. Vuelve a cargar la página.",
+          });
       } catch {
-        setFailure("No se ha podido conectar con la API.");
+        setFailure({ status: 0, text: "No se ha podido conectar con la API." });
       }
     })();
   }, []);
 
-  const places = useMemo(
-    () =>
-      (result?.ranked ?? [])
-        .filter((s): s is Place => s.lon != null && s.lat != null)
-        .filter((s) => (!onlyPass || s.passes) && (!onlyAuction || s.auction)),
-    [result, onlyPass, onlyAuction],
+  const located = useMemo(
+    () => (result?.ranked ?? []).filter((s): s is Place => s.lon != null && s.lat != null),
+    [result],
   );
-  const placesRef = useRef<Place[]>([]);
-  placesRef.current = places;
+  const places = useMemo(
+    () => located.filter((s) => (!onlyPass || s.passes) && (!onlyAuction || s.auction)),
+    [located, onlyPass, onlyAuction],
+  );
+  // En el mapa, solo lo que cae dentro de las teselas; lo de fuera sigue en la lista
+  const onMap = useMemo(() => places.filter((p) => inside(coverage, p)), [places, coverage]);
+  const onMapRef = useRef<Place[]>([]);
+  onMapRef.current = onMap;
   const hereRef = useRef(here);
   hereRef.current = here;
+  const coverageRef = useRef(coverage);
+  coverageRef.current = coverage;
 
   // El mapa se crea una vez; con el tema se repinta entero
   useEffect(() => {
     if (!box.current || map.current) return;
-    if (!protocolAdded) {
+    if (!protocol) {
       maplibregl.setWorkerUrl(`${window.location.origin}/mapa/maplibre-gl-worker.mjs`);
-      maplibregl.addProtocol("pmtiles", new Protocol().tile);
-      protocolAdded = true;
+      protocol = new Protocol();
+      maplibregl.addProtocol("pmtiles", protocol.tile);
     }
-    fetch(TILES, { method: "HEAD" })
-      .then((r) => setBaseMissing(!r.ok))
-      .catch(() => setBaseMissing(true));
+    const archive = new PMTiles(`${window.location.origin}${TILES}`);
+    protocol.add(archive);
     const m = new maplibregl.Map({
       container: box.current,
       style: baseStyle(readTheme()),
-      center: SPAIN,
-      zoom: 5,
+      center: MADRID,
+      zoom: 9,
       attributionControl: { compact: true },
       cooperativeGestures: false,
     });
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+    // El mapa no sale de lo que cubren las teselas: sin esto, al alejarse se ve una franja cortada
+    archive
+      .getHeader()
+      .then((h) => {
+        const b: Bounds = [
+          [h.minLon, h.minLat],
+          [h.maxLon, h.maxLat],
+        ];
+        setCoverage(b);
+        m.setMaxBounds(b);
+        if (!framed.current) m.fitBounds(b, { duration: 0 });
+      })
+      .catch(() => setBaseMissing(true));
     // Sin sprites propios: las ciudades llevan un punto dibujado aquí y los escudos de carretera, nada
     m.setMissingStyleImageResolver((id) => {
       if (m.hasImage(id)) return;
@@ -266,7 +331,7 @@ export function OfferMap() {
     });
     const paint = () => {
       const t = readTheme();
-      addOffers(m, t, placesRef.current);
+      addOffers(m, t, onMapRef.current);
       addHere(m, t, hereRef.current);
     };
     m.on("style.load", paint);
@@ -302,8 +367,8 @@ export function OfferMap() {
   // Las ofertas (y los filtros) cambian los datos, no el estilo
   useEffect(() => {
     const source = map.current?.getSource("ofertas") as GeoJSONSource | undefined;
-    source?.setData(geojson(places));
-  }, [places]);
+    source?.setData(geojson(onMap));
+  }, [onMap]);
 
   // Al llegar las ofertas, el mapa las encuadra; si ya diste permiso de ubicación, centra en ti
   const framed = useRef(false);
@@ -321,6 +386,11 @@ export function OfferMap() {
         setLocating(false);
         const m = map.current;
         if (!m) return;
+        const b = coverageRef.current;
+        if (b && !inside(b, { lon: point[0], lat: point[1] } as Place)) {
+          if (!quiet) setLocateError("Estás fuera de la zona que cubre el mapa.");
+          return;
+        }
         const source = m.getSource("aqui") as GeoJSONSource | undefined;
         if (source) source.setData({ type: "Point", coordinates: point });
         else addHere(m, readTheme(), point);
@@ -337,31 +407,47 @@ export function OfferMap() {
   useEffect(() => {
     const m = map.current;
     if (!m || !result || framed.current) return;
+    const shown = located.filter((p) => inside(coverage, p));
+    if (shown.length === 0) return; // sin ofertas en el mapa, se queda encuadrado en las teselas
     framed.current = true;
-    const all = (result.ranked ?? []).filter((s): s is Place => s.lon != null && s.lat != null);
-    if (all.length === 1) m.jumpTo({ center: [all[0].lon, all[0].lat], zoom: 13 });
-    else if (all.length > 1) {
+    if (shown.length === 1) m.jumpTo({ center: [shown[0].lon, shown[0].lat], zoom: 13 });
+    else {
       const bounds = new maplibregl.LngLatBounds();
-      all.forEach((p) => bounds.extend([p.lon, p.lat]));
-      m.fitBounds(bounds, { padding: 64, maxZoom: 14, duration: still() ? 0 : 900 });
+      shown.forEach((p) => bounds.extend([p.lon, p.lat]));
+      m.fitBounds(bounds, { padding: framePadding(), maxZoom: 14, duration: still() ? 0 : 900 });
     }
     navigator.permissions
       ?.query({ name: "geolocation" as PermissionName })
       .then((p) => p.state === "granted" && locate(true))
       .catch(() => undefined);
-  }, [result, locate]);
+  }, [result, located, coverage, locate]);
 
   const select = useCallback((id: string) => {
     setSelected(id);
     setView("mapa");
-    const p = placesRef.current.find((x) => x.offer_id === id);
+    const p = onMapRef.current.find((x) => x.offer_id === id);
     if (p && map.current) {
-      map.current.flyTo({ center: [p.lon, p.lat], zoom: Math.max(map.current.getZoom(), 14), duration: still() ? 0 : 800, essential: true });
+      // el punto queda en el hueco libre: ni debajo del panel ni debajo de la ficha que se abre
+      const pad = framePadding();
+      const wide = matchMedia("(min-width: 921px)").matches;
+      map.current.flyTo({
+        center: [p.lon, p.lat],
+        zoom: Math.max(map.current.getZoom(), 14),
+        padding: { ...pad, bottom: wide ? 280 : 340 },
+        duration: still() ? 0 : 800,
+        essential: true,
+      });
     }
   }, []);
 
   const chosen = places.find((p) => p.offer_id === selected) ?? null;
-  const unlocated = (result?.ranked ?? []).length - (result?.ranked ?? []).filter((s) => s.lon != null).length;
+  const total = result?.ranked.length ?? 0;
+  const unlocated = total - located.length;
+  const outside = places.length - onMap.length;
+  const passing = places.filter((p) => p.passes).length;
+  const auctions = places.filter((p) => p.auction).length;
+  const filtered = onlyPass || onlyAuction;
+  const action = failure ? failureAction(failure) : null;
 
   return (
     <div className={`offer-map view-${view}`}>
@@ -372,56 +458,6 @@ export function OfferMap() {
       >
         {view === "mapa" ? "Ver la lista" : "Ver el mapa"}
       </button>
-      <aside className="map-list" aria-label="Ofertas de la búsqueda">
-        <div className="map-filters" role="group" aria-label="Filtros">
-          <button type="button" className="chip" aria-pressed={onlyPass} onClick={() => setOnlyPass((v) => !v)}>
-            Solo las que encajan
-          </button>
-          <button type="button" className="chip" aria-pressed={onlyAuction} onClick={() => setOnlyAuction((v) => !v)}>
-            Subastas
-          </button>
-          <a className="chip" href="/ofertas">
-            Añadir un anuncio
-          </a>
-        </div>
-        {!result && !failure && <Skeleton label="Calculando tu plan en cada oferta…" shape="text" />}
-        {failure && (
-          <p className="failure">
-            {failure} <a href="/perfil">Ir a tu perfil</a>
-          </p>
-        )}
-        {result && (
-          <p className="map-count">
-            {places.length === 1 ? "1 oferta" : `${places.length} ofertas`}
-            {unlocated > 0 && ` · ${unlocated} sin ubicar`}
-          </p>
-        )}
-        <ol className="map-items">
-          {places.map((p) => {
-            const cash = fig(p, "cashflow.monthly_after_tax");
-            const price = fig(p, "offer.price");
-            return (
-              <li key={p.offer_id}>
-                <button type="button" aria-current={p.offer_id === selected} onClick={() => select(p.offer_id)}>
-                  <span className={p.passes ? "status pass" : "status fail"}>
-                    {p.passes ? "Encaja" : "No encaja"}
-                    {p.auction ? " · subasta" : ""}
-                  </span>
-                  <span className="map-item-title">{title(p)}</span>
-                  <span className="map-item-figures">
-                    {cash && (
-                      <strong>
-                        <Amount text={formatValue(cash.value, cash.unit)} />
-                      </strong>
-                    )}
-                    {price && <span>{formatValue(price.value, price.unit)}</span>}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-      </aside>
 
       <div className="map-stage">
         <div ref={box} className="map-canvas" role="region" aria-label="Mapa de las ofertas" />
@@ -444,13 +480,138 @@ export function OfferMap() {
             {locateError}
           </p>
         )}
-        {chosen && <OfferSheet offer={chosen} onClose={() => setSelected(null)} />}
+        {chosen && <OfferSheet offer={chosen} offMap={!inside(coverage, chosen)} onClose={() => setSelected(null)} />}
       </div>
+
+      <aside className={`map-panel${places.length === 0 ? " is-short" : ""}`} aria-label="Ofertas de la búsqueda">
+        <header className="map-panel-head">
+          <h2 className="map-panel-title">
+            {action ? action.title : result ? (places.length === 1 ? "1 oferta" : `${places.length} ofertas`) : "Ofertas"}
+          </h2>
+          {result && places.length > 0 && (
+            <p className="map-panel-sub">
+              {passing === 1 ? "1 encaja" : `${passing} encajan`} con el plan
+              {auctions > 0 && ` · ${auctions === 1 ? "1 subasta" : `${auctions} subastas`}`}
+            </p>
+          )}
+        </header>
+
+        {result && total > 0 && (
+          <div className="map-filters" role="group" aria-label="Filtros">
+            <button type="button" className="chip" aria-pressed={onlyPass} onClick={() => setOnlyPass((v) => !v)}>
+              Solo las que encajan
+            </button>
+            <button type="button" className="chip" aria-pressed={onlyAuction} onClick={() => setOnlyAuction((v) => !v)}>
+              Subastas
+            </button>
+          </div>
+        )}
+
+        <div className="map-panel-body">
+          {!result && !failure && <Skeleton label="Calculando el plan en cada oferta…" shape="text" />}
+
+          {failure && action && (
+            <div className="map-empty">
+              <p>{action.text}</p>
+              {action.href && (
+                <a className="button-link primary" href={action.href}>
+                  {action.cta}
+                </a>
+              )}
+            </div>
+          )}
+
+          {result && places.length === 0 && (
+            <div className="map-empty">
+              <h3>{filtered ? "Ninguna con estos filtros" : "Aún no hay ofertas"}</h3>
+              <p>
+                {filtered
+                  ? "Quita un filtro para ver el resto."
+                  : "Pega un anuncio o espera a la próxima lectura del BOE y del Portal de Subastas."}
+              </p>
+              {filtered ? (
+                <button
+                  type="button"
+                  className="button-link"
+                  onClick={() => {
+                    setOnlyPass(false);
+                    setOnlyAuction(false);
+                  }}
+                >
+                  Quitar los filtros
+                </button>
+              ) : (
+                <a className="button-link primary" href="/ofertas">
+                  Añadir un anuncio
+                </a>
+              )}
+            </div>
+          )}
+
+          <ol className="map-items">
+            {places.map((p) => {
+              const cash = fig(p, "cashflow.monthly_after_tax");
+              const price = fig(p, "offer.price");
+              const off = !inside(coverage, p);
+              return (
+                <li key={p.offer_id}>
+                  <button type="button" aria-current={p.offer_id === selected} onClick={() => select(p.offer_id)}>
+                    <span className="map-item-top">
+                      <span className={p.passes ? "status pass" : "status fail"}>{p.passes ? "Encaja" : "No encaja"}</span>
+                      {p.auction && <span className="map-tag">Subasta</span>}
+                      {off && <span className="map-tag quiet">Fuera del mapa</span>}
+                    </span>
+                    <span className="map-item-title">{title(p)}</span>
+                    <span className="map-item-figures">
+                      {cash && (
+                        <strong>
+                          <Amount text={formatValue(cash.value, cash.unit)} />
+                        </strong>
+                      )}
+                      {price && <span>{formatValue(price.value, price.unit)}</span>}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+
+        <footer className="map-panel-foot">
+          {places.length > 0 && (
+            <span className="map-legend" aria-hidden="true">
+              <span className="status pass">Encaja</span>
+              <span className="status fail">No encaja</span>
+            </span>
+          )}
+          {(unlocated > 0 || outside > 0) && (
+            <span className="hint">
+              {[unlocated > 0 && `${unlocated} sin ubicar`, outside > 0 && `${outside} fuera del mapa`]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+          )}
+          <a className="map-add" href="/ofertas">
+            <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+              <path d="M10 4v12M4 10h12" />
+            </svg>
+            Añadir un anuncio
+          </a>
+        </footer>
+      </aside>
     </div>
   );
 }
 
-function OfferSheet({ offer, onClose }: { offer: Place; onClose: () => void }) {
+/** Margen al encuadrar: en escritorio el panel tapa la izquierda del mapa. */
+function framePadding() {
+  const panel = document.querySelector(".map-panel");
+  const wide = matchMedia("(min-width: 921px)").matches;
+  const left = wide && panel ? panel.getBoundingClientRect().right - (panel.parentElement?.getBoundingClientRect().left ?? 0) + 32 : 48;
+  return { top: 72, right: 72, bottom: 72, left };
+}
+
+function OfferSheet({ offer, offMap, onClose }: { offer: Place; offMap: boolean; onClose: () => void }) {
   const close = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     close.current?.focus({ preventScroll: true });
@@ -494,7 +655,10 @@ function OfferSheet({ offer, onClose }: { offer: Place; onClose: () => void }) {
       </div>
       {offer.reasons.length > 0 && <p className="verdict-reason">{offer.reasons.join(". ")}.</p>}
       {offer.location_source && (
-        <p className="hint">Ubicación: {SOURCE[offer.location_source] ?? offer.location_source}.</p>
+        <p className="hint">
+          Ubicación: {SOURCE[offer.location_source] ?? offer.location_source}.
+          {offMap && " Queda fuera de la zona que cubre el mapa."}
+        </p>
       )}
       <div className="verdict-actions">
         <a className="button-link primary" href={`/plan/${offer.offer_id}`}>
