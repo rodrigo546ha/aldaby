@@ -5,7 +5,9 @@ import { VisitCounter } from "../components/Analytics";
 import { LegalFooter } from "../components/Legal";
 import { AppNav } from "../components/Nav";
 import { THEME_SCRIPT } from "../components/Theme";
+import "./tokens.css";
 import "./globals.css";
+import "./components.css";
 
 // Bricolage Grotesque es la letra del logotipo (docs/marca/): titulares y cifras grandes.
 // Geist lleva la interfaz y los datos, con cifras tabulares. next/font las sirve desde la propia web.

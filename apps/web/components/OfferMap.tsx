@@ -6,18 +6,19 @@ import { layers, namedFlavor, type Flavor } from "@protomaps/basemaps";
 import * as maplibregl from "maplibre-gl";
 import type { GeoJSONSource, MapLayerMouseEvent, Map as MapLibre, StyleSpecification } from "maplibre-gl";
 import { PMTiles, Protocol } from "pmtiles";
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 import type { components } from "../lib/api-types";
-import { formatShortDate, formatValue, type FigureOut } from "../lib/format";
+import { formatValue, type FigureOut } from "../lib/format";
+import { CHANNEL, channelStyle, ending, formatArea, type Channel, type Group } from "../lib/offers";
 import { Amount } from "./FigureView";
+import { Icon } from "./Icon";
 import { Skeleton } from "./Motion";
 import { OfferPhoto } from "./OfferPhoto";
 
 type SearchOut = components["schemas"]["SearchOut"];
 type ScoredOut = components["schemas"]["ScoredOut"];
 type CatalogOut = components["schemas"]["CatalogOut"];
-type Channel = CatalogOut["channel"];
 
 // Ofertas (ADR-0051 y ADR-0054): una sola lista de inmuebles, venga del canal que venga, en el mapa
 // y en la lista. El catálogo se ve siempre; con el perfil confirmado, cada oferta lleva además el
@@ -26,15 +27,6 @@ type Channel = CatalogOut["channel"];
 const TILES = "/mapa/teselas.pmtiles";
 const MADRID: [number, number] = [-3.7, 40.42];
 
-type Group = "todas" | "subastas" | "directas" | "agencias" | "tuyos";
-const CHANNEL: Record<Channel, { label: string; group: Group }> = {
-  subasta_judicial: { label: "Subasta judicial", group: "subastas" },
-  subasta_administrativa: { label: "Subasta administrativa", group: "subastas" },
-  subasta_notarial: { label: "Subasta notarial", group: "subastas" },
-  venta_directa: { label: "Venta directa", group: "directas" },
-  agencia: { label: "Agencia", group: "agencias" },
-  tu_anuncio: { label: "Tu anuncio", group: "tuyos" },
-};
 const GROUPS: { id: Group; label: string }[] = [
   { id: "todas", label: "Todas" },
   { id: "subastas", label: "Subastas" },
@@ -158,7 +150,6 @@ function baseStyle(t: Theme): StyleSpecification {
 
 const fig = (s: ScoredOut | null, key: string): FigureOut | undefined => s?.figures.find((f) => f.key === key);
 const compact = new Intl.NumberFormat("es-ES", { notation: "compact", maximumFractionDigits: 1 });
-const area = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
 
 /** La pastilla del punto: el cash flow del usuario si hay plan; si no, el precio del anuncio. */
 function pill(o: Offer): string {
@@ -285,7 +276,30 @@ function compare(a: Offer, b: Offer): number {
   return 0;
 }
 
-const channelStyle = (c: Channel) => ({ "--ch": `var(--ch-${c.replace("_", "-")})` }) as CSSProperties;
+type Sort = "recomendadas" | "acaban" | "precio_asc" | "precio_desc";
+const SORTS: { id: Sort; label: string }[] = [
+  { id: "recomendadas", label: "Recomendadas" },
+  { id: "acaban", label: "Acaban antes" },
+  { id: "precio_asc", label: "Más baratas" },
+  { id: "precio_desc", label: "Más caras" },
+];
+
+/** Sin tildes ni mayúsculas, para buscar «alcala» y encontrar «Alcalá». */
+const fold = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+function sortBy(sort: Sort): (a: Offer, b: Offer) => number {
+  const price = (o: Offer) => (o.price ? Number(o.price) : null);
+  if (sort === "acaban") return (a, b) => (a.ends_on ?? "9999").localeCompare(b.ends_on ?? "9999") || compare(a, b);
+  if (sort === "precio_asc" || sort === "precio_desc") {
+    const sign = sort === "precio_asc" ? 1 : -1;
+    return (a, b) => {
+      const [x, y] = [price(a), price(b)];
+      if (x === null || y === null) return x === y ? compare(a, b) : x === null ? 1 : -1; // sin precio, al final
+      return (x - y) * sign || compare(a, b);
+    };
+  }
+  return compare;
+}
 
 export function OfferMap() {
   const box = useRef<HTMLDivElement>(null);
@@ -296,6 +310,9 @@ export function OfferMap() {
   const [group, setGroup] = useState<Group>("todas");
   const [typeGroup, setTypeGroup] = useState<TypeGroup>("todos");
   const [onlyPass, setOnlyPass] = useState(false);
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<Sort>("recomendadas");
+  const deferredQuery = useDeferredValue(query);
   const [selected, setSelected] = useState<string | null>(null);
   const [view, setView] = useState<"mapa" | "lista">("mapa");
   const [here, setHere] = useState<[number, number] | null>(null);
@@ -342,17 +359,29 @@ export function OfferMap() {
   }, [catalog, planState]);
 
   const withPlan = planState.status === "ok";
+  // La búsqueda por texto mira el título, la dirección y el lugar (municipio y provincia)
+  const matching = useMemo(() => {
+    const words = fold(deferredQuery).split(/\s+/).filter(Boolean);
+    if (words.length === 0) return offers;
+    return offers.filter((o) => {
+      const hay = fold([o.title, o.address, o.place].filter(Boolean).join(" "));
+      return words.every((w) => hay.includes(w));
+    });
+  }, [offers, deferredQuery]);
   const byType = useMemo(() => {
     const t = TYPES.find((x) => x.id === typeGroup);
-    return offers.filter((o) => !t || t.types.length === 0 || t.types.includes(o.property_type ?? ""));
-  }, [offers, typeGroup]);
+    return matching.filter((o) => !t || t.types.length === 0 || t.types.includes(o.property_type ?? ""));
+  }, [matching, typeGroup]);
   const shown = useMemo(
-    () => byType.filter((o) => (group === "todas" || CHANNEL[o.channel].group === group) && (!onlyPass || o.plan?.passes)),
-    [byType, group, onlyPass],
+    () =>
+      byType
+        .filter((o) => (group === "todas" || CHANNEL[o.channel].group === group) && (!onlyPass || o.plan?.passes))
+        .sort(sortBy(sort)),
+    [byType, group, onlyPass, sort],
   );
   const groupCount = (g: Group) => byType.filter((o) => g === "todas" || CHANNEL[o.channel].group === g).length;
   const typeCount = (t: (typeof TYPES)[number]) =>
-    offers.filter((o) => t.types.length === 0 || t.types.includes(o.property_type ?? "")).length;
+    matching.filter((o) => t.types.length === 0 || t.types.includes(o.property_type ?? "")).length;
 
   // En el mapa, solo lo ubicado y dentro de las teselas; lo demás sigue en la lista
   const onMap = useMemo(() => shown.filter(located).filter((p) => inside(coverage, p)), [shown, coverage]);
@@ -527,7 +556,7 @@ export function OfferMap() {
   const auctions = shown.filter((p) => p.auction).length;
   const unlocated = shown.filter((o) => !located(o)).length;
   const outside = shown.filter(located).length - onMap.length;
-  const filtered = group !== "todas" || typeGroup !== "todos" || onlyPass;
+  const filtered = group !== "todas" || typeGroup !== "todos" || onlyPass || query.trim() !== "";
   const hint = planHint(planState);
 
   return (
@@ -581,7 +610,7 @@ export function OfferMap() {
 
       <aside className="map-panel" aria-label="Ofertas">
         <header className="map-panel-head">
-          <h2 className="map-panel-title">
+          <h2 className="map-panel-title" aria-live="polite">
             {catalog ? (shown.length === 1 ? "1 oferta" : `${shown.length} ofertas`) : "Ofertas"}
           </h2>
           {catalog && shown.length > 0 && (
@@ -595,6 +624,32 @@ export function OfferMap() {
             </p>
           )}
         </header>
+
+        {catalog && offers.length > 0 && (
+          <div className="panel-tools">
+            <label className="search-field">
+              <span className="visually-hidden">Buscar por municipio, calle o provincia</span>
+              <Icon name="search" small />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar municipio o calle"
+                autoComplete="off"
+              />
+            </label>
+            <label>
+              <span className="visually-hidden">Ordenar</span>
+              <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
+                {SORTS.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
 
         {catalog && offers.length > 0 && (
           <div className="map-filters">
@@ -659,6 +714,7 @@ export function OfferMap() {
                     setGroup("todas");
                     setTypeGroup("todos");
                     setOnlyPass(false);
+                    setQuery("");
                   }}
                 >
                   Quitar los filtros
@@ -706,16 +762,6 @@ function framePadding() {
   return { top: 72, right: 72, bottom: 72, left };
 }
 
-function priceLabel(o: Offer): string {
-  return o.price_kind === "valor_subasta" ? "valor de subasta" : "precio";
-}
-
-/** Cuándo acaba: la subasta del Portal o el plazo de la venta directa. */
-function ending(o: Offer): string | null {
-  if (!o.ends_on) return o.auction_state === "Próxima apertura" ? "Abre pronto" : null;
-  return `${o.channel === "venta_directa" ? "Hasta el" : "Termina el"} ${formatShortDate(o.ends_on)}`;
-}
-
 function Listing({ offer: o, current, onSelect }: { offer: Offer; current: boolean; onSelect: (id: string) => void }) {
   const cash = fig(o.plan, "cashflow.monthly_after_tax");
   const when = ending(o);
@@ -739,12 +785,12 @@ function Listing({ offer: o, current, onSelect }: { offer: Offer; current: boole
           {o.price ? (
             <>
               <strong>{formatValue(o.price, "EUR")}</strong>
-              <small>{priceLabel(o)}</small>
+              <small>{o.price_kind === "valor_subasta" ? "valor de subasta" : "precio"}</small>
             </>
           ) : (
             <small>Sin precio en el anuncio</small>
           )}
-          {o.built_area_m2 && <small className="listing-area">{area.format(Number(o.built_area_m2))} m²</small>}
+          {o.built_area_m2 && <small className="listing-area">{formatArea(o.built_area_m2)}</small>}
         </span>
         {o.plan ? (
           <span className={`listing-fit ${o.plan.passes ? "pass" : "fail"}`}>
@@ -785,7 +831,7 @@ function OfferSheet({
   const facts: [string, string][] = [];
   if (o.price) facts.push([o.price_kind === "valor_subasta" ? "Valor de subasta" : "Precio", formatValue(o.price, "EUR")]);
   if (o.deposit) facts.push(["Depósito para pujar", formatValue(o.deposit, "EUR")]);
-  if (o.built_area_m2) facts.push(["Superficie construida", `${area.format(Number(o.built_area_m2))} m²`]);
+  if (o.built_area_m2) facts.push(["Superficie construida", formatArea(o.built_area_m2)]);
   const when = ending(o);
   if (when) facts.push([o.channel === "venta_directa" ? "Plazo" : "Subasta", when]);
   else if (o.auction_state) facts.push(["Subasta", o.auction_state]);
@@ -863,13 +909,16 @@ function OfferSheet({
         {note && <p className="hint">{note}</p>}
 
         <div className="verdict-actions">
+          <a className="button-link primary" href={`/oferta/${o.offer_id}`}>
+            Ver la ficha
+          </a>
           {o.plan && (
-            <a className="button-link primary" href={`/plan/${o.offer_id}`}>
+            <a className="button-link" href={`/plan/${o.offer_id}`}>
               Ver mi plan
             </a>
           )}
           {o.status === "por_confirmar" && (
-            <a className="button-link primary" href={`/ofertas?id=${o.offer_id}`}>
+            <a className="button-link" href={`/ofertas?id=${o.offer_id}`}>
               Confirmar los datos
             </a>
           )}

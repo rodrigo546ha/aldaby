@@ -879,6 +879,9 @@ class CatalogRow:
     corrected: bool = False  # el BOE publicó después una corrección del anuncio
     approx_lon: float | None = None  # centro del municipio de una oferta sin ubicar (ADR-0054)
     approx_lat: float | None = None
+    description: str | None = None
+    portal_search: dict[str, Any] | None = None  # del Portal: juzgado, procedimiento, estado
+    catastro: dict[str, Any] | None = None  # inmuebles del Catastro: uso, superficie, año
 
 
 _CATALOG = """
@@ -891,7 +894,10 @@ _CATALOG = """
            o.extraction_status, coalesce(o.published_on, a.published_on), a.url,
            a.raw->'ficha'->>'Fecha límite presentación solicitudes', s.name,
            a.id IS NOT NULL AND EXISTS (SELECT 1 FROM offers c WHERE c.corrects_id = a.id),
-           ST_X(o.approx_location::geometry), ST_Y(o.approx_location::geometry)
+           ST_X(o.approx_location::geometry), ST_Y(o.approx_location::geometry),
+           o.description,
+           CASE WHEN jsonb_typeof(o.raw->'search') = 'object' THEN o.raw->'search' END,
+           CASE WHEN jsonb_typeof(o.raw->'catastro') = 'object' THEN o.raw->'catastro' END
     FROM offers o
     LEFT JOIN properties p ON p.id = o.property_id
     LEFT JOIN offers a ON a.id = o.parent_id

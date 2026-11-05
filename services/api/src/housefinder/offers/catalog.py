@@ -37,6 +37,7 @@ SOURCE_NAME = {
 }
 PORTAL_ORIGIN = re.compile(r"^Subasta (judicial|administrativa|notarial)\b")
 DAY = re.compile(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b")
+TIME = re.compile(r"\b(\d{1,2}:\d{2})(?::\d{2})?\b")
 LOWER = {"de", "del", "la", "las", "los", "el", "y", "en", "a", "d'", "l'"}
 PARENS = re.compile(r"\s*\([^)]*\)\s*")
 NOT_STATED = "no consta"
@@ -70,6 +71,16 @@ class CatalogItem:
     original_title: str | None  # el título largo de la fuente, para el detalle
     corrected: bool = False  # hay una corrección posterior del anuncio en el BOE
     approximate: bool = False  # el punto es el centro del municipio, no el del inmueble
+    # Lo que la ficha cuenta además (Portal de Subastas y Catastro), si lo hay
+    authority: str | None = None  # juzgado u órgano que subasta
+    procedure: str | None = None  # número de procedimiento o expediente
+    ends_time: str | None = None  # hora de cierre: «18:00»
+    visitable: str | None = None  # si se puede visitar, solo si consta
+    cadastral_ref: str | None = None
+    built_year: int | None = None
+    use: str | None = None  # uso en el Catastro: «Residencial»
+    floor: str | None = None
+    description: str | None = None
 
     @property
     def exact(self) -> bool:
@@ -224,7 +235,42 @@ def catalog_item(row: CatalogRow, provinces: Provinces) -> CatalogItem:
         source_url=row.url or row.parent_url,
         original_title=row.title,
         corrected=row.corrected,
+        **_details(row, extracted, portal, ref),
     )
+
+
+def _details(row: CatalogRow, extracted: dict[str, Any], portal: dict[str, Any],
+             ref: str) -> dict[str, Any]:
+    """Lo que solo enseña la ficha: quién subasta, el expediente y el inmueble en el Catastro."""
+    search = row.portal_search or {}
+    units = row.catastro or {}
+    unit: dict[str, Any] = {}
+    if isinstance(units.get(ref), dict):  # el inmueble de la referencia del anuncio
+        unit = units[ref]
+    elif units and isinstance(next(iter(units.values())), dict):
+        unit = next(iter(units.values()))
+    elif isinstance(extracted.get("catastro"), dict):
+        unit = extracted["catastro"]
+    year = unit.get("built_year")
+    visitable = portal.get("visitable") if isinstance(portal.get("visitable"), str) else None
+    concludes = portal.get("concludes") if isinstance(portal.get("concludes"), str) else ""
+    hour = TIME.search(concludes)
+    return {
+        "authority": _clean(search.get("court")),
+        "procedure": _clean(search.get("procedure")),
+        "ends_time": hour.group(1) if hour else None,
+        "visitable": _possession(visitable),
+        "cadastral_ref": ref or None,
+        "built_year": year if isinstance(year, int) and 1500 < year < 2100 else None,
+        "use": _clean(unit.get("use")),
+        "floor": _verified(extracted, "floor"),
+        "description": _clean(" · ".join(dict.fromkeys(  # el Portal repite título y descripción
+            line.strip() for line in (row.description or "").splitlines() if line.strip()))),
+    }
+
+
+def _clean(value: Any) -> str | None:
+    return " ".join(value.split()) if isinstance(value, str) and value.strip() else None
 
 
 def parcel_ref(row: CatalogRow) -> str | None:

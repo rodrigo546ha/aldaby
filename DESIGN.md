@@ -1,366 +1,310 @@
 ---
 name: Aldaby
+version: 2
 description: Plan de inversión inmobiliaria personal en el que cada cifra dice cómo se calcula
+source: apps/web/app/tokens.css
 colors:
-  abyss-canvas: "#0b2c23"
-  abyss-sunk: "#071f18"
-  portal-raised: "#0f3b2e"
-  portal-raised-2: "#164838"
-  line: "rgba(234, 246, 240, 0.1)"
-  line-strong: "rgba(234, 246, 240, 0.2)"
-  strong-white: "#ffffff"
-  mist: "#eaf6f0"
-  sage-text: "#bccdc5"
-  sage-muted: "#8fa79c"
-  stat-glow: "#f5d68e"
-  brass: "#e3a92b"
-  mark-toasted: "#9a6a0a"
-  warn-bg: "rgba(227, 169, 43, 0.12)"
-  warn-text: "#f2cf83"
-  error: "#ff9f8c"
-  pass: "#8eddb8"
-  cta-mint: "#d4f5e6"
-  cta-sand: "#f6ebd0"
-  cta-brass: "#f2c66b"
-  ring-far: "#6fc29c"
-  sand-canvas: "#f6ebd0"
-  sand-sunk: "#ecdcb6"
-  paper-raised: "#fffaee"
-  sand-raised-2: "#f1e3c4"
-  ink-line: "rgba(15, 59, 46, 0.13)"
-  ink-line-strong: "rgba(15, 59, 46, 0.26)"
-  ink-strong: "#0f3b2e"
-  ink-mist: "#173f33"
-  ink-text: "#2b4a40"
-  ink-muted: "#4f6359"
-  stat-ink: "#7f5300"
-  warn-bg-light: "rgba(227, 169, 43, 0.2)"
-  warn-ink: "#5f3d00"
-  error-ink: "#a8321f"
-  pass-ink: "#1f7a55"
-  ring-near-light: "#c8901a"
+  dark:
+    bg: "#0a2920"
+    bg-sunk: "#071f18"
+    surface: "#0f3f31"
+    surface-2: "#174f3e"
+    surface-hover: "#1d5b48"
+    text-strong: "#ffffff"
+    text-emphasis: "#eef4f1"
+    text: "#dbe6e1"
+    text-muted: "#b4c8bf"
+    border: "rgba(234, 246, 240, 0.12)"
+    border-strong: "rgba(234, 246, 240, 0.24)"
+    border-control: "#6f9c8b"
+    brass: "#e3a92b"
+    accent-text: "#f5d68e"
+    focus: "#e3a92b"
+    success: "#8eddb8"
+    warning: "#f2cf83"
+    danger: "#ffab9b"
+    info: "#a8cdff"
+  light:
+    bg: "#f3ead6"
+    bg-sunk: "#ebdfc2"
+    surface: "#fffdf8"
+    surface-2: "#f7f0df"
+    surface-hover: "#efe4c9"
+    text-strong: "#0f3b2e"
+    text-emphasis: "#173f33"
+    text: "#263f37"
+    text-muted: "#4a5b53"
+    border-control: "#8a7c58"
+    accent-mark: "#9a6a0a"
+    accent-text: "#7a4f00"
+    focus: "#0f3b2e"
+    success: "#1a6e4c"
+    warning: "#7a4f00"
+    danger: "#a3301c"
+    info: "#1d58a3"
+  channel:
+    subasta-judicial: { dark: "#f2c66b", light: "#8a5a00" }
+    subasta-administrativa: { dark: "#8fbcf5", light: "#2457a3" }
+    subasta-notarial: { dark: "#c9a8f5", light: "#6b44b0" }
+    venta-directa: { dark: "#6fd6c4", light: "#0f6f62" }
+    agencia: { dark: "#f5a3c0", light: "#a3365f" }
+    tu-anuncio: { dark: "#eaf6f0", light: "#0f3b2e" }
 typography:
-  display:
-    fontFamily: "Bricolage Grotesque, Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "clamp(3rem, 7.4vw, 6rem)"
-    fontWeight: 500
-    lineHeight: 0.96
-    letterSpacing: "-0.04em"
-  headline:
-    fontFamily: "Bricolage Grotesque, Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "2.75rem"
-    fontWeight: 500
-    lineHeight: 1.02
-    letterSpacing: "-0.035em"
-  stat:
-    fontFamily: "Bricolage Grotesque, Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "2.5rem"
-    fontWeight: 500
-    lineHeight: 1
-    letterSpacing: "-0.04em"
-    fontFeature: "\"tnum\""
-  title:
-    fontFamily: "Bricolage Grotesque, Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.5rem"
-    fontWeight: 500
-    lineHeight: 1.15
-    letterSpacing: "-0.02em"
-  figure:
-    fontFamily: "Bricolage Grotesque, Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.375rem"
-    fontWeight: 500
-    lineHeight: 1.1
-    letterSpacing: "-0.02em"
-    fontFeature: "\"tnum\""
-  body:
-    fontFamily: "Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
-    fontSize: "15px"
-    fontWeight: 400
-    lineHeight: 1.5
-    fontFeature: "\"ss01\", \"cv11\""
-  lead:
-    fontFamily: "Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
-    fontSize: "1.0625rem"
-    fontWeight: 400
-    lineHeight: 1.55
-  label:
-    fontFamily: "Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
-    fontSize: "12px"
-    fontWeight: 500
-    lineHeight: 1.35
-    letterSpacing: "0.12em"
-  button:
-    fontFamily: "Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
-    fontSize: "13px"
-    fontWeight: 500
-    letterSpacing: "0.08em"
-  hint:
-    fontFamily: "Geist, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
-    fontSize: "12.5px"
-    fontWeight: 400
-    lineHeight: 1.45
-rounded:
-  badge: "4px"
-  control: "6px"
-  notice: "12px"
-  panel: "16px"
-spacing:
-  field: "6px"
-  sm: "12px"
-  md: "16px"
-  form: "20px"
-  gutter: "24px"
-  panel: "28px"
-  column: "40px"
-  intro-top: "56px"
-  section: "72px"
-  page-end: "112px"
-  page: "1320px"
-components:
-  button-primary:
-    textColor: "{colors.abyss-canvas}"
-    typography: "{typography.button}"
-    rounded: "{rounded.control}"
-    padding: "0 22px"
-    height: "44px"
-  button-primary-light:
-    backgroundColor: "{colors.ink-strong}"
-    textColor: "{colors.strong-white}"
-    typography: "{typography.button}"
-    rounded: "{rounded.control}"
-    padding: "0 22px"
-    height: "44px"
-  button-secondary:
-    textColor: "{colors.strong-white}"
-    typography: "{typography.button}"
-    rounded: "{rounded.control}"
-    padding: "0 22px"
-    height: "44px"
-  button-secondary-hover:
-    backgroundColor: "{colors.portal-raised-2}"
-  hero-cta:
-    textColor: "{colors.abyss-canvas}"
-    typography: "{typography.button}"
-    rounded: "{rounded.control}"
-    padding: "0 28px"
-    height: "56px"
-  input:
-    backgroundColor: "{colors.abyss-sunk}"
-    textColor: "{colors.strong-white}"
-    typography: "{typography.body}"
-    rounded: "{rounded.control}"
-    padding: "0 12px"
-    height: "42px"
-  panel:
-    backgroundColor: "{colors.portal-raised}"
-    rounded: "{rounded.panel}"
-    padding: "28px"
-  well:
-    backgroundColor: "{colors.abyss-sunk}"
-    rounded: "{rounded.panel}"
-    padding: "28px"
-  warnings:
-    backgroundColor: "{colors.warn-bg}"
-    textColor: "{colors.warn-text}"
-    rounded: "{rounded.notice}"
-    padding: "16px 20px 16px 38px"
-  badge-provisional:
-    textColor: "{colors.warn-text}"
-    typography: "{typography.label}"
-    rounded: "{rounded.badge}"
-    padding: "3px 6px"
-  nav-link:
-    textColor: "{colors.sage-muted}"
-    typography: "{typography.label}"
-    height: "44px"
-  nav-link-active:
-    textColor: "{colors.strong-white}"
-  headline-figure:
-    textColor: "{colors.stat-glow}"
-    typography: "{typography.stat}"
-    padding: "24px 24px 20px"
-  figure:
-    textColor: "{colors.strong-white}"
-    typography: "{typography.figure}"
-    padding: "16px 20px"
+  head: "Bricolage Grotesque 500, tracking negativo"
+  ui: "Geist 400/500/600, ss01 cv11, cifras tabulares en datos"
+  scale: { 2xs: 12px, xs: 13px, sm: 14px, md: 16px, lg: 18px, xl: 22px, 2xl: 28px, 3xl: 36px, 4xl: 48px }
+  leading: { tight: 1.15, body: 1.55 }
+spacing: [4, 8, 12, 16, 20, 24, 32, 40, 48, 64]
+rounded: { xs: 4px, sm: 8px, md: 12px, lg: 16px, pill: 999px }
+targets: { default: 44px, compact: 36px }
+motion: { dur-1: 120ms, dur-2: 220ms, dur-3: 360ms, ease: "cubic-bezier(0.16, 1, 0.3, 1)" }
 ---
 
-# Design System: Aldaby
+# Design System: Aldaby · v2 «Claridad»
 
-## Overview
+## Por qué hay una v2
 
-**Creative North Star: "El instrumento de profundidad"**
+La v1 («El instrumento de profundidad») apostaba por la atmósfera: un lienzo verde casi monocromo,
+capas que solo cambiaban de tono, latón racionado y rótulos en mayúsculas espaciadas de 11 px. El
+uso real, sobre todo con cientos de ofertas, enseñó que eso perjudica la lectura:
 
-Aldaby se lee como un instrumento bajo el agua: un lienzo verde muy oscuro en el que las superficies no flotan sobre sombras, sino que suben o bajan de tono. Lo que se escribe está hundido, lo que agrupa está elevado y lo que importa brilla en latón. El sistema parte del estilo Auros que eligió Rodrigo (lienzo verde abisal, capas sin sombra, etiquetas en mayúsculas espaciadas, cifras grandes destacadas) y lo lleva a la marca Aldaby: el verde portal es la capa elevada, el latón de la anilla sustituye al rosa fósforo y la arena es el lienzo del tema claro.
+| Medida (2026-11-05) | v1 | v2 |
+|---|---|---|
+| Contraste entre el lienzo y un panel | 1,20:1 (no se distinguen) | 1,31:1 y borde |
+| Contraste entre el panel y una tarjeta | 1,15:1 | 1,25:1 y borde de 3:1 |
+| Texto atenuado sobre una tarjeta | 4,23:1 (no pasa AA) | 5,37:1 |
+| Cuerpo de texto | 15 px | 16 px |
+| Texto más pequeño | 10 px en mayúsculas | 12 px solo en etiquetas; 13 px el resto |
+| Colores con significado | latón y verde | éxito, aviso, peligro, información y uno por canal |
 
-La densidad es de herramienta de trabajo, no de folleto: páginas de 1320 px, dos columnas (formulario a la izquierda, resultados a la derecha), cifras separadas por filetes finos en lugar de tarjetas. El color se raciona. Casi todo el texto es blanco, bruma o salvia; el latón solo marca las cifras de cabecera, el foco y la sección activa. El único degradado del sistema es el del botón principal. El tema oscuro es el predeterminado; el claro (arena con tinta verde portal) sigue al sistema o al interruptor y conserva todas las capas.
+La marca no cambia: verde portal, latón de la anilla, arena, Bricolage Grotesque y Geist. Cambia
+cómo se usan.
 
-La confianza es el propósito visual: cada cifra lleva al lado su «Cómo se calcula» plegado y, si depende de algo sin verificar, su sello PROVISIONAL. Nada de eso se esconde para que la pantalla quede más limpia.
+## Principios
 
-**Key Characteristics:**
-- Profundidad por color en tres capas (hundida, lienzo, elevada) y cero sombras de elevación.
-- Bricolage Grotesque 500 con tracking negativo para titulares y cifras; Geist para interfaz y datos tabulares.
-- Etiquetas en mayúsculas espaciadas 0,12 em que nombran cosas: navegación, leyendas, cabeceras de tabla, rótulos de cifra.
-- Latón racionado: cifras de cabecera, foco, sección activa, anilla.
-- Cifras en rejilla rayada con filetes, nunca en tarjetas iguales.
-- Un único degradado, el del botón principal.
+1. **Lo que decide, primero y grande.** En una oferta: qué es y dónde, cuánto cuesta, cuándo acaba
+   y si encaja contigo. Todo lo demás, debajo y más pequeño.
+2. **Legible antes que atmosférico.** Cuerpo de 16 px con interlínea de 1,55, líneas de 68
+   caracteres como mucho, frases normales en vez de mayúsculas espaciadas.
+3. **Las capas se ven.** Cada superficie se separa de la de debajo por tono y por borde. Lo que flota
+   sobre el mapa lleva además sombra.
+4. **El color significa algo y nunca va solo.** Un estado lleva su palabra o su icono. El canal
+   lleva su nombre. El latón es solo para tu cifra.
+5. **Accesible por defecto.** AA en todo el texto de los dos temas, foco visible, objetivos de 44 px,
+   movimiento reducido respetado, todo usable con teclado y con lector de pantalla.
+6. **La trazabilidad se pliega, no se pierde** (regla de oro 1). Cada cifra sigue siendo una
+   `Figure` con su fórmula y su fuente a un toque.
 
-## Colors
+## Tokens
 
-Verdes abisales casi monocromos con un solo metal cálido; en claro, arena con tinta verde.
+La fuente de verdad es `apps/web/app/tokens.css`. Los componentes solo usan variables. Los nombres
+de la v1 (`--canvas`, `--raised`, `--muted`…) siguen como alias de la v2 para el CSS que aún no se
+ha pasado, pero no se escriben en CSS nuevo.
 
-### Primary
-- **Latón de la anilla** (brass): el acento de marca. La anilla del logotipo en los dos temas, la selección de texto y, en oscuro, el foco visible.
-- **Marca** (`--mark`): el tono de las marcas que no son texto: subrayado de la sección activa y de la pestaña elegida, anillo hueco del estado «no encaja», marcador de la hoja de ruta, casillas y cursor. En oscuro es el latón; en claro, **Latón tostado de marca** (mark-toasted, `#9a6a0a`), que llega a 3,99:1 sobre arena (WCAG 1.4.11 pide 3:1).
-- **Brillo de cifra** (stat-glow): el latón aclarado para texto. Las cifras de cabecera a 40 px, las referencias a cifras en el texto del asesor y la confirmación de la lista de espera. En claro pasa a **Latón tostado** (stat-ink), que sí llega a AA sobre arena.
+### Superficies
 
-### Secondary
-- **Degradado de amanecer** (cta-mint → cta-sand → cta-brass, `linear-gradient(90deg, #d4f5e6 0%, #f6ebd0 48%, #f2c66b 100%)`): solo el relleno del botón principal y del botón de la portada en el tema oscuro, con texto en el verde del lienzo. En claro se aplana a verde portal macizo con texto blanco.
-- **Verde lejano** (ring-far) y latón de anilla (cta-brass como ring-near): los dos tonos de puntos de la anilla animada de la portada. En claro: ring-near-light y verde portal.
+| Token | Papel | Oscuro | Claro |
+|---|---|---|---|
+| `--bg` | lienzo de la página | `#0a2920` | `#f3ead6` arena |
+| `--bg-sunk` | hueco: campos, estado vacío, pie | `#071f18` | `#ebdfc2` |
+| `--surface` | panel | `#0f3f31` | `#fffdf8` papel |
+| `--surface-2` | tarjeta o bloque dentro de un panel | `#174f3e` | `#f7f0df` |
+| `--surface-hover` | bajo el puntero | `#1d5b48` | `#efe4c9` |
 
-### Neutral
-- **Abismo** (abyss-canvas): lienzo de página, barra de la aplicación y fondo de la barra fija de acciones del simulador. También el color de `theme-color` del navegador.
-- **Abismo hundido** (abyss-sunk): campos de formulario, estado vacío, panel del asesor, lista de espera, citas legales y pie. Es el hueco.
-- **Verde portal** (portal-raised): la capa elevada, paneles de formulario, tarjetas de oferta y cabecera de marca. Es el verde de marca.
-- **Verde portal alto** (portal-raised-2): hover de botón secundario y de filas de lista, burbuja de respuesta en la entrevista.
-- **Blanco** (strong-white): titulares, cifras normales, valor de los campos.
-- **Bruma** (mist): enlaces, texto destacado, etiquetas de campo, celdas de tabla.
-- **Salvia** (sage-text): texto corrido.
-- **Salvia apagada** (sage-muted): pistas, rótulos de cifra, navegación inactiva, cabeceras de tabla.
-- **Filetes** (line, line-strong): separadores de 1 px; el fuerte para bordes de controles y para enmarcar la fila de cifras de cabecera.
-- **Estado**: aviso (warn-bg con warn-text), error (error) y «encaja» (pass). En claro cada uno tiene su tinta oscura (warn-ink, error-ink, pass-ink).
-- **Tema claro**: arena (sand-canvas) de lienzo, arena hundida (sand-sunk), papel (paper-raised) para la capa elevada, arena alta (sand-raised-2), y tintas ink-strong, ink-mist, ink-text, ink-muted.
+**Regla de las capas.** Una superficie siempre está sobre la de debajo, nunca sobre una igual. Si
+dos cosas del mismo nivel tienen que separarse, las separa un borde (`--border`) o aire, no un tono
+inventado.
 
-### Named Rules
-**The Brass Ration Rule.** El latón es para la cifra que importa, el foco y la sección activa. Ni fondos, ni titulares, ni iconos decorativos. El texto en latón siempre es stat-glow (oscuro) o stat-ink (claro), nunca brass, que sobre arena o papel no llega a AA.
+### Texto
 
-**The One Gradient Rule.** El único degradado de la interfaz es el del botón principal en el tema oscuro. Ningún otro fondo, borde ni texto lleva degradado; en claro tampoco ese.
+`--text-strong` para titulares y cifras, `--text-emphasis` para enlaces, etiquetas de campo y
+valores de datos, `--text` para texto corrido y `--text-muted` para rótulos y pistas. Los cuatro
+pasan AA (4,5:1) sobre todas las superficies de su tema; el más justo es `--text-muted` sobre
+`--surface-2`, con 5,37:1 en oscuro y 6,35:1 en claro.
 
-**The Ring Is Brass Rule.** En el logotipo la anilla es siempre `var(--brass)` y la palabra y el soporte siguen a `currentColor`. No se intercambian, no se tiñen y no llevan sombra.
+### Bordes
 
-## Typography
+`--border` separa (1 px). `--border-strong` dibuja tarjetas. `--border-control` es el borde de lo
+que se toca (campos, chips, botón secundario) y llega a 3:1 (WCAG 1.4.11).
 
-**Display Font:** Bricolage Grotesque (eje de tamaño óptico, servida con next/font; reserva Geist)
-**Body Font:** Geist (reserva ui-sans-serif, system-ui, -apple-system, Segoe UI)
+### Marca y acento
 
-**Character:** Bricolage es la letra del logotipo: en peso 500 y con tracking negativo da escala sin gritar. Geist lleva todo lo que se lee de cerca, con las variantes ss01 y cv11 y cifras tabulares en campos, tablas y cifras.
+- `--brass` (`#e3a92b`): la anilla del logotipo y la selección de texto. No es color de texto.
+- `--accent-text`: **tu** cifra (cash flow, puja máxima, TIR). En oscuro latón claro, en claro latón
+  tostado. Nada más va en latón: ni titulares, ni fondos, ni iconos.
+- `--accent-mark`: marcas que no son texto (pestaña activa, anillo de «no encaja», casillas).
+- `--focus`: el anillo de foco, 2 px separado 2 px. Latón en oscuro, verde portal en claro.
 
-### Hierarchy
-- **Display** (500, clamp(3rem, 7.4vw, 6rem), 0,96, −0,04 em): solo el titular de la portada.
-- **Headline** (500, 2.75rem, 1,02, −0,035 em; 2.125rem por debajo de 640 px): el título de cada sección de la aplicación. Los titulares de bloque de la portada usan clamp(2rem, 4vw, 3rem) con la misma línea y tracking.
-- **Stat** (500, 2.5rem, 1, −0,04 em, en stat-glow): las cifras de cabecera del plan. La unidad («al mes», «años») va aparte a 0,5 em.
-- **Title** (500, 1.5rem, 1,15, −0,02 em): títulos de resultados y bloques. Escalones intermedios: 2rem en la cabecera del plan, 1.75rem en la de una oferta, 1.375rem en subtítulos y textos legales, 1.25rem en grupos (−0,015 em).
-- **Figure** (500, 1.375rem, 1,1, −0,02 em): cada cifra de la rejilla. Unidad a 0,62 em.
-- **Body** (400, 15px, 1,5): todo el texto de interfaz. Las entradillas usan **Lead** (1.0625rem, 1,55, máx. 62ch) y el resumen del asesor en Display a 1.375rem (60ch), sobre sus fichas: título en etiqueta, cifra en latón a 2rem y texto Body.
-- **Label** (500, 11–12px, 0,12 em, MAYÚSCULAS): navegación, leyendas de formulario, cabeceras de tabla, rótulos de cifra de cabecera, estados y enlaces del pie. El sello PROVISIONAL es la variante de 10px y peso 600.
-- **Button** (500, 13px, 0,08 em, MAYÚSCULAS): botones; el de portada a 0,1 em.
-- **Hint** (400, 12.5px, 1,45): pistas, errores, rangos y «Cómo se calcula».
+### Estados
 
-### Named Rules
-**The Medium Only Rule.** Todos los titulares y cifras grandes van en Bricolage 500. Ni negrita ni fina; la jerarquía la dan el tamaño y el tracking, que se cierra más cuanto más grande es la letra.
+| Token | Para | Oscuro | Claro |
+|---|---|---|---|
+| `--success` / `-bg` | encaja, verificado, libre | `#8eddb8` | `#1a6e4c` |
+| `--warning` / `-bg` | provisional, a comprobar, corrección | `#f2cf83` | `#7a4f00` |
+| `--danger` / `-bg` | error, riesgo alto, ocupado | `#ffab9b` | `#a3301c` |
+| `--info` / `-bg` | nota neutra, dato de la fuente | `#a8cdff` | `#1d58a3` |
 
-**The Number Never Breaks Rule.** Una cifra no se parte nunca entre líneas: el número va en una pieza sin cortes y su coletilla de unidad, más pequeña, puede bajar debajo.
+Siempre con texto: «Encaja», «Provisional», «Ocupado». El fondo `-bg` es un tinte para avisos y
+etiquetas; el texto encima es el color del estado.
 
-**The Tracked Label Rule.** Las mayúsculas espaciadas nombran un control o un dato (sección, leyenda, columna, cifra, estado). No se usan como antetítulo encima de un titular.
+### Cómo se vende cada oferta
 
-## Layout
+Un color por canal (`--ch-*`): subasta judicial (latón), administrativa (azul), notarial (violeta),
+venta directa (verde agua), agencia (rosa) y tu anuncio (neutro). Todos pasan 4,5:1 sobre
+`--surface-2`. Se usan en el filo de la tarjeta, en la etiqueta del canal y en el punto del mapa,
+y siempre con el nombre del canal al lado.
 
-Página centrada de 1320 px con márgenes laterales de 24 px (16 px por debajo de 640 px); `main` termina con 112 px de aire. Cada sección abre con una cabecera de 760 px de ancho máximo (56 px arriba, 40 abajo; 36/28 en móvil). Debajo, una rejilla de dos columnas con 40 px de separación: formulario de 300–440 px a la izquierda y resultados a la derecha; por debajo de 920 px pasa a una columna con 32 px. En escritorio el panel de detalle se queda fijo al bajar, y la barra de acciones del simulador también se queda fija abajo, sobre el lienzo con un filete arriba.
+### Tipografía
 
-Ritmo: 6 px entre etiqueta y campo, 16–20 px entre campos, 32 px entre bloques de resultados, 40 px entre secciones del plan. La portada usa bloques de 72 px separados por un filete y una lista de espera con 112 × 72 px de relleno. Textos largos a 46–72ch.
+| Token | Tamaño | Uso |
+|---|---|---|
+| `--text-4xl` | 48 | titular de la portada |
+| `--text-3xl` | 36 | título de página; cifras de cabecera |
+| `--text-2xl` | 28 | título de una ficha; cifras de cabecera en móvil |
+| `--text-xl` | 22 | título de bloque; cifra de rejilla |
+| `--text-lg` | 18 | entradilla; precio de tarjeta; leyenda de formulario |
+| `--text-md` | 16 | cuerpo, navegación, campos |
+| `--text-sm` | 14 | rótulos, pistas, metadatos, cabeceras de tabla |
+| `--text-xs` | 13 | notas al pie y créditos de foto. Es el mínimo |
+| `--text-2xs` | 12 | solo etiquetas en mayúsculas (canal, «provisional») |
 
-Puntos de corte observados: 560 px (tablas con desplazamiento, pares de datos en una columna), 640 px (márgenes y barra compacta), 920 px (dos columnas a una) y 960 px (la navegación se desplaza en horizontal con un desvanecido a la derecha).
+- Titulares y cifras en **Bricolage Grotesque 500** con tracking negativo (más cerrado cuanto más
+  grande). Ni negrita ni fina.
+- Interfaz en **Geist**: 400 el texto, 500 los rótulos, 600 los botones y estados. Cifras tabulares
+  en datos, tablas y precios.
+- **Mayúsculas solo en etiquetas** de 12 px (canal, «provisional»), con 0,06 em. Navegación,
+  botones, rótulos, cabeceras de tabla y estados van en frase normal.
+- **Una cifra no se parte** entre líneas; su unidad, más pequeña, puede bajar.
 
-## Elevation & Depth
+### Espacio, radios, sombra y tamaños
 
-Plano y por capas de color. No hay ninguna sombra de elevación: la profundidad la marcan tres tonos (abyss-sunk debajo, abyss-canvas como lienzo, portal-raised encima, y portal-raised-2 para el hover). Lo elevado agrupa (paneles de formulario, tarjetas de oferta); lo hundido recibe (campos, estados vacíos, el panel del asesor, la lista de espera, el pie). Un campo hundido dentro de un panel elevado es el patrón más característico.
-
-### Shadow Vocabulary
-- **Filete de rejilla** (`box-shadow: 1px 0 0 var(--line), 0 1px 0 var(--line)`): no es una sombra sino la forma de dibujar los filetes de 1 px entre celdas de la rejilla de cifras. Es el único `box-shadow` del sistema.
-
-### Named Rules
-**The Depth by Color Rule.** Si algo tiene que destacar, cambia de capa; no gana una sombra. En claro las capas se invierten en valor (papel arriba, arena hundida abajo) pero mantienen el mismo papel.
-
-**The Well Rule.** El campo es el hueco donde se escribe: fondo hundido con filete fuerte, también dentro de un panel elevado. En la lista de espera, que ya es hundida, el campo baja al lienzo.
-
-## Shapes
-
-Dos radios hacen casi todo: 16 px para paneles, tarjetas, estado vacío y lista de espera; 6 px para botones, campos, selector de tema y filas de lista. Los avisos usan 12 px y el sello PROVISIONAL 4 px. Los paneles no llevan borde; los controles sí (1 px line-strong). Los separadores son filetes de 1 px, y el indicador activo un trazo de 2 px. La burbuja de respuesta de la entrevista tiene la esquina inferior derecha a 6 px y las demás a 16. El chevrón de los plegables está dibujado con dos bordes de 1,5 px girados, sin icono.
-
-## Components
-
-### Buttons
-Sobrios, de instrumento: mayúsculas espaciadas y sin icono.
-- **Shape:** esquinas de control (6px), 44 px de alto, 22 px de relleno lateral.
-- **Primary:** degradado de amanecer con texto abyss-canvas en oscuro; verde portal macizo con texto blanco en claro. Uno por pantalla.
-- **Hover / Focus:** brillo `brightness(1.07)` en oscuro y `brightness(1.4)` en claro; al pulsar baja 1 px; foco con contorno de 2 px en latón (verde portal en claro) separado 2 px. Desactivado al 50 %.
-- **Secondary:** transparente, texto blanco, filete fuerte de 1 px; en hover sube a portal-raised-2.
-- **Link button:** texto bruma subrayado con filete fuerte, sin mayúsculas; en hover el subrayado toma el color del texto.
-- **Botón de portada:** el mismo degradado, 56 px de alto y 28 px de relleno.
-
-### Chips
-- **Sello PROVISIONAL:** 10px, peso 600, 0,12 em, borde de 1 px en `currentColor` con texto warn-text, radio de 4px. Siempre visible junto al rótulo de la cifra.
-- **Estado de fila:** marca en una celda fija con etiqueta en mayúsculas de 11px. Encaja: punto lleno de 9 px en pass. No encaja: anillo hueco de 1,5 px en `--mark`. Sin dato: solo la etiqueta en salvia apagada.
-
-### Cards / Containers
-- **Corner Style:** paneles a 16px.
-- **Background:** portal-raised para agrupar (formularios, tarjetas de la búsqueda inversa, marca); abyss-sunk para recibir (asesor, vacío, lista de espera).
-- **Shadow Strategy:** ninguna (ver Elevation & Depth).
-- **Border:** ninguno.
-- **Internal Padding:** 28 px; 24 px en los grupos de campos.
-
-### Inputs / Fields
-- **Style:** fondo hundido, filete fuerte de 1 px, radio de control (6px), 42 px de alto, texto blanco con cifras tabulares, etiqueta en bruma a 13,5 px encima y unidad en salvia apagada.
-- **Hover:** el filete pasa a salvia apagada.
-- **Focus:** contorno de 2 px en latón separado 1 px y el filete desaparece.
-- **Error:** filete en el color de error y mensaje a 12,5 px debajo.
-- **Select:** sin aspecto nativo, flecha propia de 12 × 8 en salvia apagada.
-
-### Navigation
-Cuatro destinos (U6): Mapa (con la lista detallada, tus anuncios y los anuncios públicos), Mi plan (perfil y simulador), Clientes y Ajustes (tu marca y agencias); los dos últimos solo para profesionales. Todas las direcciones de antes siguen valiendo. En escritorio, una fila de 64 px: el logotipo (26 px), los destinos en mayúsculas de 12 px a 0,12 em separados 32 px, y a la derecha el cliente activo (selector de 34 px con etiqueta en mayúsculas), la cuenta y el interruptor de tema. Debajo, con un filete, las secciones del destino en caja normal a 13,5 px; solo aparece si el destino tiene más de una. Activo en blanco con un trazo de 2 px en `--mark` pegado al filete. En móvil los destinos bajan a una barra inferior fija de 60 px (más la zona segura) con icono de trazo 1,6 y nombre de 11 px; el activo, en blanco con el icono en stat-glow y un trazo arriba. Las secciones se desplazan y se desvanecen por la derecha. El alto de la barra lo mide el componente (`--appbar-h`) para las páginas a pantalla completa.
-
-### Rejilla de cifras
-La firma de la aplicación. Cada cifra es rótulo, valor y rango opcional. Las cifras se ordenan en una rejilla automática (celdas de 220 px o más) separada por filetes. Suelta, una cifra lleva su «Cómo se calcula» plegado y el sello PROVISIONAL. Dentro de un bloque va en modo silencioso: sin fórmula propia y con una marca «provisional» de 10 px en warn-text.
-
-### Veredicto
-Lo primero de un plan o de un resultado del simulador. Panel elevado con radio de 16 y relleno de 32 (24 en móvil): estado de fila, título y tres cifras grandes en stat-glow a 48 px (40 en móvil y en la columna del simulador), con la unidad aparte a menor tamaño y el rótulo en mayúsculas debajo. Al aparecer cuentan desde cero en 600 ms una sola vez; el valor final es el texto exacto de la API. Debajo, el motivo en una frase en warn-text y las acciones con contorno.
-
-### Bloques plegables
-Cada tema del plan es un `details` separado por filetes. Cerrado enseña el título en Bricolage a 20 px y, alineadas a la derecha, sus cifras clave (rótulo en mayúsculas de 11 px y valor a 18 px). Abierto enseña la rejilla de cifras en modo silencioso y, una sola vez, «Fórmulas y fuentes» con el recuento de provisionales. La fila cambia a la capa elevada al pasar el ratón. Lo que no cambia la decisión (notas, ids de reglas) va al final, en «Notas y calidad de los datos».
-
-### Gráficas
-Componentes SVG y HTML propios (`components/Charts.tsx`, ADR-0048) dentro de cada bloque, encima de sus cifras. Todo valor visible es una `Figure` de la API como etiqueta directa; la web solo calcula longitudes. Cinco formas: barras apiladas a la misma escala (lo que cuesta y cómo se paga), barras a ambos lados del cero (estrés), pares de barras con su propia escala (fija frente a variable), franja de escenarios con el cero marcado (TIR) y línea de 240 px de alto (200 en móvil) con puntos llenos si cumplen el plan y huecos si no (puja). Con las series de la API (ADR-0050) hay dos más: la cascada del primer año, de la renta a lo que te queda, con cada barra flotando entre lo acumulado antes y después y el total en stat-glow; y líneas por años (capital pendiente, intereses y capital pagados, cash flow de cada año y precio en cada escenario), con el eje ajustado a los datos y la raya del cero solo si cae dentro. Tres tonos por tema (`--chart-1`, `--chart-2`, `--chart-3`) que se distinguen también por posición y etiqueta. Las barras crecen y la línea se descubre de izquierda a derecha al entrar en pantalla.
-
-### Mapa de ofertas
-Página `/mapa` (ADR-0051): lista a la izquierda (380 px) y mapa a la derecha; en móvil, uno u otro con «Ver la lista» / «Ver el mapa». El fondo son las capas de Protomaps con la paleta del tema: tierra en el lienzo, agua en la capa hundida, parques en la elevada y nombres en salvia con halo del lienzo, sin iconos. Cada oferta es un punto lleno (encaja, `--pass`) o hueco (no encaja, `--mark`) con su cash flow encima; varias juntas forman un grupo con su número. Al tocar una, la ficha sube desde abajo con el estado, el título en tres líneas como mucho, cash flow, precio y TIR en latón, el motivo y «Ver mi plan». Filtros como chips de 34 px con radio 6. «Centrar en mí» vuela a tu posición; la atribución «© OpenStreetMap» siempre está visible.
+- Rejilla de 4: `--sp-1` (4) … `--sp-16` (64). Dentro de un componente 8–16; entre componentes
+  24–32; entre secciones 40–64.
+- Radios: 4 etiquetas, 8 controles, 12 tarjetas, avisos y fotos, 16 paneles.
+- Sombra: **solo** `--shadow-overlay`, para lo que flota sobre el mapa o sobre otra capa (panel y
+  ficha del mapa, menús). Las tarjetas y los paneles en página no llevan sombra.
+- Objetivos de toque de 44 px (`--target`); 36 px (`--target-sm`) en chips y herramientas, con 8 px
+  entre ellos.
 
 ### Movimiento
-Tres duraciones: `--dur-1` 120 ms (respuesta al toque), `--dur-2` 220 ms (cambios de estado, plegables, tema) y `--dur-3` 360 ms (entrada de página y de resultados), todas con `--ease`. Cada página entra subiendo 8 px y apareciendo (`app/template.tsx`); la barra no se mueve. Los resultados llegan en orden con 50 ms entre uno y otro. Los plegables se abren por su altura (`::details-content` con `interpolate-size`). Las esperas largas enseñan un esqueleto con la forma del resultado y un brillo lento. Los botones se encogen al 98 % al pulsarlos. Con movimiento reducido no se anima nada.
 
-### Avisos
-Bloque con fondo de aviso, texto warn-text a 14 px y radio de 12. Un aviso que enumera cuatro o más reglas se pliega en una línea con su recuento.
+Tres duraciones con la misma curva: 120 ms respuesta al toque, 220 ms cambio de estado, 360 ms
+entrada de página o panel. Solo `transform` y `opacity`. Con movimiento reducido no se anima nada y
+el estado final se ve al instante.
 
-### Anilla de la aldaba
-Solo en la portada: la anilla del logotipo dibujada como un toro de puntos en un lienzo que gira despacio, con los tonos ring-near y ring-far del tema. Se queda quieta con movimiento reducido y no se dibuja fuera de pantalla. En móvil baja a 200 px y sube encima del titular.
+## Componentes
+
+### Botones
+- **Principal** (`button`, `.button-link.primary`): degradado de amanecer en oscuro y verde portal
+  macizo en claro, texto de 15 px en peso 600, en frase normal, 44 px de alto, radio 8. Uno por
+  pantalla.
+- **Secundario** (`button.secondary`, `.button-link`): transparente con `--border-control`.
+- **Enlace** (`.link-button`): texto subrayado.
+- Foco con anillo; pulsado al 98 %; desactivado al 50 % y sin puntero.
+
+### Etiqueta de canal (`.ch-badge`)
+12 px, mayúsculas a 0,06 em, peso 650, radio 4, texto `--ch` sobre su tinte al 16 %.
+
+### Estado (`.status.pass` / `.status.fail`)
+Punto lleno «Encaja» o anillo hueco «No encaja», con la palabra a 14 px en peso 600. Nunca solo el
+punto.
+
+### Chip de filtro (`.chip`)
+36 px, radio 8, borde `--border-control`, con el recuento a la derecha; elegido con `aria-pressed`,
+fondo `--surface-2` y borde en `--accent-mark`. Las filas de chips se desplazan en horizontal en el
+panel y nunca parten una etiqueta.
+
+### Tarjeta de oferta (`.listing`)
+Foto cuadrada de 108 px, filo de 3 px en el color del canal, etiqueta del canal y cuándo acaba;
+título (15 px, 600, dos líneas como mucho); dirección (una línea); precio en Bricolage a 19 px con
+qué es («valor de subasta») y la superficie; si hay plan, una fila con el estado y tu cash flow en
+latón. Fondo `--surface-2` con `--border`; bajo el puntero, `--surface-hover`; elegida, borde del
+color del canal.
+
+### Ficha resumida (`.offer-sheet`)
+Flota sobre el mapa con `--shadow-overlay`: foto, canal, título, dirección, datos clave en rejilla
+de dos, veredicto si hay plan y dos acciones: **«Ver la ficha»** (principal) y la fuente.
+
+### Datos clave (`.keyfacts`)
+Fila de tres o cuatro cifras grandes (rótulo de 14 px encima, valor en Bricolage a 28 px): precio o
+valor de subasta, depósito, superficie y cuándo acaba. Es lo primero de la ficha.
+
+### Lista de datos (`.facts`)
+`dl` en dos columnas (rótulo a 14 px en `--text-muted`, valor a 16 px en `--text-emphasis`), filas
+separadas por `--border`. En móvil, el rótulo encima del valor. Un dato que no consta no se escribe:
+no se rellena con «—» salvo en tablas.
+
+### Aviso (`.callout`)
+Bloque con radio 12, tinte del estado de fondo, borde izquierdo de 3 px del color del estado, icono
+de 20 px y texto de 15 px. Variantes `info`, `warning`, `danger` y `success`. Un aviso tiene una
+frase y, si hace falta, una acción.
+
+### Cronología de la subasta (`.timeline`)
+Pasos en vertical (publicada, en puja, cierra), con el actual marcado en latón y la fecha y hora a
+la derecha. Solo con fechas que da la fuente.
+
+### Panel de sección (`.section-card`)
+Panel `--surface` con radio 16 y 24 px de relleno, título en Bricolage a 22 px y, si hace falta,
+una línea de explicación en `--text-muted`.
+
+### Veredicto, rejilla de cifras, bloques plegables y gráficas
+Siguen como en la v1, con la tipografía nueva: los rótulos en frase normal a 14 px, y las cifras de
+cabecera a 36 px en escritorio y 28 en móvil.
+
+## Pantallas
+
+### Ofertas (`/mapa`)
+Una sola lista de todos los canales (ADR-0054), en mapa o en lista. El panel tiene:
+1. el recuento y su resumen («286 subastas · 2 encajan con tu plan»);
+2. la búsqueda por municipio, calle o provincia;
+3. el orden (recomendadas, acaban antes, precio de menos a más y de más a menos);
+4. los filtros por forma de venta y por tipo, con su recuento;
+5. las tarjetas.
+
+Sin perfil la lista se ve igual y una línea dice qué falta para ver el plan.
+
+### Ficha de una oferta (`/oferta/[id]`)
+De arriba abajo:
+1. volver a las ofertas;
+2. canal y estado, título, dirección y lugar;
+3. fotos (fachada y vista aérea) con su crédito;
+4. datos clave;
+5. tu plan: el veredicto con tres cifras y «Ver mi plan completo», o qué falta para verlo;
+6. avisos (corrección del BOE, ubicación aproximada, vivienda habitual del deudor);
+7. secciones «La subasta», «El inmueble» y «Fuentes».
+
+En escritorio, tu plan va en una columna fija a la derecha.
+
+### Plan (`/plan/[id]`)
+Foto arriba y, debajo, veredicto, temas plegables, simulador de puja y asesor, como en la v1.
+
+## Accesibilidad (lista de comprobación)
+
+- Texto ≥ 4,5:1 y bordes de control ≥ 3:1 en los dos temas (medidos con `tokens.css`).
+- Foco visible en todo lo que se toca; el foco no queda tapado por el panel ni por la barra.
+- Objetivos de 44 px (36 en chips y herramientas, con 8 de separación).
+- Cada imagen informativa con `alt`; las decorativas con `alt=""`. Los iconos junto a texto, con
+  `aria-hidden`.
+- Estado, canal y riesgo nunca solo por color.
+- Encabezados en orden (`h1` → `h2` → `h3`), un `h1` por página.
+- Recuentos y resultados que cambian, en una región `aria-live="polite"`.
+- El mapa tiene la lista como alternativa completa con teclado y lector de pantalla.
+- Con `prefers-reduced-motion`, nada se mueve.
 
 ## Do's and Don'ts
 
-### Do:
-- **Do** separar capas por tono: abyss-sunk, abyss-canvas, portal-raised, portal-raised-2 (en claro sand-sunk, sand-canvas, paper-raised, sand-raised-2).
-- **Do** poner los campos hundidos dentro de paneles elevados, con filete fuerte de 1 px y radio de 6px.
-- **Do** escribir cada cifra con su rótulo, su «Cómo se calcula» plegado y, si toca, su sello PROVISIONAL.
-- **Do** separar las cifras con filetes de 1 px en rejilla, y reservar stat-glow a 40 px para la fila de cabecera.
-- **Do** usar Bricolage 500 con tracking negativo para titulares y cifras, y Geist con cifras tabulares para todo lo demás.
-- **Do** marcar el estado de una fila en una celda fija (punto lleno, anillo hueco, solo texto), sin mover la maquetación.
-- **Do** mantener un solo botón principal por pantalla; lo demás, secundario o enlace.
-- **Do** usar la curva `cubic-bezier(0.16, 1, 0.3, 1)` a 160 ms para hover y foco, y anular las transiciones con movimiento reducido.
+### Do
+- **Do** poner primero lo que decide y en grande: precio, cuándo acaba, si encaja.
+- **Do** separar cada capa por tono y borde, y dar sombra solo a lo que flota.
+- **Do** escribir en frase normal los botones, la navegación y los rótulos.
+- **Do** acompañar cada color de estado o canal con su palabra.
+- **Do** usar los tokens; si falta uno, añadirlo a `tokens.css` con su contraste medido.
 
-### Don't:
-- **Don't** usar sombras para elevar paneles, tarjetas ni botones; el único `box-shadow` permitido es el filete de 1 px de la rejilla de cifras.
-- **Don't** poner borde a los paneles ni convertir la rejilla de cifras en tarjetas iguales.
-- **Don't** escribir texto en `brass` sobre arena, papel o blanco: el texto latón en claro es stat-ink.
-- **Don't** añadir un segundo degradado ni llevar el del botón al tema claro.
-- **Don't** poner antetítulos en mayúsculas encima de los titulares, aunque la referencia Auros los use.
-- **Don't** usar negrita ni pesos finos en Bricolage.
-- **Don't** cambiar los colores de la anilla y del texto del logotipo, estirarlo ni añadirle sombra.
-- **Don't** ocultar ni atenuar el sello PROVISIONAL para limpiar una pantalla.
+### Don't
+- **Don't** escribir texto por debajo de 13 px, salvo las etiquetas en mayúsculas de 12 px.
+- **Don't** usar mayúsculas espaciadas en botones, navegación, rótulos ni titulares.
+- **Don't** poner latón en titulares, fondos o iconos: es solo para tu cifra.
+- **Don't** poner dos superficies iguales una sobre otra ni inventar un tono a mano.
+- **Don't** rellenar un dato que no consta, ni enseñar texto de la fuente que pueda llevar nombres
+  de personas (ver ADR-0054, posesión).
+- **Don't** cambiar los colores de la anilla y del texto del logotipo, estirarlo ni darle sombra.

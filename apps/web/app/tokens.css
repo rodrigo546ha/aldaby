@@ -1,0 +1,245 @@
+/*
+ * Aldaby · design system v2, «Claridad» (DESIGN.md). Tokens: lo único que lleva valores.
+ *
+ * Los componentes usan solo variables de aquí. Cada pareja de texto y fondo está medida (WCAG AA:
+ * 4,5:1 el texto, 3:1 los bordes de los controles y las marcas). El tema oscuro y el claro son los
+ * dos de primera: el de la página sigue al sistema o al interruptor (components/Theme.tsx).
+ *
+ * Al final, los nombres de la v1 (`--canvas`, `--raised`, `--muted`…) como alias, para que el CSS
+ * que aún los usa herede la v2. Lo nuevo se escribe con los nombres semánticos.
+ */
+
+:root {
+  /* ── Superficies: cuatro capas que se distinguen a simple vista (≥1,25:1 entre vecinas) ── */
+  --bg: #0a2920;            /* lienzo de la página */
+  --bg-sunk: #071f18;       /* huecos: campos, estados vacíos */
+  --surface: #0f3f31;       /* paneles: 1,31:1 sobre el lienzo */
+  --surface-2: #174f3e;     /* tarjetas y bloques dentro de un panel: 1,25:1 sobre el panel */
+  --surface-hover: #1d5b48; /* fila o tarjeta bajo el puntero */
+  --overlay: #0f3f31;       /* lo que flota sobre el mapa: ficha, panel, herramientas */
+
+  /* ── Texto: todo AA sobre cualquier superficie ── */
+  --text-strong: #ffffff;   /* titulares, cifras */
+  --text-emphasis: #eef4f1; /* enlaces, etiquetas de campo, valores de datos */
+  --text: #dbe6e1;          /* texto corrido: 7,8:1 sobre surface-2 */
+  --text-muted: #b4c8bf;    /* rótulos y pistas: 5,4:1 sobre surface-2 */
+  --text-on-accent: #0a2920;
+
+  /* ── Bordes ── */
+  --border: rgba(234, 246, 240, 0.12);        /* separadores */
+  --border-strong: rgba(234, 246, 240, 0.24); /* tarjetas */
+  --border-control: #6f9c8b;                  /* campos, chips, botones secundarios: ≥3:1 */
+
+  /* ── Marca ── */
+  --brass: #e3a92b;         /* la anilla del logotipo y la selección */
+  --accent-mark: #e3a92b;   /* marcas que no son texto: pestaña activa, «no encaja», casillas */
+  --accent-text: #f5d68e;   /* la cifra que importa (cash flow, puja máxima): 6,7:1 */
+  --focus: #e3a92b;         /* anillo de foco: 4,5:1 sobre surface-2 */
+
+  /* ── Estados: siempre con texto o icono al lado, nunca solo el color ── */
+  --success: #8eddb8;
+  --success-bg: rgba(142, 221, 184, 0.13);
+  --warning: #f2cf83;
+  --warning-bg: rgba(227, 169, 43, 0.15);
+  --danger: #ffab9b;
+  --danger-bg: rgba(255, 159, 140, 0.13);
+  --info: #a8cdff;
+  --info-bg: rgba(143, 188, 245, 0.13);
+
+  /* ── Cómo se vende cada oferta (ADR-0054): color y nombre, siempre juntos ── */
+  --ch-subasta-judicial: #f2c66b;
+  --ch-subasta-administrativa: #8fbcf5;
+  --ch-subasta-notarial: #c9a8f5;
+  --ch-venta-directa: #6fd6c4;
+  --ch-agencia: #f5a3c0;
+  --ch-tu-anuncio: #eaf6f0;
+
+  /* ── Botón principal: el único degradado ── */
+  --cta: linear-gradient(90deg, #d4f5e6 0%, #f6ebd0 48%, #f2c66b 100%);
+  --cta-text: #0a2920;
+  --cta-hover: brightness(1.07);
+
+  /* ── Gráficas (ADR-0048) y anilla de la portada ── */
+  --chart-1: #eaf6f0;
+  --chart-2: #f2c66b;
+  --chart-3: #6fc29c;
+  --ring-near: #f2c66b;
+  --ring-far: #6fc29c;
+  --map-icon: invert(1);
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23b4c8bf' stroke-width='1.5'/%3E%3C/svg%3E");
+
+  /* ── Sombra: solo lo que flota sobre el mapa o sobre otra capa; nada más la lleva ── */
+  --shadow-overlay: 0 10px 30px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+
+  /* ── Tipografía: base de 16 px; nada por debajo de 13 px salvo las etiquetas (12 px) ── */
+  --font-ui: var(--font-text), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-head: var(--font-display), var(--font-ui);
+  --text-2xs: 0.75rem;   /* 12 · etiquetas en mayúsculas: el único sitio con mayúsculas */
+  --text-xs: 0.8125rem;  /* 13 · notas al pie, créditos de foto */
+  --text-sm: 0.875rem;   /* 14 · rótulos, pistas, metadatos */
+  --text-md: 1rem;       /* 16 · cuerpo */
+  --text-lg: 1.125rem;   /* 18 · entradillas, cifras de tarjeta */
+  --text-xl: 1.375rem;   /* 22 · títulos de bloque, cifras de rejilla */
+  --text-2xl: 1.75rem;   /* 28 · título de ficha, cifras de cabecera en móvil */
+  --text-3xl: 2.25rem;   /* 36 · título de página, cifras de cabecera */
+  --text-4xl: 3rem;      /* 48 · portada */
+  --leading-tight: 1.15;
+  --leading: 1.55;
+  --tracking-head: -0.02em;
+  --tracking-big: -0.035em;
+
+  /* ── Espaciado: rejilla de 4 ── */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* ── Radios ── */
+  --r-xs: 4px;   /* etiquetas */
+  --r-sm: 8px;   /* controles: botones, campos, chips */
+  --r-md: 12px;  /* tarjetas, avisos, fotos */
+  --r-lg: 16px;  /* paneles */
+  --r-pill: 999px;
+
+  /* ── Tamaños de toque ── */
+  --target: 44px;
+  --target-sm: 36px;
+
+  /* ── Página ── */
+  --page: 1320px;
+  --gutter: 24px;
+  --measure: 68ch;
+
+  /* ── Movimiento ── */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-1: 120ms; /* respuesta al toque */
+  --dur-2: 220ms; /* cambio de estado */
+  --dur-3: 360ms; /* entrada de página o panel */
+
+  interpolate-size: allow-keywords;
+  color-scheme: dark;
+}
+
+/* Tema claro: arena de lienzo, papel encima y tinta verde portal */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f3ead6;
+    --bg-sunk: #ebdfc2;
+    --surface: #fffdf8;
+    --surface-2: #f7f0df;
+    --surface-hover: #efe4c9;
+    --overlay: #fffdf8;
+    --text-strong: #0f3b2e;
+    --text-emphasis: #173f33;
+    --text: #263f37;
+    --text-muted: #4a5b53;
+    --text-on-accent: #ffffff;
+    --border: rgba(15, 59, 46, 0.12);
+    --border-strong: rgba(15, 59, 46, 0.22);
+    --border-control: #8a7c58;
+    --accent-mark: #9a6a0a;
+    --accent-text: #7a4f00;
+    --focus: #0f3b2e;
+    --success: #1a6e4c;
+    --success-bg: rgba(31, 122, 85, 0.1);
+    --warning: #7a4f00;
+    --warning-bg: rgba(227, 169, 43, 0.18);
+    --danger: #a3301c;
+    --danger-bg: rgba(168, 50, 31, 0.08);
+    --info: #1d58a3;
+    --info-bg: rgba(36, 87, 163, 0.08);
+    --ch-subasta-judicial: #8a5a00;
+    --ch-subasta-administrativa: #2457a3;
+    --ch-subasta-notarial: #6b44b0;
+    --ch-venta-directa: #0f6f62;
+    --ch-agencia: #a3365f;
+    --ch-tu-anuncio: #0f3b2e;
+    --cta: #0f3b2e;
+    --cta-text: #ffffff;
+    --cta-hover: brightness(1.4);
+    --chart-1: #0f3b2e;
+    --chart-2: #9a6a0a;
+    --chart-3: #4f8a70;
+    --ring-near: #c8901a;
+    --ring-far: #0f3b2e;
+    --map-icon: none;
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%234a5b53' stroke-width='1.5'/%3E%3C/svg%3E");
+    --shadow-overlay: 0 10px 30px rgba(15, 59, 46, 0.14), 0 1px 2px rgba(15, 59, 46, 0.12);
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="light"] {
+  --bg: #f3ead6;
+  --bg-sunk: #ebdfc2;
+  --surface: #fffdf8;
+  --surface-2: #f7f0df;
+  --surface-hover: #efe4c9;
+  --overlay: #fffdf8;
+  --text-strong: #0f3b2e;
+  --text-emphasis: #173f33;
+  --text: #263f37;
+  --text-muted: #4a5b53;
+  --text-on-accent: #ffffff;
+  --border: rgba(15, 59, 46, 0.12);
+  --border-strong: rgba(15, 59, 46, 0.22);
+  --border-control: #8a7c58;
+  --accent-mark: #9a6a0a;
+  --accent-text: #7a4f00;
+  --focus: #0f3b2e;
+  --success: #1a6e4c;
+  --success-bg: rgba(31, 122, 85, 0.1);
+  --warning: #7a4f00;
+  --warning-bg: rgba(227, 169, 43, 0.18);
+  --danger: #a3301c;
+  --danger-bg: rgba(168, 50, 31, 0.08);
+  --info: #1d58a3;
+  --info-bg: rgba(36, 87, 163, 0.08);
+  --ch-subasta-judicial: #8a5a00;
+  --ch-subasta-administrativa: #2457a3;
+  --ch-subasta-notarial: #6b44b0;
+  --ch-venta-directa: #0f6f62;
+  --ch-agencia: #a3365f;
+  --ch-tu-anuncio: #0f3b2e;
+  --cta: #0f3b2e;
+  --cta-text: #ffffff;
+  --cta-hover: brightness(1.4);
+  --chart-1: #0f3b2e;
+  --chart-2: #9a6a0a;
+  --chart-3: #4f8a70;
+  --ring-near: #c8901a;
+  --ring-far: #0f3b2e;
+  --map-icon: none;
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%234a5b53' stroke-width='1.5'/%3E%3C/svg%3E");
+  --shadow-overlay: 0 10px 30px rgba(15, 59, 46, 0.14), 0 1px 2px rgba(15, 59, 46, 0.12);
+  color-scheme: light;
+}
+
+/* Nombres de la v1, como alias de la v2 (no se usan en CSS nuevo) */
+:root {
+  --canvas: var(--bg);
+  --sunk: var(--bg-sunk);
+  --raised: var(--surface);
+  --raised-2: var(--surface-2);
+  --card: var(--surface-2);
+  --card-hover: var(--surface-hover);
+  --strong: var(--text-strong);
+  --mist: var(--text-emphasis);
+  --muted: var(--text-muted);
+  --line: var(--border);
+  --line-strong: var(--border-strong);
+  --stat: var(--accent-text);
+  --mark: var(--accent-mark);
+  --warn-bg: var(--warning-bg);
+  --warn-text: var(--warning);
+  --error: var(--danger);
+  --pass: var(--success);
+  --radius: var(--r-lg);
+  --radius-sm: var(--r-sm);
+}

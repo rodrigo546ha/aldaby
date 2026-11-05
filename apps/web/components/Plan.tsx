@@ -10,10 +10,12 @@ import { TopicCharts } from "./Charts";
 import { BrandHeader, useBranding } from "./Branding";
 import { FigureBlock, WarningItem } from "./FigureView";
 import { Skeleton, VerdictFigure } from "./Motion";
+import { Icon } from "./Icon";
 import { OfferPhoto } from "./OfferPhoto";
 import { RentalAdvice } from "./RentalAdvice";
 
 type PlanOut = components["schemas"]["PlanOut"];
+type CatalogOut = components["schemas"]["CatalogOut"];
 
 // Plan completo (F6.7, ADR-0025): las cifras las calcula la API; el asesor solo las explica
 const STAGES: Record<string, string> = {
@@ -50,6 +52,13 @@ export function Plan({ offerId }: { offerId: string }) {
   const [brand, brandVersion] = useBranding();
   const [plan, setPlan] = useState<PlanOut | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  // El título corto y la dirección de la oferta, los mismos que en la lista y en su ficha
+  const [offer, setOffer] = useState<CatalogOut | null>(null);
+  useEffect(() => {
+    fetch(`/api/offers/catalog/${offerId}`)
+      .then(async (resp) => (resp.ok ? setOffer((await resp.json()) as CatalogOut) : null))
+      .catch(() => undefined);
+  }, [offerId]);
 
   const load = useCallback(async () => {
     try {
@@ -66,6 +75,12 @@ export function Plan({ offerId }: { offerId: string }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Desde la ficha, «Simular mi puja» llega con #pujas: el plan se pinta después de la carga
+  useEffect(() => {
+    if (plan && window.location.hash)
+      document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: "start" });
+  }, [plan]);
 
   if (failure) return <p className="failure">{failure}</p>;
   if (!plan) return <Skeleton label="Calculando tu plan…" />;
@@ -84,6 +99,9 @@ export function Plan({ offerId }: { offerId: string }) {
   return (
     <div className="plan stagger">
       <BrandHeader brand={brand} version={brandVersion} />
+      <a className="back-link" href={`/oferta/${offerId}`}>
+        <Icon name="back" small /> La oferta
+      </a>
       <OfferPhoto offerId={offerId} credit hideEmpty className="plan-photo" />
       <section className="verdict" aria-labelledby="verdict-title">
         <div className="verdict-head">
@@ -91,7 +109,10 @@ export function Plan({ offerId }: { offerId: string }) {
             {plan.passes ? "Encaja con tu plan" : "No encaja con tu plan"}
             {plan.auction ? " · subasta" : ""}
           </span>
-          <h2 id="verdict-title">{plan.title ?? (plan.kind === "enlace" ? "Oferta pegada" : "Lote del BOE")}</h2>
+          <h2 id="verdict-title">{offer?.title ?? plan.title ?? (plan.kind === "enlace" ? "Oferta pegada" : "Lote del BOE")}</h2>
+          {offer && (offer.address || offer.place) && (
+            <p className="verdict-address">{[offer.address, offer.place].filter(Boolean).join(" · ")}</p>
+          )}
         </div>
         <div className="verdict-figures">
           {verdict.map((v) => (

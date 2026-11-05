@@ -233,3 +233,29 @@ def test_catalogo_sin_las_ventas_terminadas(api, database):  # noqa: F811
             row(deadline="30/10/2020"), row(deadline="30/10/2099")]):
         body = http.get("/offers/catalog").json()
     assert [o["ends_on"] for o in body] == ["2099-10-30"]
+
+
+def test_ficha_con_juzgado_expediente_y_catastro():
+    item = catalog_item(row(
+        channel="boe_subasta_portal", title="Subasta judicial · CALLE ENCINAS 11",
+        cadastral_ref="3115215VK4731E0005TT",
+        description="FR 65.590 - VIVIENDA EN CALLE ENCINAS\nFR 65.590 - VIVIENDA EN CALLE ENCINAS",
+        portal_search={"court": "Sección Civil TI Madrid.  Plz.n 32", "procedure": "0132/25"},
+        catastro={"3115215VK4731E0005TT": {"use": "Residencial", "built_year": 2007}},
+        extracted={"property_type": "vivienda", "portal": {
+            "concludes": "23/11/2026 a las 18:00:00", "visitable": "No consta"}}), PROVINCES)
+    assert item.authority == "Sección Civil TI Madrid. Plz.n 32"
+    assert item.procedure == "0132/25"
+    assert item.ends_on == date(2026, 11, 23) and item.ends_time == "18:00"
+    assert item.visitable is None  # «No consta» no se enseña
+    assert (item.use, item.built_year) == ("Residencial", 2007)
+    assert item.description == "FR 65.590 - VIVIENDA EN CALLE ENCINAS"  # sin repetir
+
+
+@pytest.mark.db
+def test_ficha_de_una_oferta(api, database):  # noqa: F811
+    http, org = api
+    mine = confirmed_offer(database, org, "venta", "150000")
+    resp = http.get(f"/offers/catalog/{mine}")
+    assert resp.status_code == 200 and resp.json()["title"] == "Vivienda en Villaprueba"
+    assert http.get(f"/offers/catalog/{uuid4()}").status_code == 404

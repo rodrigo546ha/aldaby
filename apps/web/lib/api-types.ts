@@ -147,6 +147,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/offers/catalog/{offer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Catalog Item
+         * @description Una oferta del catálogo, para su ficha (también si ya terminó: la ficha lo dice).
+         */
+        get: operations["get_catalog_item_offers_catalog__offer_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/offers/{offer_id}/photo/{kind}": {
         parameters: {
             query?: never;
@@ -1397,6 +1417,24 @@ export interface components {
             corrected: boolean;
             /** Approximate */
             approximate: boolean;
+            /** Authority */
+            authority: string | null;
+            /** Procedure */
+            procedure: string | null;
+            /** Ends Time */
+            ends_time: string | null;
+            /** Visitable */
+            visitable: string | null;
+            /** Cadastral Ref */
+            cadastral_ref: string | null;
+            /** Built Year */
+            built_year: number | null;
+            /** Use */
+            use: string | null;
+            /** Floor */
+            floor: string | null;
+            /** Description */
+            description: string | null;
         };
         /** ChangeOut */
         ChangeOut: {
@@ -2900,6 +2938,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CatalogOut"][];
+                };
+            };
+        };
+    };
+    get_catalog_item_offers_catalog__offer_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

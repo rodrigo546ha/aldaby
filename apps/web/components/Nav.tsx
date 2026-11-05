@@ -39,7 +39,7 @@ const DESTINATIONS: Destination[] = [
     ),
     // Una sola lista de ofertas, en mapa o en lista (ADR-0054): sin secciones por canal
     sections: [{ href: "/mapa", label: "Ofertas" }],
-    also: ["/plan/", "/ofertas", "/anuncios"],
+    also: ["/plan/", "/oferta/", "/ofertas", "/anuncios"],
   },
   {
     href: "/perfil",

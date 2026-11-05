@@ -332,6 +332,50 @@
         }
       }
     },
+    "/offers/catalog/{offer_id}": {
+      "get": {
+        "tags": [
+          "ofertas"
+        ],
+        "summary": "Get Catalog Item",
+        "description": "Una oferta del catálogo, para su ficha (también si ya terminó: la ficha lo dice).",
+        "operationId": "get_catalog_item_offers_catalog__offer_id__get",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/offers/{offer_id}/photo/{kind}": {
       "get": {
         "tags": [
@@ -3651,6 +3695,105 @@
           "approximate": {
             "type": "boolean",
             "title": "Approximate"
+          },
+          "authority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authority"
+          },
+          "procedure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Procedure"
+          },
+          "ends_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends Time"
+          },
+          "visitable": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visitable"
+          },
+          "cadastral_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cadastral Ref"
+          },
+          "built_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Built Year"
+          },
+          "use": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Use"
+          },
+          "floor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Floor"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
           }
         },
         "type": "object",
@@ -3680,7 +3823,16 @@
           "source_url",
           "original_title",
           "corrected",
-          "approximate"
+          "approximate",
+          "authority",
+          "procedure",
+          "ends_time",
+          "visitable",
+          "cadastral_ref",
+          "built_year",
+          "use",
+          "floor",
+          "description"
         ],
         "title": "CatalogOut",
         "description": "Una oferta en la lista única (ADR-0054): lo que decide, sin datos de la extracción."

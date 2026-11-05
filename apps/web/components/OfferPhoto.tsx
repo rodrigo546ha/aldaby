@@ -8,6 +8,13 @@ import { useState } from "react";
 
 type Kind = "fachada" | "aerea";
 
+// En la ficha la foto informa (alt descriptivo); en una tarjeta acompaña al título (alt vacío)
+const ALT: Record<Kind | "anuncio", string> = {
+  anuncio: "Foto del anuncio",
+  fachada: "Fachada del edificio, de la Dirección General del Catastro",
+  aerea: "Vista aérea con el inmueble marcado en el centro",
+};
+
 const CREDIT: Record<Kind | "anuncio", string> = {
   anuncio: "Foto del anuncio",
   fachada: "Foto: Dirección General del Catastro",
@@ -45,13 +52,15 @@ export function OfferPhoto({
 
   const current = sources[index];
   if (!current && hideEmpty) return null;
+  // Dentro del botón de una tarjeta no cabe un <figure>: sin crédito, un <span>
+  const Box = credit ? "figure" : "span";
   return (
-    <figure className={`offer-photo ${className}${loaded ? " is-loaded" : ""}`}>
+    <Box className={`offer-photo ${className}${loaded ? " is-loaded" : ""}`}>
       {current ? (
         <img
           key={current.src}
           src={current.src}
-          alt=""
+          alt={credit ? ALT[current.kind] : ""}
           loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"
@@ -66,7 +75,7 @@ export function OfferPhoto({
         <TypeIcon type={propertyType} />
       )}
       {credit && current && loaded && <figcaption>{CREDIT[current.kind]}</figcaption>}
-    </figure>
+    </Box>
   );
 }
 

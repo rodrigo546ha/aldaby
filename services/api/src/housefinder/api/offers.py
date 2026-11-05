@@ -28,7 +28,7 @@ from housefinder.db.offers import (
     list_private_offers,
 )
 from housefinder.geo import cartociudad, catastro, photos
-from housefinder.offers.catalog import catalog_item, parcel_ref
+from housefinder.offers.catalog import CatalogItem, catalog_item, parcel_ref
 from housefinder.offers.channels import boe_subastas
 from housefinder.offers.link import LinkRefused
 from housefinder.offers.locate import Provinces, load_provinces, offer_locator
@@ -176,6 +176,15 @@ class CatalogOut(BaseModel):
     original_title: str | None
     corrected: bool
     approximate: bool  # el punto es el centro del municipio: no se pudo ubicar el inmueble
+    authority: str | None  # juzgado u órgano que subasta
+    procedure: str | None
+    ends_time: str | None  # «18:00»
+    visitable: str | None
+    cadastral_ref: str | None
+    built_year: int | None
+    use: str | None  # en el Catastro
+    floor: str | None
+    description: str | None
 
 
 PHOTO_ATTRIBUTION = {"fachada": photos.FACADE_ATTRIBUTION, "aerea": photos.AERIAL_ATTRIBUTION}
@@ -197,26 +206,42 @@ def get_catalog(db: DbDep, org: OrgDep) -> list[CatalogOut]:
         item = catalog_item(row, _provinces())
         if item.ends_on is not None and item.ends_on < today:
             continue  # subasta terminada o plazo de venta directa vencido: ya no se puede comprar
-        kinds: list[Literal["fachada", "aerea"]] = []
-        if item.has_facade:
-            kinds.append("fachada")
-        if item.exact:
-            kinds.append("aerea")  # con un punto aproximado, la ortofoto sería de otro sitio
-        out.append(CatalogOut(
-            offer_id=item.offer_id, channel=item.channel, auction=item.auction,
-            title=item.title, address=item.address, place=item.place,
-            property_type=item.property_type, price=item.price, price_kind=item.price_kind,
-            deposit=item.deposit, built_area_m2=item.built_area_m2,
-            ends_on=item.ends_on.isoformat() if item.ends_on else None,
-            auction_state=item.auction_state,
-            possession=item.possession, habitual_residence=item.habitual_residence,
-            published_on=item.published_on.isoformat() if item.published_on else None,
-            status=item.status, lon=item.lon, lat=item.lat, photos=kinds,
-            images=list(item.images), source_name=item.source_name,
-            source_url=item.source_url, original_title=item.original_title,
-            corrected=item.corrected, approximate=item.approximate,
-        ))
+        out.append(_catalog_out(item))
     return out
+
+
+@router.get("/catalog/{offer_id}")
+def get_catalog_item(offer_id: UUID, db: DbDep, org: OrgDep) -> CatalogOut:
+    """Una oferta del catálogo, para su ficha (también si ya terminó: la ficha lo dice)."""
+    rows = catalog_rows(db, org, offer_id)
+    if not rows:
+        raise HTTPException(status_code=404, detail="Oferta no encontrada")
+    return _catalog_out(catalog_item(rows[0], _provinces()))
+
+
+def _catalog_out(item: CatalogItem) -> CatalogOut:
+    kinds: list[Literal["fachada", "aerea"]] = []
+    if item.has_facade:
+        kinds.append("fachada")
+    if item.exact:
+        kinds.append("aerea")  # con un punto aproximado, la ortofoto sería de otro sitio
+    return CatalogOut(
+        offer_id=item.offer_id, channel=item.channel, auction=item.auction,
+        title=item.title, address=item.address, place=item.place,
+        property_type=item.property_type, price=item.price, price_kind=item.price_kind,
+        deposit=item.deposit, built_area_m2=item.built_area_m2,
+        ends_on=item.ends_on.isoformat() if item.ends_on else None,
+        auction_state=item.auction_state,
+        possession=item.possession, habitual_residence=item.habitual_residence,
+        published_on=item.published_on.isoformat() if item.published_on else None,
+        status=item.status, lon=item.lon, lat=item.lat, photos=kinds,
+        images=list(item.images), source_name=item.source_name,
+        source_url=item.source_url, original_title=item.original_title,
+        corrected=item.corrected, approximate=item.approximate,
+        authority=item.authority, procedure=item.procedure, ends_time=item.ends_time,
+        visitable=item.visitable, cadastral_ref=item.cadastral_ref, built_year=item.built_year,
+        use=item.use, floor=item.floor, description=item.description,
+    )
 
 
 @router.get("/{offer_id}/photo/{kind}", response_class=Response,
