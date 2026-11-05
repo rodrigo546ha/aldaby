@@ -389,11 +389,7 @@ button.secondary:hover { background: var(--raised-2); filter: none; }
   flex-direction: column;
   gap: 4px;
 }
-.warnings details { color: inherit; font-size: inherit; }
 /* El aviso plegado lleva su propia flecha: sin la viñeta de la lista */
-.warnings li:has(> details) { list-style: none; margin-left: -18px; }
-.warnings summary { color: inherit; }
-.warning-ids { margin: 8px 0 0; font-size: var(--text-sm); line-height: 1.6; overflow-wrap: anywhere; opacity: 0.85; }
 
 /* Estado en una celda fija: lleno encaja, hueco no encaja */
 .status {
@@ -494,10 +490,6 @@ summary::before {
 }
 details[open] > summary::before { transform: rotate(45deg); }
 summary:hover { color: var(--mist); }
-.formula { margin: 8px 0; color: var(--text); line-height: 1.5; }
-.sources { margin: 0; padding-left: 16px; overflow-wrap: anywhere; line-height: 1.5; }
-.source-kind { font-weight: 600; color: var(--mist); }
-.source-provisional { color: var(--warn-text); }
 
 .group { display: flex; flex-direction: column; gap: 14px; }
 .group h3, .plan-section h3 { margin: 0; font-size: 1.25rem; line-height: 1.2; letter-spacing: -0.015em; }
@@ -582,7 +574,6 @@ td { color: var(--mist); }
 .rental-type.recommended summary { color: var(--strong); font-weight: 500; }
 .rent-expectation { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: end; margin: 12px 0; }
 .rent-expectation label { grid-column: 1 / -1; font-size: var(--text-sm); color: var(--mist); }
-.requirements { margin: 0; padding-left: 20px; font-size: var(--text-sm); line-height: 1.5; }
 
 /* ───────── Perfil ───────── */
 
@@ -656,8 +647,6 @@ td { color: var(--mist); }
 .plan-head .warnings { flex-basis: 100%; }
 .plan-section { display: flex; flex-direction: column; gap: 16px; padding-top: 28px; border-top: 1px solid var(--line-strong); }
 .plan-section h4 { margin: 12px 0 4px; font-size: 1rem; }
-.arguments, .roadmap, .changes { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; line-height: 1.55; }
-.roadmap li::marker { color: var(--mark); font-family: var(--font-head); }
 .explanation { padding: 28px; border-top: 0; border-radius: var(--radius); background: var(--sunk); }
 
 /* El asesor en fichas (ADR-0052): resumen, tres fichas con su cifra, riesgos y siguiente paso */
@@ -723,8 +712,6 @@ td { color: var(--mist); }
 .advisor-chip .figure-unit { font-size: 0.45em; letter-spacing: 0; }
 .advisor-chip:hover { filter: none; border-bottom-color: var(--stat); }
 .advisor-risks { display: flex; flex-direction: column; gap: 10px; }
-.advisor-risks ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding-left: 18px; line-height: 1.55; }
-.advisor-risks li::marker { color: var(--warn-text); }
 .advisor-next { display: flex; flex-direction: column; gap: 8px; padding-top: 20px; border-top: 1px solid var(--line); }
 .advisor-next p { margin: 0; max-width: 70ch; line-height: 1.55; }
 .advisor-extra summary { color: var(--mist); font-size: 0.9375rem; cursor: pointer; }
@@ -841,9 +828,6 @@ td { color: var(--mist); }
 .block-body { display: flex; flex-direction: column; gap: 16px; padding: 4px 0 28px; }
 .block-body .grid { border-top: 0; }
 .block-sources { font-size: var(--text-sm); }
-.sources-list { display: grid; gap: 16px; margin: 14px 0 0; }
-.sources-list dt { color: var(--mist); font-weight: 500; font-size: var(--text-sm); }
-.sources-list dd { margin: 2px 0 0; }
 .prov-mark {
   color: var(--warn-text);
   font-size: var(--text-2xs);
@@ -861,7 +845,6 @@ td { color: var(--mist); }
 
 .data-quality { margin-top: 8px; }
 .data-quality > summary { font-size: var(--text-sm); }
-.data-quality > .warnings { margin-top: 12px; }
 
 /* ───────── Gráficas (ADR-0048) ─────────
  * Etiquetas directas con la cifra de la API; las barras crecen y las líneas se trazan al entrar. */

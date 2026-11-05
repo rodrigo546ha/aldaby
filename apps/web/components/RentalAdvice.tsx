@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
 import { amount } from "../lib/format";
+import { ExplainHead, Lede, Points, pointsFrom, splitTitle } from "./Explain";
 import { FigureView } from "./FigureView";
 
 type RentalAdviceOut = components["schemas"]["RentalAdviceOut"];
@@ -38,16 +39,12 @@ export function RentalAdvice({
 }) {
   return (
     <section className="rental-advice" aria-label="Tipo de alquiler y gestión">
-      <h4>
+      <ExplainHead as="h4">
         {advice.recommended
-          ? `Cómo alquilarla: ${RENTAL_LABEL[advice.recommended].toLowerCase()}`
+          ? `Te recomendamos el alquiler ${RENTAL_LABEL[advice.recommended].toLowerCase()}`
           : "Cómo alquilarla"}
-      </h4>
-      <ul className="hint">
-        {advice.reasons.map((r) => (
-          <li key={r}>{r}</li>
-        ))}
-      </ul>
+      </ExplainHead>
+      <Points items={pointsFrom(advice.reasons, "info")} label="Por qué" />
       {advice.types.map((t) => (
         <RentalType
           key={t.rental_type}
@@ -58,20 +55,12 @@ export function RentalAdvice({
         />
       ))}
       {advice.scenario.length > 0 && (
-        <details>
-          <summary>Si se convalidan las normas pendientes</summary>
-          <ul className="warnings">
-            {advice.scenario.map((c) => (
-              <li key={c}>{c}</li>
-            ))}
-          </ul>
+        <details className="explain-more">
+          <summary>Si se convalidan las normas pendientes ({advice.scenario.length})</summary>
+          <Points items={pointsFrom(advice.scenario, "warning")} />
         </details>
       )}
-      <ul className="warnings">
-        {advice.notes.map((n) => (
-          <li key={n}>{n}</li>
-        ))}
-      </ul>
+      <Points items={pointsFrom(advice.notes, "info")} label="Notas" />
     </section>
   );
 }
@@ -126,19 +115,13 @@ function RentalType({
         {summary.join(" · ")}
         {recommended && <span className="status pass"> · recomendado</span>}
       </summary>
-      <p className="hint">{type.management_reason}</p>
+      <Lede>{type.management_reason}</Lede>
       <div className="grid">
         {type.figures.map((f) => (
           <FigureView key={f.key} figure={f} title={FIGURE_TITLE[f.key.split(".")[2]]} />
         ))}
       </div>
-      {type.notes.length > 0 && (
-        <ul className="warnings">
-          {type.notes.map((n) => (
-            <li key={n}>{n}</li>
-          ))}
-        </ul>
-      )}
+      <Points items={pointsFrom(type.notes, "warning")} label="Avisos" />
       {type.rental_type !== "habitual" && (
         <form className="rent-expectation" onSubmit={save}>
           <label htmlFor={`rent-${offerId}-${type.rental_type}`}>
@@ -156,18 +139,15 @@ function RentalType({
           {error && <p className="failure">{error}</p>}
         </form>
       )}
-      <p className="hint">{type.regime}</p>
-      {type.requirements.length > 0 && (
-        <ul className="requirements">
-          {type.requirements.map((r) => (
-            <li key={r.code}>
-              {r.description}{" "}
-              <a href={r.source_url} target="_blank" rel="noreferrer">
-                fuente
-              </a>
-            </li>
-          ))}
-        </ul>
+      {(type.regime || type.requirements.length > 0) && (
+        <div className="rental-rules">
+          <ExplainHead>Qué dice la ley</ExplainHead>
+          {type.regime && <Lede>{type.regime}</Lede>}
+          <Points
+            items={type.requirements.map((r) => ({ key: r.code, ...splitTitle(r.description), href: r.source_url }))}
+            label="Requisitos"
+          />
+        </div>
       )}
     </details>
   );

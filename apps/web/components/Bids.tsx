@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import type { components } from "../lib/api-types";
 import { amount, formatValue } from "../lib/format";
 import { LineChart } from "./Charts";
+import { ExplainHead, Lede, notePoints, Points } from "./Explain";
 import { FigureView } from "./FigureView";
 
 type BidsOut = components["schemas"]["BidsOut"];
@@ -70,10 +71,10 @@ export function Bids({ offerId, auction }: { offerId: string; auction: boolean }
   return (
     <section className="plan-section" aria-labelledby="pujas">
       <h3 id="pujas">Simulador de puja</h3>
-      <p className="hint">
-        El valor de subasta es el precio de salida, no el final. Aquí ves tu plan a cada puja y la
-        más alta con la que sigue cumpliendo lo que pides.
-      </p>
+      <Lede>
+        El valor de subasta es el precio de salida, no el final. Aquí ves tu plan a cada puja y la más alta con la
+        que sigue cumpliendo lo que pides.
+      </Lede>
       <form onSubmit={simulate}>
         <div className="field">
           <label htmlFor="bid-value">Valor de subasta (€)</label>
@@ -200,21 +201,17 @@ export function Bids({ offerId, auction }: { offerId: string; auction: boolean }
           </table>
           {result.levels.some((lv) => lv.stage) && (
             <>
-              <h4>Qué pasa con cada puja ante el juzgado</h4>
-              <ul className="hint">
-                {result.levels.map((lv) => (
-                  <li key={lv.share}>
-                    <strong>{formatValue(lv.share, "ratio")}</strong>: {lv.stage}
-                  </li>
-                ))}
-              </ul>
+              <ExplainHead as="h4">Qué pasa con cada puja ante el juzgado</ExplainHead>
+              <Points
+                items={result.levels.map((lv) => ({
+                  key: lv.share,
+                  title: `Puja al ${formatValue(lv.share, "ratio")} del valor`,
+                  text: lv.stage,
+                }))}
+              />
             </>
           )}
-          <ul className="warnings">
-            {result.notes.map((n) => (
-              <li key={n}>{n}</li>
-            ))}
-          </ul>
+          <Points items={notePoints(result.notes)} label="Notas" />
         </>
       )}
     </section>

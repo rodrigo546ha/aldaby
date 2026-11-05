@@ -279,6 +279,34 @@ pregunta actual lleva un filo de latón. Encima, el recuento de datos obligatori
 Siguen como en la v1, con la tipografía nueva: los rótulos en frase normal a 14 px, y las cifras de
 cabecera a 36 px en escritorio y 28 en móvil.
 
+### Explicaciones (`components/Explain.tsx`)
+Todo texto que explica algo en la ficha, en el plan y en el simulador sale de estas piezas, nunca
+como párrafo suelto ni como lista con viñetas del navegador. El texto viene de la API y no se
+reescribe: solo se ordena y se viste.
+- **Entradilla (`.lede`):** una o dos frases a 15 px en `--text-muted`, a la medida de lectura
+  (68 caracteres). Presenta lo que viene debajo.
+- **Rótulo (`.explain-head`):** 14 px seminegrita en `--text-strong` («De dónde salen», «La compra»).
+- **Puntos (`.points`):** una sola tarjeta `--surface` con una fila por punto separada por un filete,
+  y el icono del tono a la izquierda: `info`, `warning`, `success`, `danger` o un punto neutro. Si
+  la frase de la API empieza por «Algo: …», «Algo» va de título en `--text-strong` y el resto debajo
+  en `--text-muted`. Si la frase cita una fuente, el enlace va al pie del punto.
+- **Pasos (`.step-list`):** número en un anillo de latón de 28 px, un hilo vertical que los une,
+  título en seminegrita, lo que hay que hacer en `--text-muted` y el enlace a su fuente.
+- **Cambios (`.changes-list`):** una fila por cifra: el nombre a la izquierda; a la derecha el valor
+  de hoy en gris, una flecha de latón y el valor nuevo en `--text-strong`.
+- **Cita de la fuente (`.cite-block`):** el texto literal del anuncio sobre `--bg-sunk`, con un filo
+  de latón de 2 px a la izquierda, plegado a cinco líneas con «Leer entero», y debajo de dónde sale.
+- **Fórmula (`.formula`):** sobre `--bg-sunk`, una línea por cláusula y los operadores (−, ×, /, =)
+  en `--accent-text`.
+- **Fuentes:** nunca el identificador interno. Cada fuente se enseña con su nombre («ITP de la
+  vivienda usada · Comunidad de Madrid»), su cita legal o de dónde salen los valores, y el enlace
+  oficial diciendo de quién es (BOE, Catastro, INE…). Los nombres los da `GET /sources`. Se agrupan
+  en «Tus datos», «Normas», «Parámetros», «Datos públicos», «Modelos» y «Supuestos», cada grupo con su
+  recuento y plegado a cuatro. En un tema del plan, cada cifra lleva su fórmula y los números de sus
+  fuentes («Fuentes 1–8, 18»), y debajo va la lista numerada una sola vez, como el anexo del PDF.
+  Dentro de una tarjeta estrecha, la lista es compacta: solo nombres, y el detalle al pasar el
+  puntero.
+
 ## Pantallas
 
 ### Ofertas (`/mapa`)

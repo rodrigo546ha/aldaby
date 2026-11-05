@@ -5,7 +5,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { components } from "../lib/api-types";
 import { amount, formatValue, label, percentToRatio } from "../lib/format";
 import { TopicCharts } from "./Charts";
-import { FigureBlock, WarningItem } from "./FigureView";
+import { Changes, ExplainHead, Lede, notePoints, Points, SourceList } from "./Explain";
+import { FigureBlock } from "./FigureView";
 import { Callout } from "./Icon";
 import { Skeleton, VerdictFigure } from "./Motion";
 import { MunicipalityPicker } from "./MunicipalityPicker";
@@ -623,13 +624,7 @@ function Results({ result }: { result: InvestmentResponse }) {
   const scenario = result.pending_scenario;
   return (
     <>
-      {result.warnings.length > 0 && (
-        <ul className="warnings">
-          {result.warnings.map((w) => (
-            <WarningItem key={w} text={w} />
-          ))}
-        </ul>
-      )}
+      <Points items={notePoints(result.warnings, "warning")} label="Avisos del cálculo" />
       <section className="verdict" aria-labelledby="simulador-veredicto">
         <div className="verdict-head">
           <h2 id="simulador-veredicto">Tu plan</h2>
@@ -658,42 +653,24 @@ function Results({ result }: { result: InvestmentResponse }) {
           </FigureBlock>
         ))}
       </div>
-      {result.appreciation_notes.length > 0 && (
-        <ul className="warnings">
-          {result.appreciation_notes.map((n) => (
-            <li key={n}>{n}</li>
-          ))}
-        </ul>
-      )}
+      <Points items={notePoints(result.appreciation_notes)} label="Notas de la revalorización" />
       <div className="group">
         <h3>Si se convalidan las normas pendientes</h3>
         {scenario.changes.length === 0 ? (
           <p className="empty">Las normas pendientes de convalidación no cambian tu plan.</p>
         ) : (
           <>
-            <p>
-              Normas que entrarían: {scenario.new_rules.map((r) => r.id).join(", ")}.
-            </p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Cifra</th>
-                  <th>Hoy</th>
-                  <th>Con las normas pendientes</th>
-                  <th>Diferencia</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scenario.changes.map((c) => (
-                  <tr key={c.key}>
-                    <td>{label(c.key)}</td>
-                    <td>{formatValue(c.base.value, c.base.unit)}</td>
-                    <td>{formatValue(c.scenario.value, c.scenario.unit)}</td>
-                    <td>{formatValue(c.delta.value, c.delta.unit)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <Lede>Si se convalidan, estas cifras de tu plan cambian así:</Lede>
+            <Changes
+              rows={scenario.changes.map((c) => ({
+                key: c.key,
+                label: label(c.key),
+                before: formatValue(c.base.value, c.base.unit),
+                after: formatValue(c.scenario.value, c.scenario.unit),
+              }))}
+            />
+            <ExplainHead>Las normas que entrarían</ExplainHead>
+            <SourceList sources={scenario.new_rules} />
           </>
         )}
       </div>

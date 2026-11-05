@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { components } from "../lib/api-types";
 import { formatValue, label } from "../lib/format";
 import { Amount } from "./FigureView";
+import { Lede, Points, pointsFrom } from "./Explain";
 import { Skeleton } from "./Motion";
 
 type ExplanationOut = components["schemas"]["ExplanationOut"];
@@ -115,7 +116,7 @@ export function Advisor({ offerId, blockOf }: { offerId: string; blockOf: Map<st
           <button type="button" onClick={ask}>
             {failure ? "Volver a intentarlo" : "Explícame el plan"}
           </button>
-          <span className="hint">Lo importante de tu plan en tres fichas, con las cifras de abajo.</span>
+          <span className="lede">Lo importante de tu plan en tres fichas, con las cifras de abajo.</span>
         </div>
       )}
       {busy && (
@@ -162,13 +163,7 @@ export function Advisor({ offerId, blockOf }: { offerId: string; blockOf: Map<st
           {result.risks.length > 0 && (
             <div className="advisor-risks">
               <h4>Riesgos</h4>
-              <ul>
-                {result.risks.map((r, i) => (
-                  <li key={i}>
-                    <Segments parts={r} />
-                  </li>
-                ))}
-              </ul>
+              <Points items={result.risks.map((r, i) => ({ key: String(i), tone: "warning", text: <Segments parts={r} /> }))} />
             </div>
           )}
           {result.next_step && (
@@ -187,12 +182,8 @@ export function Advisor({ offerId, blockOf }: { offerId: string; blockOf: Map<st
       {result && result.extra_arguments.length > 0 && (
         <details className="advisor-extra">
           <summary>Otros motivos para pensarlo, del asesor ({result.extra_arguments.length})</summary>
-          <p className="hint">No salen de las cifras del plan: son su opinión.</p>
-          <ul className="arguments">
-            {result.extra_arguments.map((a) => (
-              <li key={a}>{a}</li>
-            ))}
-          </ul>
+          <Lede>No salen de las cifras del plan: son su opinión.</Lede>
+          <Points items={pointsFrom(result.extra_arguments, "warning")} />
         </details>
       )}
     </section>

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
-import { formatValue, label, SOURCE_KIND, type FigureOut } from "../lib/format";
+import { formatValue, label, type FigureOut } from "../lib/format";
+import { BlockSources, HowCalculated } from "./Explain";
 
 const PROVISIONAL_TITLE = "Depende de una norma sin verificar o de un supuesto por fijar";
 
@@ -29,9 +30,9 @@ export function FigureView({ figure, title, quiet = false }: { figure: FigureOut
       </div>
       <Range figure={figure} />
       {!quiet && (
-        <details>
+        <details className="figure-how">
           <summary>Cómo se calcula</summary>
-          <FigureSources figure={figure} />
+          <HowCalculated figure={figure} />
         </details>
       )}
     </div>
@@ -44,22 +45,6 @@ function Range({ figure }: { figure: FigureOut }) {
     <div className="figure-range">
       entre {formatValue(figure.low, figure.unit)} y {formatValue(figure.high, figure.unit)}
     </div>
-  );
-}
-
-function FigureSources({ figure }: { figure: FigureOut }) {
-  return (
-    <>
-      <p className="formula">{figure.formula}</p>
-      <ul className="sources">
-        {figure.sources.map((s) => (
-          <li key={`${s.kind}:${s.id}`}>
-            <span className="source-kind">{SOURCE_KIND[s.kind] ?? s.kind}</span> {s.id}
-            {s.provisional && <span className="source-provisional"> · provisional</span>}
-          </li>
-        ))}
-      </ul>
-    </>
   );
 }
 
@@ -119,16 +104,7 @@ export function FigureBlock({
                 </span>
               )}
             </summary>
-            <dl className="sources-list">
-              {figures.map((f) => (
-                <div key={f.key}>
-                  <dt>{label(f.key)}</dt>
-                  <dd>
-                    <FigureSources figure={f} />
-                  </dd>
-                </div>
-              ))}
-            </dl>
+            <BlockSources figures={figures} />
           </details>
         )}
       </div>
@@ -144,22 +120,5 @@ export function Amount({ text }: { text: string }) {
     <>
       <span className="figure-number">{m[1]}</span> <span className="figure-unit">{m[2]}</span>
     </>
-  );
-}
-
-/** Un aviso; si enumera muchas reglas, la lista se pliega para que el aviso se lea de un vistazo. */
-export function WarningItem({ text }: { text: string }) {
-  const m = text.match(/^(.+?):\s(.+?)\.?$/);
-  const ids = m ? m[2].split(", ") : [];
-  if (!m || ids.length < 4) return <li>{text}</li>;
-  return (
-    <li>
-      <details>
-        <summary>
-          {m[1]} {ids.length} reglas y parámetros
-        </summary>
-        <p className="warning-ids">{ids.join(", ")}.</p>
-      </details>
-    </li>
   );
 }

@@ -20,6 +20,7 @@ from housefinder.api import (
     profiles,
     search,
     simulate,
+    sources,
     territory,
     valuation,
     waitlist,
@@ -43,6 +44,7 @@ app.include_router(plans.router)
 app.include_router(auth.router)
 app.include_router(clients.router)
 app.include_router(branding.router)
+app.include_router(sources.router)
 
 
 @app.get("/health")

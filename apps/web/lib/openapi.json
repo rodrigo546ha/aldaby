@@ -2438,6 +2438,58 @@
         }
       }
     },
+    "/sources": {
+      "get": {
+        "tags": [
+          "fuentes"
+        ],
+        "summary": "Source Info",
+        "description": "Qué es cada fuente. `ref` es `tipo:identificador`; sin tipo, se busca entre las normas y\ndespués entre los parámetros (los avisos del plan citan solo el identificador).",
+        "operationId": "source_info_sources_get",
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 200,
+              "default": [],
+              "title": "Ref"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SourceInfoOut"
+                  },
+                  "title": "Response Source Info Sources Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -7551,6 +7603,51 @@
           "reason"
         ],
         "title": "SkippedOut"
+      },
+      "SourceInfoOut": {
+        "properties": {
+          "ref": {
+            "type": "string",
+            "title": "Ref"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "kind_label": {
+            "type": "string",
+            "title": "Kind Label"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ref",
+          "kind",
+          "kind_label",
+          "name",
+          "detail",
+          "url"
+        ],
+        "title": "SourceInfoOut"
       },
       "SourceOut": {
         "properties": {

@@ -14,6 +14,7 @@ import {
   type CatalogOut,
 } from "../lib/offers";
 import { Amount } from "./FigureView";
+import { ExplainHead, Lede, Quote, SourceLink } from "./Explain";
 import { Callout, Icon } from "./Icon";
 import { Skeleton } from "./Motion";
 import { OfferPhoto } from "./OfferPhoto";
@@ -260,9 +261,9 @@ function PropertySection({ offer }: { offer: CatalogOut }) {
       <h2 id="el-inmueble">El inmueble</h2>
       <Facts facts={facts} />
       {offer.description && (
-        <div>
-          <h3 className="facts-subhead">Cómo lo describe la fuente</h3>
-          <p className="source-quote">«{offer.description}»</p>
+        <div className="offer-quote">
+          <ExplainHead>Cómo lo describe la fuente</ExplainHead>
+          <Quote text={offer.description} cite={`Texto literal de ${offer.source_name ?? "la fuente"}`} />
         </div>
       )}
     </section>
@@ -273,20 +274,18 @@ function SourcesSection({ offer }: { offer: CatalogOut }) {
   return (
     <section className="section-card" aria-labelledby="fuentes">
       <h2 id="fuentes">Fuentes</h2>
-      <ul className="source-list">
-        {offer.source_url && (
-          <li>
-            <a href={offer.source_url} target="_blank" rel="noreferrer">
-              {offer.source_name === "Tu anuncio" ? "El anuncio" : `Ver en ${offer.source_name}`}
-              <Icon name="external" small />
-            </a>
-          </li>
-        )}
-      </ul>
-      {offer.original_title && offer.original_title !== offer.title && <p className="source-note">{offer.original_title}</p>}
-      <p className="source-note">
-        Los datos de la oferta salen de la fuente tal como los publica. Superficie, uso y año: Dirección General del Catastro.
-      </p>
+      <Lede>
+        Los datos de la oferta salen de la fuente tal como los publica. Superficie, uso y año: Dirección General del
+        Catastro.
+      </Lede>
+      {offer.source_url && (
+        <SourceLink href={offer.source_url}>
+          {offer.source_name === "Tu anuncio" ? "El anuncio" : `Ver en ${offer.source_name}`}
+        </SourceLink>
+      )}
+      {offer.original_title && offer.original_title !== offer.title && (
+        <p className="source-note">Título en la fuente: {offer.original_title}</p>
+      )}
     </section>
   );
 }

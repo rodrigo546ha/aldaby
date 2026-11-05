@@ -1029,6 +1029,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Source Info
+         * @description Qué es cada fuente. `ref` es `tipo:identificador`; sin tipo, se busca entre las normas y
+         *     después entre los parámetros (los avisos del plan citan solo el identificador).
+         */
+        get: operations["source_info_sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -2616,6 +2637,21 @@ export interface components {
             title: string | null;
             /** Reason */
             reason: string;
+        };
+        /** SourceInfoOut */
+        SourceInfoOut: {
+            /** Ref */
+            ref: string;
+            /** Kind */
+            kind: string;
+            /** Kind Label */
+            kind_label: string;
+            /** Name */
+            name: string;
+            /** Detail */
+            detail: string;
+            /** Url */
+            url: string | null;
         };
         /** SourceOut */
         SourceOut: {
@@ -4522,6 +4558,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BrandingOut"];
+                };
+            };
+        };
+    };
+    source_info_sources_get: {
+        parameters: {
+            query?: {
+                ref?: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceInfoOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

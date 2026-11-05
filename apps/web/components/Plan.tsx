@@ -8,7 +8,8 @@ import { Advisor } from "./Advisor";
 import { Bids } from "./Bids";
 import { TopicCharts } from "./Charts";
 import { BrandHeader, useBranding } from "./Branding";
-import { FigureBlock, WarningItem } from "./FigureView";
+import { Changes, ExplainHead, Lede, notePoints, Points, pointsFrom, Steps } from "./Explain";
+import { FigureBlock } from "./FigureView";
 import { Skeleton, VerdictFigure } from "./Motion";
 import { Icon } from "./Icon";
 import { OfferPhoto } from "./OfferPhoto";
@@ -142,11 +143,7 @@ export function Plan({ offerId }: { offerId: string }) {
       {plan.arguments.length > 0 && (
         <section className="plan-section" aria-labelledby="motivos">
           <h3 id="motivos">Motivos para pensarlo</h3>
-          <ul className="arguments">
-            {plan.arguments.map((a) => (
-              <li key={a.code}>{a.text}</li>
-            ))}
-          </ul>
+          <Points items={pointsFrom(plan.arguments.map((a) => a.text), "warning")} />
         </section>
       )}
 
@@ -164,11 +161,22 @@ export function Plan({ offerId }: { offerId: string }) {
           >
             <TopicCharts topic={s.id} figures={all} series={plan.series} breakdown={plan.breakdown} />
             {s.id === "hipoteca" && plan.cheapest_mortgage && (
-              <p className="hint">
-                Con la trayectoria esperada del Euríbor paga menos intereses{" "}
-                {MORTGAGE[plan.cheapest_mortgage] ?? plan.cheapest_mortgage}; con la subida de tipos,
-                la cuota más alta es menor en {MORTGAGE[plan.safest_mortgage ?? ""] ?? "—"}.
-              </p>
+              <Points
+                items={[
+                  {
+                    key: "hipoteca",
+                    tone: "info",
+                    title: "Fija o variable",
+                    text: (
+                      <>
+                        Con la trayectoria esperada del Euríbor paga menos intereses{" "}
+                        {MORTGAGE[plan.cheapest_mortgage] ?? plan.cheapest_mortgage}; con la subida de tipos, la cuota
+                        más alta es menor en {MORTGAGE[plan.safest_mortgage ?? ""] ?? "—"}.
+                      </>
+                    ),
+                  },
+                ]}
+              />
             )}
           </FigureBlock>
         ))}
@@ -212,14 +220,15 @@ export function Plan({ offerId }: { offerId: string }) {
               </span>
             </summary>
             <div className="block-body">
-              <ul className="changes">
-                {plan.pending_changes.map((c) => (
-                  <li key={c.key}>
-                    {label(c.key)}: {formatValue(c.base.value, c.base.unit)} →{" "}
-                    {formatValue(c.scenario.value, c.scenario.unit)}
-                  </li>
-                ))}
-              </ul>
+              <Lede>Hay normas pendientes de convalidación. Si se convalidan, estas cifras de tu plan cambian así:</Lede>
+              <Changes
+                rows={plan.pending_changes.map((c) => ({
+                  key: c.key,
+                  label: label(c.key),
+                  before: formatValue(c.base.value, c.base.unit),
+                  after: formatValue(c.scenario.value, c.scenario.unit),
+                }))}
+              />
             </div>
           </details>
         )}
@@ -235,23 +244,16 @@ export function Plan({ offerId }: { offerId: string }) {
             </span>
           </summary>
           <div className="block-body">
-            <p className="hint">Pasos sin verificar todavía: lee la fuente de cada uno.</p>
+            <Lede>Lo que hay que hacer, en orden. Los pasos aún no están verificados: antes de dar cada uno, lee su fuente.</Lede>
             {Object.keys(STAGES).map((stage) => {
               const steps = plan.roadmap.filter((s) => s.stage === stage);
               if (steps.length === 0) return null;
               return (
-                <div key={stage}>
-                  <h4>{STAGES[stage]}</h4>
-                  <ol className="roadmap">
-                    {steps.map((s) => (
-                      <li key={s.id}>
-                        <strong>{s.title}.</strong> {s.detail}{" "}
-                        <a href={s.source_url} target="_blank" rel="noreferrer">
-                          fuente
-                        </a>
-                      </li>
-                    ))}
-                  </ol>
+                <div key={stage} className="steps-stage">
+                  <ExplainHead as="h4">{STAGES[stage]}</ExplainHead>
+                  <Steps
+                    items={steps.map((s) => ({ key: s.id, title: s.title, text: s.detail, href: s.source_url }))}
+                  />
                 </div>
               );
             })}
@@ -263,11 +265,7 @@ export function Plan({ offerId }: { offerId: string }) {
       {plan.notes.length > 0 && (
         <details className="data-quality">
           <summary>Notas y calidad de los datos ({plan.notes.length})</summary>
-          <ul className="warnings">
-            {plan.notes.map((n) => (
-              <WarningItem key={n} text={n} />
-            ))}
-          </ul>
+          <Points items={notePoints(plan.notes)} />
         </details>
       )}
     </div>
