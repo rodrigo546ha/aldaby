@@ -16,6 +16,7 @@ from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from housefinder.advisor import conversations
 from housefinder.advisor.tools import (
     ExplainedPlan,
     PlanExplanation,
@@ -41,6 +42,7 @@ from housefinder.api.figures import FigureOut, SeriesOut, figure_out, series_out
 from housefinder.api.search import RentalAdviceOut, advice_out
 from housefinder.branding import service as branding
 from housefinder.core.figures import Figure
+from housefinder.core.retention import conversation_days
 from housefinder.crypto.envelope import KeyProvider
 from housefinder.db.connection import Connection
 from housefinder.db.profiles import latest_profile_id
@@ -285,21 +287,15 @@ def explanation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: C
     return StreamingResponse(stream(), media_type="text/event-stream", headers=STREAM_HEADERS)
 
 
-class TurnIn(BaseModel):
-    """Una vuelta anterior de la conversación, como la devolvió la API (`text`)."""
-
-    role: Literal["user", "assistant"]
-    content: str = Field(min_length=1, max_length=2000)
-
-
 class QuestionIn(BaseModel):
+    """La pregunta sola: el historial sale de la conversación guardada (ADR-0064)."""
+
     question: str = Field(min_length=2, max_length=500)
-    history: list[TurnIn] = Field(default_factory=list, max_length=6)
 
 
 class AdvisorAnswerOut(BaseModel):
     """La respuesta del asesor, ya comprobada. `answer` None: el texto no pasó la comprobación.
-    `text` es el mismo texto con sus marcadores, para mandarlo de vuelta en el historial."""
+    `text` es el mismo texto con sus marcadores, el que ve el modelo en el historial."""
 
     answer: list[SegmentOut] | None
     text: str | None
@@ -314,9 +310,9 @@ class AdvisorAnswerOut(BaseModel):
 def question(offer_id: UUID, body: QuestionIn, db: DbDep, keys: KeysDep, org: OrgDep,
              client: ClientDep, book: ParamBookDep, rules: RuleBookDep, llm: LLMDep,
              current: SessionDep) -> StreamingResponse:
-    """Una pregunta sobre el plan de la oferta. No se guarda: la conversación vive en la web."""
+    """Una pregunta sobre el plan de la oferta. Se guarda cifrada en su conversación (ADR-0064)."""
     profile, _ = _plan(db, keys, org, client, book, rules, offer_id, is_particular(current))
-    history = [{"role": t.role, "content": t.content} for t in body.history]
+    history = conversations.history(conversations.load(db, keys, org, client, offer_id))
     gate = plan_gate(db, org, is_particular(current))  # el plan de otra oferta gasta cupo
     events: queue.Queue[str | None] = queue.Queue()
 
@@ -327,7 +323,11 @@ def question(offer_id: UUID, body: QuestionIn, db: DbDep, keys: KeysDep, org: Or
         try:
             answer = ask_about_offer(db, book, llm, org, offer_id, body.question, history,
                                      profile, rules, progress=tell, plan_gate=gate)
-            events.put(_event("resultado", answer_out(answer).model_dump(mode="json")))
+            shown = answer_out(answer)
+            conversations.append(db, keys, org, client, offer_id, body.question,
+                                 shown.model_dump(mode="json"), shown.text)
+            db.commit()
+            events.put(_event("resultado", shown.model_dump(mode="json")))
         except Exception as exc:  # ni la pregunta ni la respuesta van al registro
             log.error("La pregunta al asesor falló: %s", type(exc).__name__)
             events.put(_event("error", {"detail": "El asesor no ha podido terminar"}))
@@ -340,6 +340,36 @@ def question(offer_id: UUID, body: QuestionIn, db: DbDep, keys: KeysDep, org: Or
             yield item
 
     return StreamingResponse(stream(), media_type="text/event-stream", headers=STREAM_HEADERS)
+
+
+class TurnOut(BaseModel):
+    question: str
+    answer: AdvisorAnswerOut
+    at: str  # ISO 8601
+
+
+class ConversationOut(BaseModel):
+    """La conversación guardada (ADR-0064): se borra a los `retention_days` días de la última
+    pregunta."""
+
+    turns: list[TurnOut]
+    retention_days: int
+
+
+@router.get("/offers/{offer_id}/conversation", response_model=ConversationOut)
+def conversation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep,
+                 client: ClientDep) -> ConversationOut:
+    turns = conversations.load(db, keys, org, client, offer_id)
+    return ConversationOut(
+        turns=[TurnOut(question=t.question, answer=AdvisorAnswerOut.model_validate(t.answer),
+                       at=t.at) for t in turns],
+        retention_days=conversation_days())
+
+
+@router.delete("/offers/{offer_id}/conversation", status_code=204)
+def forget_conversation(offer_id: UUID, db: DbDep, org: OrgDep, client: ClientDep) -> None:
+    conversations.forget(db, org, client, offer_id)
+    db.commit()
 
 
 def answer_out(answer: AgentAnswer) -> AdvisorAnswerOut:

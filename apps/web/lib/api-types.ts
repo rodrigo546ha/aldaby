@@ -913,10 +913,28 @@ export interface paths {
         put?: never;
         /**
          * Question
-         * @description Una pregunta sobre el plan de la oferta. No se guarda: la conversación vive en la web.
+         * @description Una pregunta sobre el plan de la oferta. Se guarda cifrada en su conversación (ADR-0064).
          */
         post: operations["question_plans_offers__offer_id__questions_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/offers/{offer_id}/conversation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Conversation */
+        get: operations["conversation_plans_offers__offer_id__conversation_get"];
+        put?: never;
+        post?: never;
+        /** Forget Conversation */
+        delete: operations["forget_conversation_plans_offers__offer_id__conversation_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1152,7 +1170,7 @@ export interface components {
         /**
          * AdvisorAnswerOut
          * @description La respuesta del asesor, ya comprobada. `answer` None: el texto no pasó la comprobación.
-         *     `text` es el mismo texto con sus marcadores, para mandarlo de vuelta en el historial.
+         *     `text` es el mismo texto con sus marcadores, el que ve el modelo en el historial.
          */
         AdvisorAnswerOut: {
             /** Answer */
@@ -1632,6 +1650,17 @@ export interface components {
              * Format: uuid
              */
             profile_id: string;
+        };
+        /**
+         * ConversationOut
+         * @description La conversación guardada (ADR-0064): se borra a los `retention_days` días de la última
+         *     pregunta.
+         */
+        ConversationOut: {
+            /** Turns */
+            turns: components["schemas"]["TurnOut"][];
+            /** Retention Days */
+            retention_days: number;
         };
         /** CorrectionOut */
         CorrectionOut: {
@@ -2410,12 +2439,13 @@ export interface components {
              */
             deed_agreement: "ley" | "comprador" | "vendedor";
         };
-        /** QuestionIn */
+        /**
+         * QuestionIn
+         * @description La pregunta sola: el historial sale de la conversación guardada (ADR-0064).
+         */
         QuestionIn: {
             /** Question */
             question: string;
-            /** History */
-            history?: components["schemas"]["TurnIn"][];
         };
         /** QuestionOut */
         QuestionOut: {
@@ -2805,18 +2835,13 @@ export interface components {
             /** Url */
             url?: string | null;
         };
-        /**
-         * TurnIn
-         * @description Una vuelta anterior de la conversación, como la devolvió la API (`text`).
-         */
-        TurnIn: {
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "user" | "assistant";
-            /** Content */
-            content: string;
+        /** TurnOut */
+        TurnOut: {
+            /** Question */
+            question: string;
+            answer: components["schemas"]["AdvisorAnswerOut"];
+            /** At */
+            at: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -4425,6 +4450,66 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AdvisorAnswerOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    conversation_plans_offers__offer_id__conversation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forget_conversation_plans_offers__offer_id__conversation_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

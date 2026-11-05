@@ -263,29 +263,43 @@ def test_api_del_plan(searchable, org):  # noqa: F811
         assert len(bids["levels"]) == 7 and float(bids["deposit"]["value"]) == 30000
         assert float(bids["charges"]["value"]) == 2500  # la de 0 € no cuenta
         assert all(level["stage"] for level in bids["levels"])
-        # Preguntas sobre el plan (ADR-0063): la conversación la manda la web y no se guarda
-        llm_text = "Con el habitual te quedarían {{fig:cashflow.monthly_after_tax}}."
-        llm.turns.extend([
-            ChatTurn(None, (ToolCall("c2", "plan_completo", f'{{"oferta": "{short}"}}'),)),
-            ChatTurn(llm_text),
-        ])
-        history = [{"role": "user", "content": "¿Qué me queda al mes?"},
-                   {"role": "assistant", "content": "Te queda {{fig:cashflow.monthly_after_tax}}."}]
-        asked = client.post(f"/plans/offers/{offer}/questions",
-                            json={"question": "¿Y si lo alquilo?", "history": history})
-        assert asked.headers["content-type"].startswith("text/event-stream")
-        name, answered = [(block.split("\n")[0].removeprefix("event: "),
-                           json.loads(block.split("\n")[1].removeprefix("data: ")))
-                          for block in asked.text.strip().split("\n\n")][-1]
-        assert name == "resultado" and answered["failure"] is None
-        assert answered["text"] == llm_text
+        # Preguntas sobre el plan (ADR-0063) en una conversación guardada cifrada (ADR-0064)
+        def ask(question: str, answer: str) -> dict:
+            llm.turns.extend([
+                ChatTurn(None, (ToolCall("c2", "plan_completo", f'{{"oferta": "{short}"}}'),)),
+                ChatTurn(answer),
+            ])
+            asked = client.post(f"/plans/offers/{offer}/questions", json={"question": question})
+            assert asked.headers["content-type"].startswith("text/event-stream")
+            name, answered = [(block.split("\n")[0].removeprefix("event: "),
+                               json.loads(block.split("\n")[1].removeprefix("data: ")))
+                              for block in asked.text.strip().split("\n\n")][-1]
+            assert name == "resultado" and answered["failure"] is None
+            return answered
+
+        first = "Te queda {{fig:cashflow.monthly_after_tax}}."
+        assert ask("¿Qué me queda al mes?", first)["text"] == first
+        second = "Con el habitual te quedarían {{fig:cashflow.monthly_after_tax}}."
+        answered = ask("¿Y si lo alquilo?", second)
         assert [s["kind"] for s in answered["answer"]] == ["text", "figure", "text"]
-        seen = llm.chats[-2]  # la primera llamada de esta pregunta
-        assert seen[1:3] == history and f"{{{{oferta:{short}}}}}" in seen[3]["content"]
+        # El historial lo pone el servidor con lo guardado, no la web
+        seen = llm.chats[-2]  # la primera llamada de la segunda pregunta
+        assert seen[1:3] == [{"role": "user", "content": "¿Qué me queda al mes?"},
+                             {"role": "assistant", "content": first}]
+        assert f"{{{{oferta:{short}}}}}" in seen[3]["content"]
+        saved = client.get(f"/plans/offers/{offer}/conversation").json()
+        assert [t["question"] for t in saved["turns"]] == ["¿Qué me queda al mes?",
+                                                         "¿Y si lo alquilo?"]
+        assert saved["turns"][1]["answer"]["text"] == second and saved["retention_days"] == 30
+        with psycopg.connect(searchable) as conn:  # en la base, solo bytes cifrados
+            stored = bytes(conn.execute(
+                "SELECT data_enc FROM advisor_conversations WHERE offer_id = %s", (offer,)
+            ).fetchone()[0])
+        assert b"alquilo" not in stored
         too_long = {"question": "x" * 501}
         assert client.post(f"/plans/offers/{offer}/questions", json=too_long).status_code == 422
-        system_turn = {"question": "hola", "history": [{"role": "system", "content": "x"}]}
-        assert client.post(f"/plans/offers/{offer}/questions", json=system_turn).status_code == 422
+        assert client.delete(f"/plans/offers/{offer}/conversation").status_code == 204
+        assert client.get(f"/plans/offers/{offer}/conversation").json()["turns"] == []
     finally:
         app.dependency_overrides.clear()
 

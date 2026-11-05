@@ -19,7 +19,8 @@ El usuario no puede preguntar «¿y si lo alquilo por habitaciones?» ni seguir 
 
    Las comprobaciones de la explicación van antes de empezar: perfil, cliente y nivel gratuito.
    Preguntar sobre una oferta cuenta como abrir su plan.
-2. **El servidor no guarda la conversación.** La conversación puede llevar datos personales (lo
+2. **El servidor no guarda la conversación.** *Sustituido por ADR-0064: se guarda cifrada 30 días
+   y el historial lo pone el servidor.* La conversación puede llevar datos personales (lo
    que el usuario cuenta de sí mismo):
    - vive en la memoria de la página y se pierde al recargarla;
    - la web manda las últimas vueltas en cada pregunta: hasta 6 mensajes de 2.000 caracteres;

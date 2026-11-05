@@ -1,8 +1,8 @@
 ---
 id: privacidad
 title: Política de privacidad
-version: 3
-effective_from: 2026-11-02
+version: 4
+effective_from: 2026-11-05
 requires_acceptance: true
 verified: false
 ---
@@ -40,7 +40,8 @@ Para calcular tu plan guardamos lo que nos dices de ti y lo que sale de los docu
 - ingresos, deudas, ahorro y datos fiscales;
 - años de nacimiento de tus descendientes;
 - objetivos y preferencias de inversión;
-- las respuestas de la entrevista y los planes que abres.
+- las respuestas de la entrevista y los planes que abres;
+- las preguntas que haces al asesor sobre un plan y sus respuestas.
 
 Todo eso se guarda cifrado. Los documentos se leen en memoria y no se guardan. No tratamos
 categorías especiales de datos.
@@ -78,6 +79,8 @@ campaña (`utm_source`), si la hay, para saber si la web se entiende y de dónde
 - La cuenta y, si eres particular, tu perfil y tus planes, mientras la cuenta esté activa. Si la
   cierras, se borran.
 - El correo de la lista de espera, hasta que te demos acceso o nos pidas borrarlo.
+- Las conversaciones con el asesor, {{plazo_conversaciones}} desde la última pregunta. Puedes
+  borrarlas antes desde el plan.
 - Una sesión caduca a los 14 días sin uso.
 - Los enlaces para elegir contraseña caducan a los 7 días.
 - Las copias de seguridad cifradas se conservan {{plazo_copias}}.
@@ -93,7 +96,8 @@ dirección o la referencia catastral del inmueble, nunca datos de personas.
 
 ## Seguridad
 
-- Los perfiles, las entrevistas, los planes y los nombres de los clientes se guardan cifrados.
+- Los perfiles, las entrevistas, los planes, las conversaciones con el asesor y los nombres de los
+  clientes se guardan cifrados.
 - Los documentos (nóminas, declaraciones, extractos) se leen en memoria y no se guardan; de ellos
   quedan solo los datos extraídos con su cita, con los IBAN y los DNI tapados.
 - Cada organización solo ve sus datos, también en la base de datos.

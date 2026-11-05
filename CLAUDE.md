@@ -50,6 +50,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     core/figures.py       Figure, Series (año a año, ADR-0050), SourceRef, money() y ratio(): trazabilidad de cifras
     core/dated.py         lector común de registros con fecha y territorio
     core/regions.py       comunidad autónoma de cada provincia (data/territory/provincias.yaml)
+    core/retention.py     plazos de conservación que citan los textos legales (data/conservacion.yaml)
     engines/mortgage.py   cuota, amortización, capacidad, estrés, comparación fija/variable/mixta
     engines/rates.py      trayectoria del índice (RatePath) y condiciones de tipo
     engines/cashflow.py   cash flow, límite de intereses y su arrastre, rentabilidad personal
@@ -101,6 +102,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/waitlist.py        lista de espera de la página de presentación (ADR-0041)
     db/tiers.py           planes completos usados en el nivel gratuito (ADR-0041)
     db/interviews.py      entrevistas de perfil (solo bytes cifrados)
+    db/conversations.py   conversaciones con el asesor (solo bytes cifrados, ADR-0064)
     crypto/               cifrado de sobre AES-256-GCM y claves maestras (ADR-0011)
     profiles/             perfil del inversor: modelo que se redacta, almacén cifrado, entrevista
                           con preguntas fijas (interview.py, ADR-0020) y clientes (clients.py, ADR-0029)
@@ -132,7 +134,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
                           y, con modelo de salida, la respuesta es un JSON en fichas (ADR-0052);
                           con historial, las preguntas de la web sobre un plan (ADR-0063)
     advisor/              herramientas del agente sobre los motores (solo lectura, argumentos sin números),
-                          glosario de cifras para el modelo, banco de preguntas (evaluation.py) y CLI
+                          glosario de cifras para el modelo, banco de preguntas (evaluation.py) y CLI;
+                          conversaciones cifradas 30 días (conversations.py, ADR-0064)
     documents/            texto de un documento del usuario: PDF, escaneo o foto con OCR local; solo aquí
                           pypdf, pypdfium2 y pytesseract (ADR-0021)
     watch/                vigilancia del BOE y del BOCM: filtros, lectura y tareas (F2.6)
@@ -168,6 +171,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   data/params/            parámetros con fecha en YAML (ADR-0005)
   data/legal/             textos legales en Markdown con versión y datos del titular (ADR-0039)
   data/niveles.yaml       límites del nivel gratuito de los particulares (ADR-0041)
+  data/conservacion.yaml  plazos de conservación decididos (conversaciones con el asesor, ADR-0064)
   data/watch/             filtros de la vigilancia del BOE y del BOCM
   data/jobs/              programaciones diarias de la cola (ADR-0010)
   data/profiles/          comunidades autónomas por código INE, para la residencia del perfil

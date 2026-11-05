@@ -8,6 +8,9 @@ from uuid import UUID
 
 import httpx
 
+from housefinder.core.retention import conversation_days
+from housefinder.db.connection import connect
+from housefinder.db.conversations import purge_expired
 from housefinder.feeds.run import run_feeds
 from housefinder.ingestion import ine_adrh, ine_ipc_alquiler, ine_ipc_general, ine_ipv, ine_sections
 from housefinder.jobs.worker import Handler
@@ -66,6 +69,13 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
     def general_index(payload: dict[str, Any]) -> dict[str, Any]:
         return ine_ipc_general.load(conninfo)  # las 19 comunidades en una sola tabla
 
+    def purge_conversations(payload: dict[str, Any]) -> dict[str, Any]:
+        """Borra las conversaciones con el asesor caducadas (ADR-0064)."""
+        with connect(conninfo) as conn:
+            deleted = purge_expired(conn, conversation_days())
+            conn.commit()
+        return {"deleted": deleted}
+
     def offers_boe_auctions(payload: dict[str, Any]) -> dict[str, Any]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
             all_spain = bool(payload.get("all_spain", True))
@@ -104,4 +114,5 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
             "offers_patrimonio": offers_patrimonio, "offers_boe_portal": offers_boe_portal,
             "offers_agency_feeds": offers_agency_feeds, "offers_relocate": offers_relocate,
             "ine_ipv": price_index,
-            "ine_ipc_alquiler": rent_index, "ine_ipc_general": general_index}
+            "ine_ipc_alquiler": rent_index, "ine_ipc_general": general_index,
+            "purge_conversations": purge_conversations}

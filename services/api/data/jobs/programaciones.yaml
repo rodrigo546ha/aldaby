@@ -97,3 +97,10 @@ schedules:
     at: "11:40"
     every_hours: 168
     payload: {}
+
+  # Conversaciones con el asesor caducadas (ADR-0064): se borran cada noche
+  - name: borrado-conversaciones
+    kind: purge_conversations
+    at: "04:10"
+    every_hours: 24
+    payload: {}

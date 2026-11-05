@@ -322,7 +322,8 @@ umbral fijado en F0, y cada estimación con su rango.
       `python -m housefinder.advisor preguntar "…"`. El plan completo de una oferta, en F6.7.
       *Web (ADR-0063):* preguntas sobre el plan en su página, con la conversación en la memoria de
       la página y las cifras de cada respuesta comprobadas en esa vuelta
-      (`POST /plans/offers/{id}/questions`).
+      (`POST /plans/offers/{id}/questions`). La conversación se guarda cifrada 30 días desde la
+      última pregunta y el usuario puede borrarla (ADR-0064).
 - [x] F6.5 Búsqueda inversa: puntuación de ofertas según el resultado esperado para el perfil y sus
       restricciones (cash flow mínimo, riesgo, gestión).
       *Hecho (ADR-0022, ADR-0023):* el plan del usuario en cada oferta con supuestos estimados de

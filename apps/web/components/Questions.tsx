@@ -1,23 +1,23 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
 import { events, Segments, stageLabel, type Stage } from "./Advisor";
 import { Points, pointsFrom } from "./Explain";
 
 type AdvisorAnswerOut = components["schemas"]["AdvisorAnswerOut"];
+type ConversationOut = components["schemas"]["ConversationOut"];
 
-// Preguntas al asesor sobre el plan (ADR-0063). La conversación vive solo en esta página: la API
-// no la guarda. Cada respuesta llega entera y comprobada; sus cifras son Figures del plan.
+// Preguntas al asesor sobre el plan (ADR-0063). La API guarda la conversación cifrada y la borra a
+// los días que diga (ADR-0064); el historial que ve el modelo lo pone ella. Cada respuesta llega
+// entera y comprobada; sus cifras son Figures del plan.
 const SUGGESTIONS = [
   "¿Y si la alquilo por habitaciones?",
   "¿Qué pasa si suben los tipos?",
   "¿Cómo es la zona?",
   "¿Está cara frente a lo que vale?",
 ];
-const MAX_HISTORY = 6; // mensajes; la API no acepta más
-
 type Turn = { question: string; answer: AdvisorAnswerOut | null; failure: string | null };
 
 export function Questions({ offerId }: { offerId: string }) {
@@ -26,18 +26,38 @@ export function Questions({ offerId }: { offerId: string }) {
   const [stages, setStages] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
+  const [retention, setRetention] = useState<number | null>(null);
+
+  // La conversación guardada de esta oferta, si la hay
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/plans/offers/${offerId}/conversation`)
+      .then((resp) => (resp.ok ? (resp.json() as Promise<ConversationOut>) : null))
+      .then((saved) => {
+        if (!alive || !saved) return;
+        setRetention(saved.retention_days);
+        setTurns(
+          saved.turns.map((t) => ({
+            question: t.question,
+            answer: t.answer,
+            failure: t.answer.answer ? null : "El asesor no pudo contestar con cifras comprobadas.",
+          })),
+        );
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [offerId]);
+
+  async function forget() {
+    const resp = await fetch(`/api/plans/offers/${offerId}/conversation`, { method: "DELETE" });
+    if (resp.ok) setTurns([]);
+  }
 
   async function ask(question: string) {
     const text = question.trim();
     if (text.length < 2 || busy) return;
-    // Solo las respuestas que pasaron la comprobación, con sus marcadores, y las últimas vueltas
-    const history = turns
-      .filter((t) => t.answer?.text)
-      .flatMap((t) => [
-        { role: "user" as const, content: t.question },
-        { role: "assistant" as const, content: t.answer!.text! },
-      ])
-      .slice(-MAX_HISTORY);
     setBusy(true);
     setPending(text);
     setStages([]);
@@ -48,7 +68,7 @@ export function Questions({ offerId }: { offerId: string }) {
       const resp = await fetch(`/api/plans/offers/${offerId}/questions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: text, history }),
+        body: JSON.stringify({ question: text }),
       });
       if (!resp.ok || !resp.body) {
         const body = await resp.json().catch(() => ({}));
@@ -127,7 +147,9 @@ export function Questions({ offerId }: { offerId: string }) {
       )}
       <form className="rent-expectation" onSubmit={submit}>
         <label htmlFor={`question-${offerId}`}>
-          Tu pregunta sobre este plan. La conversación no se guarda: se pierde al salir de la página.
+          Tu pregunta sobre este plan. La conversación se guarda cifrada
+          {retention ? ` ${retention} días desde la última pregunta` : ""} y puedes borrarla cuando
+          quieras.
         </label>
         <input
           id={`question-${offerId}`}
@@ -141,6 +163,11 @@ export function Questions({ offerId }: { offerId: string }) {
           Preguntar
         </button>
       </form>
+      {turns.length > 0 && !busy && (
+        <button type="button" className="link-button" onClick={() => void forget()}>
+          Borrar la conversación
+        </button>
+      )}
     </section>
   );
 }

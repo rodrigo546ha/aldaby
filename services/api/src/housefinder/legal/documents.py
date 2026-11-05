@@ -2,8 +2,8 @@
 
 Cada documento es un Markdown de `data/legal/` con su cabecera YAML (versión, fecha, si hay que
 aceptarlo y si lo ha revisado el abogado). Los huecos `{{campo}}` se rellenan con
-`data/legal/titular.yaml` (y el límite del nivel gratuito, de `data/niveles.yaml`); un campo vacío
-sale como «[pendiente: …]», nunca inventado.
+`data/legal/titular.yaml` (el límite del nivel gratuito, de `data/niveles.yaml`, y los plazos de
+`data/conservacion.yaml`); un campo vacío sale como «[pendiente: …]», nunca inventado.
 """
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ LABELS = {
     "web": "dominio", "alojamiento": "proveedor de alojamiento",
     "plazo_copias": "plazo de conservación de las copias",
     "planes_gratuitos": "planes del nivel gratuito",
+    "plazo_conversaciones": "plazo de conservación de las conversaciones con el asesor",
 }
 
 
@@ -85,6 +86,10 @@ def load(directory: Path | None = None) -> dict[str, LegalDocument]:
     if tiers.exists():
         holder["planes_gratuitos"] = yaml.safe_load(
             tiers.read_text(encoding="utf-8"))["gratuito"]["planes_completos"]
+    retention = folder.parent / "conservacion.yaml"  # plazos de conservación (ADR-0064)
+    if retention.exists():
+        days = yaml.safe_load(retention.read_text(encoding="utf-8"))["conversaciones_dias"]
+        holder["plazo_conversaciones"] = f"{days} días"
     documents = {}
     for path in sorted(folder.glob("*.md")):
         doc = parse(path.read_text(encoding="utf-8"), holder)

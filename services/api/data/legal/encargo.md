@@ -1,8 +1,8 @@
 ---
 id: encargo
 title: Contrato de encargo del tratamiento
-version: 1
-effective_from: 2026-11-02
+version: 2
+effective_from: 2026-11-05
 requires_acceptance: true
 verified: false
 audience: [profesional]
@@ -27,7 +27,9 @@ El encargado trata los datos de los clientes del responsable solo para prestarle
   - años de nacimiento de los descendientes;
   - objetivos y preferencias de inversión;
   - las respuestas de la entrevista;
-  - los datos que se extraigan de sus documentos.
+  - los datos que se extraigan de sus documentos;
+  - las preguntas al asesor sobre sus planes y sus respuestas, que se borran a los
+    {{plazo_conversaciones}} de la última pregunta.
 - **Categorías especiales:** no se tratan. Los documentos se leen en memoria y no se guardan, y las
   citas no copian categorías especiales.
 
@@ -36,7 +38,7 @@ El encargado trata los datos de los clientes del responsable solo para prestarle
 - Tratar los datos solo según las instrucciones del responsable, que son el uso de la herramienta.
 - Confidencialidad de las personas autorizadas a tratarlos.
 - **Medidas de seguridad:**
-  - cifrado de perfiles, entrevistas, planes y nombres;
+  - cifrado de perfiles, entrevistas, planes, conversaciones con el asesor y nombres;
   - separación por organización en la base de datos;
   - contraseñas con argon2id;
   - sesiones con cookie segura;
@@ -44,7 +46,7 @@ El encargado trata los datos de los clientes del responsable solo para prestarle
 - **Subencargados:** el alojamiento, {{alojamiento}}. El responsable autoriza este subencargado y
   será avisado de cualquier cambio para poder oponerse.
 - Ayudar al responsable a atender los derechos de los clientes: el borrado de un cliente borra su
-  nombre, sus perfiles y su entrevista.
+  nombre, sus perfiles, su entrevista y sus conversaciones con el asesor.
 - Avisar al responsable sin dilación de cualquier brecha de seguridad que afecte a sus datos.
 - Al terminar el servicio, borrar los datos o devolverlos, a elección del responsable. Las copias
   de seguridad se borran al caducar ({{plazo_copias}}).

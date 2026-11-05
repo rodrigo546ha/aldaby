@@ -2153,7 +2153,7 @@
           "plan"
         ],
         "summary": "Question",
-        "description": "Una pregunta sobre el plan de la oferta. No se guarda: la conversación vive en la web.",
+        "description": "Una pregunta sobre el plan de la oferta. Se guarda cifrada en su conversación (ADR-0064).",
         "operationId": "question_plans_offers__offer_id__questions_post",
         "parameters": [
           {
@@ -2187,6 +2187,83 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plans/offers/{offer_id}/conversation": {
+      "get": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Conversation",
+        "operationId": "conversation_plans_offers__offer_id__conversation_get",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Forget Conversation",
+        "operationId": "forget_conversation_plans_offers__offer_id__conversation_delete",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",
@@ -2745,7 +2822,7 @@
           "notes"
         ],
         "title": "AdvisorAnswerOut",
-        "description": "La respuesta del asesor, ya comprobada. `answer` None: el texto no pasó la comprobación.\n`text` es el mismo texto con sus marcadores, para mandarlo de vuelta en el historial."
+        "description": "La respuesta del asesor, ya comprobada. `answer` None: el texto no pasó la comprobación.\n`text` es el mismo texto con sus marcadores, el que ve el modelo en el historial."
       },
       "AffordabilityRequest": {
         "properties": {
@@ -4329,6 +4406,28 @@
           "profile_id"
         ],
         "title": "ConfirmOut"
+      },
+      "ConversationOut": {
+        "properties": {
+          "turns": {
+            "items": {
+              "$ref": "#/components/schemas/TurnOut"
+            },
+            "type": "array",
+            "title": "Turns"
+          },
+          "retention_days": {
+            "type": "integer",
+            "title": "Retention Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "turns",
+          "retention_days"
+        ],
+        "title": "ConversationOut",
+        "description": "La conversación guardada (ADR-0064): se borra a los `retention_days` días de la última\npregunta."
       },
       "CorrectionOut": {
         "properties": {
@@ -6842,21 +6941,14 @@
             "maxLength": 500,
             "minLength": 2,
             "title": "Question"
-          },
-          "history": {
-            "items": {
-              "$ref": "#/components/schemas/TurnIn"
-            },
-            "type": "array",
-            "maxItems": 6,
-            "title": "History"
           }
         },
         "type": "object",
         "required": [
           "question"
         ],
-        "title": "QuestionIn"
+        "title": "QuestionIn",
+        "description": "La pregunta sola: el historial sale de la conversación guardada (ADR-0064)."
       },
       "QuestionOut": {
         "properties": {
@@ -8074,30 +8166,27 @@
         ],
         "title": "TextIn"
       },
-      "TurnIn": {
+      "TurnOut": {
         "properties": {
-          "role": {
+          "question": {
             "type": "string",
-            "enum": [
-              "user",
-              "assistant"
-            ],
-            "title": "Role"
+            "title": "Question"
           },
-          "content": {
+          "answer": {
+            "$ref": "#/components/schemas/AdvisorAnswerOut"
+          },
+          "at": {
             "type": "string",
-            "maxLength": 2000,
-            "minLength": 1,
-            "title": "Content"
+            "title": "At"
           }
         },
         "type": "object",
         "required": [
-          "role",
-          "content"
+          "question",
+          "answer",
+          "at"
         ],
-        "title": "TurnIn",
-        "description": "Una vuelta anterior de la conversación, como la devolvió la API (`text`)."
+        "title": "TurnOut"
       },
       "ValidationError": {
         "properties": {

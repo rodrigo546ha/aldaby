@@ -36,9 +36,9 @@ def test_los_textos_del_repositorio():
     docs = load()
     assert set(docs) == {"aviso-legal", "condiciones", "condiciones-particulares", "privacidad",
                          "encargo", "cookies", "clausula-clientes"}
-    assert to_accept(docs) == {"condiciones": 1, "privacidad": 3, "encargo": 1}
+    assert to_accept(docs) == {"condiciones": 1, "privacidad": 4, "encargo": 2}
     # El particular no firma el encargo: Aldaby es el responsable de sus datos (ADR-0041).
-    assert to_accept(docs, "particular") == {"condiciones-particulares": 1, "privacidad": 3}
+    assert to_accept(docs, "particular") == {"condiciones-particulares": 1, "privacidad": 4}
     assert to_accept(docs, "admin") == to_accept(docs, "profesional")
     assert not any(d.verified for d in docs.values())  # hasta que los revise el abogado
     # Lo que dicen tiene que ser lo que hace el código: las dos cookies y sus duraciones.
@@ -55,9 +55,9 @@ def test_los_textos_del_repositorio():
 def test_que_falta_por_aceptar():
     docs = load()
     assert pending(docs, {}) == ["condiciones", "encargo", "privacidad"]
-    assert pending(docs, {"condiciones": 1, "encargo": 1, "privacidad": 3}) == []
-    assert pending(docs, {"condiciones": 1, "encargo": 1, "privacidad": 2}) == ["privacidad"]
-    assert pending(docs, {"condiciones": 1, "privacidad": 3}, "particular") == [
+    assert pending(docs, {"condiciones": 1, "encargo": 2, "privacidad": 4}) == []
+    assert pending(docs, {"condiciones": 1, "encargo": 2, "privacidad": 2}) == ["privacidad"]
+    assert pending(docs, {"condiciones": 1, "privacidad": 4}, "particular") == [
         "condiciones-particulares"]
 
 
@@ -116,7 +116,7 @@ def test_sin_aceptar_no_se_entra_en_los_datos(client, migrated_database: str):
     partial = client.post("/legal/accept", json={"documents": {"condiciones": 1}})
     assert partial.json() == {"pending": ["encargo", "privacidad"]}
     assert client.get("/offers").status_code == 403
-    done = client.post("/legal/accept", json={"documents": {"encargo": 1, "privacidad": 3}})
+    done = client.post("/legal/accept", json={"documents": {"encargo": 2, "privacidad": 4}})
     assert done.json() == {"pending": []}
     assert client.get("/offers").status_code == 200
     assert client.get("/auth/me").json()["pending_legal"] == []
