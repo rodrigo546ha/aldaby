@@ -109,9 +109,9 @@ def appreciation_scenarios(
         distance = _pct(abs(municipal.median / provincial.median - 1), 0)
         notes.append(
             f"La renta del municipio está un {distance} "
-            f"{position} de la de la provincia ({municipal.year}). En 2011–2017 los municipios "
-            "caros se alejaron y desde 2018 los baratos se acercaron: el escenario optimista "
-            "toma lo que le favorece y el conservador, lo contrario.")
+            f"{position} de la de la provincia ({municipal.year}). Según la época, los municipios "
+            "baratos de la comunidad se han acercado a su provincia o se han alejado: el "
+            "escenario optimista toma lo que le favorece y el conservador, lo contrario.")
     if conv is None:
         betas = dict.fromkeys(QUANTILES, Decimal(0))
         step_years = STEP_YEARS

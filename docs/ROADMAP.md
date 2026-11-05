@@ -262,8 +262,11 @@ sección censal asignada.
       *Mejora (ADR-0060):* la renta sube en la TIR desde el segundo año con la mediana de las
       ventanas del IPC de alquiler de la comunidad; los gastos fijos siguen constantes.
       *Toda España:* la valoración y los escenarios usan la comunidad de cada provincia
-      (`core/regions.py`), no solo Madrid. La convergencia municipal solo está estimada para
-      Madrid: en el resto, los escenarios son los del ciclo del IPV de la comunidad.
+      (`core/regions.py`), no solo Madrid. Convergencia municipal estimada en las 15 comunidades
+      con SERPAVI desde 2011, con base b = 0 (el b global no predice mejor que cero fuera de
+      muestra) y extremos P25–P75 (`make backtest CONVERGENCIA=1`,
+      `docs/research/f5-5-convergencia-por-comunidad.md`). Sin ella: País Vasco, Navarra, Ceuta
+      y Melilla, con los escenarios del ciclo del IPV de la comunidad.
 - [x] F5.6 Backtesting: qué habría estimado el modelo con datos de años anteriores.
       *Hecho:* `python -m housefinder.valuation.backtest` (`make backtest`); informe en
       `docs/research/f5-6-backtesting.md`. Renta por sección a un año: 2,08 % de error mediano

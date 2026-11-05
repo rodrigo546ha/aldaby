@@ -160,8 +160,23 @@ def convergence_by_period(
     brecha = log(renta municipal / provincial) en t; rel = crecimiento logarítmico municipal
     menos provincial entre t y t + step. b < 0: los municipios baratos suben más (convergen).
     """
-    pairs: dict[int, list[tuple[float, float]]] = defaultdict(list)
+    pairs = convergence_pairs(
+        {k: v for k, v in municipalities.items() if k[0].startswith(province)}, provinces, step)
+    by_year = {year: slope(data) for year, data in sorted(pairs.items())}
+    return slope([p for data in pairs.values() for p in data]), by_year
+
+
+Pair = tuple[float, float]  # (brecha logarítmica en t, crecimiento relativo de t a t + step)
+
+
+def convergence_pairs(
+    municipalities: dict[tuple[str, int], RentRow], provinces: dict[tuple[str, int], RentRow],
+    step: int = 3,
+) -> dict[int, list[Pair]]:
+    """Por año de partida, cada municipio frente a SU provincia (las dos primeras cifras)."""
+    pairs: dict[int, list[Pair]] = defaultdict(list)
     for (code, year), now in municipalities.items():
+        province = code[:2]
         later = municipalities.get((code, year + step))
         prov_now, prov_later = provinces.get((province, year)), provinces.get(
             (province, year + step))
@@ -171,13 +186,69 @@ def convergence_by_period(
         relative = math.log(later.median / now.median) - math.log(
             prov_later.median / prov_now.median)
         pairs[year].append((gap, relative))
+    return pairs
 
-    def slope(data: list[tuple[float, float]]) -> Decimal:
-        den = sum(g * g for g, _ in data)
-        return Decimal(str(round(sum(g * r for g, r in data) / den, 4))) if den else Decimal(0)
+
+def slope(data: list[Pair]) -> Decimal:
+    """b de rel = b · brecha por mínimos cuadrados sin constante, a cuatro decimales."""
+    den = sum(g * g for g, _ in data)
+    return Decimal(str(round(sum(g * r for g, r in data) / den, 4))) if den else Decimal(0)
+
+
+BASE_SPLIT = 2018  # el b global se ajusta con los años de partida anteriores y se prueba después
+MIN_PERIODS = 8  # años de partida con los que se estiman los percentiles de b
+
+
+@dataclass(frozen=True)
+class RegionConvergence:
+    """La convergencia de una comunidad (ADR-0018, F5.5), como la de Madrid."""
+
+    region: str
+    municipalities: int
+    cases: int
+    pooled: Decimal  # b global: el escenario base
+    by_year: dict[int, Decimal]
+    low: Decimal | None  # P25 de los b por año; None con menos de MIN_PERIODS
+    high: Decimal | None  # P75
+    zero_error: Decimal  # fuera de muestra: error medio de «crece como su provincia»
+    fitted_error: Decimal  # con el b ajustado en los años de ajuste
+    fitted_b: Decimal
+    # El escenario base: b global de los años de partida hasta 2017, probado en 2018–2021
+    early_b: Decimal
+    early_zero_error: Decimal
+    early_error: Decimal
+
+
+def region_convergence(
+    region: str, pairs: dict[int, list[Pair]], fit_years: tuple[int, ...] = (2018, 2019),
+    test_years: tuple[int, ...] = (2020, 2021), municipalities: int = 0,
+) -> RegionConvergence:
+    """b global, por año y percentiles 25 y 75; y la prueba fuera de muestra de F5.5 (ajuste con
+    los años de partida 2018 y 2019, prueba con 2020 y 2021)."""
+    from housefinder.engines.appreciation import percentile
 
     by_year = {year: slope(data) for year, data in sorted(pairs.items())}
-    return slope([p for data in pairs.values() for p in data]), by_year
+    every = [p for data in pairs.values() for p in data]
+    values = list(by_year.values())
+    enough = len(values) >= MIN_PERIODS
+    fitted = slope([p for y in fit_years for p in pairs.get(y, [])])
+    test = [p for y in test_years for p in pairs.get(y, [])]
+
+    def mean_abs(predict: float, cases: list[Pair] = test) -> Decimal:
+        if not cases:
+            return Decimal(0)
+        total = sum(abs(r - predict * g) for g, r in cases)
+        return Decimal(str(round(total / len(cases), 4)))
+
+    early = slope([p for y, data in pairs.items() if y < BASE_SPLIT for p in data])
+    late = [p for y, data in pairs.items() if y >= BASE_SPLIT for p in data]
+
+    return RegionConvergence(
+        region, municipalities, len(every), slope(every), by_year,
+        percentile(values, Decimal("0.25")).quantize(Decimal("0.0001")) if enough else None,
+        percentile(values, Decimal("0.75")).quantize(Decimal("0.0001")) if enough else None,
+        mean_abs(0.0), mean_abs(float(fitted)), fitted,
+        early, mean_abs(0.0, late), mean_abs(float(early), late))
 
 
 def index_backtest(
@@ -262,13 +333,50 @@ def run(conninfo: str, province: str, region: str) -> dict[str, object]:
     }
 
 
+def regions_convergence(conninfo: str) -> list[RegionConvergence]:
+    """La convergencia de cada comunidad con el SERPAVI cargado, cada municipio frente a su
+    provincia (`make backtest CONVERGENCIA=1`)."""
+    from housefinder.core.regions import province_regions
+    from housefinder.db.connection import connect
+    from housefinder.db.references import rent_table
+
+    by_region: dict[str, list[str]] = defaultdict(list)
+    for province, region in province_regions().items():
+        by_region[region].append(province)
+    result = []
+    with connect(conninfo) as conn:
+        for region, provinces in sorted(by_region.items()):
+            pairs: dict[int, list[Pair]] = defaultdict(list)
+            codes: set[str] = set()
+            for province in provinces:
+                municipalities = rent_table(conn, "municipio", "colectiva", province)
+                totals = rent_table(conn, "provincia", "colectiva", province)
+                codes |= {code for code, _ in municipalities}
+                for year, data in convergence_pairs(municipalities, totals).items():
+                    pairs[year] += data
+            if pairs:
+                result.append(region_convergence(region, pairs, municipalities=len(codes)))
+    return result
+
+
 def main() -> int:
     from housefinder.db.migrate import database_url
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--province", default="28")
     parser.add_argument("--region", default="13")
+    parser.add_argument("--convergencia", action="store_true",
+                        help="convergencia municipal de cada comunidad (F5.5)")
     args = parser.parse_args()
+    if args.convergencia:
+        for c in regions_convergence(database_url()):
+            years = ", ".join(f"{y}: {b}" for y, b in c.by_year.items())
+            print(f"ES-{c.region}: {c.municipalities} municipios, {c.cases} casos, "
+                  f"{len(c.by_year)} periodos; b global {c.pooled}; P25 {c.low}; P75 {c.high}; "
+                  f"fuera de muestra: cero {c.zero_error}, b {c.fitted_b} → {c.fitted_error}; "
+                  f"global hasta 2017 {c.early_b}: cero {c.early_zero_error} → {c.early_error}\n"
+                  f"    por año: {years}")
+        return 0
     result = run(database_url(), args.province, args.region)
     print(f"Años del SERPAVI: {result['years']}")
     for name in ("rent_raw", "rent_growth_adjusted", "rent_by_size_k10", "rent_by_size_k0",

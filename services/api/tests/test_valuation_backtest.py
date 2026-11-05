@@ -98,3 +98,46 @@ def test_convergencia_por_periodo():
                  ("28", 2023): row("provincia", "28", 2023, 9999, D(11))}
     pooled, by_year = convergence_by_period(municipalities, provinces, "28")
     assert pooled == D("-0.2186") and by_year == {2020: D("-0.2186")}
+
+
+# --- Convergencia municipal por comunidad (F5.5) ---------------------------------------------
+
+
+def test_cada_municipio_frente_a_su_provincia():
+    # Almería (04) a 10 → 11 €/m² y Granada (18) a 20 → 20 de 2011 a 2014. 04001 de 5 a 6,05 y
+    # 18001 de 40 a 44: los dos crecen ln 1,1 más que su provincia, con brechas ln 0,5 y ln 2.
+    # Frente a la provincia equivocada, la de 18001 sería ln 4.
+    import math
+
+    from housefinder.valuation.backtest import convergence_pairs
+
+    municipalities = {("04001", 2011): row("municipio", "04001", 2011, 50, D(5)),
+                      ("04001", 2014): row("municipio", "04001", 2014, 50, D("6.05")),
+                      ("18001", 2011): row("municipio", "18001", 2011, 50, D(40)),
+                      ("18001", 2014): row("municipio", "18001", 2014, 50, D(44))}
+    provinces = {("04", 2011): row("provincia", "04", 2011, 900, D(10)),
+                 ("04", 2014): row("provincia", "04", 2014, 900, D(11)),
+                 ("18", 2011): row("provincia", "18", 2011, 900, D(20)),
+                 ("18", 2014): row("provincia", "18", 2014, 900, D(20))}
+    pairs = sorted(convergence_pairs(municipalities, provinces)[2011])
+    assert [round(g, 6) for g, _ in pairs] == [round(math.log(0.5), 6), round(math.log(2), 6)]
+    assert all(abs(r - math.log(1.1)) < 1e-9 for _, r in pairs)
+
+
+def test_convergencia_de_una_comunidad():
+    # Un caso por año con brecha 1 y crecimiento relativo (año − 2016) / 100: el b de cada año es
+    # ese crecimiento, de −0,05 (2011) a +0,05 (2021).
+    #   global: media 0; P25 y P75 de los 11 (interpolación): −0,025 y +0,025
+    #   F5.5: ajuste 2018–2019 → 0,025; prueba 2020–2021: cero (0,04 + 0,05) / 2 = 0,045,
+    #         con b (0,015 + 0,025) / 2 = 0,02
+    #   base: b de 2011–2017 = −0,02; prueba 2018–2021: cero 0,035, con b 0,055
+    from housefinder.valuation.backtest import region_convergence
+
+    pairs = {year: [(1.0, (year - 2016) / 100)] for year in range(2011, 2022)}
+    c = region_convergence("01", pairs, municipalities=1)
+    assert c.pooled == D(0) and c.cases == 11
+    assert (c.low, c.high) == (D("-0.0250"), D("0.0250"))
+    assert (c.fitted_b, c.zero_error, c.fitted_error) == (D("0.025"), D("0.045"), D("0.02"))
+    assert (c.early_b, c.early_zero_error, c.early_error) == (D("-0.02"), D("0.035"), D("0.055"))
+    # Con menos de ocho periodos no hay percentiles
+    assert region_convergence("01", {2020: [(1.0, 0.01)]}).low is None

@@ -40,3 +40,262 @@
     docs/research/f5-5-factores-revalorizacion.md)
   source_url: null
   notes: "Recalcular cuando se cargue un año nuevo del SERPAVI"
+
+# Convergencia municipal del resto de comunidades con el SERPAVI desde 2011 (2026-11-05), con el
+# mismo ajuste que Madrid y cada municipio frente a su provincia. b_base = 0: el b global de los años
+# anteriores no predice mejor que cero fuera de muestra en 15 de 16 comunidades; los extremos son el
+# P25 y el P75 de los b por año, ampliados hasta 0 para que el escenario base quede entre los dos.
+# Sin parámetro (País Vasco y Navarra, sin historia en el SERPAVI; Ceuta y Melilla, un solo
+# municipio), los escenarios son los del ciclo de la comunidad.
+
+- id: convergencia-municipal-es-01-2026-11
+  kind: convergencia_municipal
+  territory: ES-01
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.0288
+    b_high: 0.0134
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Andalucía (332 municipios,
+    2711 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0049; P25 -0.0288 y P75 0.0134, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-02-2026-11
+  kind: convergencia_municipal
+  territory: ES-02
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.0674
+    b_high: 0
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Aragón (108 municipios,
+    918 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0416; P25 -0.0674 y P75 -0.0118, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-03-2026-11
+  kind: convergencia_municipal
+  territory: ES-03
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.1426
+    b_high: 0.0010
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Principado de Asturias (50 municipios,
+    500 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0755; P25 -0.1426 y P75 0.0010, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-04-2026-11
+  kind: convergencia_municipal
+  territory: ES-04
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.0408
+    b_high: 0.0420
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Illes Balears (58 municipios,
+    585 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0103; P25 -0.0408 y P75 0.0420, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-05-2026-11
+  kind: convergencia_municipal
+  territory: ES-05
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.0445
+    b_high: 0.0248
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Canarias (79 municipios,
+    782 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0187; P25 -0.0445 y P75 0.0248, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-06-2026-11
+  kind: convergencia_municipal
+  territory: ES-06
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.1426
+    b_high: 0
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Cantabria (60 municipios,
+    534 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0856; P25 -0.1426 y P75 -0.0292, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-07-2026-11
+  kind: convergencia_municipal
+  territory: ES-07
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.0261
+    b_high: 0
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Castilla y León (215 municipios,
+    1845 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0246; P25 -0.0261 y P75 -0.0009, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-08-2026-11
+  kind: convergencia_municipal
+  territory: ES-08
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.1000
+    b_high: 0
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Castilla-La Mancha (195 municipios,
+    1511 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0519; P25 -0.1000 y P75 -0.0124, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-09-2026-11
+  kind: convergencia_municipal
+  territory: ES-09
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.0400
+    b_high: 0
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Cataluña (510 municipios,
+    4723 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0313; P25 -0.0400 y P75 -0.0030, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-10-2026-11
+  kind: convergencia_municipal
+  territory: ES-10
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.0018
+    b_high: 0.0296
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Comunitat Valenciana (311 municipios,
+    2726 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global 0.0085; P25 -0.0018 y P75 0.0296, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-11-2026-11
+  kind: convergencia_municipal
+  territory: ES-11
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.0468
+    b_high: 0
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Extremadura (66 municipios,
+    517 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0332; P25 -0.0468 y P75 -0.0200, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-12-2026-11
+  kind: convergencia_municipal
+  territory: ES-12
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.0654
+    b_high: 0
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Galicia (172 municipios,
+    1668 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0372; P25 -0.0654 y P75 -0.0010, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-14-2026-11
+  kind: convergencia_municipal
+  territory: ES-14
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.0509
+    b_high: 0.0526
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de Región de Murcia (40 municipios,
+    412 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0065; P25 -0.0509 y P75 0.0526, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"
+
+- id: convergencia-municipal-es-17-2026-11
+  kind: convergencia_municipal
+  territory: ES-17
+  effective_from: 2026-11-05
+  effective_to: null
+  provisional: false
+  params:
+    step_years: 3
+    b_base: 0
+    b_low: -0.0958
+    b_high: 0.0100
+  source: >-
+    Ajuste del 2026-11-05 con el SERPAVI 2011–2024 de La Rioja (35 municipios,
+    275 casos, 11 periodos; make backtest CONVERGENCIA=1;
+    docs/research/f5-5-convergencia-por-comunidad.md)
+  source_url: null
+  notes: "b global -0.0319; P25 -0.0958 y P75 0.0100, ampliados hasta 0. Recalcular con cada año nuevo del SERPAVI"

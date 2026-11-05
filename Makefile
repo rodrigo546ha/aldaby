@@ -69,7 +69,7 @@ supuestos:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.hacienda_plusvalia --year $(IBI_YEAR)
 
 backtest:
-	cd services/api && $(VENV)/python -m housefinder.valuation.backtest --province $(PROVINCE) --region $(REGION)
+	cd services/api && $(VENV)/python -m housefinder.valuation.backtest --province $(PROVINCE) --region $(REGION) $(if $(CONVERGENCIA),--convergencia,)
 
 # Worker de la cola de trabajos (ADR-0010). Encolar: python -m housefinder.jobs enqueue …
 worker:
