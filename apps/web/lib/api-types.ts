@@ -1654,13 +1654,15 @@ export interface components {
         /**
          * ConversationOut
          * @description La conversación guardada (ADR-0064): se borra a los `retention_days` días de la última
-         *     pregunta.
+         *     pregunta. `advisor_left`: consultas al asesor que le quedan hoy a la organización (ADR-0065).
          */
         ConversationOut: {
             /** Turns */
             turns: components["schemas"]["TurnOut"][];
             /** Retention Days */
             retention_days: number;
+            /** Advisor Left */
+            advisor_left: number;
         };
         /** CorrectionOut */
         CorrectionOut: {

@@ -4419,15 +4419,20 @@
           "retention_days": {
             "type": "integer",
             "title": "Retention Days"
+          },
+          "advisor_left": {
+            "type": "integer",
+            "title": "Advisor Left"
           }
         },
         "type": "object",
         "required": [
           "turns",
-          "retention_days"
+          "retention_days",
+          "advisor_left"
         ],
         "title": "ConversationOut",
-        "description": "La conversación guardada (ADR-0064): se borra a los `retention_days` días de la última\npregunta."
+        "description": "La conversación guardada (ADR-0064): se borra a los `retention_days` días de la última\npregunta. `advisor_left`: consultas al asesor que le quedan hoy a la organización (ADR-0065)."
       },
       "CorrectionOut": {
         "properties": {

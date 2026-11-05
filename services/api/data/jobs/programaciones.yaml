@@ -98,7 +98,8 @@ schedules:
     every_hours: 168
     payload: {}
 
-  # Conversaciones con el asesor caducadas (ADR-0064): se borran cada noche
+  # Conversaciones con el asesor caducadas (ADR-0064) y contadores de consultas de días anteriores
+  # (ADR-0065): se borran cada noche
   - name: borrado-conversaciones
     kind: purge_conversations
     at: "04:10"

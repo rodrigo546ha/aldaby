@@ -6,14 +6,27 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
-from housefinder.accounts.tiers import FreeTier, free_tier, plans_left
+from housefinder.accounts.tiers import (
+    FreeTier,
+    ProfessionalTier,
+    advisor_limit,
+    free_tier,
+    plans_left,
+    professional_tier,
+)
 
 psycopg = pytest.importorskip("psycopg")
 
 
 def test_el_limite_del_nivel_gratuito_es_un_dato():
-    assert free_tier() == FreeTier(full_plans=3)
-    assert plans_left(0, FreeTier(3)) == 3 and plans_left(5, FreeTier(3)) == 0
+    assert free_tier() == FreeTier(full_plans=3, advisor_per_day=20)
+    assert plans_left(0, FreeTier(3, 20)) == 3 and plans_left(5, FreeTier(3, 20)) == 0
+
+
+def test_las_consultas_al_asesor_al_dia_son_un_dato():
+    # PROVISIONAL en data/niveles.yaml (ADR-0065)
+    assert professional_tier() == ProfessionalTier(advisor_per_day=200)
+    assert advisor_limit(particular=True) == 20 and advisor_limit(particular=False) == 200
 
 
 @pytest.fixture
@@ -145,3 +158,34 @@ def test_el_asesor_anota_el_plan_que_cuenta(migrated_database: str):
         assert gate is not None and gate(offer) is None
         used = conn.execute("SELECT offer_id FROM plan_uses WHERE org_id = %s", (org,)).fetchall()
     assert used == [(offer,)]
+
+
+@pytest.mark.db
+def test_las_consultas_al_asesor_se_cuentan_por_dia_hasta_el_limite(migrated_database: str):
+    from test_access import account
+
+    from housefinder.api.deps import advisor_left, take_advisor
+    from housefinder.db.tiers import advisor_uses_today, purge_old_advisor_uses, take_advisor_use
+
+    org, _ = account(migrated_database, f"p-{uuid4().hex[:6]}@ejemplo.es", role="particular")
+    other, _ = account(migrated_database, f"p-{uuid4().hex[:6]}@ejemplo.es", role="particular")
+    with psycopg.connect(migrated_database) as conn:
+        assert [take_advisor_use(conn, org, 2) for _ in range(3)] == [True, True, False]
+        assert advisor_uses_today(conn, org) == 2  # la que no cabe no suma
+        assert take_advisor_use(conn, org, 0) is False
+        assert advisor_uses_today(conn, other) == 0  # cada organización, lo suyo
+        # Un particular, con el límite del nivel gratuito: la 21.ª consulta del día, 429
+        for _ in range(18):
+            take_advisor(conn, org, particular=True)
+        assert advisor_left(conn, org, particular=True) == 0
+        with pytest.raises(HTTPException) as refused:
+            take_advisor(conn, org, particular=True)
+        assert refused.value.status_code == 429 and "20 consultas" in refused.value.detail
+        # El trabajo nocturno borra los días anteriores, no el de hoy
+        conn.execute("INSERT INTO advisor_uses (org_id, day, uses) "
+                     "VALUES (%s, current_date - 3, 5)", (other,))
+        assert purge_old_advisor_uses(conn) >= 1
+        days = conn.execute("SELECT org_id, uses FROM advisor_uses WHERE org_id IN (%s, %s)",
+                            (org, other)).fetchall()
+        conn.commit()
+    assert days == [(org, 20)]

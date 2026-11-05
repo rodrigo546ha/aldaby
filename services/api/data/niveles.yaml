@@ -1,4 +1,10 @@
-# Niveles de acceso de los particulares (F8.2, ADR-0041). Los profesionales de la beta no tienen
-# límite. El pase de compra (F8.3) levantará el del nivel gratuito.
+# Niveles de acceso (F8.2, ADR-0041). Los profesionales de la beta no tienen límite de planes. El
+# pase de compra (F8.3) levantará el del nivel gratuito.
 gratuito:
   planes_completos: 3   # ofertas distintas con plan completo (página, PDF y explicación)
+  # PROVISIONAL (ADR-0065): estimación de uso normal, sin medir; Rodrigo la confirma.
+  consultas_asesor_dia: 20   # preguntas y explicaciones del asesor al día (día natural de Madrid)
+profesional:
+  # PROVISIONAL (ADR-0065): protege el servidor del modelo; lo comparten los usuarios de la
+  # organización.
+  consultas_asesor_dia: 200

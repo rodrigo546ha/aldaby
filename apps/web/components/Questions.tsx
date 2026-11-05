@@ -27,6 +27,8 @@ export function Questions({ offerId }: { offerId: string }) {
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
   const [retention, setRetention] = useState<number | null>(null);
+  const [left, setLeft] = useState<number | null>(null); // consultas al asesor de hoy (ADR-0065)
+  const spent = left === 0;
 
   // La conversación guardada de esta oferta, si la hay
   useEffect(() => {
@@ -36,6 +38,7 @@ export function Questions({ offerId }: { offerId: string }) {
       .then((saved) => {
         if (!alive || !saved) return;
         setRetention(saved.retention_days);
+        setLeft(saved.advisor_left);
         setTurns(
           saved.turns.map((t) => ({
             question: t.question,
@@ -59,7 +62,7 @@ export function Questions({ offerId }: { offerId: string }) {
 
   async function ask(question: string) {
     const text = question.trim();
-    if (text.length < 2 || busy) return;
+    if (text.length < 2 || busy || spent) return;
     setBusy(true);
     setPending(text);
     setStages([]);
@@ -72,6 +75,8 @@ export function Questions({ offerId }: { offerId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: text }),
       });
+      if (resp.status === 429) setLeft(0);
+      else if (resp.ok) setLeft((n) => (n === null ? n : Math.max(n - 1, 0)));
       if (!resp.ok || !resp.body) {
         const body = await resp.json().catch(() => ({}));
         turn = { ...turn, failure: typeof body.detail === "string" ? body.detail : "El asesor no ha respondido" };
@@ -138,7 +143,7 @@ export function Questions({ offerId }: { offerId: string }) {
           ))}
         </ol>
       )}
-      {turns.length === 0 && !busy && (
+      {turns.length === 0 && !busy && !spent && (
         <div className="chip-row">
           {SUGGESTIONS.map((s) => (
             <button key={s} type="button" className="chip" onClick={() => void ask(s)}>
@@ -157,14 +162,21 @@ export function Questions({ offerId }: { offerId: string }) {
           id={`question-${offerId}`}
           value={draft}
           maxLength={500}
-          disabled={busy}
+          disabled={busy || spent}
           placeholder="Por ejemplo: ¿me conviene más la hipoteca variable?"
           onChange={(e) => setDraft(e.target.value)}
         />
-        <button type="submit" disabled={busy || draft.trim().length < 2}>
+        <button type="submit" disabled={busy || spent || draft.trim().length < 2}>
           Preguntar
         </button>
       </form>
+      {left !== null && left <= 5 && (
+        <p className="hint" aria-live="polite">
+          {spent
+            ? "Has hecho las consultas al asesor de hoy. Mañana podrás seguir preguntando."
+            : `Hoy te ${left === 1 ? "queda 1 consulta" : `quedan ${left} consultas`} al asesor.`}
+        </p>
+      )}
       {turns.length > 0 && !busy && (
         <button type="button" className="link-button" onClick={() => void forget()}>
           Borrar la conversación

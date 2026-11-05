@@ -100,7 +100,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     accounts/             cuentas con argon2id, sesiones y altas por el administrador (ADR-0028);
                           niveles de los particulares (tiers.py, ADR-0041)
     db/waitlist.py        lista de espera de la página de presentación (ADR-0041)
-    db/tiers.py           planes completos usados en el nivel gratuito (ADR-0041)
+    db/tiers.py           planes completos usados en el nivel gratuito (ADR-0041) y consultas al
+                          asesor de hoy (ADR-0065)
     db/interviews.py      entrevistas de perfil (solo bytes cifrados)
     db/conversations.py   conversaciones con el asesor (solo bytes cifrados, ADR-0064)
     crypto/               cifrado de sobre AES-256-GCM y claves maestras (ADR-0011)
@@ -170,7 +171,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   data/rules/             reglas de normativa en YAML
   data/params/            parámetros con fecha en YAML (ADR-0005)
   data/legal/             textos legales en Markdown con versión y datos del titular (ADR-0039)
-  data/niveles.yaml       límites del nivel gratuito de los particulares (ADR-0041)
+  data/niveles.yaml       límites del nivel gratuito (ADR-0041) y consultas al asesor al día (ADR-0065)
   data/conservacion.yaml  plazos de conservación decididos (conversaciones con el asesor, ADR-0064)
   data/watch/             filtros de la vigilancia del BOE y del BOCM
   data/jobs/              programaciones diarias de la cola (ADR-0010)

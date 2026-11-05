@@ -12,14 +12,19 @@ import httpx
 from fastapi import Depends, HTTPException, Request
 
 from housefinder.accounts.service import Session, session
-from housefinder.accounts.tiers import free_tier, plans_left
+from housefinder.accounts.tiers import advisor_limit, free_tier, plans_left
 from housefinder.agent.llm import LLMClient, llm_from_env
 from housefinder.crypto.envelope import KeyProvider, provider_from_env
 from housefinder.db.clients import client_ids, client_in_org
 from housefinder.db.connection import Connection, DatabaseUnavailable, connect, pooled
 from housefinder.db.legal import accepted_versions
 from housefinder.db.profiles import get_or_create_organization
-from housefinder.db.tiers import record_plan_use, used_plans
+from housefinder.db.tiers import (
+    advisor_uses_today,
+    record_plan_use,
+    take_advisor_use,
+    used_plans,
+)
 from housefinder.geo.cartociudad import Geocoded, geocode, municipality_codes
 from housefinder.geo.catastro import Parcel, find_parcel
 from housefinder.geo.foral import find_foral_parcel
@@ -258,6 +263,27 @@ def check_full_plan(db: Connection, org: UUID, offer_id: UUID, particular: bool)
     if plans_left(len(used), tier) == 0:
         raise HTTPException(status_code=402, detail=FREE_TIER_EXHAUSTED.format(n=tier.full_plans))
     return True
+
+
+ADVISOR_LIMIT_REACHED = (
+    "Has hecho las {n} consultas al asesor de hoy. Mañana podrás seguir preguntando; el plan y "
+    "sus cifras siguen a la vista."
+)
+
+
+def take_advisor(db: Connection, org: UUID, particular: bool) -> None:
+    """Cuenta una consulta al asesor de hoy antes de llamar al modelo (ADR-0065). 429 si la
+    organización ya ha hecho las de su nivel."""
+    limit = advisor_limit(particular)
+    taken = take_advisor_use(db, org, limit)
+    db.commit()
+    if not taken:
+        raise HTTPException(status_code=429, detail=ADVISOR_LIMIT_REACHED.format(n=limit))
+
+
+def advisor_left(db: Connection, org: UUID, particular: bool) -> int:
+    """Consultas al asesor que le quedan hoy a la organización (ADR-0065)."""
+    return max(advisor_limit(particular) - advisor_uses_today(db, org), 0)
 
 
 def plan_gate(db: Connection, org: UUID, particular: bool) -> Callable[[UUID], str | None] | None:

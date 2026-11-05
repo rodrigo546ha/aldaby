@@ -34,9 +34,11 @@ from housefinder.api.deps import (
     ParamBookDep,
     RuleBookDep,
     SessionDep,
+    advisor_left,
     check_full_plan,
     is_particular,
     plan_gate,
+    take_advisor,
 )
 from housefinder.api.figures import FigureOut, SeriesOut, figure_out, series_out
 from housefinder.api.search import RentalAdviceOut, advice_out
@@ -262,6 +264,7 @@ def explanation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: C
                 current: SessionDep) -> StreamingResponse:
     # Lo que puede fallar con un código HTTP (sin perfil, nivel gratuito) va antes de empezar
     profile, plan = _plan(db, keys, org, client, book, rules, offer_id, is_particular(current))
+    take_advisor(db, org, is_particular(current))  # consultas al asesor de hoy (ADR-0065)
     gate = plan_gate(db, org, is_particular(current))  # el plan de otra oferta gasta cupo
     events: queue.Queue[str | None] = queue.Queue()
 
@@ -313,6 +316,7 @@ def question(offer_id: UUID, body: QuestionIn, db: DbDep, keys: KeysDep, org: Or
     """Una pregunta sobre el plan de la oferta. Se guarda cifrada en su conversación (ADR-0064)."""
     profile, _ = _plan(db, keys, org, client, book, rules, offer_id, is_particular(current))
     history = conversations.history(conversations.load(db, keys, org, client, offer_id))
+    take_advisor(db, org, is_particular(current))  # consultas al asesor de hoy (ADR-0065)
     gate = plan_gate(db, org, is_particular(current))  # el plan de otra oferta gasta cupo
     events: queue.Queue[str | None] = queue.Queue()
 
@@ -350,20 +354,22 @@ class TurnOut(BaseModel):
 
 class ConversationOut(BaseModel):
     """La conversación guardada (ADR-0064): se borra a los `retention_days` días de la última
-    pregunta."""
+    pregunta. `advisor_left`: consultas al asesor que le quedan hoy a la organización (ADR-0065)."""
 
     turns: list[TurnOut]
     retention_days: int
+    advisor_left: int
 
 
 @router.get("/offers/{offer_id}/conversation", response_model=ConversationOut)
-def conversation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep,
-                 client: ClientDep) -> ConversationOut:
+def conversation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
+                 current: SessionDep) -> ConversationOut:
     turns = conversations.load(db, keys, org, client, offer_id)
     return ConversationOut(
         turns=[TurnOut(question=t.question, answer=AdvisorAnswerOut.model_validate(t.answer),
                        at=t.at) for t in turns],
-        retention_days=conversation_days())
+        retention_days=conversation_days(),
+        advisor_left=advisor_left(db, org, is_particular(current)))
 
 
 @router.delete("/offers/{offer_id}/conversation", status_code=204)

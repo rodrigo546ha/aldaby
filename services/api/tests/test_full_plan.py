@@ -291,6 +291,8 @@ def test_api_del_plan(searchable, org):  # noqa: F811
         assert [t["question"] for t in saved["turns"]] == ["¿Qué me queda al mes?",
                                                          "¿Y si lo alquilo?"]
         assert saved["turns"][1]["answer"]["text"] == second and saved["retention_days"] == 30
+        # Consultas de hoy (ADR-0065): la explicación y las dos preguntas
+        assert saved["advisor_left"] == 200 - 3
         with psycopg.connect(searchable) as conn:  # en la base, solo bytes cifrados
             stored = bytes(conn.execute(
                 "SELECT data_enc FROM advisor_conversations WHERE offer_id = %s", (offer,)
@@ -300,6 +302,17 @@ def test_api_del_plan(searchable, org):  # noqa: F811
         assert client.post(f"/plans/offers/{offer}/questions", json=too_long).status_code == 422
         assert client.delete(f"/plans/offers/{offer}/conversation").status_code == 204
         assert client.get(f"/plans/offers/{offer}/conversation").json()["turns"] == []
+        # Al llegar al límite del día, 429 antes de llamar al modelo (ADR-0065); la pregunta
+        # demasiado larga no contó
+        with psycopg.connect(searchable) as conn:
+            conn.execute("UPDATE advisor_uses SET uses = 200 WHERE org_id = %s", (org,))
+            conn.commit()
+        calls = len(llm.chats)
+        limited = client.post(f"/plans/offers/{offer}/questions", json={"question": "¿Y ahora?"})
+        assert limited.status_code == 429 and "200 consultas" in limited.json()["detail"]
+        assert client.post(f"/plans/offers/{offer}/explanation").status_code == 429
+        assert len(llm.chats) == calls
+        assert client.get(f"/plans/offers/{offer}/conversation").json()["advisor_left"] == 0
     finally:
         app.dependency_overrides.clear()
 
