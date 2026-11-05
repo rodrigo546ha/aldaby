@@ -49,6 +49,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
   src/housefinder/
     core/figures.py       Figure, Series (año a año, ADR-0050), SourceRef, money() y ratio(): trazabilidad de cifras
     core/dated.py         lector común de registros con fecha y territorio
+    core/regions.py       comunidad autónoma de cada provincia (data/territory/provincias.yaml)
     engines/mortgage.py   cuota, amortización, capacidad, estrés, comparación fija/variable/mixta
     engines/rates.py      trayectoria del índice (RatePath) y condiciones de tipo
     engines/cashflow.py   cash flow, límite de intereses y su arrastre, rentabilidad personal

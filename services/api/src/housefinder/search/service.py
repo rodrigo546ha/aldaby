@@ -16,15 +16,12 @@ from collections import OrderedDict
 from dataclasses import dataclass, field, replace
 from datetime import date
 from decimal import Decimal
-from functools import lru_cache
-from pathlib import Path
 from threading import Lock
 from typing import Any, Generic, TypeVar
 from uuid import UUID
 
-import yaml
-
 from housefinder.core.figures import Figure, SourceRef, money, ratio
+from housefinder.core.regions import region_of
 from housefinder.db.connection import Connection
 from housefinder.db.offers import (
     SearchCandidate,
@@ -276,7 +273,7 @@ def prepare(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserPro
     if c.built_area_m2 is None or c.built_area_m2 <= 0:
         raise Unscorable("Falta la superficie construida")
     municipality = c.section_code[:5]
-    region = provinces().get(municipality[:2])
+    region = region_of(municipality)
     if region is None:
         raise Unscorable(f"No se sabe la comunidad de la provincia {municipality[:2]}")
 
@@ -440,9 +437,3 @@ def _stressed(plan: InvestmentSimulation, rent: str) -> Figure:
         "recalcular el IRPF, que bajaría algo con más intereses",
         tuple(dict.fromkeys((*cash.sources, *plan.stressed_payment.sources))))
 
-
-@lru_cache
-def provinces() -> dict[str, str]:
-    path = Path(__file__).resolve().parents[3] / "data" / "territory" / "provincias.yaml"
-    data: dict[str, Any] = yaml.safe_load(path.read_text(encoding="utf-8"))
-    return {str(k): str(v) for k, v in data.items()}

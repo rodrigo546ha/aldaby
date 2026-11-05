@@ -53,6 +53,18 @@ def conn(migrated_database: str):
                          D(100) * D("1.03") ** (year - 2020 + D(month - 1) / 12),
                          "índice base 2025", month=month)
             for year in range(2020, 2025) for month in range(1, 13)], scope="13")
+        # IPV de Cataluña que sube exactamente un 4 % al año
+        replace_references(connection, source("ine-ipv-80270"), [
+            ReferenceRow("comunidad", "09", None, year, quarter, "ipv", "segunda_mano", "indice",
+                         D(100) * D("1.04") ** (year - 2020 + D(quarter - 1) / 4),
+                         "índice base 2025")
+            for year in range(2020, 2025) for quarter in range(1, 5)], scope="09")
+        # Cataluña: el mismo índice, pero subiendo un 1 % al año
+        replace_references(connection, source("ine-ipc-alquiler"), [
+            ReferenceRow("comunidad", "09", None, year, 0, "ipc_alquiler", "todas", "indice",
+                         D(100) * D("1.01") ** (year - 2020 + D(month - 1) / 12),
+                         "índice base 2025", month=month)
+            for year in range(2020, 2025) for month in range(1, 13)], scope="09")
         connection.commit()
         yield connection
 
@@ -84,7 +96,7 @@ def test_municipio_sin_renta_y_provincia_sin_indice(conn):
     assert {s.rate for s in report.scenarios.values()} == {D("0.0500")}
     assert any("Sin renta del municipio" in n for n in report.notes)
     with pytest.raises(NoScenarios):
-        appreciation_scenarios(conn, BOOK, "08019", horizon_years=2)
+        appreciation_scenarios(conn, BOOK, "41091", horizon_years=2)  # Andalucía: sin IPV
 
 
 def test_subida_de_la_renta_con_el_ipc_de_alquiler(conn):
@@ -97,4 +109,19 @@ def test_subida_de_la_renta_con_el_ipc_de_alquiler(conn):
     assert "12 ventanas de 4 años" in figure.formula
     assert {s.kind for s in figure.sources} == {"dataset", "assumption"}
     with pytest.raises(NoScenarios):
-        rent_growth(conn, "08019")  # Cataluña: sin IPC de alquiler cargado aquí
+        rent_growth(conn, "41091")  # Andalucía: sin IPC de alquiler cargado aquí
+
+
+def test_fuera_de_madrid_se_usa_el_indice_de_su_comunidad(conn):
+    # Barcelona (provincia 08) es de Cataluña (09): su índice, no el de Madrid
+    assert rent_growth(conn, "08019", horizon_years=10).value == D("0.0100")
+
+
+def test_comunidad_sin_convergencia_estimada_usa_su_ciclo(conn):
+    # El parámetro de convergencia de BOOK es solo de Madrid: en Barcelona los tres escenarios son
+    # los del IPV de Cataluña, que crece un 4 % en todas las ventanas
+    report = appreciation_scenarios(conn, BOOK, "08019", horizon_years=2, on=date(2026, 10, 31))
+    assert {s.rate for s in report.scenarios.values()} == {D("0.0400")}
+    assert any("Sin convergencia municipal" in n for n in report.notes)
+    base = {f.key: f for f in report.figures}["valuation.appreciation_base"]
+    assert "brecha" not in base.formula and "param" not in {s.kind for s in base.sources}

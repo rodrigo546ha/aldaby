@@ -15,9 +15,11 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from housefinder.core.figures import Figure, SourceRef
+from housefinder.core.regions import region_of
 from housefinder.db.connection import Connection
 from housefinder.db.references import month_values, rent_stats, series_values
 from housefinder.engines.appreciation import (
+    STEP_YEARS,
     percentile,
     relative_log_growth,
     scenario_bounds,
@@ -25,8 +27,8 @@ from housefinder.engines.appreciation import (
     window_growths,
 )
 from housefinder.params.book import ParamBook
-from housefinder.params.valuation import convergence
-from housefinder.valuation.service import IPC_RENT, IPV, REGION_BY_PROVINCE, SERPAVI
+from housefinder.params.valuation import Convergence, convergence
+from housefinder.valuation.service import IPC_RENT, IPV, SERPAVI
 
 MIN_WINDOWS = 8  # por debajo, ventanas más cortas: si no, el percentil no dice nada
 QUANTILES = {"conservative": Decimal("0.25"), "base": Decimal("0.5"),
@@ -62,7 +64,7 @@ def appreciation_scenarios(
 ) -> AppreciationReport:
     on = on or date.today()
     province = municipality_code[:2]
-    region = REGION_BY_PROVINCE.get(province)
+    region = region_of(province)
     if region is None:
         raise NoScenarios(f"Sin índice de precios cargado para la provincia {province}")
     typology = "nueva" if new_build else "segunda_mano"
@@ -84,12 +86,19 @@ def appreciation_scenarios(
     if years < horizon_years:
         notes.append(f"No hay historia para ventanas de {horizon_years} años: se usan de {years}.")
 
-    conv = convergence(book, f"ES-{region}", on)
+    try:
+        conv: Convergence | None = convergence(book, f"ES-{region}", on)
+    except LookupError:
+        conv = None  # el coeficiente b solo está estimado para algunas comunidades
     municipal = rent_stats(conn, "municipio", municipality_code, "colectiva")
     provincial = (rent_stats(conn, "provincia", province, "colectiva", municipal.year)
                   if municipal else None)
     sources = (SourceRef("dataset", f"{IPV}@{last[0]}T{last[1]}"), MODEL, HISTORY)
-    if municipal is None or provincial is None:
+    if conv is None:
+        gap = Decimal(0)
+        notes.append("Sin convergencia municipal estimada para esta comunidad: los tres "
+                     "escenarios son los del ciclo de la comunidad, sin ajuste por municipio.")
+    elif municipal is None or provincial is None:
         gap = Decimal(0)
         notes.append("Sin renta del municipio: los tres escenarios son los de la comunidad.")
     else:
@@ -103,13 +112,19 @@ def appreciation_scenarios(
             f"{position} de la de la provincia ({municipal.year}). En 2011–2017 los municipios "
             "caros se alejaron y desde 2018 los baratos se acercaron: el escenario optimista "
             "toma lo que le favorece y el conservador, lo contrario.")
-    b_optimistic, b_conservative = scenario_bounds(gap, conv.b_low, conv.b_high)
-    betas = {"conservative": b_conservative, "base": conv.b_base, "optimistic": b_optimistic}
+    if conv is None:
+        betas = dict.fromkeys(QUANTILES, Decimal(0))
+        step_years = STEP_YEARS
+    else:
+        b_optimistic, b_conservative = scenario_bounds(gap, conv.b_low, conv.b_high)
+        betas = {"conservative": b_conservative, "base": conv.b_base,
+                 "optimistic": b_optimistic}
+        step_years = conv.step_years
 
     scenarios, figures = {}, []
     as_of = _quarter_end(*last)
     for name in QUANTILES:
-        relative = relative_log_growth(gap, betas[name], horizon_years, conv.step_years)
+        relative = relative_log_growth(gap, betas[name], horizon_years, step_years)
         rate = scenario_rate(regional[name], relative, horizon_years)
         scenarios[name] = Scenario(name, rate, sources)
         figures.append(Figure(
@@ -117,9 +132,10 @@ def appreciation_scenarios(
             sources=sources,
             formula=(f"Escenario {NAMES[name]}: IPV de la comunidad {_pct(regional[name], 2)} "
                      f"al año (percentil {int(QUANTILES[name] * 100)} de las ventanas de "
-                     f"{years} años) "
-                     f"y brecha de renta del municipio con b = {betas[name]} cada "
-                     f"{conv.step_years} años durante {horizon_years} años"),
+                     f"{years} años)"
+                     + ("" if conv is None else
+                        f" y brecha de renta del municipio con b = {betas[name]} cada "
+                        f"{step_years} años durante {horizon_years} años")),
         ))
     return AppreciationReport(scenarios, figures, notes)
 
@@ -127,7 +143,7 @@ def appreciation_scenarios(
 def rent_growth(conn: Connection, municipality_code: str, horizon_years: int = 10) -> Figure:
     """Subida anual de la renta en vigor (ADR-0060): mediana del crecimiento anual compuesto de
     las ventanas mensuales del IPC de alquiler de la comunidad de la duración del horizonte."""
-    region = REGION_BY_PROVINCE.get(municipality_code[:2])
+    region = region_of(municipality_code)
     if region is None:
         raise NoScenarios(f"Sin IPC de alquiler para la provincia {municipality_code[:2]}")
     series = month_values(conn, IPC_RENT, "comunidad", region, "ipc_alquiler")

@@ -16,6 +16,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from housefinder.core.figures import Figure, SourceRef, money
+from housefinder.core.regions import region_of
 from housefinder.db.connection import Connection
 from housefinder.db.references import (
     RentRow,
@@ -49,7 +50,6 @@ IPC_RENT = "ine-ipc-alquiler"
 MONTHS = ("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
           "septiembre", "octubre", "noviembre", "diciembre")
 # Comunidad autónoma del INE por provincia, para el IPV. MVP: Madrid.
-REGION_BY_PROVINCE = {"28": "13"}
 LEVEL_NAMES = {"seccion": "la sección censal", "distrito": "el distrito censal",
                "municipio": "el municipio"}
 TYPOLOGY_NAMES = {"colectiva": "vivienda colectiva (pisos)",
@@ -133,7 +133,7 @@ class RentUpdate:
 def _rent_update(conn: Connection, local: RentRow, shrunk: Shrunk,
                  municipality_code: str) -> tuple[Shrunk, date, RentUpdate]:
     """Renta del último año del SERPAVI llevada al último mes del IPC de alquiler, si lo hay."""
-    region = REGION_BY_PROVINCE.get(municipality_code[:2])
+    region = region_of(municipality_code)
     latest = latest_month(conn, IPC_RENT, "comunidad", region, "ipc_alquiler") if region else None
     base = (annual_mean_of_months(conn, IPC_RENT, "comunidad", region, "ipc_alquiler",
                                   local.year) if region else None)
@@ -205,7 +205,7 @@ def _price_figures(conn: Connection, local: RentRow, municipal: RentRow, shrunk:
     per_m2 = price_per_m2(shrunk, ratio)
     as_of = date(local.year, 12, 31)
     index_note = f"Precio de {local.year}, sin actualizar: no hay índice de precios cargado."
-    region = REGION_BY_PROVINCE.get(municipal.code[:2])
+    region = region_of(municipal.code)
     typology = "nueva" if new_build else "segunda_mano"
     latest = latest_index(conn, IPV, region, typology) if region else None
     base = annual_index(conn, IPV, region, typology, local.year) if region else None
