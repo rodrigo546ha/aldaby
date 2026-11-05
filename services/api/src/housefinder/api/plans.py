@@ -16,8 +16,13 @@ from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from housefinder.advisor.tools import ExplainedPlan, PlanExplanation, explain_plan
-from housefinder.agent.loop import Progress
+from housefinder.advisor.tools import (
+    ExplainedPlan,
+    PlanExplanation,
+    ask_about_offer,
+    explain_plan,
+)
+from housefinder.agent.loop import AgentAnswer, Progress
 from housefinder.agent.references import FigureSegment, OfferSegment, Segment, segments
 from housefinder.api.deps import (
     ClientDep,
@@ -275,6 +280,69 @@ def explanation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: C
             yield item
 
     return StreamingResponse(stream(), media_type="text/event-stream", headers=STREAM_HEADERS)
+
+
+class TurnIn(BaseModel):
+    """Una vuelta anterior de la conversación, como la devolvió la API (`text`)."""
+
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=2000)
+
+
+class QuestionIn(BaseModel):
+    question: str = Field(min_length=2, max_length=500)
+    history: list[TurnIn] = Field(default_factory=list, max_length=6)
+
+
+class AdvisorAnswerOut(BaseModel):
+    """La respuesta del asesor, ya comprobada. `answer` None: el texto no pasó la comprobación.
+    `text` es el mismo texto con sus marcadores, para mandarlo de vuelta en el historial."""
+
+    answer: list[SegmentOut] | None
+    text: str | None
+    failure: str | None
+    notes: list[str]
+
+
+@router.post("/offers/{offer_id}/questions", response_class=StreamingResponse,
+             responses={200: {"model": AdvisorAnswerOut, "description": (
+                 "text/event-stream: eventos «etapa» mientras el asesor trabaja y uno «resultado» "
+                 "con el AdvisorAnswerOut, o «error» (ADR-0063)")}})
+def question(offer_id: UUID, body: QuestionIn, db: DbDep, keys: KeysDep, org: OrgDep,
+             client: ClientDep, book: ParamBookDep, rules: RuleBookDep, llm: LLMDep,
+             current: SessionDep) -> StreamingResponse:
+    """Una pregunta sobre el plan de la oferta. No se guarda: la conversación vive en la web."""
+    profile, _ = _plan(db, keys, org, client, book, rules, offer_id, is_particular(current))
+    history = [{"role": t.role, "content": t.content} for t in body.history]
+    events: queue.Queue[str | None] = queue.Queue()
+
+    def tell(step: Progress) -> None:
+        events.put(_event("etapa", {"etapa": step.stage, "herramienta": step.tool}))
+
+    def work() -> None:
+        try:
+            answer = ask_about_offer(db, book, llm, org, offer_id, body.question, history,
+                                     profile, rules, progress=tell)
+            events.put(_event("resultado", answer_out(answer).model_dump(mode="json")))
+        except Exception as exc:  # ni la pregunta ni la respuesta van al registro
+            log.error("La pregunta al asesor falló: %s", type(exc).__name__)
+            events.put(_event("error", {"detail": "El asesor no ha podido terminar"}))
+        finally:
+            events.put(None)
+
+    def stream() -> Iterator[str]:
+        threading.Thread(target=work, daemon=True).start()
+        while (item := events.get()) is not None:
+            yield item
+
+    return StreamingResponse(stream(), media_type="text/event-stream", headers=STREAM_HEADERS)
+
+
+def answer_out(answer: AgentAnswer) -> AdvisorAnswerOut:
+    if answer.segments is None:
+        return AdvisorAnswerOut(answer=None, text=None, failure=answer.failure, notes=answer.notes)
+    return AdvisorAnswerOut(answer=[_segment(s) for s in answer.segments], text=answer.text,
+                     failure=None, notes=answer.notes)
 
 
 def explanation_out(explained: ExplainedPlan) -> ExplanationOut:

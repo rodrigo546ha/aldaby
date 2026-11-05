@@ -23,12 +23,12 @@ const TOOLS: Record<string, string> = {
   ofertas_guardadas: "Busca la oferta",
 };
 
-type Stage = { etapa: string; herramienta: string | null };
+export type Stage = { etapa: string; herramienta: string | null };
 
-function stageLabel(stage: Stage, earlier: Stage[]): string {
+export function stageLabel(stage: Stage, earlier: Stage[], writing = "Escribe las fichas"): string {
   switch (stage.etapa) {
     case "modelo":
-      return earlier.some((s) => s.etapa === "herramienta") ? "Escribe las fichas" : "Lee tu pregunta";
+      return earlier.some((s) => s.etapa === "herramienta") ? writing : "Lee tu pregunta";
     case "herramienta":
       return TOOLS[stage.herramienta ?? ""] ?? "Consulta una herramienta";
     case "corrigiendo":
@@ -41,7 +41,7 @@ function stageLabel(stage: Stage, earlier: Stage[]): string {
 }
 
 /** Los bloques del SSE de la API: «event: nombre» y «data: json», separados por una línea vacía. */
-async function* events(resp: Response): AsyncGenerator<{ name: string; data: unknown }> {
+export async function* events(resp: Response): AsyncGenerator<{ name: string; data: unknown }> {
   const reader = resp.body!.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";
   for (;;) {
@@ -190,7 +190,7 @@ export function Advisor({ offerId, blockOf }: { offerId: string; blockOf: Map<st
   );
 }
 
-function Segments({ parts }: { parts: SegmentOut[] }) {
+export function Segments({ parts }: { parts: SegmentOut[] }) {
   return (
     <>
       {parts.map((s, i) => (

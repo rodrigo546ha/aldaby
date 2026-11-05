@@ -16,7 +16,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from housefinder.advisor.glossary import describe
-from housefinder.agent.llm import LLMClient
+from housefinder.agent.llm import LLMClient, Message
 from housefinder.agent.loop import (
     AgentAnswer,
     Progress,
@@ -387,6 +387,27 @@ def explain_plan(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID
         progress(Progress("argumentos"))
     extra = extra_arguments(llm, plan_summary(plan), [a.text for a in plan.arguments])
     return ExplainedPlan(answer, extra)
+
+
+# Conversación en la web (ADR-0063): las cifras de las vueltas anteriores no se pueden citar
+CONVERSATION = """
+- Es una conversación: puedes leer tus respuestas anteriores, pero sus marcadores ya no valen. Si
+  vuelves a citar una cifra, pide otra vez la herramienta que la calcula.
+- Contesta solo a la última pregunta.
+"""
+
+
+def ask_about_offer(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID,
+                    offer_id: UUID, question: str, history: Sequence[Message] = (),
+                    profile: UserProfile | None = None, rules: RuleBook | None = None,
+                    progress: Callable[[Progress], None] | None = None) -> AgentAnswer:
+    """Una pregunta sobre una oferta en la conversación de su plan (ADR-0063)."""
+    short = offer_id.hex[:8]
+    framed = (f"Pregunta sobre la oferta {{{{oferta:{short}}}}} (para su plan, usa plan_completo "
+              f"con oferta {short}): {question}")
+    return run_agent(llm, INSTRUCTIONS + CONVERSATION, framed,
+                     offer_tools(conn, book, org_id, profile, rules), progress=progress,
+                     history=history)
 
 
 def ask(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID, question: str,

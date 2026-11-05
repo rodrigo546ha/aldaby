@@ -2147,6 +2147,60 @@
         }
       }
     },
+    "/plans/offers/{offer_id}/questions": {
+      "post": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Question",
+        "description": "Una pregunta sobre el plan de la oferta. No se guarda: la conversación vive en la web.",
+        "operationId": "question_plans_offers__offer_id__questions_post",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "text/event-stream: eventos «etapa» mientras el asesor trabaja y uno «resultado» con el AdvisorAnswerOut, o «error» (ADR-0063)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdvisorAnswerOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/login": {
       "post": {
         "tags": [
@@ -2636,6 +2690,62 @@
           "client_id"
         ],
         "title": "ActiveIn"
+      },
+      "AdvisorAnswerOut": {
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SegmentOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answer",
+          "text",
+          "failure",
+          "notes"
+        ],
+        "title": "AdvisorAnswerOut",
+        "description": "La respuesta del asesor, ya comprobada. `answer` None: el texto no pasó la comprobación.\n`text` es el mismo texto con sus marcadores, para mandarlo de vuelta en el historial."
       },
       "AffordabilityRequest": {
         "properties": {
@@ -6725,6 +6835,29 @@
         ],
         "title": "PropertyRequest"
       },
+      "QuestionIn": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 2,
+            "title": "Question"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/TurnIn"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "QuestionIn"
+      },
       "QuestionOut": {
         "properties": {
           "field": {
@@ -7940,6 +8073,31 @@
           "text"
         ],
         "title": "TextIn"
+      },
+      "TurnIn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "TurnIn",
+        "description": "Una vuelta anterior de la conversación, como la devolvió la API (`text`)."
       },
       "ValidationError": {
         "properties": {

@@ -65,6 +65,25 @@ def test_pide_una_herramienta_y_explica_con_marcadores():
     assert "marcador" in llm.chats[0][0]["content"]  # las reglas de ADR-0012 van en el sistema
 
 
+def test_conversacion_con_vueltas_anteriores():
+    # ADR-0063: el historial va entre las instrucciones y la pregunta; un marcador de una vuelta
+    # anterior no vale si en esta no se ha pedido la herramienta
+    history = [{"role": "user", "content": "¿Cuánto se alquilaría?"},
+               {"role": "assistant",
+                "content": "La renta sería {{fig:oferta_a1.valuation.rent_monthly}}."}]
+    llm = FakeLLMClient(turns=[
+        ChatTurn("Como te dije, {{fig:oferta_a1.valuation.rent_monthly}}."),  # sin herramienta
+        call('{"oferta_id": "a1"}'),
+        ChatTurn("Sigue siendo {{fig:oferta_a1.valuation.rent_monthly}}."),
+    ])
+    answer = run_agent(llm, "Eres un asesor.", "¿Y ahora?", TOOLS, history=history)
+    assert [m["role"] for m in llm.chats[0]] == ["system", "user", "assistant", "user"]
+    assert llm.chats[0][1:3] == history and llm.chats[0][3]["content"] == "¿Y ahora?"
+    assert len(answer.rejected) == 1  # el primer texto citaba una cifra que no había pedido
+    assert answer.failure is None
+    assert answer.text == "Sigue siendo {{fig:oferta_a1.valuation.rent_monthly}}."
+
+
 def test_texto_con_cifras_a_mano_se_reintenta_una_vez():
     llm = FakeLLMClient(turns=[
         call('{"oferta_id": "a1"}'),

@@ -111,17 +111,21 @@ class AgentAnswer:
     rejected: list[list[str]] = field(default_factory=list)  # problemas de cada texto rechazado
     offers: dict[str, str] = field(default_factory=dict)  # ofertas que se pueden nombrar
     output: BaseModel | None = None  # con modelo de salida: la respuesta validada y comprobada
+    text: str | None = None  # sin modelo de salida: el texto aceptado, con sus marcadores
 
 
 def run_agent(
     llm: LLMClient, instructions: str, question: str, tools: Sequence[Tool],
     max_steps: int = MAX_STEPS, output: type[BaseModel] | None = None,
     progress: Callable[[Progress], None] | None = None,
+    history: Sequence[Message] = (),
 ) -> AgentAnswer:
+    """`history`: las vueltas anteriores de la conversación (ADR-0063), entre las instrucciones y
+    la pregunta. Sus cifras no valen: el texto se comprueba con las de esta vuelta."""
     by_name = {t.name: t for t in tools}
     specs = [t.spec() for t in tools]
     messages: list[Message] = [{"role": "system", "content": instructions + FIGURE_RULES},
-                               {"role": "user", "content": question}]
+                               *history, {"role": "user", "content": question}]
     figures: dict[str, Figure] = {}
     offers: dict[str, str] = {}
     notes: list[str] = []
@@ -130,8 +134,10 @@ def run_agent(
     rejected: list[list[str]] = []
 
     def answer(parts: list[Segment] | None, failure: Failure | None,
-               detail: str | None = None, parsed: BaseModel | None = None) -> AgentAnswer:
-        return AgentAnswer(parts, figures, notes, steps, failure, detail, rejected, offers, parsed)
+               detail: str | None = None, parsed: BaseModel | None = None,
+               text: str | None = None) -> AgentAnswer:
+        return AgentAnswer(parts, figures, notes, steps, failure, detail, rejected, offers, parsed,
+                           text)
 
     def tell(stage: Stage, tool: str | None = None) -> None:
         if progress is not None:
@@ -168,7 +174,7 @@ def run_agent(
         if output is None:
             lines = [p.message for p in check_text(text, figures, offers)]
             if not lines:
-                return answer(segments(text, figures, offers), None)
+                return answer(segments(text, figures, offers), None, text=text)
         else:
             parsed, lines = _structured(text, output, figures, offers)
             if parsed is not None and not lines:

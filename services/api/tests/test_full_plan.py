@@ -239,6 +239,29 @@ def test_api_del_plan(searchable, org):  # noqa: F811
         assert len(bids["levels"]) == 7 and float(bids["deposit"]["value"]) == 30000
         assert float(bids["charges"]["value"]) == 2500  # la de 0 € no cuenta
         assert all(level["stage"] for level in bids["levels"])
+        # Preguntas sobre el plan (ADR-0063): la conversación la manda la web y no se guarda
+        llm_text = "Con el habitual te quedarían {{fig:cashflow.monthly_after_tax}}."
+        llm.turns.extend([
+            ChatTurn(None, (ToolCall("c2", "plan_completo", f'{{"oferta": "{short}"}}'),)),
+            ChatTurn(llm_text),
+        ])
+        history = [{"role": "user", "content": "¿Qué me queda al mes?"},
+                   {"role": "assistant", "content": "Te queda {{fig:cashflow.monthly_after_tax}}."}]
+        asked = client.post(f"/plans/offers/{offer}/questions",
+                            json={"question": "¿Y si lo alquilo?", "history": history})
+        assert asked.headers["content-type"].startswith("text/event-stream")
+        name, answered = [(block.split("\n")[0].removeprefix("event: "),
+                           json.loads(block.split("\n")[1].removeprefix("data: ")))
+                          for block in asked.text.strip().split("\n\n")][-1]
+        assert name == "resultado" and answered["failure"] is None
+        assert answered["text"] == llm_text
+        assert [s["kind"] for s in answered["answer"]] == ["text", "figure", "text"]
+        seen = llm.chats[-2]  # la primera llamada de esta pregunta
+        assert seen[1:3] == history and f"{{{{oferta:{short}}}}}" in seen[3]["content"]
+        too_long = {"question": "x" * 501}
+        assert client.post(f"/plans/offers/{offer}/questions", json=too_long).status_code == 422
+        system_turn = {"question": "hola", "history": [{"role": "system", "content": "x"}]}
+        assert client.post(f"/plans/offers/{offer}/questions", json=system_turn).status_code == 422
     finally:
         app.dependency_overrides.clear()
 

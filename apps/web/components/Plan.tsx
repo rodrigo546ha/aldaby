@@ -14,6 +14,7 @@ import { FigureBlock } from "./FigureView";
 import { Skeleton, VerdictFigure } from "./Motion";
 import { Icon } from "./Icon";
 import { OfferPhoto } from "./OfferPhoto";
+import { Questions } from "./Questions";
 import { RentalAdvice } from "./RentalAdvice";
 import { Renovation } from "./Renovation";
 import { AppLink, DATA } from "./AppLink";
@@ -139,6 +140,7 @@ export function Plan({ offerId }: { offerId: string }) {
       </section>
 
       <Advisor offerId={offerId} blockOf={blockOf} />
+      <Questions offerId={offerId} />
 
       {plan.arguments.length > 0 && (
         <section className="plan-section" aria-labelledby="motivos">

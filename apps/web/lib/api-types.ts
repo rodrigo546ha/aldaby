@@ -902,6 +902,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/plans/offers/{offer_id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Question
+         * @description Una pregunta sobre el plan de la oferta. No se guarda: la conversación vive en la web.
+         */
+        post: operations["question_plans_offers__offer_id__questions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/login": {
         parameters: {
             query?: never;
@@ -1128,6 +1148,21 @@ export interface components {
              * Format: uuid
              */
             client_id: string;
+        };
+        /**
+         * AdvisorAnswerOut
+         * @description La respuesta del asesor, ya comprobada. `answer` None: el texto no pasó la comprobación.
+         *     `text` es el mismo texto con sus marcadores, para mandarlo de vuelta en el historial.
+         */
+        AdvisorAnswerOut: {
+            /** Answer */
+            answer: components["schemas"]["SegmentOut"][] | null;
+            /** Text */
+            text: string | null;
+            /** Failure */
+            failure: string | null;
+            /** Notes */
+            notes: string[];
         };
         /** AffordabilityRequest */
         AffordabilityRequest: {
@@ -2375,6 +2410,13 @@ export interface components {
              */
             deed_agreement: "ley" | "comprador" | "vendedor";
         };
+        /** QuestionIn */
+        QuestionIn: {
+            /** Question */
+            question: string;
+            /** History */
+            history?: components["schemas"]["TurnIn"][];
+        };
         /** QuestionOut */
         QuestionOut: {
             /** Field */
@@ -2762,6 +2804,19 @@ export interface components {
             text: string;
             /** Url */
             url?: string | null;
+        };
+        /**
+         * TurnIn
+         * @description Una vuelta anterior de la conversación, como la devolvió la API (`text`).
+         */
+        TurnIn: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Content */
+            content: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -4334,6 +4389,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExplanationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    question_plans_offers__offer_id__questions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionIn"];
+            };
+        };
+        responses: {
+            /** @description text/event-stream: eventos «etapa» mientras el asesor trabaja y uno «resultado» con el AdvisorAnswerOut, o «error» (ADR-0063) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdvisorAnswerOut"];
                 };
             };
             /** @description Validation Error */
