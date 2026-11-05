@@ -51,6 +51,8 @@ export function Questions({ offerId }: { offerId: string }) {
   }, [offerId]);
 
   async function forget() {
+    // Como el resto de borrados (clientes, feeds): se pregunta antes, porque no se puede deshacer.
+    if (!window.confirm("¿Borrar esta conversación con el asesor? No se puede deshacer.")) return;
     const resp = await fetch(`/api/plans/offers/${offerId}/conversation`, { method: "DELETE" });
     if (resp.ok) setTurns([]);
   }
