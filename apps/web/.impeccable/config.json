@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-11-05T16:12:45.621Z",
+        "reason": "DESIGN.md «Cómo se vende cada oferta» y «Tarjeta de oferta» (ADR-0054, ADR-0055): el filo de 3 px del color del canal identifica cómo se vende cada oferta, junto a su etiqueta"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-11-05T16:12:45.645Z",
+        "reason": "DESIGN.md «Cómo se vende cada oferta» (ADR-0054, ADR-0055): la ficha resumida lleva arriba el filo del color del canal, como la tarjeta"
+      }
+    ]
+  }
+}
