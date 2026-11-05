@@ -22,6 +22,7 @@ from housefinder.offers.boe_portal import (
     parse_money,
     parse_search_results,
     scrape_auction,
+    search_boe_auctions,
     to_normalized_offers,
 )
 
@@ -287,3 +288,53 @@ def test_scrape_auction_offline_mock():
     assert len(auction.lots) == 1
     assert len(auction.notice.documents) == 2
     assert "ver1" in auction.raw_html
+
+
+def test_search_boe_auctions_defaults_to_all_spain():
+    posted_data: list[str] = []
+
+    def mock_handler(request: httpx.Request) -> httpx.Response:
+        posted_data.append(request.content.decode("utf-8"))
+        content = (FIXTURES / "search_madrid.html").read_bytes()
+        return httpx.Response(200, content=content)
+
+    client = httpx.Client(transport=httpx.MockTransport(mock_handler))
+    results = search_boe_auctions(client)
+
+    assert len(results) == 38
+    assert len(posted_data) == 1
+    # Cuando province es vacía, busca en toda España (dato[8] vacío)
+    assert "dato%5B8%5D=&" in posted_data[0] or "dato%5B8%5D=" in posted_data[0]
+
+
+def test_search_boe_auctions_pagination():
+    requests_log: list[str] = []
+
+    page1_html = (
+        (FIXTURES / "search_madrid.html").read_text(encoding="utf-8")
+        + '<a href="./subastas_ava.php?accion=Mas&amp;id_busqueda=TOKEN123">'
+        "<abbr title='Página'>Pág.</abbr> siguiente</a>"
+    )
+    page2_html = (
+        '<ul class="resultados-busqueda">'
+        '<li class="resultado-busqueda">'
+        '<a href="detalleSubasta.php?idSub=SUB-JA-2026-999999&amp;ver=1">Lote</a>'
+        "<h4>JUZGADO DE PRUEBA</h4>"
+        "<p>Celebrándose</p>"
+        "</li>"
+        "</ul>"
+    )
+
+    def mock_handler(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        requests_log.append(url)
+        if "TOKEN123" in url:
+            return httpx.Response(200, content=page2_html.encode("utf-8"))
+        return httpx.Response(200, content=page1_html.encode("utf-8"))
+
+    client = httpx.Client(transport=httpx.MockTransport(mock_handler))
+    results = search_boe_auctions(client, max_pages=2)
+
+    assert len(results) == 39
+    assert len(requests_log) == 2
+    assert any("TOKEN123" in url for url in requests_log)

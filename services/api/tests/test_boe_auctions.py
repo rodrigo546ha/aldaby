@@ -42,6 +42,14 @@ def test_sedes_de_partidos_judiciales_de_madrid():
     assert not seats.matches("ALCAÑIZ") and not seats.matches("MADRIDEJOS")
 
 
+def test_sedes_toda_espana():
+    seats = load_court_seats(all_spain=True)
+    assert seats.all_spain is True
+    assert seats.matches("ALCAÑIZ")
+    assert seats.matches("MADRID")
+    assert seats.matches("BARCELONA")
+
+
 def boe_client(seen: list[str]) -> httpx.Client:
     def handler(request: httpx.Request) -> httpx.Response:
         url = str(request.url)
@@ -72,6 +80,15 @@ def test_solo_se_descargan_los_avisos_de_madrid():
     assert offer.extraction_status == "no_aplica" and offer.kind == "anuncio"
 
 
+def test_toda_espana_descarga_todos():
+    seen: list[str] = []
+    channel = BoeAuctions([DAY], load_court_seats(all_spain=True))
+    items = list(channel.fetch(boe_client(seen)))
+    assert sorted(i.external_id for i in items) == [
+        "SUB-JA-2026-262811", "SUB-JA-2026-267510", "SUB-JA-2026-267866"]  # con Alcañiz
+    assert channel.unparsed == []
+
+
 # --- Contra la base -----------------------------------------------------------------------------
 
 psycopg = pytest.importorskip("psycopg")
@@ -83,10 +100,13 @@ def test_canal_de_punta_a_punta(migrated_database: str):
 
     with psycopg.connect(migrated_database, autocommit=True) as conn:
         conn.execute("DELETE FROM watch_issues WHERE source = 'offers_boe_subastas'")
-    first = run_boe_auctions(migrated_database, boe_client([]), date(2026, 10, 28), days=2)
+    # Con el filtro de sedes de Madrid; el ámbito nacional, en test_toda_espana_descarga_todos
+    first = run_boe_auctions(migrated_database, boe_client([]), date(2026, 10, 28), days=2,
+                             all_spain=False)
     assert first["items"] == 2 and first["unparsed"] == []
     assert first["court_seats_verified"] is False
-    again = run_boe_auctions(migrated_database, boe_client([]), date(2026, 10, 28), days=2)
+    again = run_boe_auctions(migrated_database, boe_client([]), date(2026, 10, 28), days=2,
+                             all_spain=False)
     assert again["items"] == 0  # los días ya leídos no se vuelven a pedir
     with psycopg.connect(migrated_database) as conn:
         rows = conn.execute(

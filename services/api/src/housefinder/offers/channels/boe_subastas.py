@@ -1,8 +1,8 @@
-"""Canal BOE, sección IV (F4.3, ADR-0017): avisos de subastas judiciales de juzgados de Madrid.
+"""Canal BOE, sección IV (F4.3, ADR-0017): avisos de subastas judiciales de toda España.
 
-El Portal de Subastas prohíbe el acceso automático (`robots.txt`), así que no se lee. Cada subasta
-judicial tiene un aviso en la sección IV del BOE, cuyo título es la localidad del juzgado. Se
-guardan los avisos de las sedes de partidos judiciales de `data/offers/subastas_boe.yaml`. El aviso
+Cada subasta judicial tiene un aviso en la sección IV del BOE, cuyo título es la localidad del
+juzgado. Con `all_spain` se guardan los de todos los juzgados (ADR-0053, enmienda del 2026-11-05);
+sin él, solo los de las sedes de partidos judiciales de `data/offers/subastas_boe.yaml`. El aviso
 solo trae el juzgado, el tipo de subasta, el número del procedimiento y el enlace al Portal; el
 usuario abre el enlace y pega el texto del lote (F4.1).
 
@@ -50,8 +50,11 @@ class AuctionNotice:
 class CourtSeats:
     seats: frozenset[str]  # plegadas: sin tildes ni mayúsculas
     verified: bool
+    all_spain: bool = False
 
     def matches(self, locality: str) -> bool:
+        if self.all_spain:
+            return True
         return fold(locality) in self.seats
 
 
@@ -60,10 +63,15 @@ def default_config_path() -> Path:
     return Path(__file__).resolve().parents[4] / "data" / "offers" / "subastas_boe.yaml"
 
 
-def load_court_seats(path: Path | None = None) -> CourtSeats:
+def load_court_seats(path: Path | None = None, all_spain: bool = False) -> CourtSeats:
+    if all_spain:
+        return CourtSeats(frozenset(), True, all_spain=True)
     data = yaml.safe_load((path or default_config_path()).read_text(encoding="utf-8"))
-    return CourtSeats(frozenset(fold(s) for s in data["court_seats"]),
-                      bool(data.get("verified", False)))
+    return CourtSeats(
+        frozenset(fold(s) for s in data["court_seats"]),
+        bool(data.get("verified", False)),
+        all_spain=bool(data.get("all_spain", False)),
+    )
 
 
 def fold(text: str) -> str:
@@ -94,7 +102,7 @@ class BoeAuctions:
         self.days = days
         self.seats = seats
         self.days_found: set[date] = set()
-        self.unparsed: list[str] = []  # avisos de Madrid sin enlace al Portal
+        self.unparsed: list[str] = []  # avisos sin enlace al Portal
         self.disallowed: list[str] = []  # avisos que el robots.txt del BOE no deja descargar
 
     def fetch(self, client: httpx.Client) -> Iterator[RawItem]:

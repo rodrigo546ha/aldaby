@@ -45,3 +45,14 @@ construida. El Portal no publica la superficie.
 - La lista de subastas del Portal y la de avisos de la sección IV (ADR-0017) pueden traer la misma
   subasta: son canales distintos y no se deduplican entre sí por ahora (el inmueble sí, por referencia
   catastral o cercanía, al ubicarlo).
+
+## Enmienda (2026-11-05): Ámbito nacional (toda España) y paginación
+- **Ámbito nacional por defecto:** La búsqueda en el Portal (`subastas_ava.php`) y en la ingesta
+  diaria (`offers_boe_portal`) utiliza por defecto `province=""` (`-- Todas --` en el formulario del BOE),
+  cubriendo las 52 provincias españolas en lugar de limitarse a Madrid (`28`).
+- **Paginación multi-página:** Se añade soporte para seguir la paginación (`subastas_ava.php?accion=Mas`)
+  mediante el parámetro `max_pages` (por defecto 5 páginas de 500 resultados en el canal diario),
+  permitiendo indexar las ~900+ subastas activas simultáneas en España.
+- **Avisos de la sección IV del BOE:** El canal `boe_subastas` incorpora el parámetro `all_spain=True`
+  para consultar las sedes judiciales de toda España sin restringirse a las 21 de Madrid ni al
+  territorio `ES-13`.

@@ -65,13 +65,16 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
 
     def offers_boe_auctions(payload: dict[str, Any]) -> dict[str, Any]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
-            return run_boe_auctions(conninfo, client, date.today(), int(payload.get("days", 7)))
+            all_spain = bool(payload.get("all_spain", True))
+            return run_boe_auctions(
+                conninfo, client, date.today(), int(payload.get("days", 7)), all_spain=all_spain
+            )
 
     def offers_boe_portal(payload: dict[str, Any]) -> dict[str, Any]:
         from housefinder.offers import boe_portal
 
         with boe_portal.make_client() as client:
-            return run_boe_portal(conninfo, client, str(payload.get("province", "28")))
+            return run_boe_portal(conninfo, client, str(payload.get("province", "")))
 
     def offers_patrimonio(payload: dict[str, Any]) -> dict[str, Any]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:

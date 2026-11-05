@@ -70,9 +70,9 @@ def run_boe_v(
 
 
 def run_boe_auctions(conninfo: str, client: httpx.Client, today: date,
-                     days: int = 7) -> dict[str, Any]:
-    """Avisos de subastas judiciales de Madrid de los días del BOE aún no leídos (ADR-0017)."""
-    seats = boe_subastas.load_court_seats()
+                     days: int = 7, all_spain: bool = True) -> dict[str, Any]:
+    """Avisos de subastas judiciales de los días del BOE aún no leídos (ADR-0017)."""
+    seats = boe_subastas.load_court_seats(all_spain=all_spain)
     total = IngestReport()
     unparsed: list[str] = []
     with connect(conninfo) as conn:
@@ -99,14 +99,15 @@ def run_boe_auctions(conninfo: str, client: httpx.Client, today: date,
 def run_boe_portal(
     conninfo: str,
     client: httpx.Client,
-    province: str = "28",
+    province: str = "",
     geocoder: Callable[[str], Geocoded] | None = None,
     parcels: Callable[[str], Parcel] | None = None,
     units: Callable[[str], CadastralUnit] | None = None,
     pause_s: float = subastas_portal.PAUSE_S,
+    limit: int = subastas_portal.MAX_AUCTIONS,
 ) -> dict[str, Any]:
     """Subastas de inmuebles del Portal del BOE nuevas o cambiadas, como lotes ubicados
-    (ADR-0053)."""
+    (ADR-0053). Ámbito nacional por defecto (o provincia si se especifica)."""
     with connect(conninfo) as conn:
         upsert_source(conn, SourceRecord(subastas_portal.SOURCE_ID, subastas_portal.SOURCE_NAME,
                                          boe_v.LICENSE_URL, boe_v.LICENSE, datetime.now(UTC)))
@@ -116,7 +117,8 @@ def run_boe_portal(
                                municipalities=lambda name: municipality_codes(client, name),
                                foral=lambda province, key: find_foral_parcel(client, province, key))
         channel = subastas_portal.PortalAuctions(portal_states(conn, subastas_portal.NAME),
-                                                 province, units, pause_s)
+                                                 province=province, units=units, pause_s=pause_s,
+                                                 limit=limit)
         report = ingest(conn, channel, channel.fetch(client), locate)
     return {**report.as_dict(), "unchanged": channel.unchanged, "postponed": channel.postponed,
             "failed": channel.failed}

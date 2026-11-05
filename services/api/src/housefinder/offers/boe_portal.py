@@ -808,13 +808,19 @@ def download_documents(
 
 def search_boe_auctions(
     client: httpx.Client,
-    province: str = "28",  # 28 = Madrid
+    province: str = "",  # "" = Toda España; código INE (ej: "28" = Madrid) si se filtra
     status: str = "EJ",  # EJ = Celebrándose, PU = Próxima apertura
     goods_type: str = "I",  # I = Inmuebles
     page: int = 1,
     page_hits: int = 50,
+    max_pages: int = 1,
 ) -> list[AuctionSearchResult]:
-    """Realiza una búsqueda avanzada en el Portal de Subastas (subastas_ava.php)."""
+    """Realiza una búsqueda avanzada en el Portal de Subastas (subastas_ava.php).
+
+    Si province es "" o None, busca en toda España.
+    Si max_pages > 1, sigue los enlaces de paginación de resultados.
+    """
+    province_code = "" if province in ("", "all", "todas", None) else str(province)
     form_data = {
         "campo[0]": "SUBASTA.ORIGEN",
         "dato[0]": "",
@@ -823,13 +829,40 @@ def search_boe_auctions(
         "campo[3]": "BIEN.TIPO",
         "dato[3]": goods_type,
         "campo[8]": "BIEN.COD_PROVINCIA",
-        "dato[8]": province,
+        "dato[8]": province_code,
         "page_hits": str(page_hits),
         "accion": "Buscar",
     }
     resp = client.post(SEARCH_URL, data=form_data)
     resp.raise_for_status()
-    return parse_search_results(resp.text)
+    results = parse_search_results(resp.text)
+
+    pages_fetched = 1
+    curr_html = resp.text
+    while pages_fetched < max_pages:
+        next_match = re.search(
+            r'href="((?:\./)?subastas_ava\.php\?accion=Mas&amp;id_busqueda=[^"]+)"[^>]*>'
+            r"(?:<abbr[^>]*>[^<]*</abbr>\s*)?siguiente",
+            curr_html,
+            re.DOTALL | re.IGNORECASE,
+        )
+        if not next_match:
+            break
+        rel_url = next_match.group(1).replace("&amp;", "&")
+        if rel_url.startswith("./"):
+            rel_url = rel_url[2:]
+        next_url = f"{BASE_URL}/{rel_url}" if not rel_url.startswith("http") else rel_url
+        resp_next = client.get(next_url)
+        if resp_next.status_code != 200:
+            break
+        curr_html = resp_next.text
+        new_results = parse_search_results(curr_html)
+        if not new_results:
+            break
+        results.extend(new_results)
+        pages_fetched += 1
+
+    return results
 
 
 # Tipo de bien del Portal → tipo de inmueble de la extracción (agent/extraction.PropertyType)
@@ -943,23 +976,32 @@ if __name__ == "__main__":
     parser.add_argument("--id", "-i", help="Identificador SUB-... o URL de la subasta")
     parser.add_argument("--search", "-s", action="store_true", help="Buscar subastas activas")
     parser.add_argument(
-        "--province", "-p", default="28", help="Código INE de provincia (28=Madrid)"
+        "--province",
+        "-p",
+        default="",
+        help="Código INE de provincia (vacío para toda España, 28=Madrid)",
     )
     parser.add_argument("--docs", "-d", action="store_true", help="Descargar y leer documentos PDF")
     parser.add_argument(
         "--ai", "-a", action="store_true", help="Extraer condiciones y cargas con IA"
     )
     parser.add_argument("--json", action="store_true", help="Salida en formato JSON")
+    parser.add_argument(
+        "--pages", type=int, default=1, help="Número máximo de páginas a descargar"
+    )
 
     args = parser.parse_args()
 
     with make_client() as client:
         if args.search:
-            results = search_boe_auctions(client, province=args.province)
+            results = search_boe_auctions(
+                client, province=args.province, max_pages=args.pages
+            )
             if args.json:
                 print(json.dumps([r.__dict__ for r in results], ensure_ascii=False, indent=2))
             else:
-                print(f"Encontradas {len(results)} subastas en provincia {args.province}:")
+                prov_label = f"en provincia {args.province}" if args.province else "en toda España"
+                print(f"Encontradas {len(results)} subastas {prov_label}:")
                 for r in results:
                     c = r.court or ""
                     p = r.procedure or ""

@@ -176,7 +176,10 @@ class AuctionScrapeIn(BaseModel):
 
 
 class AuctionSearchIn(BaseModel):
-    province: str = Field(default="28", description="Código INE de la provincia (28 = Madrid)")
+    province: str = Field(
+        default="",
+        description="Código INE de la provincia (vacío para toda España, 28 = Madrid)",
+    )
     status: Literal["EJ", "PU", "SU", "CA"] = Field(
         default="EJ", description="Estado: EJ (celebrándose), PU (próxima apertura)"
     )
@@ -184,7 +187,8 @@ class AuctionSearchIn(BaseModel):
         default="I", description="Tipo de bien: I (inmuebles), V (vehículos)"
     )
     page: int = Field(default=1, ge=1)
-    page_hits: int = Field(default=20, ge=5, le=100)
+    page_hits: int = Field(default=50, ge=5, le=500)
+    max_pages: int = Field(default=1, ge=1, le=20)
 
 
 class ScrapedAuctionOut(BaseModel):
@@ -341,6 +345,7 @@ def post_search_auctions(
                 goods_type=body.goods_type,
                 page=body.page,
                 page_hits=body.page_hits,
+                max_pages=body.max_pages,
             )
         except Exception as exc:
             raise HTTPException(

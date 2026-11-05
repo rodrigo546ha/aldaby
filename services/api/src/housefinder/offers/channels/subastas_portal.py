@@ -42,10 +42,11 @@ class PortalAuctions:
     """`known`: estado de la búsqueda de cada subasta ya guardada (`portal_states`)."""
 
     known: dict[str, str]
-    province: str = "28"
+    province: str = ""  # "" = Toda España; código INE (ej: "28" = Madrid) si se filtra
     units: Callable[[str], CadastralUnit] | None = None  # Catastro; None: con el mismo cliente
     pause_s: float = PAUSE_S
     limit: int = MAX_AUCTIONS
+    max_pages: int = 5
     name: str = NAME
     source_id: str = SOURCE_ID
     unchanged: int = 0
@@ -58,8 +59,13 @@ class PortalAuctions:
         fetched = 0
         for status in STATUSES:
             results = boe_portal.search_boe_auctions(
-                client, province=self.province, status=status, goods_type="I",
-                page_hits=PAGE_HITS)
+                client,
+                province=self.province,
+                status=status,
+                goods_type="I",
+                page_hits=PAGE_HITS,
+                max_pages=self.max_pages,
+            )
             for result in results:
                 if result.portal_id in seen:
                     continue

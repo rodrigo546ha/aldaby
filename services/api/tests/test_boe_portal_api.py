@@ -117,6 +117,17 @@ def test_api_search_auctions():
     assert "JUZGADO 1 INSTANCIA 32" in results[0]["court"]
 
 
+def test_api_search_auctions_all_spain_default():
+    with patch("housefinder.offers.boe_portal.make_client", side_effect=mock_portal_client):
+        resp = client.post(
+            "/boe/subastas/search",
+            json={},  # Sin provincia: por defecto busca en toda España
+        )
+    assert resp.status_code == 200
+    results = resp.json()
+    assert len(results) == 38
+
+
 def test_sin_sesion_no_se_consulta_el_portal():
     app.dependency_overrides.pop(get_org)
     with patch("housefinder.offers.boe_portal.make_client") as make_client:
