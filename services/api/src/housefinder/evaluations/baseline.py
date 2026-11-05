@@ -11,11 +11,13 @@ from pathlib import Path
 from typing import Any
 
 HIGHER_IS_BETTER = {"extraccion.correctos", "agente.herramientas", "agente.mostrados",
-                    "agente.a_la_primera"}
+                    "agente.a_la_primera", "conversacion.herramientas", "conversacion.mostrados",
+                    "conversacion.a_la_primera", "conversacion.cifra_pedida",
+                    "conversacion.misma_oferta"}
 LOWER_IS_BETTER = {"extraccion.falta", "extraccion.distinto", "extraccion.sobra",
                    "extraccion.lotes_de_mas", "extraccion.lotes_de_menos", "extraccion.errores",
-                   "agente.contradicciones"}
-MUST_BE_ZERO = {"agente.cifras_fuera", "coherencia.incoherencias"}
+                   "agente.contradicciones", "conversacion.contradicciones"}
+MUST_BE_ZERO = {"agente.cifras_fuera", "conversacion.cifras_fuera", "coherencia.incoherencias"}
 
 
 def default_path() -> Path:

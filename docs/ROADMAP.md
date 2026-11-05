@@ -372,6 +372,9 @@ umbral fijado en F0, y cada estimación con su rango.
       la línea base guardada. La primera pasada destapó que qwen3 escribía «value» en vez del
       dato: con la corrección, la extracción pasa de 57 a 102 campos de 141 y el asesor acierta
       las herramientas 8/8 (`docs/research/f6-9-evaluaciones.md`).
+      *Conversaciones (ADR-0067):* tres conversaciones con el historial de la API, que miden si
+      vuelve a pedir la herramienta, si cita la cifra de lo que se pregunta y si habla de la misma
+      oferta (`make evaluar`, evaluación `conversacion`).
 
 **Criterio de salida.** Los 10 planes manuales de F0 se reproducen con la herramienta en menos de
 10 minutos cada uno, y ninguna cifra del texto del agente falta en los `Figure` del plan.

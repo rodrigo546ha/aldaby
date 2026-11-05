@@ -82,7 +82,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     plans/coherence.py    reglas de coherencia del plan; un fallo se avisa en el plan (ADR-0027)
     plans/bids.py         simulador de puja de una subasta: el plan a cada puja y la puja máxima
                           del usuario (lo puro, en planning/bids.py; ADR-0047)
-    evaluations/          extracción contra el juego etiquetado, banco del asesor y línea base (ADR-0027);
+    evaluations/          extracción contra el juego etiquetado, banco del asesor, sus conversaciones
+                          (ADR-0067) y línea base (ADR-0027);
                           estado de la vivienda desde sus fotos (photos.py, ADR-0062, propuesta)
     db/migrate.py         ejecutor de migraciones (ADR-0008); solo db/ importa psycopg
     db/sections.py        fuentes (`sources`) y secciones censales; sección de un punto

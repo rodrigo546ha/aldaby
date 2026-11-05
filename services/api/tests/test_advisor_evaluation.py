@@ -52,3 +52,53 @@ def test_nombra_las_ofertas_por_su_titulo():
         [Step("valorar_oferta", True)])}
     assert run_cases(replies.__getitem__, CASES[:1], "Getafe")[0].text == (
         "[oferta Oferta pegada] no encaja.")
+
+
+def test_las_conversaciones_miden_cada_vuelta_con_el_historial():
+    # ADR-0067: vuelve a pedir la herramienta, cita la cifra de lo que se pregunta y habla de la
+    # misma oferta; el historial lleva los textos aceptados con sus marcadores
+    from housefinder.advisor.evaluation import (
+        Conversation,
+        Turn,
+        conversation_metrics,
+        run_conversations,
+    )
+
+    zone = "{{fig:oferta_abcd1234.territory.income}}"
+    talk = Conversation("Zona y precio", offer=False, turns=(
+        Turn("¿Zona de la de {municipio}?", frozenset({"zona_de_oferta"})),
+        Turn("¿Y está cara?", frozenset({"valorar_oferta"}),
+             keys=frozenset({"valuation.price_total"}), same_offer=True),
+    ))
+    other = Conversation("Otra oferta", offer=False, turns=(
+        Turn("¿Zona?", frozenset({"zona_de_oferta"})),
+        Turn("¿Y está cara?", frozenset({"valorar_oferta"}), same_offer=True),
+    ))
+    replies = {
+        "¿Zona de la de Getafe?": AgentAnswer([TextSegment("Renta alta.")], {}, [],
+                                              [Step("zona_de_oferta", True)],
+                                              text=f"Renta {zone}."),
+        "¿Y está cara?": AgentAnswer(
+            [TextSegment("Pide más.")], {}, [], [Step("valorar_oferta", True)],
+            text="Pide más que {{fig:oferta_abcd1234.valuation.price_total:range}}."),
+        "¿Zona?": AgentAnswer([TextSegment("Media.")], {}, [], [Step("zona_de_oferta", True)],
+                              text="Media {{fig:oferta_99999999.territory.income}}."),
+    }
+    seen = []
+
+    def answer(conversation, question, history):
+        seen.append(list(history))
+        return replies[question]
+
+    results = run_conversations(answer, (talk, other), "Getafe")
+    assert seen[1] == [{"role": "user", "content": "¿Zona de la de Getafe?"},
+                       {"role": "assistant", "content": f"Renta {zone}."}]
+    assert seen[2] == []  # cada conversación empieza sin historial
+    first, second, _, fourth = results
+    assert (first.keys_ok, first.same_offer) == (None, None)
+    assert (second.keys_ok, second.same_offer) == (True, True)  # sin mirar el prefijo de oferta
+    assert fourth.same_offer is False  # habla de otra oferta que la de la vuelta anterior
+    metrics = conversation_metrics(results)
+    assert metrics["vueltas"] == 4 and metrics["herramientas"] == 4
+    assert (metrics["con_misma_oferta"], metrics["misma_oferta"]) == (2, 1)
+    assert (metrics["con_cifra_pedida"], metrics["cifra_pedida"]) == (1, 1)
