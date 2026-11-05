@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
 import { Callout } from "./Icon";
+import { Questions } from "./Questions";
 import { Skeleton } from "./Motion";
 import { AppLink, DATA } from "./AppLink";
 import { invalidatePlans } from "../lib/data";
@@ -144,34 +145,39 @@ export function Profile() {
 
   if (!interview) {
     return (
-      <section className="section-card profile-start" aria-labelledby="perfil-empezar">
-        <h2 id="perfil-empezar">Tu perfil en una conversación</h2>
-        <ol className="how-steps">
-          <li>
-            <strong>Contestas unas preguntas</strong> con tus palabras: ingresos, ahorro, deudas, edad y qué buscas.
-          </li>
-          <li>
-            <strong>Ves cada dato con la frase de la que sale</strong> y lo corriges si no es así. Puedes añadir una nómina o
-            tu declaración.
-          </li>
-          <li>
-            <strong>Lo confirmas</strong> y con él se calcula tu plan en cada oferta.
-          </li>
-        </ol>
-        <Callout tone="info">
-          <p>Tus ingresos y deudas se guardan cifrados. Los documentos se leen y se descartan: solo queda lo que confirmes.</p>
-        </Callout>
-        {failure && (
-          <Callout tone="danger">
-            <p>{failure}</p>
+      <>
+        <section className="section-card profile-start" aria-labelledby="perfil-empezar">
+          <h2 id="perfil-empezar">Tu perfil en una conversación</h2>
+          <ol className="how-steps">
+            <li>
+              <strong>Contestas unas preguntas</strong> con tus palabras: ingresos, ahorro, deudas, edad y qué buscas.
+            </li>
+            <li>
+              <strong>Ves cada dato con la frase de la que sale</strong> y lo corriges si no es así. Puedes añadir una nómina o
+              tu declaración.
+            </li>
+            <li>
+              <strong>Lo confirmas</strong> y con él se calcula tu plan en cada oferta.
+            </li>
+          </ol>
+          <Callout tone="info">
+            <p>Tus ingresos y deudas se guardan cifrados. Los documentos se leen y se descartan: solo queda lo que confirmes.</p>
           </Callout>
-        )}
-        <div className="actions">
-          <button type="button" onClick={start} disabled={busy}>
-            Empezar
-          </button>
-        </div>
-      </section>
+          {failure && (
+            <Callout tone="danger">
+              <p>{failure}</p>
+            </Callout>
+          )}
+          <div className="actions">
+            <button type="button" onClick={start} disabled={busy}>
+              Empezar
+            </button>
+          </div>
+        </section>
+        {/* Sin entrevista puede haber un perfil confirmado (un cliente dado de alta antes): el asesor
+            general (ADR-0066) sale si la API dice que lo hay */}
+        <Questions />
+      </>
     );
   }
 
@@ -180,136 +186,140 @@ export function Profile() {
   const filled = (f: DraftField) => (f.field in edits ? edits[f.field].trim() !== "" : asText(f.value).trim() !== "");
   const done = required.filter(filled).length;
   return (
-    <div className="profile">
-      <section className="section-card interview" aria-labelledby="conversacion">
-        <header className="interview-head">
-          <h2 id="conversacion">Conversación</h2>
+    <>
+      <div className="profile">
+        <section className="section-card interview" aria-labelledby="conversacion">
+          <header className="interview-head">
+            <h2 id="conversacion">Conversación</h2>
+            {!confirmed && (
+              <p className="interview-progress">
+                {done === required.length ? "Tienes todos los datos obligatorios" : `${done} de ${required.length} datos obligatorios`}
+              </p>
+            )}
+          </header>
           {!confirmed && (
-            <p className="interview-progress">
-              {done === required.length ? "Tienes todos los datos obligatorios" : `${done} de ${required.length} datos obligatorios`}
-            </p>
-          )}
-        </header>
-        {!confirmed && (
-          <div className="stepper-progress" aria-hidden="true">
-            <span style={{ width: `${required.length ? (done / required.length) * 100 : 100}%` }} />
-          </div>
-        )}
-        <ol className="transcript">
-          {interview.answers.map((a, i) => (
-            <li key={i}>
-              <p className="asked">{a.question}</p>
-              <p className="said">{a.text}</p>
-            </li>
-          ))}
-        </ol>
-        {interview.issues.length > 0 && (
-          <Callout tone="warning">
-            <ul className="plain-list">
-              {interview.issues.map((issue) => (
-                <li key={issue}>{issue}</li>
-              ))}
-            </ul>
-          </Callout>
-        )}
-        {interview.next_question && !confirmed && (
-          <form onSubmit={send} className="answer-form">
-            <label htmlFor="answer" className="asked current">
-              {interview.next_question.text}
-            </label>
-            <textarea
-              id="answer"
-              rows={3}
-              value={text}
-              placeholder="Escribe con tus palabras; puedes dar varios datos a la vez"
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) e.currentTarget.form?.requestSubmit();
-              }}
-              disabled={busy}
-            />
-            <div className="answer-actions">
-              <span className="hint">Cmd o Ctrl + Intro para enviar</span>
-              <button type="submit" disabled={busy || !text.trim()} aria-busy={busy}>
-                {busy ? "Leyendo tu respuesta…" : "Responder"}
-              </button>
+            <div className="stepper-progress" aria-hidden="true">
+              <span style={{ width: `${required.length ? (done / required.length) * 100 : 100}%` }} />
             </div>
-          </form>
-        )}
-        {!interview.next_question && !confirmed && (
-          <Callout tone="success">
-            <p>Ya está todo. Revisa los datos de tu perfil y confírmalos.</p>
-          </Callout>
-        )}
-        {!confirmed && (
-          <details className="more-fields">
-            <summary>
-              Añadir un documento <span className="more-fields-note">nómina, declaración o extracto</span>
-            </summary>
-            <DocumentUpload interview={interview} call={call} onDone={setInterview} />
-          </details>
-        )}
-        {failure && (
-          <Callout tone="danger">
-            <p>{failure}</p>
-          </Callout>
-        )}
-      </section>
-
-      <section className="section-card draft" aria-labelledby="draft-title">
-        <header>
-          <h2 id="draft-title">Tu perfil</h2>
-          <p>Cada dato dice de dónde sale. Corrígelo aquí si no es así.</p>
-        </header>
-        {confirmed && (
-          <Callout tone="success">
-            <p>
-              <strong>Perfil confirmado y guardado cifrado.</strong> Ya se calcula tu plan en cada oferta.
-            </p>
-          </Callout>
-        )}
-        <div className="confirm-grid">
-          {interview.fields.map((f) => (
-            <FieldEditor
-              key={f.field}
-              field={f}
-              regions={regions}
-              value={f.field in edits ? edits[f.field] : asText(f.value)}
-              edited={f.field in edits}
-              missing={f.required && !filled(f)}
-              disabled={confirmed || busy}
-              onChange={(v) => setEdits((old) => ({ ...old, [f.field]: v }))}
-            />
-          ))}
-        </div>
-        <div className="draft-actions">
-          {confirmed ? (
-            <>
-              <AppLink className="button-link primary" href="/mapa" data={DATA.map()}>
-                Ver las ofertas que encajan
-              </AppLink>
-              <AppLink className="button-link" href="/busqueda">
-                Ajustar tus supuestos
-              </AppLink>
-            </>
-          ) : (
-            <>
-              <button type="button" onClick={confirm} disabled={busy || !interview.complete}>
-                Confirmar perfil
-              </button>
-              {!interview.complete && (
-                <span className="hint">
-                  {required.length - done === 1 ? "Falta 1 dato obligatorio." : `Faltan ${required.length - done} datos obligatorios.`}
-                </span>
-              )}
-            </>
           )}
-          <button type="button" className="link-button draft-restart" onClick={start} disabled={busy}>
-            Empezar de nuevo
-          </button>
-        </div>
-      </section>
-    </div>
+          <ol className="transcript">
+            {interview.answers.map((a, i) => (
+              <li key={i}>
+                <p className="asked">{a.question}</p>
+                <p className="said">{a.text}</p>
+              </li>
+            ))}
+          </ol>
+          {interview.issues.length > 0 && (
+            <Callout tone="warning">
+              <ul className="plain-list">
+                {interview.issues.map((issue) => (
+                  <li key={issue}>{issue}</li>
+                ))}
+              </ul>
+            </Callout>
+          )}
+          {interview.next_question && !confirmed && (
+            <form onSubmit={send} className="answer-form">
+              <label htmlFor="answer" className="asked current">
+                {interview.next_question.text}
+              </label>
+              <textarea
+                id="answer"
+                rows={3}
+                value={text}
+                placeholder="Escribe con tus palabras; puedes dar varios datos a la vez"
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) e.currentTarget.form?.requestSubmit();
+                }}
+                disabled={busy}
+              />
+              <div className="answer-actions">
+                <span className="hint">Cmd o Ctrl + Intro para enviar</span>
+                <button type="submit" disabled={busy || !text.trim()} aria-busy={busy}>
+                  {busy ? "Leyendo tu respuesta…" : "Responder"}
+                </button>
+              </div>
+            </form>
+          )}
+          {!interview.next_question && !confirmed && (
+            <Callout tone="success">
+              <p>Ya está todo. Revisa los datos de tu perfil y confírmalos.</p>
+            </Callout>
+          )}
+          {!confirmed && (
+            <details className="more-fields">
+              <summary>
+                Añadir un documento <span className="more-fields-note">nómina, declaración o extracto</span>
+              </summary>
+              <DocumentUpload interview={interview} call={call} onDone={setInterview} />
+            </details>
+          )}
+          {failure && (
+            <Callout tone="danger">
+              <p>{failure}</p>
+            </Callout>
+          )}
+        </section>
+
+        <section className="section-card draft" aria-labelledby="draft-title">
+          <header>
+            <h2 id="draft-title">Tu perfil</h2>
+            <p>Cada dato dice de dónde sale. Corrígelo aquí si no es así.</p>
+          </header>
+          {confirmed && (
+            <Callout tone="success">
+              <p>
+                <strong>Perfil confirmado y guardado cifrado.</strong> Ya se calcula tu plan en cada oferta.
+              </p>
+            </Callout>
+          )}
+          <div className="confirm-grid">
+            {interview.fields.map((f) => (
+              <FieldEditor
+                key={f.field}
+                field={f}
+                regions={regions}
+                value={f.field in edits ? edits[f.field] : asText(f.value)}
+                edited={f.field in edits}
+                missing={f.required && !filled(f)}
+                disabled={confirmed || busy}
+                onChange={(v) => setEdits((old) => ({ ...old, [f.field]: v }))}
+              />
+            ))}
+          </div>
+          <div className="draft-actions">
+            {confirmed ? (
+              <>
+                <AppLink className="button-link primary" href="/mapa" data={DATA.map()}>
+                  Ver las ofertas que encajan
+                </AppLink>
+                <AppLink className="button-link" href="/busqueda">
+                  Ajustar tus supuestos
+                </AppLink>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={confirm} disabled={busy || !interview.complete}>
+                  Confirmar perfil
+                </button>
+                {!interview.complete && (
+                  <span className="hint">
+                    {required.length - done === 1 ? "Falta 1 dato obligatorio." : `Faltan ${required.length - done} datos obligatorios.`}
+                  </span>
+                )}
+              </>
+            )}
+            <button type="button" className="link-button draft-restart" onClick={start} disabled={busy}>
+              Empezar de nuevo
+            </button>
+          </div>
+        </section>
+      </div>
+      {/* Asesor general (ADR-0066): sale si hay un perfil confirmado; al confirmar, se vuelve a pedir */}
+      <Questions key={confirmed ? "confirmado" : "borrador"} />
+    </>
   );
 }
 

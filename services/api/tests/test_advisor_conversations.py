@@ -93,3 +93,30 @@ def test_se_guardan_las_ultimas_y_caduca(setting):
         conversations.append(conn, keys, org, client, offer, "otra", {}, "r")
         assert conversations.forget(conn, org, client, offer) is True
         assert conversations.load(conn, keys, org, client, offer) == []
+
+
+@pytest.mark.db
+def test_la_conversacion_general_va_aparte_y_caduca_igual(setting):
+    # «Mi plan», sin oferta (ADR-0066): otra fila, otro dato asociado, el mismo plazo
+    from housefinder.db.conversations import purge_expired
+
+    database, keys, org, client, offer = setting
+    assert conversations.associated_data(org, client, None).endswith(b":general")
+    with psycopg.connect(database) as conn:
+        conversations.append(conn, keys, org, client, None, "¿Cuál me encaja?", {}, "Esta")
+        conversations.append(conn, keys, org, client, offer, "¿Y esta?", {}, "Sí")
+        assert [t.question for t in conversations.load(conn, keys, org, client, None)] == [
+            "¿Cuál me encaja?"]
+        assert [t.question for t in conversations.load(conn, keys, org, client, offer)] == [
+            "¿Y esta?"]
+        stored = bytes(conn.execute("SELECT data_enc FROM advisor_general_conversations "
+                                    "WHERE client_id = %s", (client,)).fetchone()[0])
+        assert b"encaja" not in stored
+        conn.execute("UPDATE advisor_general_conversations "
+                     "SET updated_at = now() - interval '30 days' WHERE client_id = %s", (client,))
+        assert conversations.load(conn, keys, org, client, None) == []
+        assert purge_expired(conn, conversation_days()) >= 1
+        assert conversations.load(conn, keys, org, client, offer) != []  # la de la oferta sigue
+        conversations.append(conn, keys, org, client, None, "otra", {}, "r")
+        assert conversations.forget(conn, org, client, None) is True
+        assert conversations.load(conn, keys, org, client, None) == []

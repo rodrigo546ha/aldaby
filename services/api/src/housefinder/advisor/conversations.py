@@ -1,6 +1,7 @@
-"""Conversaciones con el asesor sobre el plan de una oferta, cifradas (ADR-0064).
+"""Conversaciones con el asesor, cifradas (ADR-0064).
 
-Una por cliente y oferta. Se guardan la pregunta, la respuesta ya comprobada tal como se enseñó, el
+Una por cliente y oferta, en el plan de la oferta, y una por cliente sin oferta (`offer_id` None),
+en «Mi plan» (ADR-0066). Se guardan la pregunta, la respuesta ya comprobada tal como se enseñó, el
 texto con marcadores (para el historial) y la fecha. Caducan a los días de `data/conservacion.yaml`
 desde la última pregunta. El historial que ve el modelo sale de aquí, no de la web.
 """
@@ -33,12 +34,15 @@ class Turn:
     at: str  # ISO 8601
 
 
-def associated_data(org_id: UUID, client_id: UUID, offer_id: UUID) -> bytes:
-    return f"{TABLE}:{org_id}:{client_id}:{offer_id}".encode()
+GENERAL = "general"  # en el dato asociado, donde iría la oferta
+
+
+def associated_data(org_id: UUID, client_id: UUID, offer_id: UUID | None) -> bytes:
+    return f"{TABLE}:{org_id}:{client_id}:{offer_id or GENERAL}".encode()
 
 
 def load(conn: Connection, keys: KeyProvider, org_id: UUID, client_id: UUID,
-         offer_id: UUID) -> list[Turn]:
+         offer_id: UUID | None) -> list[Turn]:
     """Las vueltas guardadas, de la más antigua a la más reciente; [] si no hay o ha caducado."""
     row = get_conversation(conn, org_id, client_id, offer_id, conversation_days())
     if row is None:
@@ -48,7 +52,8 @@ def load(conn: Connection, keys: KeyProvider, org_id: UUID, client_id: UUID,
     return [Turn(t["question"], t["answer"], t.get("text"), t["at"]) for t in data["turns"]]
 
 
-def append(conn: Connection, keys: KeyProvider, org_id: UUID, client_id: UUID, offer_id: UUID,
+def append(conn: Connection, keys: KeyProvider, org_id: UUID, client_id: UUID,
+           offer_id: UUID | None,
            question: str, answer: dict[str, Any], text: str | None) -> list[Turn]:
     """Añade una vuelta y guarda la conversación, con el plazo contado desde ahora."""
     turns = [*load(conn, keys, org_id, client_id, offer_id),
@@ -60,7 +65,7 @@ def append(conn: Connection, keys: KeyProvider, org_id: UUID, client_id: UUID, o
     return turns
 
 
-def forget(conn: Connection, org_id: UUID, client_id: UUID, offer_id: UUID) -> bool:
+def forget(conn: Connection, org_id: UUID, client_id: UUID, offer_id: UUID | None) -> bool:
     return delete_conversation(conn, org_id, client_id, offer_id)
 
 

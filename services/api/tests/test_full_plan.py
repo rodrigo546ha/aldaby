@@ -218,6 +218,7 @@ def test_api_del_plan(searchable, org):  # noqa: F811
             client_of(conn, org)
             conn.commit()
         assert client.get(f"/plans/offers/{offer}").status_code == 404  # sin perfil
+        assert client.get("/plans/conversation").status_code == 404  # «Mi plan», sin asesor
         with psycopg.connect(searchable) as conn:
             store.save_new(conn, keys, org, client_of(conn, org), profile())
             conn.commit()
@@ -302,6 +303,27 @@ def test_api_del_plan(searchable, org):  # noqa: F811
         assert client.post(f"/plans/offers/{offer}/questions", json=too_long).status_code == 422
         assert client.delete(f"/plans/offers/{offer}/conversation").status_code == 204
         assert client.get(f"/plans/offers/{offer}/conversation").json()["turns"] == []
+        # «Mi plan», sin oferta fija (ADR-0066): su conversación va aparte y lleva su historial
+        def ask_general(question: str, answer: str) -> dict:
+            llm.turns.append(ChatTurn(answer))
+            asked = client.post("/plans/questions", json={"question": question})
+            name, answered = [(block.split("\n")[0].removeprefix("event: "),
+                               json.loads(block.split("\n")[1].removeprefix("data: ")))
+                              for block in asked.text.strip().split("\n\n")][-1]
+            assert name == "resultado" and answered["failure"] is None
+            return answered
+
+        ask_general("¿Por dónde empiezo?", "Mira primero las ofertas que encajan.")
+        ask_general("¿Y después?", "Abre su plan.")
+        seen = llm.chats[-1]
+        assert seen[1:3] == [{"role": "user", "content": "¿Por dónde empiezo?"},
+                             {"role": "assistant",
+                              "content": "Mira primero las ofertas que encajan."}]
+        general = client.get("/plans/conversation").json()
+        assert [t["question"] for t in general["turns"]] == ["¿Por dónde empiezo?", "¿Y después?"]
+        assert client.get(f"/plans/offers/{offer}/conversation").json()["turns"] == []
+        assert client.delete("/plans/conversation").status_code == 204
+        assert client.get("/plans/conversation").json()["turns"] == []
         # Al llegar al límite del día, 429 antes de llamar al modelo (ADR-0065); la pregunta
         # demasiado larga no contó
         with psycopg.connect(searchable) as conn:
@@ -311,6 +333,7 @@ def test_api_del_plan(searchable, org):  # noqa: F811
         limited = client.post(f"/plans/offers/{offer}/questions", json={"question": "¿Y ahora?"})
         assert limited.status_code == 429 and "200 consultas" in limited.json()["detail"]
         assert client.post(f"/plans/offers/{offer}/explanation").status_code == 429
+        assert client.post("/plans/questions", json={"question": "¿Y ahora?"}).status_code == 429
         assert len(llm.chats) == calls
         assert client.get(f"/plans/offers/{offer}/conversation").json()["advisor_left"] == 0
     finally:

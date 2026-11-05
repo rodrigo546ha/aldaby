@@ -922,6 +922,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/plans/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * General Question
+         * @description Una pregunta en «Mi plan», sin oferta fija (ADR-0066): las mismas herramientas que en la
+         *     terminal, con su conversación cifrada.
+         */
+        post: operations["general_question_plans_questions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/plans/offers/{offer_id}/conversation": {
         parameters: {
             query?: never;
@@ -935,6 +956,28 @@ export interface paths {
         post?: never;
         /** Forget Conversation */
         delete: operations["forget_conversation_plans_offers__offer_id__conversation_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plans/conversation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * General Conversation
+         * @description La conversación de «Mi plan» (ADR-0066). 404 sin perfil confirmado: la web no enseña el
+         *     asesor, que sin perfil no puede ordenar ofertas.
+         */
+        get: operations["general_conversation_plans_conversation_get"];
+        put?: never;
+        post?: never;
+        /** Forget General Conversation */
+        delete: operations["forget_general_conversation_plans_conversation_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4464,6 +4507,39 @@ export interface operations {
             };
         };
     };
+    general_question_plans_questions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionIn"];
+            };
+        };
+        responses: {
+            /** @description text/event-stream: eventos «etapa» mientras el asesor trabaja y uno «resultado» con el AdvisorAnswerOut, o «error» (ADR-0063) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdvisorAnswerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     conversation_plans_offers__offer_id__conversation_get: {
         parameters: {
             query?: never;
@@ -4521,6 +4597,44 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    general_conversation_plans_conversation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationOut"];
+                };
+            };
+        };
+    };
+    forget_general_conversation_plans_conversation_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

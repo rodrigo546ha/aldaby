@@ -103,7 +103,8 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     db/tiers.py           planes completos usados en el nivel gratuito (ADR-0041) y consultas al
                           asesor de hoy (ADR-0065)
     db/interviews.py      entrevistas de perfil (solo bytes cifrados)
-    db/conversations.py   conversaciones con el asesor (solo bytes cifrados, ADR-0064)
+    db/conversations.py   conversaciones con el asesor, por oferta o en «Mi plan» (solo bytes
+                          cifrados, ADR-0064, ADR-0066)
     crypto/               cifrado de sobre AES-256-GCM y claves maestras (ADR-0011)
     profiles/             perfil del inversor: modelo que se redacta, almacén cifrado, entrevista
                           con preguntas fijas (interview.py, ADR-0020) y clientes (clients.py, ADR-0029)
@@ -134,6 +135,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     agent/loop.py         bucle del agente con herramientas; el texto final se comprueba con references (ADR-0019)
                           y, con modelo de salida, la respuesta es un JSON en fichas (ADR-0052);
                           con historial, las preguntas de la web sobre un plan (ADR-0063)
+                          y en «Mi plan», sin oferta fija (ADR-0066)
     advisor/              herramientas del agente sobre los motores (solo lectura, argumentos sin números),
                           glosario de cifras para el modelo, banco de preguntas (evaluation.py) y CLI;
                           conversaciones cifradas 30 días (conversations.py, ADR-0064)

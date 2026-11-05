@@ -2201,6 +2201,48 @@
         }
       }
     },
+    "/plans/questions": {
+      "post": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "General Question",
+        "description": "Una pregunta en «Mi plan», sin oferta fija (ADR-0066): las mismas herramientas que en la\nterminal, con su conversación cifrada.",
+        "operationId": "general_question_plans_questions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "text/event-stream: eventos «etapa» mientras el asesor trabaja y uno «resultado» con el AdvisorAnswerOut, o «error» (ADR-0063)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdvisorAnswerOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/plans/offers/{offer_id}/conversation": {
       "get": {
         "tags": [
@@ -2274,6 +2316,40 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/plans/conversation": {
+      "get": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "General Conversation",
+        "description": "La conversación de «Mi plan» (ADR-0066). 404 sin perfil confirmado: la web no enseña el\nasesor, que sin perfil no puede ordenar ofertas.",
+        "operationId": "general_conversation_plans_conversation_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationOut"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Forget General Conversation",
+        "operationId": "forget_general_conversation_plans_conversation_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           }
         }
       }

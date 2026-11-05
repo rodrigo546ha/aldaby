@@ -6,7 +6,7 @@ import json
 import logging
 import queue
 import threading
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from datetime import date
 from decimal import Decimal
 from typing import Literal
@@ -20,9 +20,12 @@ from housefinder.advisor import conversations
 from housefinder.advisor.tools import (
     ExplainedPlan,
     PlanExplanation,
+    PlanGate,
     ask_about_offer,
+    ask_in_plan,
     explain_plan,
 )
+from housefinder.agent.llm import Message
 from housefinder.agent.loop import AgentAnswer, Progress
 from housefinder.agent.references import FigureSegment, OfferSegment, Segment, segments
 from housefinder.api.deps import (
@@ -306,18 +309,45 @@ class AdvisorAnswerOut(BaseModel):
     notes: list[str]
 
 
+QUESTION_STREAM = {200: {"model": AdvisorAnswerOut, "description": (
+    "text/event-stream: eventos «etapa» mientras el asesor trabaja y uno «resultado» con el "
+    "AdvisorAnswerOut, o «error» (ADR-0063)")}}
+Answer = Callable[[list[Message], Callable[[Progress], None], PlanGate | None], AgentAnswer]
+
+
 @router.post("/offers/{offer_id}/questions", response_class=StreamingResponse,
-             responses={200: {"model": AdvisorAnswerOut, "description": (
-                 "text/event-stream: eventos «etapa» mientras el asesor trabaja y uno «resultado» "
-                 "con el AdvisorAnswerOut, o «error» (ADR-0063)")}})
+             responses=QUESTION_STREAM)
 def question(offer_id: UUID, body: QuestionIn, db: DbDep, keys: KeysDep, org: OrgDep,
              client: ClientDep, book: ParamBookDep, rules: RuleBookDep, llm: LLMDep,
              current: SessionDep) -> StreamingResponse:
     """Una pregunta sobre el plan de la oferta. Se guarda cifrada en su conversación (ADR-0064)."""
     profile, _ = _plan(db, keys, org, client, book, rules, offer_id, is_particular(current))
+    return _answer(db, keys, org, client, offer_id, body.question, is_particular(current),
+                   lambda history, tell, gate: ask_about_offer(
+                       db, book, llm, org, offer_id, body.question, history, profile, rules,
+                       progress=tell, plan_gate=gate))
+
+
+@router.post("/questions", response_class=StreamingResponse, responses=QUESTION_STREAM)
+def general_question(body: QuestionIn, db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
+                     book: ParamBookDep, rules: RuleBookDep, llm: LLMDep,
+                     current: SessionDep) -> StreamingResponse:
+    """Una pregunta en «Mi plan», sin oferta fija (ADR-0066): las mismas herramientas que en la
+    terminal, con su conversación cifrada."""
+    profile = _profile(db, keys, org, client)
+    return _answer(db, keys, org, client, None, body.question, is_particular(current),
+                   lambda history, tell, gate: ask_in_plan(
+                       db, book, llm, org, body.question, history, profile, rules,
+                       progress=tell, plan_gate=gate))
+
+
+def _answer(db: Connection, keys: KeyProvider, org: UUID, client: UUID, offer_id: UUID | None,
+            question: str, particular: bool, answer: Answer) -> StreamingResponse:
+    """Lo común de una pregunta al asesor: historial guardado, consulta del día, cupo de planes,
+    etapas en `text/event-stream` y la vuelta guardada cifrada (ADR-0063, ADR-0064, ADR-0065)."""
     history = conversations.history(conversations.load(db, keys, org, client, offer_id))
-    take_advisor(db, org, is_particular(current))  # consultas al asesor de hoy (ADR-0065)
-    gate = plan_gate(db, org, is_particular(current))  # el plan de otra oferta gasta cupo
+    take_advisor(db, org, particular)  # consultas al asesor de hoy (ADR-0065)
+    gate = plan_gate(db, org, particular)  # el plan de otra oferta gasta cupo
     events: queue.Queue[str | None] = queue.Queue()
 
     def tell(step: Progress) -> None:
@@ -325,10 +355,8 @@ def question(offer_id: UUID, body: QuestionIn, db: DbDep, keys: KeysDep, org: Or
 
     def work() -> None:
         try:
-            answer = ask_about_offer(db, book, llm, org, offer_id, body.question, history,
-                                     profile, rules, progress=tell, plan_gate=gate)
-            shown = answer_out(answer)
-            conversations.append(db, keys, org, client, offer_id, body.question,
+            shown = answer_out(answer(history, tell, gate))
+            conversations.append(db, keys, org, client, offer_id, question,
                                  shown.model_dump(mode="json"), shown.text)
             db.commit()
             events.put(_event("resultado", shown.model_dump(mode="json")))
@@ -364,18 +392,39 @@ class ConversationOut(BaseModel):
 @router.get("/offers/{offer_id}/conversation", response_model=ConversationOut)
 def conversation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
                  current: SessionDep) -> ConversationOut:
-    turns = conversations.load(db, keys, org, client, offer_id)
-    return ConversationOut(
-        turns=[TurnOut(question=t.question, answer=AdvisorAnswerOut.model_validate(t.answer),
-                       at=t.at) for t in turns],
-        retention_days=conversation_days(),
-        advisor_left=advisor_left(db, org, is_particular(current)))
+    return _conversation(db, keys, org, client, offer_id, is_particular(current))
 
 
 @router.delete("/offers/{offer_id}/conversation", status_code=204)
 def forget_conversation(offer_id: UUID, db: DbDep, org: OrgDep, client: ClientDep) -> None:
     conversations.forget(db, org, client, offer_id)
     db.commit()
+
+
+@router.get("/conversation", response_model=ConversationOut)
+def general_conversation(db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
+                         current: SessionDep) -> ConversationOut:
+    """La conversación de «Mi plan» (ADR-0066). 404 sin perfil confirmado: la web no enseña el
+    asesor, que sin perfil no puede ordenar ofertas."""
+    if latest_profile_id(db, org, client) is None:
+        raise HTTPException(status_code=404, detail="Confirma primero tu perfil en /perfil")
+    return _conversation(db, keys, org, client, None, is_particular(current))
+
+
+@router.delete("/conversation", status_code=204)
+def forget_general_conversation(db: DbDep, org: OrgDep, client: ClientDep) -> None:
+    conversations.forget(db, org, client, None)
+    db.commit()
+
+
+def _conversation(db: Connection, keys: KeyProvider, org: UUID, client: UUID,
+                  offer_id: UUID | None, particular: bool) -> ConversationOut:
+    turns = conversations.load(db, keys, org, client, offer_id)
+    return ConversationOut(
+        turns=[TurnOut(question=t.question, answer=AdvisorAnswerOut.model_validate(t.answer),
+                       at=t.at) for t in turns],
+        retention_days=conversation_days(),
+        advisor_left=advisor_left(db, org, particular))
 
 
 def answer_out(answer: AgentAnswer) -> AdvisorAnswerOut:
@@ -418,13 +467,17 @@ def _event(name: str, data: object) -> str:
 PLANS: ContentCache[FullPlan] = ContentCache(size=500)
 
 
-def _plan(db: Connection, keys: KeyProvider, org: UUID, client: UUID, book: ParamBook,
-          rules: RuleBook, offer_id: UUID,
-          particular: bool = False) -> tuple[UserProfile, FullPlan]:
+def _profile(db: Connection, keys: KeyProvider, org: UUID, client: UUID) -> UserProfile:
     profile_id = latest_profile_id(db, org, client)
     if profile_id is None:
         raise HTTPException(status_code=404, detail="Confirma primero tu perfil en /perfil")
-    profile = store.load(db, keys, profile_id, org)
+    return store.load(db, keys, profile_id, org)
+
+
+def _plan(db: Connection, keys: KeyProvider, org: UUID, client: UUID, book: ParamBook,
+          rules: RuleBook, offer_id: UUID,
+          particular: bool = False) -> tuple[UserProfile, FullPlan]:
+    profile = _profile(db, keys, org, client)
     record = check_full_plan(db, org, offer_id, particular)  # nivel gratuito (ADR-0041)
     try:
         plan = full_plan(db, book, rules, profile, org, offer_id, cache=PLANS)

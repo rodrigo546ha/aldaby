@@ -9,18 +9,27 @@ import { Points, pointsFrom } from "./Explain";
 type AdvisorAnswerOut = components["schemas"]["AdvisorAnswerOut"];
 type ConversationOut = components["schemas"]["ConversationOut"];
 
-// Preguntas al asesor sobre el plan (ADR-0063). La API guarda la conversación cifrada y la borra a
-// los días que diga (ADR-0064); el historial que ve el modelo lo pone ella. Cada respuesta llega
-// entera y comprobada; sus cifras son Figures del plan.
-const SUGGESTIONS = [
+// Preguntas al asesor sobre el plan de una oferta (ADR-0063) o, sin oferta, en «Mi plan»
+// (ADR-0066). La API guarda la conversación cifrada y la borra a los días que diga (ADR-0064); el
+// historial que ve el modelo lo pone ella. Cada respuesta llega entera y comprobada; sus cifras son
+// Figures de los motores.
+const OFFER_SUGGESTIONS = [
   "¿Y si la alquilo por habitaciones?",
   "¿Qué pasa si suben los tipos?",
   "¿Cómo es la zona?",
   "¿Está cara frente a lo que vale?",
 ];
+const GENERAL_SUGGESTIONS = [
+  "¿Qué ofertas me encajan más?",
+  "¿Cuál está barata para lo que vale?",
+  "¿Cómo alquilaría la mejor?",
+];
 type Turn = { question: string; answer: AdvisorAnswerOut | null; failure: string | null };
 
-export function Questions({ offerId }: { offerId: string }) {
+export function Questions({ offerId }: { offerId?: string }) {
+  const base = offerId ? `/api/plans/offers/${offerId}` : "/api/plans";
+  const suggestions = offerId ? OFFER_SUGGESTIONS : GENERAL_SUGGESTIONS;
+  const inputId = `question-${offerId ?? "general"}`;
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
   const [stages, setStages] = useState<string[]>([]);
@@ -28,15 +37,17 @@ export function Questions({ offerId }: { offerId: string }) {
   const [pending, setPending] = useState<string | null>(null);
   const [retention, setRetention] = useState<number | null>(null);
   const [left, setLeft] = useState<number | null>(null); // consultas al asesor de hoy (ADR-0065)
+  const [available, setAvailable] = useState(Boolean(offerId)); // sin oferta, hasta saber si hay perfil
   const spent = left === 0;
 
   // La conversación guardada de esta oferta, si la hay
   useEffect(() => {
     let alive = true;
-    fetch(`/api/plans/offers/${offerId}/conversation`)
+    fetch(`${base}/conversation`)
       .then((resp) => (resp.ok ? (resp.json() as Promise<ConversationOut>) : null))
       .then((saved) => {
         if (!alive || !saved) return;
+        setAvailable(true);
         setRetention(saved.retention_days);
         setLeft(saved.advisor_left);
         setTurns(
@@ -51,12 +62,12 @@ export function Questions({ offerId }: { offerId: string }) {
     return () => {
       alive = false;
     };
-  }, [offerId]);
+  }, [base]);
 
   async function forget() {
     // Como el resto de borrados (clientes, feeds): se pregunta antes, porque no se puede deshacer.
     if (!window.confirm("¿Borrar esta conversación con el asesor? No se puede deshacer.")) return;
-    const resp = await fetch(`/api/plans/offers/${offerId}/conversation`, { method: "DELETE" });
+    const resp = await fetch(`${base}/conversation`, { method: "DELETE" });
     if (resp.ok) setTurns([]);
   }
 
@@ -70,7 +81,7 @@ export function Questions({ offerId }: { offerId: string }) {
     const seen: Stage[] = [];
     let turn: Turn = { question: text, answer: null, failure: "El asesor no ha respondido" };
     try {
-      const resp = await fetch(`/api/plans/offers/${offerId}/questions`, {
+      const resp = await fetch(`${base}/questions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: text }),
@@ -112,9 +123,22 @@ export function Questions({ offerId }: { offerId: string }) {
     void ask(draft);
   }
 
+  if (!available) return null; // «Mi plan» sin perfil confirmado: la API responde 404
+
   return (
-    <section className="plan-section questions" aria-labelledby="preguntas" aria-busy={busy}>
-      <h3 id="preguntas">Pregunta al asesor</h3>
+    <section
+      className={offerId ? "plan-section questions" : "section-card questions"}
+      aria-labelledby={`${inputId}-title`}
+      aria-busy={busy}
+    >
+      {offerId ? (
+        <h3 id={`${inputId}-title`}>Pregunta al asesor</h3>
+      ) : (
+        <header>
+          <h2 id={`${inputId}-title`}>Pregunta al asesor</h2>
+          <p>Sobre tus ofertas y tu plan: cuáles te encajan, cuánto valen o cómo alquilarlas.</p>
+        </header>
+      )}
       {turns.map((t, i) => (
         <div key={i} className="qa">
           <p className="qa-question">{t.question}</p>
@@ -145,7 +169,7 @@ export function Questions({ offerId }: { offerId: string }) {
       )}
       {turns.length === 0 && !busy && !spent && (
         <div className="chip-row">
-          {SUGGESTIONS.map((s) => (
+          {suggestions.map((s) => (
             <button key={s} type="button" className="chip" onClick={() => void ask(s)}>
               {s}
             </button>
@@ -153,13 +177,13 @@ export function Questions({ offerId }: { offerId: string }) {
         </div>
       )}
       <form className="rent-expectation" onSubmit={submit}>
-        <label htmlFor={`question-${offerId}`}>
-          Tu pregunta sobre este plan. La conversación se guarda cifrada
+        <label htmlFor={inputId}>
+          Tu pregunta{offerId ? " sobre este plan" : ""}. La conversación se guarda cifrada
           {retention ? ` ${retention} días desde la última pregunta` : ""} y puedes borrarla cuando
           quieras.
         </label>
         <input
-          id={`question-${offerId}`}
+          id={inputId}
           value={draft}
           maxLength={500}
           disabled={busy || spent}

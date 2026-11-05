@@ -593,6 +593,9 @@ td { color: var(--mist); }
 
 /* La entrevista es una conversación (DESIGN.md): la pregunta a la izquierda, tu respuesta a la derecha */
 .profile-start { max-width: 72ch; }
+/* El asesor general (ADR-0066) bajo el perfil: separado y, sin entrevista, al ancho de la tarjeta */
+.profile + .questions, .profile-start + .questions { margin-top: var(--sp-8); }
+.profile-start + .questions { max-width: 72ch; }
 .profile-start > h2 { margin: 0; font-size: var(--text-xl); }
 .how-steps { margin: 0; padding-left: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-3); line-height: var(--leading); }
 .how-steps li::marker { color: var(--accent-text); font-family: var(--font-head); font-weight: 500; }

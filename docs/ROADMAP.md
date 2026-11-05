@@ -326,6 +326,8 @@ umbral fijado en F0, y cada estimación con su rango.
       última pregunta y el usuario puede borrarla (ADR-0064). Límite diario de consultas al asesor
       (preguntas y explicaciones) por organización, en `data/niveles.yaml`: 20 en el nivel
       gratuito y 200 para un profesional; 429 al pasarse (ADR-0065).
+      Asesor general en «Mi plan», sin oferta fija, con las herramientas de la terminal y su
+      conversación cifrada aparte (`POST /plans/questions`, ADR-0066).
 - [x] F6.5 Búsqueda inversa: puntuación de ofertas según el resultado esperado para el perfil y sus
       restricciones (cash flow mínimo, riesgo, gestión).
       *Hecho (ADR-0022, ADR-0023):* el plan del usuario en cada oferta con supuestos estimados de

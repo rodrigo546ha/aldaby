@@ -421,6 +421,17 @@ def ask_about_offer(conn: Connection, book: ParamBook, llm: LLMClient, org_id: U
                      progress=progress, history=history)
 
 
+def ask_in_plan(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID, question: str,
+                history: Sequence[Message] = (), profile: UserProfile | None = None,
+                rules: RuleBook | None = None,
+                progress: Callable[[Progress], None] | None = None,
+                plan_gate: PlanGate | None = None) -> AgentAnswer:
+    """Una pregunta en la conversación general de «Mi plan», sin oferta fija (ADR-0066)."""
+    return run_agent(llm, INSTRUCTIONS + CONVERSATION, question,
+                     offer_tools(conn, book, org_id, profile, rules, plan_gate),
+                     progress=progress, history=history)
+
+
 def ask(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID, question: str,
         profile: UserProfile | None = None, rules: RuleBook | None = None) -> AgentAnswer:
     """Una pregunta del usuario sobre sus ofertas, contestada con las herramientas."""
