@@ -83,6 +83,16 @@ modelo de desarrollo es `qwen3-14b-hf` (`infra/ollama/qwen3-14b-hf.Modelfile`, A
 agente y para la extracción; tarda unos cuarenta y cinco segundos por pregunta del agente en el Mac.
 La extracción con el 14B no se ha medido aún frente a la del 8B.
 
+## Temperatura configurable (2026-11-04)
+Para comparar modelos de API (`docs/research/f7-proveedor-llm.md`), la temperatura pasa a
+`LLM_TEMPERATURE`:
+- vacía o sin definir, 0, como hasta ahora;
+- `none`, no se envía, porque los modelos Claude 4.7 y posteriores rechazan cualquier valor por
+  debajo de 1;
+- un número, ese valor.
+
+Un valor que no es número ni `none` falla al arrancar.
+
 ## Opciones consideradas
 - **Seguir con Claude en Bedrock:** mejor calidad de extracción, pero requiere una cuenta de AWS
   propia y envía el texto a un tercero. Descartado por decisión de Rodrigo.

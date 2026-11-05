@@ -278,6 +278,42 @@ def test_configuracion_sin_valores_por_defecto(monkeypatch):
     assert isinstance(client, OpenAICompatibleLLMClient) and client.model == "qwen3:8b"
 
 
+def test_sin_temperatura_no_se_envia():
+    # Los modelos Claude 4.7 y posteriores rechazan una temperatura por debajo de 1 (error 400)
+    http, seen = server(completion(EXTRACTION.model_dump_json()))
+    client = OpenAICompatibleLLMClient("http://llm.test/v1", "m", temperature=None, client=http)
+    client.structured(instructions="x", document="d", output=DocumentExtraction)
+    client.chat([{"role": "user", "content": "hola"}], [])
+    assert all("temperature" not in json.loads(r.content) for r in seen)
+
+
+@pytest.mark.parametrize("value, expected", [
+    (None, 0.0),     # sin la variable: temperatura 0, como hasta ahora (ADR-0014)
+    ("", 0.0),
+    ("none", None),  # no se envía
+    ("0.7", 0.7),
+])
+def test_temperatura_desde_el_entorno(monkeypatch, value, expected):
+    monkeypatch.setenv("LLM_PROVIDER", "openai_compatible")
+    monkeypatch.setenv("LLM_BASE_URL", "http://llm.test/v1")
+    monkeypatch.setenv("LLM_MODEL_ID", "m")
+    if value is None:
+        monkeypatch.delenv("LLM_TEMPERATURE", raising=False)
+    else:
+        monkeypatch.setenv("LLM_TEMPERATURE", value)
+    client = llm_from_env()
+    assert isinstance(client, OpenAICompatibleLLMClient) and client.temperature == expected
+
+
+def test_temperatura_no_numerica_falla_antes_de_llamar(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "openai_compatible")
+    monkeypatch.setenv("LLM_BASE_URL", "http://llm.test/v1")
+    monkeypatch.setenv("LLM_MODEL_ID", "m")
+    monkeypatch.setenv("LLM_TEMPERATURE", "fría")
+    with pytest.raises(ValueError, match="LLM_TEMPERATURE"):
+        llm_from_env()
+
+
 # --- Anuncios reales que se quedaban sin ubicar (ADR-0033) -------------------------------------
 
 EVALUATION = Path(__file__).parents[1] / "data" / "evaluation" / "anuncios"

@@ -19,3 +19,6 @@ infra/produccion/.estado/
 apps/web/public/mapa/*.pmtiles
 apps/web/public/mapa/maplibre-gl-worker.mjs
 .herramientas/
+
+# Informes de la comparación de modelos (make evaluar SALIDA=…): pueden llevar textos del perfil local
+informes-modelos/

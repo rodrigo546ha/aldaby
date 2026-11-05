@@ -99,11 +99,15 @@ class OpenAICompatibleLLMClient:
         api_key: str | None = None,
         timeout_s: float = DEFAULT_TIMEOUT_S,
         reasoning_effort: str | None = None,
+        temperature: float | None = 0.0,
         client: httpx.Client | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.reasoning_effort = reasoning_effort
+        # 0 por determinismo (ADR-0014). None no la envía: los modelos Claude 4.7 y posteriores
+        # rechazan cualquier valor por debajo de 1.
+        self.temperature = temperature
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
         self._client = client or httpx.Client(timeout=timeout_s)
         self._headers = headers
@@ -111,7 +115,6 @@ class OpenAICompatibleLLMClient:
     def structured(self, *, instructions: str, document: str, output: type[T]) -> T:
         body: dict[str, Any] = {
             "model": self.model,
-            "temperature": 0,
             # Instrucciones fijas primero: el servidor reutiliza el prefijo entre llamadas.
             "messages": [{"role": "system", "content": instructions},
                          {"role": "user", "content": wrap_document(document)}],
@@ -125,7 +128,7 @@ class OpenAICompatibleLLMClient:
             raise LLMOutputError("La respuesta no trae la salida estructurada esperada") from exc
 
     def chat(self, messages: Sequence[Message], tools: Sequence[ToolSpec]) -> ChatTurn:
-        body: dict[str, Any] = {"model": self.model, "temperature": 0, "messages": list(messages),
+        body: dict[str, Any] = {"model": self.model, "messages": list(messages),
                                 "max_tokens": CHAT_MAX_TOKENS}
         if tools:
             body["tools"] = [{"type": "function", "function": {
@@ -143,6 +146,8 @@ class OpenAICompatibleLLMClient:
 
     def _complete(self, body: dict[str, Any]) -> dict[str, Any]:
         """POST a /chat/completions; devuelve el mensaje de la primera opción."""
+        if self.temperature is not None:
+            body["temperature"] = self.temperature
         if self.reasoning_effort:
             body["reasoning_effort"] = self.reasoning_effort
         try:
@@ -199,7 +204,8 @@ class FakeLLMClient:
 def llm_from_env() -> LLMClient:
     """Cliente según `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL_ID` y `LLM_API_KEY` (ADR-0014).
 
-    Sin valores por defecto: si falta algo, falla antes de llamar a la red.
+    Sin valores por defecto: si falta algo, falla antes de llamar a la red. `LLM_TEMPERATURE`
+    vacía vale 0; `none` no la envía.
     """
     provider = os.environ.get("LLM_PROVIDER")
     if provider != "openai_compatible":
@@ -214,4 +220,15 @@ def llm_from_env() -> LLMClient:
         api_key=os.environ.get("LLM_API_KEY") or None,
         timeout_s=float(os.environ.get("LLM_TIMEOUT_S") or DEFAULT_TIMEOUT_S),
         reasoning_effort=os.environ.get("LLM_REASONING_EFFORT") or None,
+        temperature=_temperature(os.environ.get("LLM_TEMPERATURE") or ""),
     )
+
+
+def _temperature(raw: str) -> float | None:
+    value = raw.strip().lower()
+    if value == "none":
+        return None
+    try:
+        return float(value) if value else 0.0
+    except ValueError:
+        raise ValueError(f"LLM_TEMPERATURE no es un número ni «none»: {raw!r}") from None

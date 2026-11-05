@@ -108,7 +108,7 @@ test:
 # Evaluaciones con el modelo de .env (ADR-0027): extracción, asesor y coherencia del plan.
 # Compara con data/evaluation/linea_base.json; BASE=1 guarda la nueva línea base.
 evaluar:
-	cd services/api && $(PDF_LIBS) $(VENV)/python -m housefinder.evaluations $(if $(BASE),--guardar-base,)
+	cd services/api && $(PDF_LIBS) $(VENV)/python -m housefinder.evaluations $(if $(BASE),--guardar-base,) $(if $(SALIDA),--salida $(abspath $(SALIDA)),)
 
 lint:
 	cd services/api && $(VENV)/ruff check src tests
