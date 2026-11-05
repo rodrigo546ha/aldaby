@@ -273,6 +273,11 @@ sección censal asignada.
       guarda por oferta y se suma a la compra (`PUT /search/offers/{id}/renovation`, migración
       0025). Con el año del Catastro o del anuncio, avisa de pedir la inspección técnica y las
       derramas (`planning/condition.py`).
+      *Propuesta (ADR-0062):* saber si necesita reforma por sus fotos, con veredicto y señales
+      citando la foto, sin cifras y con confirmación del usuario. Preparados el formato del juego
+      etiquetado (`data/evaluation/fotos.yaml`, fotos en `tests/fixtures/private/fotos/`) y sus
+      métricas (`evaluations/photos.py`). Pendiente: derechos de las fotos (F0.6), fotos del
+      juego, modelo de visión y umbral.
 - [x] F5.6 Backtesting: qué habría estimado el modelo con datos de años anteriores.
       *Hecho:* `python -m housefinder.valuation.backtest` (`make backtest`); informe en
       `docs/research/f5-6-backtesting.md`. Renta por sección a un año: 2,08 % de error mediano

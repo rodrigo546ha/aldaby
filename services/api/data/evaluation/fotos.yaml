@@ -1,0 +1,29 @@
+# Juego etiquetado del estado de la vivienda desde sus fotos (ADR-0062). Ver evaluations/photos.py.
+#
+# Las FOTOS no van en el repositorio: van en tests/fixtures/private/fotos/ (fuera de git), con la
+# ruta de `photos` relativa a esa carpeta. Aquí solo van las etiquetas. Solo fotos sobre las que haya
+# derechos: propias, de una agencia del piloto que lo ceda por escrito o con licencia abierta. Lo
+# dice `source`, que es obligatorio.
+#
+# Cómo etiquetar un inmueble (todas sus fotos juntas):
+#   verdict:
+#     necesita_reforma  hay que hacer obra antes de alquilar: cocina o baño por cambiar, suelos o
+#                       paredes deteriorados, humedades, instalación a la vista u obra a medias;
+#     no_necesita       se puede alquilar como está, aunque tenga detalles de gusto o de pintura;
+#     no_se_sabe        las fotos no enseñan lo bastante del interior para decidir (solo fachada,
+#                       solo un dormitorio, fotos muy pequeñas u oscuras).
+#   signs: cada señal que se VE, con los números de las fotos en las que se ve (desde 1, en el
+#   orden de `photos`). Vocabulario cerrado:
+#     de reforma:   cocina_antigua, bano_antiguo, suelo_deteriorado, paredes_deterioradas,
+#                   humedades, carpinteria_antigua, instalacion_vista, obra_sin_terminar
+#     de buen estado: reformado_reciente, cocina_nueva, bano_nuevo
+#   Con necesita_reforma hace falta al menos una señal de reforma; con no_necesita, ninguna.
+#
+# Ejemplo (no es un caso del juego):
+# - id: piso-cocina-antigua
+#   photos: [piso-cocina-antigua/1.jpg, piso-cocina-antigua/2.jpg, piso-cocina-antigua/3.jpg]
+#   verdict: necesita_reforma
+#   signs: {cocina_antigua: [2], bano_antiguo: [3]}
+#   source: "Fotos propias, 2026-11"
+
+[]
