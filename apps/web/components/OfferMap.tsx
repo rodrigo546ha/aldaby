@@ -411,6 +411,13 @@ export function OfferMap() {
       cooperativeGestures: false,
     });
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+    // Una tesela que no llega (la red se corta, el servidor de desarrollo recompila) no rompe el
+    // mapa: se queda en blanco y se vuelve a pedir al mover. Sin este manejador, MapLibre la manda a
+    // console.error y en desarrollo Next la enseña como un error de la página.
+    m.on("error", (e) => {
+      if ((e.error as Error | undefined)?.name === "AbortError") return;
+      console.warn("Mapa:", e.error?.message ?? e);
+    });
     // El mapa no sale de lo que cubren las teselas: sin esto, al alejarse se ve una franja cortada
     archive
       .getHeader()
