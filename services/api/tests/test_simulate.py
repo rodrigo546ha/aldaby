@@ -11,7 +11,7 @@ from decimal import Decimal
 
 import pytest
 
-from housefinder.core.figures import SourceRef
+from housefinder.core.figures import Figure, SourceRef
 from housefinder.engines.rates import MortgageTerms
 from housefinder.engines.valuation import Range
 from housefinder.params.book import ParamBook, default_params_dir
@@ -291,6 +291,24 @@ def test_la_venta_parte_del_valor_de_mercado(rules, params):
     assert estimate[0] in sale.sources
     # El cash flow no depende de la venta
     assert v["cashflow.annual_after_tax"] == p["cashflow.annual_after_tax"]
+
+
+def test_la_renta_sube_en_la_tir(rules, params):
+    # ADR-0060: la renta sube desde el segundo año; el primer año, el estrés y el plazo no cambian
+    subida = Figure("assumption.rent_growth", D("0.02"), "ratio", "subida de prueba",
+                    (SourceRef("dataset", "ipc-alquiler-de-prueba"),))
+    sim = simulate(caso(rental=replace(caso().rental, growth=subida)), rules, params,
+                   allow_unverified=True)
+    plain = simulate(caso(), rules, params, allow_unverified=True)
+    v, p = by_key(sim), by_key(plain)
+    assert v["assumption.rent_growth"] == D("0.02") and "assumption.rent_growth" not in p
+    assert v["irr.rate"] > p["irr.rate"]
+    for key in ("cashflow.monthly_after_tax", "term.stressed_monthly_cashflow", "irr.sale_price"):
+        assert v[key] == p[key]
+    cash = {s.key: s for s in sim.series}["cashflow.after_tax_by_year"]
+    flat = {s.key: s for s in plain.series}["cashflow.after_tax_by_year"]
+    assert cash.points[0] == flat.points[0] and cash.points[-1][1] > flat.points[-1][1]
+    assert subida.sources[0] in cash.sources
 
 
 def test_series_ano_a_ano_y_desglose(rules, params):

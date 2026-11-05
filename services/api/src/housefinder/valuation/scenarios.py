@@ -11,12 +11,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from housefinder.core.figures import Figure, SourceRef
 from housefinder.db.connection import Connection
-from housefinder.db.references import rent_stats, series_values
+from housefinder.db.references import month_values, rent_stats, series_values
 from housefinder.engines.appreciation import (
     percentile,
     relative_log_growth,
@@ -26,7 +26,7 @@ from housefinder.engines.appreciation import (
 )
 from housefinder.params.book import ParamBook
 from housefinder.params.valuation import convergence
-from housefinder.valuation.service import IPV, REGION_BY_PROVINCE, SERPAVI
+from housefinder.valuation.service import IPC_RENT, IPV, REGION_BY_PROVINCE, SERPAVI
 
 MIN_WINDOWS = 8  # por debajo, ventanas más cortas: si no, el percentil no dice nada
 QUANTILES = {"conservative": Decimal("0.25"), "base": Decimal("0.5"),
@@ -35,6 +35,7 @@ NAMES = {"conservative": "conservador", "base": "base", "optimistic": "optimista
 MODEL = SourceRef("model", "escenarios-revalorizacion-v1")
 HISTORY = SourceRef("assumption", "el-ciclo-futuro-como-el-historico-del-ipv")
 RENT_TO_PRICE = SourceRef("assumption", "el-precio-sigue-a-la-renta-frente-a-la-provincia")
+RENT_HISTORY = SourceRef("assumption", "la-renta-en-vigor-sube-como-en-su-historia")
 
 
 class NoScenarios(LookupError):
@@ -121,6 +122,39 @@ def appreciation_scenarios(
                      f"{conv.step_years} años durante {horizon_years} años"),
         ))
     return AppreciationReport(scenarios, figures, notes)
+
+
+def rent_growth(conn: Connection, municipality_code: str, horizon_years: int = 10) -> Figure:
+    """Subida anual de la renta en vigor (ADR-0060): mediana del crecimiento anual compuesto de
+    las ventanas mensuales del IPC de alquiler de la comunidad de la duración del horizonte."""
+    region = REGION_BY_PROVINCE.get(municipality_code[:2])
+    if region is None:
+        raise NoScenarios(f"Sin IPC de alquiler para la provincia {municipality_code[:2]}")
+    series = month_values(conn, IPC_RENT, "comunidad", region, "ipc_alquiler")
+    if not series:
+        raise NoScenarios(f"Sin IPC de alquiler de la comunidad {region}")
+    points = [(p.year, p.month, p.value) for p in series]
+    years = horizon_years
+    growths = window_growths(points, years)
+    while len(growths) < MIN_WINDOWS and years > 1:
+        years -= 1
+        growths = window_growths(points, years)
+    if len(growths) < MIN_WINDOWS:
+        raise NoScenarios("El IPC de alquiler no tiene historia suficiente para la subida")
+    first, last = series[0], series[-1]
+    rate = percentile(growths, QUANTILES["base"])
+    return Figure(
+        key="assumption.rent_growth", value=rate, unit="ratio",
+        as_of=_month_end(last.year, last.month),
+        sources=(SourceRef("dataset", f"{IPC_RENT}@{last.year}-{last.month:02d}"), RENT_HISTORY),
+        formula=(f"Mediana del crecimiento anual de {len(growths)} ventanas de {years} años del "
+                 f"IPC de alquiler de la comunidad ({first.year}-{first.month:02d} a "
+                 f"{last.year}-{last.month:02d}): la renta en vigor sube como en su historia"),
+    )
+
+
+def _month_end(year: int, month: int) -> date:
+    return date(year + month // 12, month % 12 + 1, 1) - timedelta(days=1)
 
 
 def _pct(value: Decimal, places: int) -> str:

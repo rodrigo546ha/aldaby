@@ -40,6 +40,7 @@ LABELS = {
     "offer.asking_rent_gap": "Renta pedida frente a la estimada",
     "valuation.appreciation_conservative": "Revalorización anual, conservador",
     "valuation.appreciation_base": "Revalorización anual, base",
+    "assumption.rent_growth": "Subida anual de la renta",
     "valuation.appreciation_optimistic": "Revalorización anual, optimista",
     "irr.sale_base": "Valor del que parte la venta",
     "irr.sale_price": "Precio de venta",

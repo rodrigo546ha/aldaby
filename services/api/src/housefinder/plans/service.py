@@ -100,7 +100,8 @@ SECTIONS = (
     ("estres", "Prueba de estrés", ("assumption.rate_shock", "mortgage.stressed_payment",
                                     "search.stressed_cashflow", "plan.low_rent_cashflow",
                                     "term.")),
-    ("venta", "Venta y rentabilidad", ("irr.", "sale_costs.", "valuation.appreciation_")),
+    ("venta", "Venta y rentabilidad", ("irr.", "sale_costs.", "valuation.appreciation_",
+                                       "assumption.rent_growth")),
     ("supuestos", "Supuestos del inmueble", ("assumption.cadastral_",
                                              "assumption.construction_")),
 )

@@ -59,7 +59,7 @@ from housefinder.valuation.assumptions import (
     market_assumptions,
     property_assumptions,
 )
-from housefinder.valuation.scenarios import NoScenarios, appreciation_scenarios
+from housefinder.valuation.scenarios import NoScenarios, appreciation_scenarios, rent_growth
 from housefinder.valuation.service import OutsideCoverage, value_property
 
 T = TypeVar("T")
@@ -299,8 +299,13 @@ def prepare(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserPro
         appreciation, sources, irr_alternatives = Decimal(0), (NO_SCENARIO,), ()
         notes.append("Sin escenarios de revalorización para el municipio: la TIR sale sin "
                      "revalorizar.")
+    try:
+        growth: Figure | None = rent_growth(conn, municipality, horizon)
+    except NoScenarios:
+        growth = None
+        notes.append("Sin IPC de alquiler de la comunidad: la TIR sale con la renta constante.")
     inp = _input(profile, market, assumed, price, f"ES-{region}-{municipality}", rent.value,
-                 today, horizon, appreciation, sources, irr_alternatives, estimate)
+                 today, horizon, appreciation, sources, irr_alternatives, estimate, growth)
     if alternatives:
         inp = replace(inp, financing=replace(inp.financing, alternatives=alternatives))
     try:
@@ -382,9 +387,10 @@ def _input(profile: UserProfile, market: MarketAssumptions, assumed: PropertyAss
            price: Decimal, territory: str, rent: Decimal, today: date, horizon: int,
            appreciation: Decimal, appreciation_sources: tuple[SourceRef, ...],
            alternatives: tuple[AppreciationAlternative, ...],
-           estimate: Figure | None = None) -> SimulationInput:
+           estimate: Figure | None = None,
+           growth: Figure | None = None) -> SimulationInput:
     """`estimate`: precio estimado del inmueble; la venta parte del precio acotado a su rango
-    (ADR-0059)."""
+    (ADR-0059). `growth`: subida anual de la renta para la TIR (ADR-0060)."""
     market_value = (Range(estimate.low, estimate.value, estimate.high)
                     if estimate is not None and estimate.low is not None
                     and estimate.high is not None else None)
@@ -414,7 +420,7 @@ def _input(profile: UserProfile, market: MarketAssumptions, assumed: PropertyAss
             maintenance_reserve_rate=ratio(assumed.maintenance_annual.value / (rent * 12)),
             situation=RentalFacts(contract="primer-alquiler",
                                   large_holder=bool(profile.large_holder)),
-            contract_date=today),
+            contract_date=today, growth=growth),
         exit=ExitInput(appreciation_rate=appreciation,
                        sale_cost_rate=profile.sale_cost_rate or Decimal(0),
                        horizon_years=horizon, appreciation_sources=appreciation_sources,

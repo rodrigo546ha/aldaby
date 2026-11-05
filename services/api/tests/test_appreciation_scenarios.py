@@ -18,7 +18,7 @@ import pytest
 from housefinder.db.references import ReferenceRow, replace_references
 from housefinder.db.sections import SourceRecord
 from housefinder.params.book import Param, ParamBook
-from housefinder.valuation.scenarios import NoScenarios, appreciation_scenarios
+from housefinder.valuation.scenarios import NoScenarios, appreciation_scenarios, rent_growth
 
 pytestmark = pytest.mark.db
 psycopg = pytest.importorskip("psycopg")
@@ -47,6 +47,12 @@ def conn(migrated_database: str):
             ReferenceRow(level, code, 2021, 2024, 0, "renta_m2_mes", "colectiva", stat,
                          D(value), "EUR/m2 mes")
             for level, code, value in territories for stat in ("p25", "mediana", "p75")])
+        # IPC de alquiler que sube exactamente un 3 % al año, de 2020-01 a 2024-12
+        replace_references(connection, source("ine-ipc-alquiler"), [
+            ReferenceRow("comunidad", "13", None, year, 0, "ipc_alquiler", "todas", "indice",
+                         D(100) * D("1.03") ** (year - 2020 + D(month - 1) / 12),
+                         "índice base 2025", month=month)
+            for year in range(2020, 2025) for month in range(1, 13)], scope="13")
         connection.commit()
         yield connection
 
@@ -79,3 +85,16 @@ def test_municipio_sin_renta_y_provincia_sin_indice(conn):
     assert any("Sin renta del municipio" in n for n in report.notes)
     with pytest.raises(NoScenarios):
         appreciation_scenarios(conn, BOOK, "08019", horizon_years=2)
+
+
+def test_subida_de_la_renta_con_el_ipc_de_alquiler(conn):
+    # ADR-0060: con 5 años de serie no hay 8 ventanas de 10 años; de 4 años hay 12 (inicios
+    # 2020-01 a 2020-12) y todas crecen un 3 % al año, así que la mediana es 0,0300
+    figure = rent_growth(conn, "28996", horizon_years=10)
+    assert figure.key == "assumption.rent_growth" and figure.unit == "ratio"
+    assert figure.value == D("0.0300")
+    assert figure.as_of == date(2024, 12, 31)
+    assert "12 ventanas de 4 años" in figure.formula
+    assert {s.kind for s in figure.sources} == {"dataset", "assumption"}
+    with pytest.raises(NoScenarios):
+        rent_growth(conn, "08019")  # Cataluña: sin IPC de alquiler cargado aquí

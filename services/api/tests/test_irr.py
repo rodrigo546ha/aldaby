@@ -225,3 +225,35 @@ def test_el_exceso_de_intereses_pasa_al_ano_siguiente():
         first_year_interest=sum(r.interest for r in rows[12:]),
     )
     assert compute_cashflow(ano2, RENT, TAX).annual_tax.value == Decimal("20.70")
+
+
+# --- Subida anual de la renta (ADR-0060) ------------------------------------------------------
+
+
+def test_la_renta_sube_desde_el_segundo_ano():
+    # Calculado a mano, al contado, con la renta subiendo un 2 % al año:
+    #   año 2: renta 918,00; cobrada 918 × 12 × 0,95 = 10.465,20; mantenimiento 5 % = 523,26
+    #          operativo 10.465,20 − 1.370 − 523,26 = 8.571,94
+    #          impuesto (10.465,20 − 1.370 − 523,26 − 1.800) × 0,5 × 0,30 = 1.015,79
+    #   año 3: renta 900 × 1,02² = 936,36 → operativo 8.770,78
+    anos = yearly_cashflows(INV, RENT, TAX, Decimal("0.03"), 25, 3, rent_growth=Decimal("0.02"))
+    assert anos[0].annual_operating_cashflow.value == Decimal("8377.00")  # el año 1 no cambia
+    assert anos[1].annual_operating_cashflow.value == Decimal("8571.94")
+    assert anos[1].annual_tax.value == Decimal("1015.79")
+    assert anos[2].annual_operating_cashflow.value == Decimal("8770.78")
+
+
+def test_tir_con_la_renta_subiendo_valor_conocido():
+    # Mismos flujos que test_compra_al_contado_valor_conocido, con la renta subiendo un 2 % desde
+    # el año 2 (7.556,15 el año 2, 7.725,16 el 3…) y la misma venta neta (168.632,43):
+    # TIR por Newton 0,050860… → 0,0509 (sin subida, 0,0466)
+    subida = SourceRef("dataset", "ipc-alquiler-de-prueba")
+    res = _irr(rent_growth=Decimal("0.02"), rent_growth_sources=(subida,))
+    assert res.net_sale_proceeds.value == Decimal("168632.43")
+    assert res.irr.value == Decimal("0.0509")
+    assert subida in res.irr.sources
+    assert "renta" in res.irr.formula
+
+
+def test_sin_subida_la_renta_es_constante():
+    assert _irr(rent_growth=Decimal(0)).irr.value == _irr().irr.value == Decimal("0.0466")

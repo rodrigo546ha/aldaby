@@ -6,7 +6,8 @@ tras impuestos de cada año, con los intereses reales de ese año en el cuadro; 
 además, la venta neta.
 
 Supuestos explícitos:
-- Renta y gastos constantes en euros corrientes; solo se revaloriza el valor del inmueble.
+- La renta sube cada año desde el segundo a `rent_growth` (ADR-0060); los porcentajes sobre la
+  renta (gestión, mantenimiento, vacío) suben con ella y los gastos fijos quedan constantes.
 - La venta parte del precio pagado acotado al rango del precio estimado, si lo hay (ADR-0059):
   comprar por debajo del P25 cuenta como valor; por encima del P75, no se revaloriza.
 - La venta resta gastos de venta, el capital pendiente del préstamo y el impuesto sobre la
@@ -134,6 +135,8 @@ def investment_irr(
     extra_sale_costs: tuple[Figure, ...] = (),
     market_value: Range | None = None,
     market_value_sources: tuple[SourceRef, ...] = (),
+    rent_growth: Decimal = Decimal(0),
+    rent_growth_sources: tuple[SourceRef, ...] = (),
 ) -> IrrResult:
     """TIR a `horizon_years` años.
 
@@ -146,6 +149,7 @@ def investment_irr(
     `extra_sale_costs`: gastos y tributos de la venta ya calculados; restan de la ganancia.
     `market_value`: precio estimado del inmueble con su rango; la venta parte del precio
     acotado a él (`sale_base`). La ganancia resta siempre el precio pagado.
+    `rent_growth`: subida anual de la renta desde el segundo año.
     """
     if horizon_years <= 0:
         raise ValueError("El horizonte debe ser positivo")
@@ -156,7 +160,7 @@ def investment_irr(
     acquisition = investment.price + investment.purchase_costs + investment.renovation
     flows = [-money(acquisition - investment.loan)]  # dinero aportado
     for year_result in yearly_cashflows(investment, rent, tax, annual_rate, loan_years,
-                                        horizon_years):
+                                        horizon_years, rent_growth):
         flows.append(
             year_result.annual_operating_cashflow.value - year_result.annual_tax.value
         )
@@ -206,16 +210,19 @@ def investment_irr(
         gains_sources,
         extra_sources,
         base.sources,
+        rent_growth_sources,
     )
     sale_sources_all = combine_sources(base.sources, appreciation_sources)
     value, reason = _solve_irr(flows)
+    growth_text = (f"renta que sube un {rent_growth} al año desde el segundo" if rent_growth
+                   else "renta constante")
     return IrrResult(
         irr=Figure(
             "irr.rate",
             value,
             "ratio",
             f"TIR anual a {horizon_years} años: aportación, cash flow tras impuestos de cada "
-            "año y venta neta al final",
+            f"año ({growth_text}) y venta neta al final",
             sources,
         )
         if value is not None
@@ -255,8 +262,10 @@ def yearly_cashflows(
     annual_rate: Decimal,
     loan_years: int,
     years: int,
+    rent_growth: Decimal = Decimal(0),
 ) -> tuple[CashflowResult, ...]:
-    """Cash flow de cada año con las cuotas e intereses reales del cuadro.
+    """Cash flow de cada año con las cuotas e intereses reales del cuadro y la renta que sube
+    `rent_growth` al año desde el segundo (ADR-0060).
 
     El exceso de intereses y reparación de un año pasa a los siguientes (LIRPF
     art. 23.1.a.1.º), así que cada año depende del anterior.
@@ -273,7 +282,9 @@ def yearly_cashflows(
             monthly_mortgage_payment=payments / 12,
             first_year_interest=interest,  # en compute_cashflow, los intereses del año
         )
-        result = compute_cashflow(inputs, rent, tax, pending_excess=pending)
+        year_rent = rent if year == 1 or not rent_growth else replace(
+            rent, monthly_rent=money(rent.monthly_rent * (1 + rent_growth) ** (year - 1)))
+        result = compute_cashflow(inputs, year_rent, tax, pending_excess=pending)
         pending = result.pending_excess
         results.append(result)
     return tuple(results)

@@ -233,6 +233,20 @@ def latest_month(
     return MonthPoint(*row) if row else None
 
 
+def month_values(
+    conn: psycopg.Connection, source_id: str, level: str, code: str, measure: str
+) -> list[MonthPoint]:
+    """Toda la serie mensual de una medida, en orden."""
+    return [MonthPoint(*row) for row in conn.execute(
+        """
+        SELECT year, month, value FROM market_references
+        WHERE source_id = %s AND level = %s AND code = %s AND measure = %s AND month > 0
+        ORDER BY year, month
+        """,
+        (source_id, level, code, measure),
+    ).fetchall()]
+
+
 def annual_mean_of_months(
     conn: psycopg.Connection, source_id: str, level: str, code: str, measure: str, year: int
 ) -> Decimal | None:
