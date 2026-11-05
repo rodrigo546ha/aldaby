@@ -27,8 +27,11 @@ from housefinder.profiles.model import UserProfile
 from housefinder.regulation.rules import RuleBook
 from housefinder.search.rental import OfferRentalAdvice
 from housefinder.search.service import (
+    ContentCache,
     SearchUnavailable,
     Unscorable,
+    cache_context,
+    digest,
     evaluate,
     missing_inputs,
     prepare,
@@ -104,8 +107,32 @@ SECTIONS = (
 
 
 def full_plan(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProfile,
-              org_id: UUID, offer_id: UUID, today: date | None = None) -> FullPlan:
+              org_id: UUID, offer_id: UUID, today: date | None = None,
+              cache: ContentCache[FullPlan] | None = None) -> FullPlan:
+    """El plan completo de una oferta. Con `cache`, se reutiliza mientras no cambie nada de lo que
+    lo decide (ver `ContentCache`)."""
     today = today or date.today()
+    if cache is None or missing_inputs(profile):
+        return _full_plan(conn, book, rules, profile, org_id, offer_id, today)
+    candidate = search_candidate(conn, org_id, offer_id)
+    try:
+        market = market_assumptions(conn)
+    except MissingData:
+        return _full_plan(conn, book, rules, profile, org_id, offer_id, today)
+    if candidate is None:
+        return _full_plan(conn, book, rules, profile, org_id, offer_id, today)
+    expected = rent_expectations(conn, org_id).get(offer_id, {})
+    key = (*cache_context(conn, book, rules, profile, market, today), digest(candidate),
+           digest(sorted(expected.items())))
+    if (hit := cache.get(key)) is not None:
+        return hit
+    plan = _full_plan(conn, book, rules, profile, org_id, offer_id, today)
+    cache.put(key, plan)
+    return plan
+
+
+def _full_plan(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProfile,
+               org_id: UUID, offer_id: UUID, today: date) -> FullPlan:
     missing = missing_inputs(profile)
     if missing:
         raise SearchUnavailable(missing)

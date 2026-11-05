@@ -11,19 +11,28 @@ verifiquen (ADR-0003).
 
 from __future__ import annotations
 
+import hashlib
+from collections import OrderedDict
 from dataclasses import dataclass, field, replace
 from datetime import date
 from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from threading import Lock
+from typing import Any, Generic, TypeVar
 from uuid import UUID
 
 import yaml
 
 from housefinder.core.figures import Figure, SourceRef, money, ratio
 from housefinder.db.connection import Connection
-from housefinder.db.offers import SearchCandidate, rent_expectations, search_candidates
+from housefinder.db.offers import (
+    SearchCandidate,
+    rent_expectations,
+    search_candidate,
+    search_candidates,
+)
+from housefinder.db.sections import sources_version
 from housefinder.engines.rates import MortgageTerms
 from housefinder.params.book import ParamBook
 from housefinder.planning.ranking import Outcome, Verdict, judge, rank, stress_rent
@@ -52,6 +61,7 @@ from housefinder.valuation.assumptions import (
 from housefinder.valuation.scenarios import NoScenarios, appreciation_scenarios
 from housefinder.valuation.service import OutsideCoverage, value_property
 
+T = TypeVar("T")
 DEFAULT_HORIZON = 10  # años, si el perfil no dice su horizonte (el de la TIR del simulador)
 ASKED = SourceRef("user_input", "anuncio-confirmado")
 AUCTION = SourceRef("dataset", "boe-tipo-de-subasta")
@@ -90,6 +100,42 @@ class Skipped:
     reason: str
 
 
+class ContentCache(Generic[T]):
+    """Planes ya calculados, guardados por el CONTENIDO de todo lo que los decide: el perfil, los
+    datos de la oferta, lo que el usuario espera sacar de alquiler, los supuestos de mercado, el
+    día, la versión de las fuentes públicas cargadas y las reglas y parámetros del proceso
+    (`cache_context`). Si cambia cualquiera de ellos, la clave es otra y se vuelve a calcular:
+    nunca sirve un plan viejo. Solo vive en la memoria del proceso; el perfil entra como resumen,
+    nunca en claro.
+    """
+
+    def __init__(self, size: int = 20000) -> None:
+        self._data: OrderedDict[tuple[Any, ...], T] = OrderedDict()
+        self._lock = Lock()
+        self._size = size
+
+    def get(self, key: tuple[Any, ...]) -> T | None:
+        with self._lock:
+            value = self._data.get(key)
+            if value is not None:
+                self._data.move_to_end(key)
+            return value
+
+    def put(self, key: tuple[Any, ...], value: T) -> None:
+        with self._lock:
+            self._data[key] = value
+            self._data.move_to_end(key)
+            while len(self._data) > self._size:
+                self._data.popitem(last=False)
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+
+def digest(*parts: object) -> str:
+    return hashlib.sha256("\x1f".join(repr(p) for p in parts).encode()).hexdigest()
+
+
 @dataclass(frozen=True)
 class SearchReport:
     ranked: list[Scored]  # las que pasan primero, en orden
@@ -99,7 +145,8 @@ class SearchReport:
 
 
 def search(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProfile,
-           org_id: UUID, today: date | None = None) -> SearchReport:
+           org_id: UUID, today: date | None = None,
+           cache: ContentCache[Scored | Skipped] | None = None) -> SearchReport:
     today = today or date.today()
     missing = missing_inputs(profile)
     if missing:
@@ -111,19 +158,65 @@ def search(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProf
     scored: dict[str, Scored] = {}
     skipped: list[Skipped] = []
     expected = rent_expectations(conn, org_id)
+    context = cache_context(conn, book, rules, profile, market, today) if cache is not None else ()
     for candidate in search_candidates(conn, org_id):
-        try:
-            result = _score(conn, book, rules, profile, market, candidate, today,
-                            expected.get(candidate.offer_id, {}))
-        except (Unscorable, MissingData, OutsideCoverage, LookupError,
-                ValueError) as exc:  # una regla que falta (LookupError) solo afecta a esa oferta
-            skipped.append(Skipped(candidate.offer_id, candidate.title, str(exc)))
-            continue
-        scored[str(candidate.offer_id)] = result
+        result = _score_cached(conn, book, rules, profile, market, candidate, today,
+                               expected.get(candidate.offer_id, {}), cache, context)
+        if isinstance(result, Skipped):
+            skipped.append(result)
+        else:
+            scored[str(candidate.offer_id)] = result
     order = rank({k: v.verdict for k, v in scored.items()})
     return SearchReport([scored[k] for k in order], skipped,
                         (market.mortgage_rate, market.rate_shock),
                         ["Las cifras dependen de reglas sin verificar: son provisionales."])
+
+
+def score_offer(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProfile,
+                org_id: UUID, offer_id: UUID, today: date | None = None,
+                cache: ContentCache[Scored | Skipped] | None = None) -> Scored | Skipped | None:
+    """El plan del usuario en UNA oferta, igual que en la búsqueda (la ficha de la oferta): sin
+    puntuar las demás. None si la oferta no entra en su búsqueda."""
+    today = today or date.today()
+    missing = missing_inputs(profile)
+    if missing:
+        raise SearchUnavailable(missing)
+    candidate = search_candidate(conn, org_id, offer_id)
+    if candidate is None:
+        return None
+    try:
+        market = market_assumptions(conn)
+    except MissingData as exc:
+        raise SearchUnavailable([str(exc)]) from exc
+    expected = rent_expectations(conn, org_id).get(candidate.offer_id, {})
+    context = cache_context(conn, book, rules, profile, market, today) if cache is not None else ()
+    return _score_cached(conn, book, rules, profile, market, candidate, today, expected, cache,
+                         context)
+
+
+def cache_context(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProfile,
+                  market: MarketAssumptions, today: date) -> tuple[Any, ...]:
+    """Lo común a todas las ofertas en la clave de la caché."""
+    return (id(rules), id(book), digest(profile.model_dump_json()), digest(market), today,
+            sources_version(conn))
+
+
+def _score_cached(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProfile,
+                  market: MarketAssumptions, c: SearchCandidate, today: date,
+                  expected: dict[str, Decimal], cache: ContentCache[Scored | Skipped] | None,
+                  context: tuple[Any, ...]) -> Scored | Skipped:
+    key = (*context, digest(c), digest(sorted(expected.items())))
+    if cache is not None and (hit := cache.get(key)) is not None:
+        return hit
+    result: Scored | Skipped
+    try:
+        result = _score(conn, book, rules, profile, market, c, today, expected)
+    except (Unscorable, MissingData, OutsideCoverage, LookupError,
+            ValueError) as exc:  # una regla que falta (LookupError) solo afecta a esa oferta
+        result = Skipped(c.offer_id, c.title, str(exc))
+    if cache is not None:
+        cache.put(key, result)
+    return result
 
 
 def missing_inputs(profile: UserProfile) -> list[str]:

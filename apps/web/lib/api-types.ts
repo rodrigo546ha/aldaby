@@ -771,6 +771,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/search/offers/{offer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Offer Score
+         * @description Lo que la ficha de una oferta necesita de la búsqueda, sin puntuar las demás ofertas.
+         */
+        get: operations["offer_score_search_offers__offer_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/search/offers/{offer_id}/rent": {
         parameters: {
             query?: never;
@@ -2149,6 +2169,15 @@ export interface components {
              * @default 12
              */
             revision_months: number;
+        };
+        /**
+         * OfferScoreOut
+         * @description El plan del usuario en una oferta, como en la búsqueda; o por qué no se puede calcular.
+         */
+        OfferScoreOut: {
+            scored: components["schemas"]["ScoredOut"] | null;
+            /** Skipped */
+            skipped: string | null;
         };
         /** OfferSummary */
         OfferSummary: {
@@ -4056,6 +4085,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+        };
+    };
+    offer_score_search_offers__offer_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferScoreOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

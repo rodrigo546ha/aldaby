@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import type { components } from "../lib/api-types";
 import { LISTING_LABELS, ORIGIN, spanishNumber } from "../lib/format";
 import { FigureView } from "./FigureView";
+import { invalidatePlans } from "../lib/data";
 
 type OfferOut = components["schemas"]["OfferOut"];
 type OfferSummary = components["schemas"]["OfferSummary"];
@@ -261,8 +262,10 @@ function OfferDetail({ offer, onSaved }: { offer: OfferOut; onSaved: (offer: Off
         body: JSON.stringify({ operation, values: payload }),
       });
       const body = await resp.json();
-      if (resp.ok) onSaved(body as OfferOut);
-      else setFailure(typeof body.detail === "string" ? body.detail : "No se han podido guardar.");
+      if (resp.ok) {
+        invalidatePlans(); // el anuncio confirmado entra en las ofertas y en tu búsqueda
+        onSaved(body as OfferOut);
+      } else setFailure(typeof body.detail === "string" ? body.detail : "No se han podido guardar.");
     } catch {
       setFailure("No se ha podido conectar con la API.");
     } finally {

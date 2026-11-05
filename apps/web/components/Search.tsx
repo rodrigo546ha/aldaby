@@ -5,6 +5,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import type { components } from "../lib/api-types";
 import { percentToRatio } from "../lib/format";
 import { Callout } from "./Icon";
+import { AppLink, DATA } from "./AppLink";
+import { invalidatePlans } from "../lib/data";
 
 type ProfileOut = components["schemas"]["ProfileOut"];
 
@@ -41,9 +43,9 @@ export function Search() {
           <p>{failure}</p>
         </Callout>
         <div className="actions">
-          <a className="button-link primary" href="/perfil">
+          <AppLink className="button-link primary" href="/perfil">
             Ir al perfil
-          </a>
+          </AppLink>
         </div>
       </section>
     );
@@ -55,7 +57,7 @@ export function Search() {
         {saved && (
           <Callout tone="success">
             <p>
-              <strong>Guardados.</strong> Tu plan en cada oferta ya los usa. <a href="/mapa">Ver las ofertas</a>
+              <strong>Guardados.</strong> Tu plan en cada oferta ya los usa. <AppLink href="/mapa" data={DATA.map()}>Ver las ofertas</AppLink>
             </p>
           </Callout>
         )}
@@ -93,6 +95,7 @@ function Assumptions({ profile, onSaved }: { profile: ProfileOut; onSaved: () =>
       body: JSON.stringify({ values: out }),
     });
     setSaving(false);
+    if (resp.ok) invalidatePlans(); // tus supuestos cambian el plan de cada oferta
     if (!resp.ok) {
       const body = await resp.json().catch(() => ({}));
       setError(typeof body.detail === "string" ? body.detail : "No se han podido guardar");

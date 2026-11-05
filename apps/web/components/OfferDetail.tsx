@@ -1,8 +1,9 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useState } from "react";
 
 import type { components } from "../lib/api-types";
+import { peek, seed, useApi } from "../lib/data";
 import { formatDate, formatValue, type FigureOut } from "../lib/format";
 import {
   CHANNEL,
@@ -18,9 +19,11 @@ import { ExplainHead, Lede, Quote, SourceLink } from "./Explain";
 import { Callout, Icon } from "./Icon";
 import { Skeleton } from "./Motion";
 import { OfferPhoto } from "./OfferPhoto";
+import { AppLink, DATA } from "./AppLink";
 
 type SearchOut = components["schemas"]["SearchOut"];
 type ScoredOut = components["schemas"]["ScoredOut"];
+type OfferScoreOut = components["schemas"]["OfferScoreOut"];
 
 // Ficha de una oferta (DESIGN.md, «Pantallas»): lo que decide arriba y en grande; tu plan al lado;
 // la subasta, el inmueble y las fuentes debajo. Ninguna cifra se calcula aquí: vienen de la API.
@@ -31,36 +34,33 @@ type Plan =
   | { state: "sin_plan"; code: number };
 
 export function OfferDetail({ offerId }: { offerId: string }) {
-  const [offer, setOffer] = useState<CatalogOut | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
-  const [plan, setPlan] = useState<Plan>({ state: "cargando" });
-
-  useEffect(() => {
-    fetch(`/api/offers/catalog/${offerId}`)
-      .then(async (resp) => {
-        if (resp.ok) setOffer((await resp.json()) as CatalogOut);
-        else setFailure(resp.status === 404 ? "No encontramos esta oferta, o no es de tu cuenta." : "No se ha podido cargar la oferta.");
-      })
-      .catch(() => setFailure("No se ha podido conectar con la API."));
-    fetch("/api/search")
-      .then(async (resp) => {
-        if (!resp.ok) return setPlan({ state: "sin_plan", code: resp.status });
-        const body = (await resp.json()) as SearchOut;
-        setPlan({
-          state: "ok",
-          scored: body.ranked.find((s) => s.offer_id === offerId) ?? null,
-          skipped: body.skipped.find((s) => s.offer_id === offerId)?.reason ?? null,
-        });
-      })
-      .catch(() => setPlan({ state: "sin_plan", code: 0 }));
-  }, [offerId]);
+  const offerUrl = `/api/offers/catalog/${offerId}`;
+  const planUrl = `/api/search/offers/${offerId}`;
+  // Si se llega desde el mapa, la oferta y su plan ya están en la caché: la ficha sale al momento
+  useState(() => seedFromLists(offerId, offerUrl, planUrl));
+  const offerApi = useApi<CatalogOut>(offerUrl);
+  const planApi = useApi<OfferScoreOut>(planUrl);
+  const offer = offerApi.result?.ok ? offerApi.result.data : null;
+  const failure =
+    offerApi.result && !offerApi.result.ok
+      ? offerApi.result.status === 404
+        ? "No encontramos esta oferta, o no es de tu cuenta."
+        : offerApi.result.status === 0
+          ? "No se ha podido conectar con la API."
+          : "No se ha podido cargar la oferta."
+      : null;
+  const plan: Plan = !planApi.result
+    ? { state: "cargando" }
+    : planApi.result.ok
+      ? { state: "ok", scored: planApi.result.data.scored ?? null, skipped: planApi.result.data.skipped ?? null }
+      : { state: "sin_plan", code: planApi.result.status };
 
   if (failure)
     return (
       <div className="offer-page">
-        <a className="back-link" href="/mapa">
+        <AppLink className="back-link" href="/mapa" data={DATA.map()}>
           <Icon name="back" small /> Ofertas
-        </a>
+        </AppLink>
         <Callout tone="danger">
           <p>{failure}</p>
         </Callout>
@@ -74,9 +74,9 @@ export function OfferDetail({ offerId }: { offerId: string }) {
 
   return (
     <article className="offer-page" style={channelStyle(offer.channel)} aria-labelledby="oferta-titulo">
-      <a className="back-link" href="/mapa">
+      <AppLink className="back-link" href="/mapa" data={DATA.map()}>
         <Icon name="back" small /> Ofertas
-      </a>
+      </AppLink>
 
       <header className="offer-page-head">
         <div className="listing-top">
@@ -123,6 +123,19 @@ export function OfferDetail({ offerId }: { offerId: string }) {
       </div>
     </article>
   );
+}
+
+/** La oferta y su plan desde lo que ya trajo el mapa, para no esperar a pedirlos de nuevo. */
+function seedFromLists(offerId: string, offerUrl: string, planUrl: string) {
+  const list = peek<CatalogOut[]>("/api/offers/catalog");
+  const item = list?.ok ? list.data.find((o) => o.offer_id === offerId) : undefined;
+  if (item) seed(offerUrl, item);
+  const search = peek<SearchOut>("/api/search");
+  if (search?.ok) {
+    const scored = search.data.ranked.find((s) => s.offer_id === offerId) ?? null;
+    const skipped = search.data.skipped.find((s) => s.offer_id === offerId)?.reason ?? null;
+    if (scored || skipped) seed<OfferScoreOut>(planUrl, { scored, skipped });
+  }
 }
 
 function KeyFacts({ offer, when }: { offer: CatalogOut; when: string | null }) {
@@ -180,7 +193,7 @@ function Notices({ offer }: { offer: CatalogOut }) {
       <Callout key="p" tone="info">
         <p>
           <strong>Faltan tus datos.</strong> Confirma lo que se ha leído del anuncio para calcular tu plan.{" "}
-          <a href={`/ofertas?id=${offer.offer_id}`}>Confirmar los datos</a>
+          <AppLink href={`/ofertas?id=${offer.offer_id}`}>Confirmar los datos</AppLink>
         </p>
       </Callout>,
     );
@@ -323,9 +336,9 @@ function PlanCard({ offer, plan }: { offer: CatalogOut; plan: Plan }) {
             : "Completa tu perfil y verás si esta oferta encaja contigo: tu cuota, tu cash flow tras impuestos y tu rentabilidad."}
         </p>
         {plan.code !== 409 && (
-          <a className="button-link primary" href="/perfil">
+          <AppLink className="button-link primary" href="/perfil">
             Completar el perfil
-          </a>
+          </AppLink>
         )}
       </section>
     );
@@ -369,13 +382,13 @@ function PlanCard({ offer, plan }: { offer: CatalogOut; plan: Plan }) {
       </dl>
       {s.reasons.length > 0 && <p className="verdict-reason">{s.reasons.join(". ")}.</p>}
       <div className="verdict-actions">
-        <a className="button-link primary" href={`/plan/${offer.offer_id}`}>
+        <AppLink className="button-link primary" href={`/plan/${offer.offer_id}`} data={DATA.plan(offer.offer_id)}>
           Ver mi plan completo
-        </a>
+        </AppLink>
         {offer.auction && (
-          <a className="button-link" href={`/plan/${offer.offer_id}#pujas`}>
+          <AppLink className="button-link" href={`/plan/${offer.offer_id}#pujas`} data={DATA.plan(offer.offer_id)}>
             Simular mi puja
-          </a>
+          </AppLink>
         )}
       </div>
     </section>

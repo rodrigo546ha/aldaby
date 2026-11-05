@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 
 import type { components } from "../lib/api-types";
+import { invalidatePlans, useApi } from "../lib/data";
 import { formatValue, label } from "../lib/format";
 import { Advisor } from "./Advisor";
 import { Bids } from "./Bids";
@@ -14,6 +15,7 @@ import { Skeleton, VerdictFigure } from "./Motion";
 import { Icon } from "./Icon";
 import { OfferPhoto } from "./OfferPhoto";
 import { RentalAdvice } from "./RentalAdvice";
+import { AppLink, DATA } from "./AppLink";
 
 type PlanOut = components["schemas"]["PlanOut"];
 type CatalogOut = components["schemas"]["CatalogOut"];
@@ -51,31 +53,27 @@ const RENTAL: Record<string, string> = {
 
 export function Plan({ offerId }: { offerId: string }) {
   const [brand, brandVersion] = useBranding();
-  const [plan, setPlan] = useState<PlanOut | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
+  // El plan y la oferta, de la caché de la app: si se pidieron al pasar por el enlace, ya están
+  const planApi = useApi<PlanOut>(`/api/plans/offers/${offerId}`, 120_000);
   // El título corto y la dirección de la oferta, los mismos que en la lista y en su ficha
-  const [offer, setOffer] = useState<CatalogOut | null>(null);
-  useEffect(() => {
-    fetch(`/api/offers/catalog/${offerId}`)
-      .then(async (resp) => (resp.ok ? setOffer((await resp.json()) as CatalogOut) : null))
-      .catch(() => undefined);
-  }, [offerId]);
-
-  const load = useCallback(async () => {
-    try {
-      const resp = await fetch(`/api/plans/offers/${offerId}`);
-      const body = await resp.json().catch(() => ({}));
-      if (resp.ok) setPlan(body as PlanOut);
-      else if (Array.isArray(body.detail)) setFailure(body.detail.join(". "));
-      else setFailure(typeof body.detail === "string" ? body.detail : "Error en el plan");
-    } catch {
-      setFailure("No se ha podido conectar con la API. ¿Está arrancada con make api?");
-    }
-  }, [offerId]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const offerApi = useApi<CatalogOut>(`/api/offers/catalog/${offerId}`);
+  const plan = planApi.result?.ok ? planApi.result.data : null;
+  const offer = offerApi.result?.ok ? offerApi.result.data : null;
+  const failure =
+    planApi.result && !planApi.result.ok
+      ? planApi.result.status === 0
+        ? "No se ha podido conectar con la API. ¿Está arrancada con make api?"
+        : Array.isArray(planApi.result.detail)
+          ? planApi.result.detail.join(". ")
+          : typeof planApi.result.detail === "string"
+            ? planApi.result.detail
+            : "Error en el plan"
+      : null;
+  // Al guardar una renta esperada cambian este plan, la búsqueda y la ficha: se piden de nuevo
+  const reload = useCallback(() => {
+    invalidatePlans();
+    void planApi.refresh();
+  }, [planApi]);
 
   // Desde la ficha, «Simular mi puja» llega con #pujas: el plan se pinta después de la carga
   useEffect(() => {
@@ -100,9 +98,9 @@ export function Plan({ offerId }: { offerId: string }) {
   return (
     <div className="plan stagger">
       <BrandHeader brand={brand} version={brandVersion} />
-      <a className="back-link" href={`/oferta/${offerId}`}>
+      <AppLink className="back-link" href={`/oferta/${offerId}`} data={DATA.offer(offerId)}>
         <Icon name="back" small /> La oferta
-      </a>
+      </AppLink>
       <OfferPhoto offerId={offerId} credit hideEmpty className="plan-photo" />
       <section className="verdict" aria-labelledby="verdict-title">
         <div className="verdict-head">
@@ -203,7 +201,7 @@ export function Plan({ offerId }: { offerId: string }) {
               </span>
             </summary>
             <div className="block-body">
-              <RentalAdvice offerId={offerId} advice={plan.advice} onSaved={() => void load()} />
+              <RentalAdvice offerId={offerId} advice={plan.advice} onSaved={reload} />
             </div>
           </details>
         )}

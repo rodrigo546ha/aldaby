@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.gzip import GZipMiddleware
 
 from housefinder.api import (
     analytics,
@@ -28,6 +29,9 @@ from housefinder.api import (
 from housefinder.db.connection import DatabaseUnavailable, connect
 
 app = FastAPI(title="HouseFinder API", version="0.1.0")
+# Las respuestas de cifras son JSON muy repetitivo (fórmulas y fuentes): comprimidas pesan diez
+# veces menos. Solo las de más de 1 KB, y solo si el navegador lo acepta.
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.include_router(simulate.router)
 app.include_router(territory.router)
 app.include_router(offers.router)
