@@ -111,3 +111,25 @@ def test_ipc_de_alquiler_mensual_de_la_comunidad():
     assert {(r.year, r.month): r.value for r in rows} == {(2026, 9): Decimal("103.426"),
                                                           (2026, 8): Decimal("103.3")}
     assert all(r.measure == "ipc_alquiler" and r.quarter == 0 for r in rows)
+
+
+def test_ipc_general_de_cada_comunidad():
+    # En la tabla 76136, «13» es Madrid y también un grupo ECOICOP: cuenta la variable
+    from housefinder.ingestion import ine_ipc_general
+
+    def series(territory, group, kind):
+        return {"MetaData": [territory, {"T3_Variable": "Grupos ECOICOP", "Codigo": group},
+                             {"T3_Variable": "Índices y Tasas", "Codigo": kind}],
+                "Data": [{"Anyo": 2026, "T3_Periodo": "M09", "Valor": 104.5},
+                         {"Anyo": 2026, "T3_Periodo": "M10", "Valor": None}]}
+
+    madrid = {"T3_Variable": "Comunidades y Ciudades Autónomas", "Codigo": "13"}
+    payload = [
+        series(madrid, "00", "0"),  # índice general de Madrid: el único que vale
+        series(madrid, "00", "2"),  # su variación anual
+        series(madrid, "13", "0"),  # un grupo
+        series({"T3_Variable": "Totales Territoriales", "Codigo": "00"}, "00", "0"),  # nacional
+    ]
+    rows = ine_ipc_general.parse(payload)
+    assert [(r.code, r.year, r.month, r.value) for r in rows] == [("13", 2026, 9, Decimal("104.5"))]
+    assert rows[0].measure == "ipc_general" and rows[0].level == "comunidad"

@@ -56,7 +56,12 @@ from housefinder.valuation.assumptions import (
     market_assumptions,
     property_assumptions,
 )
-from housefinder.valuation.scenarios import NoScenarios, appreciation_scenarios, rent_growth
+from housefinder.valuation.scenarios import (
+    NoScenarios,
+    appreciation_scenarios,
+    cost_growth,
+    rent_growth,
+)
 from housefinder.valuation.service import OutsideCoverage, value_property
 
 T = TypeVar("T")
@@ -301,8 +306,15 @@ def prepare(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserPro
     except NoScenarios:
         growth = None
         notes.append("Sin IPC de alquiler de la comunidad: la TIR sale con la renta constante.")
+    try:
+        costs: Figure | None = cost_growth(conn, municipality, horizon)
+    except NoScenarios:
+        costs = None
+        notes.append("Sin IPC general de la comunidad: la TIR sale con la comunidad, el IBI y el "
+                     "seguro constantes.")
     inp = _input(profile, market, assumed, price, f"ES-{region}-{municipality}", rent.value,
-                 today, horizon, appreciation, sources, irr_alternatives, estimate, growth)
+                 today, horizon, appreciation, sources, irr_alternatives, estimate, growth,
+                 costs)
     if alternatives:
         inp = replace(inp, financing=replace(inp.financing, alternatives=alternatives))
     try:
@@ -385,9 +397,11 @@ def _input(profile: UserProfile, market: MarketAssumptions, assumed: PropertyAss
            appreciation: Decimal, appreciation_sources: tuple[SourceRef, ...],
            alternatives: tuple[AppreciationAlternative, ...],
            estimate: Figure | None = None,
-           growth: Figure | None = None) -> SimulationInput:
+           growth: Figure | None = None,
+           costs: Figure | None = None) -> SimulationInput:
     """`estimate`: precio estimado del inmueble; la venta parte del precio acotado a su rango
-    (ADR-0059). `growth`: subida anual de la renta para la TIR (ADR-0060)."""
+    (ADR-0059). `growth`: subida anual de la renta para la TIR (ADR-0060); `costs`, la de los
+    gastos fijos (ADR-0061)."""
     market_value = (Range(estimate.low, estimate.value, estimate.high)
                     if estimate is not None and estimate.low is not None
                     and estimate.high is not None else None)
@@ -417,7 +431,7 @@ def _input(profile: UserProfile, market: MarketAssumptions, assumed: PropertyAss
             maintenance_reserve_rate=ratio(assumed.maintenance_annual.value / (rent * 12)),
             situation=RentalFacts(contract="primer-alquiler",
                                   large_holder=bool(profile.large_holder)),
-            contract_date=today, growth=growth),
+            contract_date=today, growth=growth, cost_growth=costs),
         exit=ExitInput(appreciation_rate=appreciation,
                        sale_cost_rate=profile.sale_cost_rate or Decimal(0),
                        horizon_years=horizon, appreciation_sources=appreciation_sources,

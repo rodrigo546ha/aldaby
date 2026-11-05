@@ -155,6 +155,8 @@ class RentalInput:
     housing_lease_sources: tuple[SourceRef, ...] = ()
     # Subida anual de la renta desde el segundo año, para la TIR (ADR-0060); None: constante
     growth: Figure | None = None
+    # Subida anual de la comunidad, el IBI y el seguro (ADR-0061); None: constantes
+    cost_growth: Figure | None = None
 
 
 @dataclass(frozen=True)
@@ -211,6 +213,7 @@ class InvestmentSimulation:
     irr_alternatives: tuple[Figure, ...] = ()  # TIR de los otros escenarios (irr.rate_<nombre>)
     series: tuple[Series, ...] = ()  # año a año, para las gráficas (ADR-0050)
     rent_growth: Figure | None = None  # subida anual de la renta en la TIR (ADR-0060)
+    cost_growth: Figure | None = None  # subida anual de los gastos fijos (ADR-0061)
 
     def figures(self) -> tuple[Figure, ...]:
         """Todas las cifras del plan, cada clave una vez."""
@@ -230,8 +233,7 @@ class InvestmentSimulation:
         if self.irr.irr is not None:
             result.append(self.irr.irr)
         result += list(self.irr_alternatives)
-        if self.rent_growth is not None:
-            result.append(self.rent_growth)
+        result += [f for f in (self.rent_growth, self.cost_growth) if f is not None]
         if self.comparison is not None:
             for option in self.comparison.options:
                 result += [option.first_payment, option.expected_total_interest,
@@ -388,6 +390,7 @@ def simulate(
 
     growth = inp.rental.growth.value if inp.rental.growth is not None else Decimal(0)
     growth_sources = inp.rental.growth.sources if inp.rental.growth is not None else ()
+    costs = inp.rental.cost_growth
 
     def sale_and_irr(
         rate: Decimal, appreciation_sources: tuple[SourceRef, ...]
@@ -415,6 +418,8 @@ def simulate(
             market_value_sources=exit_.market_value_sources,
             rent_growth=growth,
             rent_growth_sources=growth_sources,
+            cost_growth=costs.value if costs is not None else Decimal(0),
+            cost_growth_sources=costs.sources if costs is not None else (),
         )
         return notary, gains, result
 
@@ -427,7 +432,7 @@ def simulate(
             alternatives.append(replace(alt_irr, key=f"irr.rate_{alt.name}"))
 
     series = _series(investment, rent, tax, fin.annual_rate, years, exit_, loan.sources,
-                     inp.rental.growth)
+                     inp.rental.growth, costs)
 
     # 7. Comparación de ofertas.
     comparison = None
@@ -456,6 +461,7 @@ def simulate(
         irr_alternatives=tuple(alternatives),
         series=series,
         rent_growth=inp.rental.growth,
+        cost_growth=costs,
     )
     return replace(sim, warnings=(*zone_warnings,
                                   *_warnings(sim, inp, criteria.max_ltv, max_years)))
@@ -464,7 +470,8 @@ def simulate(
 def _series(investment: InvestmentInputs, rent: RentalAssumptions, tax: TaxParams,
             annual_rate: Decimal, loan_years: int, exit_: ExitInput,
             loan_sources: tuple[SourceRef, ...],
-            rent_growth: Figure | None = None) -> tuple[Series, ...]:
+            rent_growth: Figure | None = None,
+            cost_growth: Figure | None = None) -> tuple[Series, ...]:
     """Lo que el plan calcula año a año, para dibujarlo sin calcular nada en la web (ADR-0050)."""
     result: list[Series] = []
     if investment.loan > 0:
@@ -483,17 +490,20 @@ def _series(investment: InvestmentInputs, rent: RentalAssumptions, tax: TaxParam
                    f"capital amortizado con las cuotas de cada año; {terms}", sources),
         ]
     growth = rent_growth.value if rent_growth is not None else Decimal(0)
+    costs = cost_growth.value if cost_growth is not None else Decimal(0)
     flows = yearly_cashflows(investment, rent, tax, annual_rate, loan_years, exit_.horizon_years,
-                             growth)
+                             growth, costs)
     first = flows[0].annual_after_tax
     rising = (f", la renta que sube un {growth} al año desde el segundo (ADR-0060)"
               if growth else "")
+    rising += f", los gastos fijos que suben un {costs} al año (ADR-0061)" if costs else ""
     result.append(Series(
         "cashflow.after_tax_by_year", "EUR/año",
         tuple((year, f.annual_after_tax.value) for year, f in enumerate(flows, start=1)),
         "cash flow operativo − impuesto de cada año, con las cuotas e intereses del cuadro"
         f"{rising} y el exceso de intereses que pasa de un año a otro",
-        combine_sources(first.sources, rent_growth.sources if rent_growth else ())))
+        combine_sources(first.sources, rent_growth.sources if rent_growth else (),
+                        cost_growth.sources if cost_growth else ())))
     scenarios = [("", exit_.appreciation_rate, exit_.appreciation_sources),
                  *((f"_{a.name}", a.rate, a.sources) for a in exit_.alternatives)]
     base = sale_base(investment.price, exit_.market_value)

@@ -18,7 +18,12 @@ import pytest
 from housefinder.db.references import ReferenceRow, replace_references
 from housefinder.db.sections import SourceRecord
 from housefinder.params.book import Param, ParamBook
-from housefinder.valuation.scenarios import NoScenarios, appreciation_scenarios, rent_growth
+from housefinder.valuation.scenarios import (
+    NoScenarios,
+    appreciation_scenarios,
+    cost_growth,
+    rent_growth,
+)
 
 pytestmark = pytest.mark.db
 psycopg = pytest.importorskip("psycopg")
@@ -59,6 +64,12 @@ def conn(migrated_database: str):
                          D(100) * D("1.04") ** (year - 2020 + D(quarter - 1) / 4),
                          "índice base 2025")
             for year in range(2020, 2025) for quarter in range(1, 5)], scope="09")
+        # IPC general de Madrid que sube exactamente un 2 % al año
+        replace_references(connection, source("ine-ipc-general"), [
+            ReferenceRow("comunidad", "13", None, year, 0, "ipc_general", "todas", "indice",
+                         D(100) * D("1.02") ** (year - 2020 + D(month - 1) / 12),
+                         "índice base 2025", month=month)
+            for year in range(2020, 2025) for month in range(1, 13)])
         # Cataluña: el mismo índice, pero subiendo un 1 % al año
         replace_references(connection, source("ine-ipc-alquiler"), [
             ReferenceRow("comunidad", "09", None, year, 0, "ipc_alquiler", "todas", "indice",
@@ -125,3 +136,12 @@ def test_comunidad_sin_convergencia_estimada_usa_su_ciclo(conn):
     assert any("Sin convergencia municipal" in n for n in report.notes)
     base = {f.key: f for f in report.figures}["valuation.appreciation_base"]
     assert "brecha" not in base.formula and "param" not in {s.kind for s in base.sources}
+
+
+def test_subida_de_los_gastos_con_el_ipc_general(conn):
+    # ADR-0061: el mismo método que la renta, con el índice general (2 % en todas las ventanas)
+    figure = cost_growth(conn, "28079", horizon_years=10)
+    assert figure.key == "assumption.cost_growth" and figure.value == D("0.0200")
+    assert "IPC general" in figure.formula and "IBI" in figure.formula
+    with pytest.raises(NoScenarios):
+        cost_growth(conn, "08019")  # Cataluña: sin IPC general cargado aquí

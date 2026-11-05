@@ -257,3 +257,27 @@ def test_tir_con_la_renta_subiendo_valor_conocido():
 
 def test_sin_subida_la_renta_es_constante():
     assert _irr(rent_growth=Decimal(0)).irr.value == _irr().irr.value == Decimal("0.0466")
+
+
+# --- Gastos fijos que suben (ADR-0061) --------------------------------------------------------
+
+
+def test_los_gastos_fijos_suben_desde_el_segundo_ano():
+    # Calculado a mano, al contado, renta constante y gastos fijos subiendo un 2 %:
+    #   año 2: comunidad 61,20 × 12 = 734,40; IBI 306,00; seguro 357,00 → 1.397,40 (antes 1.370)
+    #          operativo 10.260 − 1.397,40 − 513 = 8.349,60
+    #          impuesto (10.260 − 1.397,40 − 513 − 1.800) × 0,5 × 0,30 = 982,44
+    anos = yearly_cashflows(INV, RENT, TAX, Decimal("0.03"), 25, 2, cost_growth=Decimal("0.02"))
+    assert anos[0].annual_operating_cashflow.value == Decimal("8377.00")
+    assert anos[1].annual_operating_cashflow.value == Decimal("8349.60")
+    assert anos[1].annual_tax.value == Decimal("982.44")
+
+
+def test_tir_con_renta_y_gastos_subiendo_valor_conocido():
+    # Renta y gastos fijos subiendo un 2 %: año 2, operativo 8.544,54 e impuesto 1.011,68; misma
+    # venta neta (168.632,43). TIR por Newton 0,050261… → 0,0503 (solo la renta: 0,0509)
+    gastos = SourceRef("dataset", "ipc-general-de-prueba")
+    res = _irr(rent_growth=Decimal("0.02"), cost_growth=Decimal("0.02"),
+               cost_growth_sources=(gastos,))
+    assert res.irr.value == Decimal("0.0503")
+    assert gastos in res.irr.sources and "gastos fijos" in res.irr.formula

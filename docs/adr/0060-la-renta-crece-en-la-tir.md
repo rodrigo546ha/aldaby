@@ -38,7 +38,7 @@ del tiempo, con sus actualizaciones, los topes legales de cada época y las reno
   en los objetivos «revalorización» y «mixto», así que el orden puede cambiar.
 - **Los gastos fijos siguen constantes:** comunidad, IBI y seguro. Con la renta creciendo, la TIR
   queda algo optimista. Hacerlos crecer con el IPC general pide cargar esa serie, que hoy no está:
-  es una fuente nueva y se decide aparte.
+  es una fuente nueva y se decide aparte. *Resuelto en ADR-0061.*
 - **Topes futuros:** la serie histórica ya recoge los topes de actualización de cada época, pero no
   sabe de los que vengan. Un tope legal nuevo a la actualización de la renta (por ejemplo, ligado a
   un índice de referencia) iría como regla en `data/rules`, no en el código, y no está cargado.

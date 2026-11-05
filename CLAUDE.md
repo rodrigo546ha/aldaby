@@ -154,6 +154,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     ingestion/valor_tasado.py  valor tasado de la vivienda libre por municipio (Ministerio, vía Comunidad de Madrid)
     ingestion/ine_ipv.py  índice de precios de vivienda del INE por comunidad, trimestral
     ingestion/ine_ipc_alquiler.py  componente de alquiler del IPC del INE por comunidad, mensual
+    ingestion/ine_ipc_general.py   índice general del IPC del INE por comunidad, mensual (ADR-0061)
     ingestion/bde_tipos.py, ine_hipotecas.py, catastro_urbana.py, ine_epf.py, hacienda_ibi.py
                           fuentes de los supuestos del plan (ADR-0022); hacienda_ibi genera reglas
     ingestion/hacienda_plusvalia.py  tipo y coeficientes de la plusvalía de cada municipio del mismo
@@ -194,6 +195,7 @@ make serpavi   # carga las referencias de alquiler del SERPAVI 2011–2024 (PROV
 make valor-tasado FICHERO=…  # valor tasado por municipio: CSV descargado a mano (su portal prohíbe el acceso automático)
 make ipv       # índice de precios de vivienda del INE por comunidad (REGION=13)
 make ipc-alquiler  # componente de alquiler del IPC del INE por comunidad, mensual (REGION=13)
+make ipc-general   # índice general del IPC del INE de las 19 comunidades, mensual (ADR-0061)
 make supuestos # supuestos del plan: tipos del BdE y del INE, Catastro, EPF y reglas del IBI (ADR-0022)
 make backtest  # backtesting del modelo de renta y precio (F5.6); CONVERGENCIA=1, convergencia por comunidad
 make evaluar   # evaluaciones con el modelo de .env frente a la línea base (BASE=1 la guarda;

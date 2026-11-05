@@ -100,6 +100,7 @@ export const LABELS: Record<string, string> = {
   "valuation.appreciation_conservative": "Revalorización anual, conservador",
   "valuation.appreciation_base": "Revalorización anual, base",
   "assumption.rent_growth": "Subida anual de la renta",
+  "assumption.cost_growth": "Subida anual de comunidad, IBI y seguro",
   "valuation.appreciation_optimistic": "Revalorización anual, optimista",
   "irr.sale_base": "Valor del que parte la venta",
   "irr.sale_price": "Precio de venta",

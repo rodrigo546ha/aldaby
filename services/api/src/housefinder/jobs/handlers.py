@@ -9,7 +9,7 @@ from uuid import UUID
 import httpx
 
 from housefinder.feeds.run import run_feeds
-from housefinder.ingestion import ine_adrh, ine_ipc_alquiler, ine_ipv, ine_sections
+from housefinder.ingestion import ine_adrh, ine_ipc_alquiler, ine_ipc_general, ine_ipv, ine_sections
 from housefinder.jobs.worker import Handler
 from housefinder.offers.channels import boe_v
 from housefinder.offers.run import (
@@ -63,6 +63,9 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
     def rent_index(payload: dict[str, Any]) -> dict[str, Any]:
         return {r: ine_ipc_alquiler.load(r, conninfo) for r in regions(payload)}
 
+    def general_index(payload: dict[str, Any]) -> dict[str, Any]:
+        return ine_ipc_general.load(conninfo)  # las 19 comunidades en una sola tabla
+
     def offers_boe_auctions(payload: dict[str, Any]) -> dict[str, Any]:
         with httpx.Client(headers={"User-Agent": ine_sections.USER_AGENT}) as client:
             all_spain = bool(payload.get("all_spain", True))
@@ -101,4 +104,4 @@ def build_handlers(conninfo: str) -> dict[str, Handler]:
             "offers_patrimonio": offers_patrimonio, "offers_boe_portal": offers_boe_portal,
             "offers_agency_feeds": offers_agency_feeds, "offers_relocate": offers_relocate,
             "ine_ipv": price_index,
-            "ine_ipc_alquiler": rent_index}
+            "ine_ipc_alquiler": rent_index, "ine_ipc_general": general_index}

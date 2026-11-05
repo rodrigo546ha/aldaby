@@ -311,6 +311,24 @@ def test_la_renta_sube_en_la_tir(rules, params):
     assert subida.sources[0] in cash.sources
 
 
+def test_los_gastos_fijos_suben_en_la_tir(rules, params):
+    # ADR-0061: con la renta subiendo, que suban también la comunidad, el IBI y el seguro baja la
+    # TIR; el primer año no cambia
+    source = (SourceRef("dataset", "ipc-de-prueba"),)
+    renta = Figure("assumption.rent_growth", D("0.02"), "ratio", "subida de prueba", source)
+    gastos = Figure("assumption.cost_growth", D("0.02"), "ratio", "subida de prueba", source)
+    solo_renta = simulate(caso(rental=replace(caso().rental, growth=renta)), rules, params,
+                          allow_unverified=True)
+    las_dos = simulate(caso(rental=replace(caso().rental, growth=renta, cost_growth=gastos)),
+                       rules, params, allow_unverified=True)
+    v, p = by_key(las_dos), by_key(solo_renta)
+    assert v["assumption.cost_growth"] == D("0.02") and "assumption.cost_growth" not in p
+    assert v["irr.rate"] < p["irr.rate"]
+    assert v["cashflow.monthly_after_tax"] == p["cashflow.monthly_after_tax"]
+    cash = {s.key: s for s in las_dos.series}["cashflow.after_tax_by_year"]
+    assert "gastos fijos" in cash.formula
+
+
 def test_series_ano_a_ano_y_desglose(rules, params):
     # ADR-0050: cada punto sale del mismo motor que la cifra equivalente
     other = (SourceRef("dataset", "ine-ipv-80270@2026T2"),)

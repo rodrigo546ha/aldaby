@@ -90,3 +90,10 @@ schedules:
     at: "11:30"
     every_hours: 168
     payload: {region: todas}
+
+  # Índice general del IPC por comunidad (ADR-0061): gastos fijos que suben en la TIR
+  - name: referencias-ipc-general
+    kind: ine_ipc_general
+    at: "11:40"
+    every_hours: 168
+    payload: {}

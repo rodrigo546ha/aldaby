@@ -1,4 +1,4 @@
-.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler supuestos backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi evaluar requisitos-api mapa
+.PHONY: setup db migrate sections adrh serpavi valor-tasado ipv ipc-alquiler ipc-general supuestos backtest worker schedules worker-install worker-uninstall worker-logs test lint rules-check api web openapi evaluar requisitos-api mapa
 
 # Configuración local (copia de .env.example, fuera de git): LLM, base de datos, claves…
 -include .env
@@ -53,6 +53,9 @@ ipv:
 
 ipc-alquiler:
 	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_ipc_alquiler --region $(REGION)
+
+ipc-general:
+	cd services/api && $(VENV)/python -m housefinder.ingestion.ine_ipc_general
 
 # Backtesting del modelo de renta y precio (F5.6)
 # Supuestos del plan desde fuentes públicas (ADR-0022): tipos del Banco de España y del INE,
