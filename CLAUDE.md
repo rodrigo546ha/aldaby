@@ -73,6 +73,7 @@ services/api/             Python 3.11+, FastAPI: motores, normativa, ingesta, ag
     planning/ranking.py   búsqueda inversa: restricciones por riesgo y orden por objetivo (ADR-0023)
     planning/arguments.py argumentos para no comprar: reglas fijas sobre las cifras (ADR-0025)
     planning/rental_advice.py  tipo de alquiler y gestión recomendados (ADR-0024)
+    planning/condition.py avisos de estado y antigüedad del inmueble; la reforma se suma a la compra
     search/               búsqueda inversa: el plan del usuario en cada oferta (ADR-0023) y su
                           tipo de alquiler y gestión (rental.py, ADR-0024)
     plans/                plan completo de una oferta y hoja de ruta de compra (ADR-0025)

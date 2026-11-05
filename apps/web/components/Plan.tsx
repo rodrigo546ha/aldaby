@@ -15,6 +15,7 @@ import { Skeleton, VerdictFigure } from "./Motion";
 import { Icon } from "./Icon";
 import { OfferPhoto } from "./OfferPhoto";
 import { RentalAdvice } from "./RentalAdvice";
+import { Renovation } from "./Renovation";
 import { AppLink, DATA } from "./AppLink";
 
 type PlanOut = components["schemas"]["PlanOut"];
@@ -69,7 +70,8 @@ export function Plan({ offerId }: { offerId: string }) {
             ? planApi.result.detail
             : "Error en el plan"
       : null;
-  // Al guardar una renta esperada cambian este plan, la búsqueda y la ficha: se piden de nuevo
+  // Al guardar una renta esperada o una reforma cambian este plan, la búsqueda y la ficha: se
+  // piden de nuevo
   const reload = useCallback(() => {
     invalidatePlans();
     void planApi.refresh();
@@ -158,6 +160,13 @@ export function Plan({ offerId }: { offerId: string }) {
             keys={BLOCKS[s.id]?.keys ?? []}
           >
             <TopicCharts topic={s.id} figures={all} series={plan.series} breakdown={plan.breakdown} />
+            {s.id === "compra" && (
+              <Renovation
+                offerId={offerId}
+                current={all.get("purchase_costs.renovation")?.value ?? null}
+                onSaved={reload}
+              />
+            )}
             {s.id === "hipoteca" && plan.cheapest_mortgage && (
               <Points
                 items={[

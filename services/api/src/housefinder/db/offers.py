@@ -685,14 +685,19 @@ class SearchCandidate:
     extracted: dict[str, Any] | None
     deposit_required: Decimal | None = None  # depósito para pujar, si el anuncio lo dice
     location_source: str | None = None  # de dónde sale el punto: catastro, cartociudad… (ADR-0051)
+    catastro: dict[str, Any] | None = None  # inmuebles del Catastro por referencia: uso, año
+    renovation: Decimal | None = None  # lo que el usuario calcula que cuesta reformarla (0025)
 
 
 _CANDIDATES = """
     SELECT o.id, o.kind, o.title, o.url, o.asking_price, o.auction_min_bid,
            coalesce(o.built_area_m2, p.built_area_m2),
            ST_X(p.location::geometry), ST_Y(p.location::geometry), p.section_code, o.extracted,
-           o.deposit_required, o.location_source
+           o.deposit_required, o.location_source,
+           CASE WHEN jsonb_typeof(o.raw->'catastro') = 'object' THEN o.raw->'catastro' END,
+           r.amount
     FROM offers o JOIN properties p ON p.id = o.property_id
+    LEFT JOIN offer_renovations r ON r.offer_id = o.id AND r.org_id = %(org)s
     WHERE p.location IS NOT NULL AND p.section_code IS NOT NULL
       AND ((o.org_id = %(org)s AND o.kind = 'enlace' AND o.extraction_status = 'confirmada')
            OR (o.org_id IS NULL AND o.kind = 'lote' AND o.corrects_id IS NULL)
@@ -747,6 +752,29 @@ def rent_expectations(conn: psycopg.Connection, org_id: UUID) -> dict[UUID, dict
     for offer_id, rental_type, income in rows:
         result.setdefault(offer_id, {})[rental_type] = income
     return result
+
+
+def renovations(conn: psycopg.Connection, org_id: UUID) -> dict[UUID, Decimal]:
+    """Lo que el usuario calcula que costaría reformar cada oferta (0025)."""
+    return dict(conn.execute(
+        "SELECT offer_id, amount FROM offer_renovations WHERE org_id = %s", (org_id,)
+    ).fetchall())
+
+
+def set_renovation(conn: psycopg.Connection, org_id: UUID, offer_id: UUID,
+                   amount: Decimal | None) -> None:
+    """Guarda el coste de la reforma de una oferta; None lo borra."""
+    if amount is None:
+        conn.execute("DELETE FROM offer_renovations WHERE org_id = %s AND offer_id = %s",
+                     (org_id, offer_id))
+        return
+    conn.execute(
+        """
+        INSERT INTO offer_renovations (org_id, offer_id, amount) VALUES (%s, %s, %s)
+        ON CONFLICT (org_id, offer_id) DO UPDATE SET amount = EXCLUDED.amount, updated_at = now()
+        """,
+        (org_id, offer_id, amount),
+    )
 
 
 def set_rent_expectation(conn: psycopg.Connection, org_id: UUID, offer_id: UUID,

@@ -52,6 +52,44 @@ def test_plan_completo_de_una_oferta(searchable, org):  # noqa: F811
 
 
 @pytest.mark.db
+def test_reforma_y_avisos_de_estado_y_antiguedad(searchable, org):  # noqa: F811
+    # Decisión de Rodrigo (2026-11-05): avisos y reforma, sin descuentos por estado o antigüedad
+    import json
+
+    from test_offer_valuation import confirmed_offer
+
+    from housefinder.db.offers import set_renovation
+    from housefinder.plans.service import full_plan
+
+    offer = confirmed_offer(searchable, org, "venta", "150000")
+    with psycopg.connect(searchable) as conn:
+        conn.execute(
+            "UPDATE offers SET extracted = jsonb_set(extracted, '{confirmed,fields}', "
+            "extracted->'confirmed'->'fields' || %s::jsonb) WHERE id = %s",
+            (json.dumps({"condition": {"value": "A reformar", "origin": "extraido"},
+                         "year_built": {"value": "1965", "origin": "extraido"}}), offer))
+        conn.commit()
+        plain = full_plan(conn, book(), rules(), profile(), org, offer, TODAY)
+        set_renovation(conn, org, offer, D(30000))
+        conn.commit()
+        reformed = full_plan(conn, book(), rules(), profile(), org, offer, TODAY)
+    assert any("«A reformar»" in n and "Indica lo que costaría" in n for n in plain.notes)
+    assert any(f"El edificio es de 1965 ({TODAY.year - 1965} años, según el anuncio)" in n
+               for n in plain.notes)
+    assert any("suma la reforma que has indicado" in n for n in reformed.notes)
+    figures = {f.key: f for s in reformed.sections for f in s.figures}
+    plain_figures = {f.key: f for s in plain.sections for f in s.figures}
+    assert figures["purchase_costs.renovation"].value == D("30000.00")
+    assert "purchase_costs.renovation" in {f.key for s in reformed.sections if s.id == "compra"
+                                           for f in s.figures}
+    assert "purchase_costs.renovation" not in plain_figures
+    assert (figures["cashflow.cash_invested"].value
+            - plain_figures["cashflow.cash_invested"].value) == D(30000)
+    # La valoración no cambia: la reforma no la sube ni el estado la baja
+    assert figures["valuation.price_total"].value == plain_figures["valuation.price_total"].value
+
+
+@pytest.mark.db
 def test_plan_de_una_oferta_que_no_es_suya(searchable, org):  # noqa: F811
     from uuid import uuid4
 

@@ -808,6 +808,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/search/offers/{offer_id}/renovation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save Renovation
+         * @description La reforma se suma a la compra y a lo que pones en el plan de la oferta.
+         */
+        put: operations["save_renovation_search_offers__offer_id__renovation_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/plans/offers/{offer_id}": {
         parameters: {
             query?: never;
@@ -1251,8 +1271,8 @@ export interface components {
         AuctionSearchIn: {
             /**
              * Province
-             * @description Código INE de la provincia (28 = Madrid)
-             * @default 28
+             * @description Código INE de la provincia (vacío para toda España, 28 = Madrid)
+             * @default
              */
             province: string;
             /**
@@ -1276,9 +1296,14 @@ export interface components {
             page: number;
             /**
              * Page Hits
-             * @default 20
+             * @default 50
              */
             page_hits: number;
+            /**
+             * Max Pages
+             * @default 1
+             */
+            max_pages: number;
         };
         /** AuctionSearchResultOut */
         AuctionSearchResultOut: {
@@ -2363,6 +2388,14 @@ export interface components {
             code: string;
             /** Name */
             name: string;
+        };
+        /**
+         * RenovationIn
+         * @description Lo que costaría reformar la oferta, en euros; null lo borra.
+         */
+        RenovationIn: {
+            /** Amount */
+            amount?: number | string | null;
         };
         /**
          * RentExpectationIn
@@ -4132,6 +4165,39 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["RentExpectationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_renovation_search_offers__offer_id__renovation_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                offer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenovationIn"];
             };
         };
         responses: {

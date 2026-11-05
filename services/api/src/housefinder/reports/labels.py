@@ -13,6 +13,7 @@ LABELS = {
     "purchase_costs.regulated": "Gastos que fija la normativa",
     "purchase_costs.other": "Gestoría, tasación y copias",
     "purchase_costs.total": "Gastos de compra",
+    "purchase_costs.renovation": "Reforma",
     "financing.loan": "Préstamo",
     "financing.years": "Plazo",
     "mortgage.monthly_payment": "Cuota",

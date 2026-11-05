@@ -244,6 +244,23 @@ def test_api_de_busqueda(searchable, org):
         from uuid import uuid4
         assert client.put(f"/search/offers/{uuid4()}/rent",
                           json={"rental_type": "turistico"}).status_code == 404
+        # La reforma se guarda por oferta y suma a lo que pones; null la borra
+        def shown() -> dict[str, str]:
+            return {f["key"]: f["value"]
+                    for f in client.get("/search").json()["ranked"][0]["figures"]}
+
+        before = shown()
+        assert client.put(f"/search/offers/{offer}/renovation",
+                          json={"amount": "20000"}).status_code == 204
+        after = shown()
+        assert D(after["cashflow.cash_invested"]) - D(before["cashflow.cash_invested"]) == D(20000)
+        assert client.put(f"/search/offers/{offer}/renovation", json={"amount": "-1"}
+                          ).status_code == 422
+        assert client.put(f"/search/offers/{uuid4()}/renovation", json={"amount": "1"}
+                          ).status_code == 404
+        assert client.put(f"/search/offers/{offer}/renovation", json={}).status_code == 204
+        again = shown()
+        assert again["cashflow.cash_invested"] == before["cashflow.cash_invested"]
     finally:
         app.dependency_overrides.clear()
 

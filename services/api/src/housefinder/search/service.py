@@ -15,7 +15,7 @@ import hashlib
 from collections import OrderedDict
 from dataclasses import dataclass, field, replace
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from threading import Lock
 from typing import Any, Generic, TypeVar
 from uuid import UUID
@@ -33,6 +33,7 @@ from housefinder.db.sections import sources_version
 from housefinder.engines.rates import MortgageTerms
 from housefinder.engines.valuation import Range
 from housefinder.params.book import ParamBook
+from housefinder.planning.condition import condition_notes
 from housefinder.planning.ranking import Outcome, Verdict, judge, rank, stress_rent
 from housefinder.planning.simulate import (
     AppreciationAlternative,
@@ -312,11 +313,16 @@ def prepare(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserPro
         costs = None
         notes.append("Sin IPC general de la comunidad: la TIR sale con la comunidad, el IBI y el "
                      "seguro constantes.")
+    renovation = c.renovation or Decimal(0)
+    condition, built_year, year_source = condition_and_year(c)
+    notes += condition_notes(condition, built_year, year_source, today.year, renovation)
     inp = _input(profile, market, assumed, price, f"ES-{region}-{municipality}", rent.value,
                  today, horizon, appreciation, sources, irr_alternatives, estimate, growth,
                  costs)
     if alternatives:
         inp = replace(inp, financing=replace(inp.financing, alternatives=alternatives))
+    if renovation:
+        inp = replace(inp, property=replace(inp.property, renovation=renovation))
     try:
         plan = simulate(inp, rules, book, allow_unverified=True)
     except LookupError as exc:
@@ -337,6 +343,32 @@ def prepare(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserPro
     if c.asking_price is None:
         notes.append("Es una subasta: el precio es el tipo de salida y el final puede ser otro.")
     return Prepared(c, inp, plan, rent, tuple(valuation.figures), assumed, asked, tuple(notes))
+
+
+def condition_and_year(c: SearchCandidate) -> tuple[str | None, int | None, str]:
+    """El estado con las palabras del anuncio y el año del edificio: del Catastro si lo hay
+    (los lotes del Portal) y, si no, del anuncio confirmado."""
+    extracted = c.extracted or {}
+    confirmed = (extracted.get("confirmed") or {}).get("fields") or {}
+    proposed = (extracted.get("listing") or {}).get("fields") or {}
+
+    def field(name: str) -> str | None:
+        for source in (confirmed, proposed):
+            value = (source.get(name) or {}).get("value")
+            if value and (source is confirmed or source[name].get("status") == "verificado"):
+                return str(value)
+        return None
+
+    for unit in (c.catastro or {}).values():
+        year = unit.get("built_year") if isinstance(unit, dict) else None
+        if isinstance(year, int):
+            return field("condition"), year, "el Catastro"
+    try:
+        year_number = Decimal(field("year_built") or "")
+    except InvalidOperation:
+        return field("condition"), None, "el anuncio"
+    year = int(year_number) if year_number % 1 == 0 else None
+    return field("condition"), year, "el anuncio"
 
 
 def evaluate(p: Prepared, rules: RuleBook, book: ParamBook, profile: UserProfile, today: date,

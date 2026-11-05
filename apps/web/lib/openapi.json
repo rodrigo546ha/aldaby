@@ -1920,6 +1920,53 @@
         }
       }
     },
+    "/search/offers/{offer_id}/renovation": {
+      "put": {
+        "tags": [
+          "búsqueda"
+        ],
+        "summary": "Save Renovation",
+        "description": "La reforma se suma a la compra y a lo que pones en el plan de la oferta.",
+        "operationId": "save_renovation_search_offers__offer_id__renovation_put",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenovationIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/plans/offers/{offer_id}": {
       "get": {
         "tags": [
@@ -3052,8 +3099,8 @@
           "province": {
             "type": "string",
             "title": "Province",
-            "description": "Código INE de la provincia (28 = Madrid)",
-            "default": "28"
+            "description": "Código INE de la provincia (vacío para toda España, 28 = Madrid)",
+            "default": ""
           },
           "status": {
             "type": "string",
@@ -3086,10 +3133,17 @@
           },
           "page_hits": {
             "type": "integer",
-            "maximum": 100.0,
+            "maximum": 500.0,
             "minimum": 5.0,
             "title": "Page Hits",
-            "default": 20
+            "default": 50
+          },
+          "max_pages": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Pages",
+            "default": 1
           }
         },
         "type": "object",
@@ -6706,6 +6760,29 @@
           "name"
         ],
         "title": "RegionOut"
+      },
+      "RenovationIn": {
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 5000000.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "title": "RenovationIn",
+        "description": "Lo que costaría reformar la oferta, en euros; null lo borra."
       },
       "RentExpectationIn": {
         "properties": {

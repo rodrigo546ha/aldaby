@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 from housefinder.api.deps import ClientDep, DbDep, KeysDep, OrgDep, ParamBookDep, RuleBookDep
 from housefinder.api.figures import FigureOut, figure_out
-from housefinder.db.offers import searchable_offer, set_rent_expectation
+from housefinder.db.offers import searchable_offer, set_renovation, set_rent_expectation
 from housefinder.db.profiles import latest_profile_id
 from housefinder.profiles import store
 from housefinder.search.rental import OfferRentalAdvice
@@ -155,6 +155,21 @@ def save_rent_expectation(offer_id: UUID, body: RentExpectationIn, db: DbDep,
     if not searchable_offer(db, offer_id, org):
         raise HTTPException(status_code=404, detail="No existe esa oferta en tu búsqueda")
     set_rent_expectation(db, org, offer_id, body.rental_type, body.monthly_income)
+    db.commit()
+
+
+class RenovationIn(BaseModel):
+    """Lo que costaría reformar la oferta, en euros; null lo borra."""
+
+    amount: Decimal | None = Field(default=None, gt=0, le=5000000)
+
+
+@router.put("/offers/{offer_id}/renovation", status_code=204)
+def save_renovation(offer_id: UUID, body: RenovationIn, db: DbDep, org: OrgDep) -> None:
+    """La reforma se suma a la compra y a lo que pones en el plan de la oferta."""
+    if not searchable_offer(db, offer_id, org):
+        raise HTTPException(status_code=404, detail="No existe esa oferta en tu búsqueda")
+    set_renovation(db, org, offer_id, body.amount)
     db.commit()
 
 

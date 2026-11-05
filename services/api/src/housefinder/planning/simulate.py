@@ -214,6 +214,7 @@ class InvestmentSimulation:
     series: tuple[Series, ...] = ()  # año a año, para las gráficas (ADR-0050)
     rent_growth: Figure | None = None  # subida anual de la renta en la TIR (ADR-0060)
     cost_growth: Figure | None = None  # subida anual de los gastos fijos (ADR-0061)
+    renovation: Figure | None = None  # la reforma que indica el usuario, si la hay
 
     def figures(self) -> tuple[Figure, ...]:
         """Todas las cifras del plan, cada clave una vez."""
@@ -221,6 +222,7 @@ class InvestmentSimulation:
         result = [
             a.max_price, a.max_loan, a.max_payment, a.years,
             *self.regulated_costs.figures(), self.other_purchase_costs, self.purchase_costs,
+            *((self.renovation,) if self.renovation is not None else ()),
             self.loan, self.loan_years, self.monthly_payment, self.stressed_payment,
             self.ibi_annual,
             c.gross_yield, c.annual_operating_cashflow, c.annual_tax,
@@ -462,6 +464,9 @@ def simulate(
         series=series,
         rent_growth=inp.rental.growth,
         cost_growth=costs,
+        renovation=(Figure("purchase_costs.renovation", money(prop.renovation), "EUR",
+                           "reforma que indicas: se suma a la compra y a lo que pones",
+                           (PROPERTY,)) if prop.renovation > 0 else None),
     )
     return replace(sim, warnings=(*zone_warnings,
                                   *_warnings(sim, inp, criteria.max_ltv, max_years)))

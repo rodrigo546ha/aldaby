@@ -268,6 +268,11 @@ sección censal asignada.
       muestra) y extremos P25–P75 (`make backtest CONVERGENCIA=1`,
       `docs/research/f5-5-convergencia-por-comunidad.md`). Sin ella: País Vasco, Navarra, Ceuta
       y Melilla, con los escenarios del ciclo del IPV de la comunidad.
+      *Estado y antigüedad (decisión de Rodrigo, 2026-11-05):* sin descuentos en la valoración. Si
+      el anuncio dice «a reformar», el plan lo avisa y pide el coste de la reforma, que el usuario
+      guarda por oferta y se suma a la compra (`PUT /search/offers/{id}/renovation`, migración
+      0025). Con el año del Catastro o del anuncio, avisa de pedir la inspección técnica y las
+      derramas (`planning/condition.py`).
 - [x] F5.6 Backtesting: qué habría estimado el modelo con datos de años anteriores.
       *Hecho:* `python -m housefinder.valuation.backtest` (`make backtest`); informe en
       `docs/research/f5-6-backtesting.md`. Renta por sección a un año: 2,08 % de error mediano
