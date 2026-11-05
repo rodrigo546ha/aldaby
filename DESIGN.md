@@ -174,7 +174,9 @@ y siempre con el nombre del canal al lado.
   en datos, tablas y precios.
 - **Mayúsculas solo en etiquetas** de 12 px (canal, «provisional»), con 0,06 em. Navegación,
   botones, rótulos, cabeceras de tabla y estados van en frase normal.
-- **Una cifra no se parte** entre líneas; su unidad, más pequeña, puede bajar.
+- **Una cifra no se parte** entre líneas; su unidad, más pequeña, puede bajar y nunca baja de 13 px.
+- **Importes:** siempre con separador de miles («4.000 €», también con cuatro cifras) y con
+  céntimos solo si los hay («204.000 €», «89,98 €»).
 
 ### Espacio, radios, sombra y tamaños
 
@@ -183,8 +185,9 @@ y siempre con el nombre del canal al lado.
 - Radios: 4 etiquetas, 8 controles, 12 tarjetas, avisos y fotos, 16 paneles.
 - Sombra: **solo** `--shadow-overlay`, para lo que flota sobre el mapa o sobre otra capa (panel y
   ficha del mapa, menús). Las tarjetas y los paneles en página no llevan sombra.
-- Objetivos de toque de 44 px (`--target`); 36 px (`--target-sm`) en chips y herramientas, con 8 px
-  entre ellos.
+- Objetivos de toque de 44 px (`--target`); 36 px (`--target-sm`) en chips, herramientas, enlaces
+  sueltos (pie, «Salir») y desplegables, con 8 px entre ellos. Nada que se toque baja de 24 px,
+  salvo un enlace dentro de una frase.
 
 ### Movimiento
 

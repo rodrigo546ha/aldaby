@@ -12,10 +12,12 @@ type FieldOut = components["schemas"]["FieldOut"];
 type OfferValuation = components["schemas"]["OfferValuationOut"];
 
 const STATUS: Record<string, string> = {
-  pendiente: "Extrayendo",
+  pendiente: "Leyendo",
   extraida: "Por confirmar",
-  confirmada: "Confirmada",
+  confirmada: "Confirmado",
 };
+// El tono de cada estado (DESIGN.md, «Estados»): leyendo es información; por confirmar, tu turno
+const TONE: Record<string, string> = { pendiente: "info", extraida: "warning", confirmada: "success" };
 const POLL_MS = 5000;
 const VALUATION_GROUPS = [
   {
@@ -92,7 +94,7 @@ export function Offers() {
                     onClick={() => void open(o.id)}
                   >
                     <span className="offer-title">{o.title ?? o.url ?? "Texto pegado"}</span>
-                    <span className="status">{STATUS[o.status]}</span>
+                    <span className={`tag ${TONE[o.status] ?? ""}`}>{STATUS[o.status]}</span>
                   </button>
                 </li>
               ))}
@@ -104,7 +106,21 @@ export function Offers() {
         {selected ? (
           <OfferDetail key={`${selected.id}-${selected.status}`} offer={selected} onSaved={created} />
         ) : (
-          <p className="empty">Pega un enlace o elige uno de tus anuncios.</p>
+          <div className="section-card paste-help">
+            <h2>Cómo funciona</h2>
+            <ol className="how-steps">
+              <li>
+                <strong>Pega el enlace</strong> del anuncio o, si la web no deja leerlo, su texto.
+              </li>
+              <li>
+                <strong>Revisa lo que hemos leído:</strong> cada dato va con la frase de la que sale, y lo corriges si no es
+                así.
+              </li>
+              <li>
+                <strong>Confírmalo</strong> y aparece en tus ofertas, con tu plan.
+              </li>
+            </ol>
+          </div>
         )}
       </section>
     </div>

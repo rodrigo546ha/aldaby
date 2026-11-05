@@ -3,7 +3,12 @@ import type { components } from "./api-types";
 
 export type FigureOut = components["schemas"]["FigureOut"];
 
-const eur = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" });
+// Agrupar siempre: en español, Intl no agrupa las cifras de cuatro dígitos («4000 €» junto a
+// «10.200 €»). Los céntimos solo si los hay: «204.000 €», «89,98 €».
+const EUR = { style: "currency", currency: "EUR", useGrouping: "always" } as unknown as Intl.NumberFormatOptions;
+const eurCents = new Intl.NumberFormat("es-ES", EUR);
+const eurWhole = new Intl.NumberFormat("es-ES", { ...EUR, minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const eur = { format: (n: number) => (Number.isInteger(n) ? eurWhole : eurCents).format(n) };
 const pct = new Intl.NumberFormat("es-ES", { style: "percent", maximumFractionDigits: 2 });
 const years = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 });
 

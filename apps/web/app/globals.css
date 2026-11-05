@@ -550,9 +550,6 @@ td { color: var(--mist); }
 .offer-list button[aria-current="true"] { background: var(--sunk); color: var(--strong); }
 .offer-list button[aria-current="true"] .offer-title { color: var(--strong); font-weight: 500; }
 .offer-title { overflow-wrap: anywhere; }
-.offer-list.stacked button { flex-direction: column; align-items: flex-start; gap: 6px; }
-.offer-list.stacked .status { white-space: normal; }
-.offer-list.stacked .offer-title { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 .offer-head { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline; }
 .offer-head h2 {
@@ -572,30 +569,12 @@ td { color: var(--mist); }
 .quote.rejected { color: var(--warn-text); }
 .origin { font-size: var(--text-xs); color: var(--muted); }
 
-.notice { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-bottom: 1px solid var(--line); }
-.notice-actions { display: flex; gap: 16px; flex-wrap: wrap; font-size: var(--text-sm); }
-.notice-actions a { color: var(--mist); }
-.notice-actions .link-button { display: inline; }
 
-.lot-fields { display: grid; grid-template-columns: minmax(140px, max-content) 1fr; gap: 10px 20px; margin: 4px 0; }
-.lot-fields dt { color: var(--muted); font-size: var(--text-sm); }
-.lot-fields dd { margin: 0; display: flex; flex-direction: column; gap: 2px; min-width: 0; color: var(--mist); }
-@media (max-width: 560px) { .lot-fields { grid-template-columns: 1fr; } .lot-fields dd { margin-bottom: 8px; } }
 
 .valuation { display: flex; flex-direction: column; gap: 20px; padding-top: 8px; }
 
-/* ───────── Búsqueda inversa ───────── */
+/* ───────── Tipos de alquiler (plan de una oferta) ───────── */
 
-.ranking { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
-.offer-card {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 28px;
-  border-radius: var(--radius);
-  background: var(--raised);
-}
-.offer-card .grid { border-color: var(--line); }
 .rental-advice { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; }
 .rental-advice h4 { margin: 0 0 8px; font-size: 1.0625rem; }
 .rental-type { padding: 12px 0; border-top: 1px solid var(--line); font-size: 0.9375rem; color: var(--text); }
@@ -1695,12 +1674,12 @@ details::details-content {
 details[open]::details-content { block-size: auto; }
 
 /* Los resultados llegan en orden, no de golpe */
-.stagger > *, .ranking > * { animation: rise var(--dur-3) var(--ease) both; }
-.stagger > :nth-child(2), .ranking > :nth-child(2) { animation-delay: 50ms; }
-.stagger > :nth-child(3), .ranking > :nth-child(3) { animation-delay: 100ms; }
-.stagger > :nth-child(4), .ranking > :nth-child(4) { animation-delay: 150ms; }
-.stagger > :nth-child(5), .ranking > :nth-child(5) { animation-delay: 200ms; }
-.stagger > :nth-child(n + 6), .ranking > :nth-child(n + 6) { animation-delay: 250ms; }
+.stagger > * { animation: rise var(--dur-3) var(--ease) both; }
+.stagger > :nth-child(2) { animation-delay: 50ms; }
+.stagger > :nth-child(3) { animation-delay: 100ms; }
+.stagger > :nth-child(4) { animation-delay: 150ms; }
+.stagger > :nth-child(5) { animation-delay: 200ms; }
+.stagger > :nth-child(n + 6) { animation-delay: 250ms; }
 
 /* Esperas con la forma de lo que viene */
 .skeleton { display: flex; flex-direction: column; gap: 14px; padding: 8px 0; }

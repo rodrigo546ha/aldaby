@@ -414,3 +414,63 @@
 /* Una columna de rejilla no puede crecer con la fila de pasos: se desplaza dentro */
 .simulator > *, .profile > * { min-width: 0; }
 @media (max-width: 640px), (pointer: coarse) { .answer-actions > .hint { display: none; } .answer-actions { justify-content: flex-end; } }
+
+/* ───────── Auditoría 2026-11-05 (docs/auditoria-ui-2026-11-05.md) ───────── */
+
+/* 1 · La atribución de OpenStreetMap se lee siempre: MapLibre pinta su texto en negro */
+.offer-map .maplibregl-ctrl.maplibregl-ctrl-attrib {
+  background: var(--overlay) !important;
+  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  font-size: var(--text-xs);
+}
+.offer-map .maplibregl-ctrl.maplibregl-ctrl-attrib a { color: var(--text-emphasis) !important; text-decoration: underline; }
+
+/* 2 · Etiqueta de canal: el color del canal acercado al del texto fuerte, sobre un tinte más suave */
+.ch-badge {
+  background: color-mix(in srgb, var(--ch, var(--accent-mark)) 12%, transparent);
+  color: color-mix(in srgb, var(--ch, var(--accent-mark)) 68%, var(--text-strong));
+}
+
+/* 3 · Objetivos de toque de 24 px como poco (WCAG 2.2, 2.5.8) */
+.account .link, .account a { display: inline-flex; align-items: center; min-height: var(--target-sm); }
+.legal-footer a { display: inline-flex; align-items: center; min-height: var(--target-sm); }
+.map-add { min-height: var(--target-sm); }
+summary { min-height: 32px; }
+.verdict-actions a:not(.button-link) { display: inline-flex; align-items: center; min-height: var(--target-sm); }
+.check { min-height: var(--target-sm); }
+
+/* 4 · El foco no se recorta en contenedores con desplazamiento */
+.listing:focus-visible { outline-offset: -3px; }
+.chip-row, .stepper-steps { padding-block: 4px; }
+.map-filters { gap: var(--sp-1); }
+
+/* 5 · Una fila de chips que se desplaza lo dice: se desvanece por la derecha */
+.chip-row {
+  mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
+}
+
+/* 6 · Nada por debajo de 13 px salvo las etiquetas */
+.figure-unit, .listing-fit .figure-unit { font-size: max(0.62em, var(--text-xs)); }
+.offer-photo figcaption { font-size: var(--text-xs); }
+.prov-mark, .badge { letter-spacing: 0.06em; }
+
+/* 11 · En móvil, el selector de cliente aprovecha el ancho */
+@media (max-width: 640px) { .client-picker select { max-width: 46vw; font-size: var(--text-sm); text-overflow: ellipsis; } }
+.paste-help h2 { margin: 0; font-size: var(--text-xl); }
+.offer-list .tag { flex: none; align-self: flex-start; font-size: var(--text-xs); }
+
+/* 9 y 10 · Clientes y agencias */
+.client-list li { align-items: center; padding: var(--sp-3) var(--sp-3); margin: 0 calc(var(--sp-3) * -1); border-radius: var(--r-sm); }
+.client-list li.is-active { background: var(--surface); box-shadow: inset 3px 0 0 var(--success); }
+.client-list strong { font-size: var(--text-lg); font-weight: 600; color: var(--text-strong); }
+.client-tags { display: inline-flex; gap: var(--sp-2); }
+.client-tags .tag { font-size: var(--text-xs); }
+.link.danger, .link-button.danger { color: var(--danger); text-decoration-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+.link.danger:hover, .link-button.danger:hover { color: var(--danger); text-decoration-color: currentColor; }
+.empty-card p { margin: 0; max-width: var(--measure); line-height: var(--leading); }
+.empty-card strong { color: var(--text-strong); }
+.verdict-value .figure-unit, .advisor-chip .figure-unit, .sheet-value .figure-unit, .block-key-value .figure-unit,
+.listing-fit .figure-unit, .plan-card dd .figure-unit { font-size: max(0.42em, var(--text-xs)); }

@@ -134,11 +134,15 @@ export function Clients() {
       ) : (
         <ul className="client-list">
           {clients.map((c) => (
-            <li key={c.id}>
+            <li key={c.id} className={c.active ? "is-active" : undefined} aria-current={c.active ? "true" : undefined}>
               <strong>{c.name}</strong>
-              <span className="origin">
-                {c.active ? " · activo" : ""}
-                {c.has_profile ? " · con perfil" : " · sin perfil"}
+              <span className="client-tags">
+                {c.active && <span className="tag success">Activo</span>}
+                {c.has_profile ? (
+                  <span className="tag">Con perfil</span>
+                ) : (
+                  <span className="tag warning">Sin perfil</span>
+                )}
               </span>
               <span className="client-actions">
                 {!c.active && (
@@ -146,7 +150,7 @@ export function Clients() {
                     Trabajar con este
                   </button>
                 )}
-                <button type="button" className="link" onClick={() => remove(c)}>
+                <button type="button" className="link danger" onClick={() => remove(c)}>
                   Borrar
                 </button>
               </span>

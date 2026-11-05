@@ -51,7 +51,13 @@ export function Feeds() {
       <section>
         <h2>Feeds de agencias</h2>
         {feeds.length === 0 ? (
-          <p className="empty">Aún no hay ningún feed.</p>
+          <div className="section-card empty-card">
+            <p>
+              <strong>Aún no hay ningún feed.</strong> Con el consentimiento por escrito de una agencia, su CRM publica un
+              enlace XML con sus inmuebles en venta. Lo das de alta abajo y cada mañana se leen y se analizan en la búsqueda
+              de tus clientes.
+            </p>
+          </div>
         ) : (
           <ul className="feed-list">
             {feeds.map((f) => (
@@ -63,7 +69,7 @@ export function Feeds() {
                 </span>
                 <span className="hint">{runSummary(f)}</span>
                 <span className="feed-actions">
-                  <button type="button" className="link" onClick={() => void remove(f)}>
+                  <button type="button" className="link danger" onClick={() => void remove(f)}>
                     Dar de baja
                   </button>
                 </span>
