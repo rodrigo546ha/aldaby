@@ -164,6 +164,7 @@ y siempre con el nombre del canal al lado.
 | `--text-xl` | 22 | título de bloque; cifra de rejilla |
 | `--text-lg` | 18 | entradilla; precio de tarjeta; leyenda de formulario |
 | `--text-md` | 16 | cuerpo, navegación, campos |
+| `--text-base` | 15 | texto de tarjetas, avisos, puntos y explicaciones |
 | `--text-sm` | 14 | rótulos, pistas, metadatos, cabeceras de tabla |
 | `--text-xs` | 13 | notas al pie y créditos de foto. Es el mínimo |
 | `--text-2xs` | 12 | solo etiquetas en mayúsculas (canal, «provisional») |
@@ -180,8 +181,18 @@ y siempre con el nombre del canal al lado.
 
 ### Espacio, radios, sombra y tamaños
 
-- Rejilla de 4: `--sp-1` (4) … `--sp-16` (64). Dentro de un componente 8–16; entre componentes
-  24–32; entre secciones 40–64.
+- Rejilla de 4: `--sp-1` (4) … `--sp-16` (64), y `--sp-24` (96) solo para el final de página y la
+  portada. Dentro de un componente 8–16; entre componentes 24–32; entre secciones 40–64.
+- **Ningún tamaño de letra, relleno, margen, hueco ni radio va escrito en px o rem** en las hojas de
+  estilo: sale de un token. Las únicas excepciones son los ajustes ópticos de 1–3 px, los tamaños
+  relativos a una cifra (`em`, como la unidad «al mes») y los huecos reservados para otra pieza (los
+  botones del mapa).
+- **Paneles:** todo panel (veredicto, asesor, sección de la ficha, pasos del simulador) lleva el mismo
+  relleno, `--panel-pad` (24 px; 20 × 16 en móvil), así el texto de dentro empieza siempre en el mismo
+  sitio. El título de un tema plegable del plan empieza justo ahí: la flecha ocupa el relleno.
+- **Barra de la aplicación:** por debajo de 1180 px se quitan los rótulos que se deducen («Cliente» y
+  la cuenta) y se estrechan los huecos; por debajo de 920 px los destinos pasan a la barra inferior.
+  Nada se sale de la pantalla a ningún ancho.
 - Radios: 4 etiquetas, 8 controles, 12 tarjetas, avisos y fotos, 16 paneles.
 - Sombra: **solo** `--shadow-overlay`, para lo que flota sobre el mapa o sobre otra capa (panel y
   ficha del mapa, menús). Las tarjetas y los paneles en página no llevan sombra.
