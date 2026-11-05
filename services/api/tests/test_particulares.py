@@ -24,7 +24,7 @@ def test_el_limite_del_nivel_gratuito_es_un_dato():
 
 
 def test_las_consultas_al_asesor_al_dia_son_un_dato():
-    # PROVISIONAL en data/niveles.yaml (ADR-0065)
+    # En data/niveles.yaml (ADR-0065)
     assert professional_tier() == ProfessionalTier(advisor_per_day=200)
     assert advisor_limit(particular=True) == 20 and advisor_limit(particular=False) == 200
 

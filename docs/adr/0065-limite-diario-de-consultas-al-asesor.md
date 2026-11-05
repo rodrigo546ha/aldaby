@@ -3,7 +3,7 @@
 - **Estado:** aceptada
 - **Fecha:** 2026-11-05
 - **Decide:** Rodrigo («seguimos», sobre el límite de preguntas propuesto tras ADR-0063). Las
-  cifras del límite son **PROVISIONALES** hasta que él las confirme.
+  cifras del límite las confirmó el 2026-11-06 («Sí, valen»).
 - **Completa:** ADR-0063 («no hay límite de preguntas: si hace falta, irá con el nivel de la
   cuenta») y ADR-0041 (niveles de los particulares).
 
@@ -27,7 +27,7 @@ ellas.
    La terminal y las evaluaciones no cuentan: no las usan los clientes.
 2. **El límite es por organización y por día natural de Madrid.** Para un particular es su cuenta.
    Para un profesional lo comparten sus usuarios, como comparten clientes.
-3. **Las cifras son datos** y están en `data/niveles.yaml`, marcadas PROVISIONAL:
+3. **Las cifras son datos** y están en `data/niveles.yaml`:
    - nivel gratuito de los particulares: 20 consultas al día;
    - profesionales: 200 consultas al día.
 
