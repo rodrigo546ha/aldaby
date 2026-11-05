@@ -13,6 +13,7 @@ import pytest
 
 from housefinder.core.figures import SourceRef
 from housefinder.engines.rates import MortgageTerms
+from housefinder.engines.valuation import Range
 from housefinder.params.book import ParamBook, default_params_dir
 from housefinder.planning.scenarios import compare_with_pending
 from housefinder.planning.simulate import (
@@ -269,6 +270,27 @@ def test_ceuta_con_bonificaciones_y_deduccion(rules, params):
     assert 0 < v["irr.capital_gains_tax"] < madrid["irr.capital_gains_tax"]
     figures = {f.key: f for f in sim.figures()}
     assert "Ceuta o Melilla" in figures["cashflow.annual_tax"].formula
+
+
+def test_la_venta_parte_del_valor_de_mercado(rules, params):
+    # ADR-0059: comprada a 200.000 con un precio estimado de 250.000–310.000, la venta parte del
+    # P25: 250.000 × 1,02¹⁰ = 304.748,60. La ganancia del IRPF sigue restando el precio pagado.
+    estimate = (SourceRef("dataset", "valoracion-de-prueba"),)
+    exit_ = replace(caso().exit, market_value=Range(D(250000), D(280000), D(310000)),
+                    market_value_sources=estimate)
+    sim = simulate(caso(exit=exit_), rules, params, allow_unverified=True)
+    plain = simulate(caso(), rules, params, allow_unverified=True)
+    v, p = by_key(sim), by_key(plain)
+    assert v["irr.sale_base"] == D("250000.00") and p["irr.sale_base"] == D("200000.00")
+    assert v["irr.sale_price"] == D("304748.60")
+    assert v["irr.rate"] > p["irr.rate"]
+    assert v["irr.capital_gains_tax"] > p["irr.capital_gains_tax"]
+    price = {s.key: s for s in sim.series}["valuation.price_by_year"]
+    assert price.points[0] == (0, D("250000.00")) and price.points[-1] == (10, v["irr.sale_price"])
+    sale = next(f for f in sim.figures() if f.key == "irr.sale_price")
+    assert estimate[0] in sale.sources
+    # El cash flow no depende de la venta
+    assert v["cashflow.annual_after_tax"] == p["cashflow.annual_after_tax"]
 
 
 def test_series_ano_a_ano_y_desglose(rules, params):

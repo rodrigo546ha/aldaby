@@ -257,6 +257,8 @@ sección censal asignada.
       del hogar y la población no explican el crecimiento relativo; empleo y oferta nueva no se
       cargan (docs/research/f5-5-factores-revalorizacion.md). En el simulador, sin revalorización
       el plan usa la base y da la TIR de los otros dos escenarios.
+      *Mejora (ADR-0059):* la venta parte del precio pagado acotado al rango P25–P75 del precio
+      estimado, no del precio pagado: comprar por debajo del valor (subastas) cuenta en la TIR.
 - [x] F5.6 Backtesting: qué habría estimado el modelo con datos de años anteriores.
       *Hecho:* `python -m housefinder.valuation.backtest` (`make backtest`); informe en
       `docs/research/f5-6-backtesting.md`. Renta por sección a un año: 2,08 % de error mediano

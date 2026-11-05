@@ -11,8 +11,9 @@ from housefinder.engines.cashflow import (
     TaxParams,
     compute_cashflow,
 )
-from housefinder.engines.irr import investment_irr, irr, yearly_cashflows
+from housefinder.engines.irr import investment_irr, irr, sale_base, yearly_cashflows
 from housefinder.engines.mortgage import amortization_schedule
+from housefinder.engines.valuation import Range
 
 OFERTA = SourceRef("user_input", "oferta-de-prueba")
 REGLA = SourceRef("rule", "regla-de-prueba")
@@ -150,6 +151,50 @@ def test_sin_tir_se_explica():
     )
     assert res.irr is None
     assert res.no_irr_reason
+
+
+# --- Valor de partida de la venta (ADR-0059) -------------------------------------------------
+
+VALORACION = SourceRef("dataset", "valoracion-de-prueba")
+
+
+@pytest.mark.parametrize("price, expected", [
+    (Decimal(150000), Decimal(200000)),  # por debajo del P25: el P25
+    (Decimal(230000), Decimal(230000)),  # dentro del rango: el precio pagado
+    (Decimal(300000), Decimal(260000)),  # por encima del P75: el P75
+])
+def test_valor_de_partida_acotado_al_rango(price, expected):
+    assert sale_base(price, Range(Decimal(200000), Decimal(230000), Decimal(260000))) == expected
+
+
+def test_comprar_por_debajo_del_valor_cuenta_en_la_venta():
+    # Calculado a mano (TIR por Newton, independiente de la bisección):
+    #   precio 150.000, rango estimado 200.000–260.000 → la venta parte del P25, 200.000
+    #   venta año 10: 200.000 × 1,02¹⁰ = 243.798,88; gastos 5 % = 12.189,94
+    #   ganancia: 243.798,88 − 12.189,94 − (165.000 − 18.000) = 84.608,94 (resta el precio pagado)
+    #   impuesto: 84.608,94 × 0,19 = 16.075,70 → neto de la venta 215.533,24
+    #   flujos: −165.000; 7.390,45 × 9; 7.390,45 + 215.533,24 → TIR 0,067247… → 0,0672
+    res = _irr(market_value=Range(Decimal(200000), Decimal(230000), Decimal(260000)),
+               market_value_sources=(VALORACION,))
+    assert res.sale_base.value == Decimal("200000.00")
+    assert res.sale_price.value == Decimal("243798.88")
+    assert res.net_sale_proceeds.value == Decimal("215533.24")
+    assert res.irr.value == Decimal("0.0672")
+    assert VALORACION in res.sale_price.sources and VALORACION in res.irr.sources
+    assert "P25" in res.sale_base.formula
+
+
+def test_comprar_por_encima_del_valor_no_se_revaloriza():
+    # 150.000 con el rango 100.000–120.000: la venta parte del P75 → 120.000 × 1,02¹⁰
+    res = _irr(market_value=Range(Decimal(100000), Decimal(110000), Decimal(120000)))
+    assert res.sale_price.value == Decimal("146279.33")
+    assert res.irr.value < _irr().irr.value
+
+
+def test_sin_valor_de_mercado_parte_del_precio():
+    res = _irr()
+    assert res.sale_base.value == Decimal(150000)
+    assert res.sale_price.value == Decimal("182849.16")
 
 
 def test_cita_la_revalorizacion_y_la_venta():

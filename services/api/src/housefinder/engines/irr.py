@@ -6,7 +6,9 @@ tras impuestos de cada año, con los intereses reales de ese año en el cuadro; 
 además, la venta neta.
 
 Supuestos explícitos:
-- Renta y gastos constantes en euros corrientes; solo se revaloriza el precio.
+- Renta y gastos constantes en euros corrientes; solo se revaloriza el valor del inmueble.
+- La venta parte del precio pagado acotado al rango del precio estimado, si lo hay (ADR-0059):
+  comprar por debajo del P25 cuenta como valor; por encima del P75, no se revaloriza.
 - La venta resta gastos de venta, el capital pendiente del préstamo y el impuesto sobre la
   ganancia (Ley del IRPF, art. 35) = venta − gastos y tributos de la venta − (precio +
   gastos de compra + reforma − amortizaciones fiscales acumuladas).
@@ -33,6 +35,7 @@ from housefinder.engines.cashflow import (
 )
 from housefinder.engines.irpf import IncomeTaxProfile, incremental_tax
 from housefinder.engines.mortgage import AmortizationRow, amortization_schedule
+from housefinder.engines.valuation import Range
 
 LOW_RATE = Decimal("-0.99")
 TOLERANCE = Decimal("1e-10")
@@ -77,11 +80,41 @@ class IrrResult:
     sale_price: Figure
     net_sale_proceeds: Figure  # venta − gastos − préstamo pendiente − impuesto
     capital_gains_tax: Figure
+    sale_base: Figure  # valor del que parte la venta (ADR-0059)
 
 
 def projected_sale_price(price: Decimal, appreciation_rate: Decimal, years: int) -> Decimal:
     """Precio de venta con revalorización anual compuesta."""
     return money(price * (1 + appreciation_rate) ** years)
+
+
+def sale_base(price: Decimal, market_value: Range | None) -> Decimal:
+    """Valor del que parte la venta: el precio pagado acotado al rango P25–P75 del precio
+    estimado (ADR-0059); sin estimación, el precio pagado."""
+    if market_value is None:
+        return price
+    return min(max(price, market_value.low), market_value.high)
+
+
+def sale_base_figure(price: Decimal, market_value: Range | None,
+                     price_sources: tuple[SourceRef, ...],
+                     market_sources: tuple[SourceRef, ...]) -> Figure:
+    """`irr.sale_base` con la fórmula del caso que se aplica."""
+    base = sale_base(price, market_value)
+    if market_value is None:
+        return Figure("irr.sale_base", money(base), "EUR",
+                      "precio pagado: sin precio estimado del inmueble", price_sources)
+    if price < market_value.low:
+        case = "por debajo del rango: se toma el P25"
+    elif price > market_value.high:
+        case = "por encima del rango: se toma el P75"
+    else:
+        case = "dentro del rango: el precio pagado"
+    return Figure(
+        "irr.sale_base", money(base), "EUR",
+        f"precio pagado acotado al precio estimado P25 {money(market_value.low)} – P75 "
+        f"{money(market_value.high)} €; {case}",
+        combine_sources(price_sources, market_sources))
 
 
 def investment_irr(
@@ -99,6 +132,8 @@ def investment_irr(
     sale_sources: tuple[SourceRef, ...] = (),
     gains_tax_profile: IncomeTaxProfile | None = None,
     extra_sale_costs: tuple[Figure, ...] = (),
+    market_value: Range | None = None,
+    market_value_sources: tuple[SourceRef, ...] = (),
 ) -> IrrResult:
     """TIR a `horizon_years` años.
 
@@ -109,6 +144,8 @@ def investment_irr(
     Impuesto: `gains_tax_profile` (base del ahorro sin la venta y escalas) o
     `capital_gains_tax_rate` (supuesto), uno de los dos.
     `extra_sale_costs`: gastos y tributos de la venta ya calculados; restan de la ganancia.
+    `market_value`: precio estimado del inmueble con su rango; la venta parte del precio
+    acotado a él (`sale_base`). La ganancia resta siempre el precio pagado.
     """
     if horizon_years <= 0:
         raise ValueError("El horizonte debe ser positivo")
@@ -124,7 +161,9 @@ def investment_irr(
             year_result.annual_operating_cashflow.value - year_result.annual_tax.value
         )
 
-    sale_price = projected_sale_price(investment.price, appreciation_rate, horizon_years)
+    base = sale_base_figure(investment.price, market_value, investment.sources,
+                            market_value_sources)
+    sale_price = projected_sale_price(base.value, appreciation_rate, horizon_years)
     sale_costs = money(sale_price * sale_cost_rate) + sum(
         (f.value for f in extra_sale_costs), Decimal(0)
     )
@@ -166,8 +205,9 @@ def investment_irr(
         sale_sources,
         gains_sources,
         extra_sources,
+        base.sources,
     )
-    sale_sources_all = combine_sources(investment.sources, appreciation_sources)
+    sale_sources_all = combine_sources(base.sources, appreciation_sources)
     value, reason = _solve_irr(flows)
     return IrrResult(
         irr=Figure(
@@ -185,7 +225,7 @@ def investment_irr(
             "irr.sale_price",
             sale_price,
             "EUR",
-            f"precio × (1 + revalorización)^{horizon_years}",
+            f"valor de partida {base.value} × (1 + revalorización)^{horizon_years}",
             sale_sources_all,
         ),
         net_sale_proceeds=Figure(
@@ -202,8 +242,9 @@ def investment_irr(
             "EUR",
             gains_formula,
             combine_sources(investment.sources, appreciation_sources, sale_sources,
-                            gains_sources, extra_sources, tax.sources),
+                            gains_sources, extra_sources, tax.sources, base.sources),
         ),
+        sale_base=base,
     )
 
 

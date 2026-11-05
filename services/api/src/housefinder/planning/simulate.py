@@ -37,6 +37,7 @@ from housefinder.engines.irr import (
     IrrResult,
     investment_irr,
     projected_sale_price,
+    sale_base,
     yearly_cashflows,
 )
 from housefinder.engines.mortgage import (
@@ -54,6 +55,7 @@ from housefinder.engines.mortgage import (
 from housefinder.engines.rates import MortgageTerms
 from housefinder.engines.taxes import municipal_gains_tax
 from housefinder.engines.term import TermRecommendation, recommended_term
+from housefinder.engines.valuation import Range
 from housefinder.params.bank import bank_criteria
 from housefinder.params.book import ParamBook
 from housefinder.params.euribor import euribor_12m_path
@@ -170,6 +172,9 @@ class ExitInput:
     # De dónde sale la revalorización: el supuesto del usuario o el escenario base (F5.5)
     appreciation_sources: tuple[SourceRef, ...] = (APPRECIATION,)
     alternatives: tuple[AppreciationAlternative, ...] = ()
+    # Precio estimado del inmueble con su rango: la venta parte del precio acotado a él (ADR-0059)
+    market_value: Range | None = None
+    market_value_sources: tuple[SourceRef, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -215,7 +220,7 @@ class InvestmentSimulation:
             c.gross_yield, c.annual_operating_cashflow, c.annual_tax,
             c.annual_after_tax, c.monthly_cashflow_after_tax, c.cash_invested, c.cash_on_cash,
             t.years, t.stressed_monthly_payment, t.stressed_monthly_cashflow,
-            self.irr.sale_price,
+            self.irr.sale_base, self.irr.sale_price,
         ]
         result += [f for f in (self.sale_notary, self.municipal_gains) if f is not None]
         result += [self.irr.capital_gains_tax, self.irr.net_sale_proceeds]
@@ -379,8 +384,10 @@ def simulate(
     def sale_and_irr(
         rate: Decimal, appreciation_sources: tuple[SourceRef, ...]
     ) -> tuple[Figure | None, Figure | None, IrrResult]:
-        sale_price = projected_sale_price(prop.price, rate, exit_.horizon_years)
-        value_sources = (PROPERTY, *appreciation_sources, RULES_AT_SALE)
+        base = sale_base(prop.price, exit_.market_value)
+        sale_price = projected_sale_price(base, rate, exit_.horizon_years)
+        value_sources = (PROPERTY, *exit_.market_value_sources, *appreciation_sources,
+                         RULES_AT_SALE)
         notary = (None if buyer_pays else notary_fee(
             rules, sale_price, sale_date, "sale_costs.notary", value_sources, include_pending,
             allow_unverified))
@@ -396,6 +403,8 @@ def simulate(
             sale_sources=(SALE_COSTS,),
             gains_tax_profile=gains_profile,
             extra_sale_costs=tuple(f for f in (notary, gains) if f is not None),
+            market_value=exit_.market_value,
+            market_value_sources=exit_.market_value_sources,
         )
         return notary, gains, result
 
@@ -469,13 +478,14 @@ def _series(investment: InvestmentInputs, rent: RentalAssumptions, tax: TaxParam
         "el exceso de intereses que pasa de un año a otro", first.sources))
     scenarios = [("", exit_.appreciation_rate, exit_.appreciation_sources),
                  *((f"_{a.name}", a.rate, a.sources) for a in exit_.alternatives)]
+    base = sale_base(investment.price, exit_.market_value)
     for suffix, rate, sources in scenarios:
         result.append(Series(
             f"valuation.price_by_year{suffix}", "EUR",
-            tuple((t, projected_sale_price(investment.price, rate, t))
+            tuple((t, projected_sale_price(base, rate, t))
                   for t in range(exit_.horizon_years + 1)),
-            f"precio × (1 + revalorización {rate})^año",
-            combine_sources((PROPERTY,), sources)))
+            f"valor de partida de la venta × (1 + revalorización {rate})^año (ADR-0059)",
+            combine_sources((PROPERTY,), exit_.market_value_sources, sources)))
     return tuple(result)
 
 

@@ -34,6 +34,7 @@ from housefinder.db.offers import (
 )
 from housefinder.db.sections import sources_version
 from housefinder.engines.rates import MortgageTerms
+from housefinder.engines.valuation import Range
 from housefinder.params.book import ParamBook
 from housefinder.planning.ranking import Outcome, Verdict, judge, rank, stress_rent
 from housefinder.planning.simulate import (
@@ -281,6 +282,7 @@ def prepare(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserPro
 
     valuation = value_property(conn, book, c.lon, c.lat, c.built_area_m2, on=today)
     rent = next(f for f in valuation.figures if f.key == "valuation.rent_monthly")
+    estimate = next((f for f in valuation.figures if f.key == "valuation.price_total"), None)
     fees = (confirmed.get("fields") or {}).get("community_fees", {}).get("value")
     assumed = property_assumptions(conn, municipality, region, price,
                                    Decimal(str(fees)) if fees else None)
@@ -298,7 +300,7 @@ def prepare(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserPro
         notes.append("Sin escenarios de revalorización para el municipio: la TIR sale sin "
                      "revalorizar.")
     inp = _input(profile, market, assumed, price, f"ES-{region}-{municipality}", rent.value,
-                 today, horizon, appreciation, sources, irr_alternatives)
+                 today, horizon, appreciation, sources, irr_alternatives, estimate)
     if alternatives:
         inp = replace(inp, financing=replace(inp.financing, alternatives=alternatives))
     try:
@@ -379,7 +381,13 @@ def _score(conn: Connection, book: ParamBook, rules: RuleBook, profile: UserProf
 def _input(profile: UserProfile, market: MarketAssumptions, assumed: PropertyAssumptions,
            price: Decimal, territory: str, rent: Decimal, today: date, horizon: int,
            appreciation: Decimal, appreciation_sources: tuple[SourceRef, ...],
-           alternatives: tuple[AppreciationAlternative, ...]) -> SimulationInput:
+           alternatives: tuple[AppreciationAlternative, ...],
+           estimate: Figure | None = None) -> SimulationInput:
+    """`estimate`: precio estimado del inmueble; la venta parte del precio acotado a su rango
+    (ADR-0059)."""
+    market_value = (Range(estimate.low, estimate.value, estimate.high)
+                    if estimate is not None and estimate.low is not None
+                    and estimate.high is not None else None)
     management = profile.management_fee_rate if profile.management != "activa" else Decimal(0)
     return SimulationInput(
         buyer=BuyerInput(
@@ -410,7 +418,8 @@ def _input(profile: UserProfile, market: MarketAssumptions, assumed: PropertyAss
         exit=ExitInput(appreciation_rate=appreciation,
                        sale_cost_rate=profile.sale_cost_rate or Decimal(0),
                        horizon_years=horizon, appreciation_sources=appreciation_sources,
-                       alternatives=alternatives),
+                       alternatives=alternatives, market_value=market_value,
+                       market_value_sources=estimate.sources if market_value else ()),
         purchase_date=today)
 
 

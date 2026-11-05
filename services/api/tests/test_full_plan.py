@@ -35,6 +35,10 @@ def test_plan_completo_de_una_oferta(searchable, org):  # noqa: F811
     assert {"mortgage.stressed_payment", "search.stressed_cashflow",
             "plan.low_rent_cashflow", "term.recommended_years"} <= sections["estres"]
     assert plan.cheapest_mortgage in ("fija", "variable")
+    # La venta parte del precio pagado acotado al precio estimado de la oferta (ADR-0059)
+    base = next(f for s in plan.sections for f in s.figures if f.key == "irr.sale_base")
+    assert "P25" in base.formula and any(s.kind == "dataset" for s in base.sources)
+    assert "irr.sale_base" in sections["venta"]
     # Cada clave una vez en todo el plan, todas con fuente
     keys = [f.key for f in plan.figures()]
     assert len(keys) == len(set(keys)) and all(f.sources for f in plan.figures())
