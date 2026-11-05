@@ -1830,6 +1830,50 @@
         }
       }
     },
+    "/search/offers/{offer_id}": {
+      "get": {
+        "tags": [
+          "búsqueda"
+        ],
+        "summary": "Offer Score",
+        "description": "Lo que la ficha de una oferta necesita de la búsqueda, sin puntuar las demás ofertas.",
+        "operationId": "offer_score_search_offers__offer_id__get",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Offer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferScoreOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/search/offers/{offer_id}/rent": {
       "put": {
         "tags": [
@@ -6100,6 +6144,38 @@
           "initial_months"
         ],
         "title": "OfferRequest"
+      },
+      "OfferScoreOut": {
+        "properties": {
+          "scored": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScoredOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "skipped": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skipped"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scored",
+          "skipped"
+        ],
+        "title": "OfferScoreOut",
+        "description": "El plan del usuario en una oferta, como en la búsqueda; o por qué no se puede calcular."
       },
       "OfferSummary": {
         "properties": {

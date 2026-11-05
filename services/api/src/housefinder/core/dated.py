@@ -73,6 +73,17 @@ def territory_contains(record_territory: str, target: str) -> bool:
             and target.startswith(record_territory))
 
 
+def containing(target: str) -> list[str]:
+    """Los territorios que contienen a `target`, él incluido: ES-13-28079 → ES, ES-13,
+    ES-13-28079 y su provincia ES-13-28. Son las únicas claves en las que puede estar una regla
+    que le aplique (`territory_contains`)."""
+    parts = target.split("-")
+    places = ["-".join(parts[:i]) for i in range(1, len(parts) + 1)]
+    if territory_level(target) == 3:
+        places.append(target[:8])
+    return list(dict.fromkeys(places))
+
+
 def province_of(code: str) -> str:
     """La provincia de un municipio (ES-16-48020 → ES-16-48); el resto, igual."""
     return code[:8] if territory_level(code) == 3 else code

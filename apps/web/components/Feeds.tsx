@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } fr
 
 import type { components } from "../lib/api-types";
 import { formatDate, formatValue, PROPERTY_TYPE } from "../lib/format";
+import { AppLink, DATA } from "./AppLink";
 
 type Feed = components["schemas"]["FeedOut"];
 type Listing = components["schemas"]["ListingOut"];
@@ -122,7 +123,7 @@ export function Feeds() {
                   <td>{x.agency?.replace(/^Feed de /, "") ?? "—"}</td>
                   <td>
                     {x.located && x.section_code && x.property_type === "vivienda" ? (
-                      <a href={`/plan/${x.id}`}>Ver el plan</a>
+                      <AppLink href={`/plan/${x.id}`} data={DATA.plan(x.id)}>Ver el plan</AppLink>
                     ) : (
                       <span className="hint">
                         {x.property_type !== "vivienda" ? "No es vivienda" : "Sin ubicar"}

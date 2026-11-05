@@ -46,7 +46,7 @@ from housefinder.profiles import store
 from housefinder.profiles.model import UserProfile
 from housefinder.regulation.rules import RuleBook
 from housefinder.reports.pdf import plan_html, plan_pdf, plan_sources
-from housefinder.search.service import SearchUnavailable
+from housefinder.search.service import ContentCache, SearchUnavailable
 
 router = APIRouter(prefix="/plans", tags=["plan"])
 log = logging.getLogger(__name__)
@@ -305,6 +305,11 @@ def _event(name: str, data: object) -> str:
     return f"event: {name}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
+# Los planes completos ya calculados (ver ContentCache): volver al plan de una oferta, su PDF y
+# el asesor no lo calculan de nuevo mientras no cambie nada de lo que lo decide
+PLANS: ContentCache[FullPlan] = ContentCache(size=500)
+
+
 def _plan(db: Connection, keys: KeyProvider, org: UUID, client: UUID, book: ParamBook,
           rules: RuleBook, offer_id: UUID,
           particular: bool = False) -> tuple[UserProfile, FullPlan]:
@@ -314,7 +319,7 @@ def _plan(db: Connection, keys: KeyProvider, org: UUID, client: UUID, book: Para
     profile = store.load(db, keys, profile_id, org)
     record = check_full_plan(db, org, offer_id, particular)  # nivel gratuito (ADR-0041)
     try:
-        plan = full_plan(db, book, rules, profile, org, offer_id)
+        plan = full_plan(db, book, rules, profile, org, offer_id, cache=PLANS)
     except SearchUnavailable as exc:
         raise HTTPException(status_code=422, detail=exc.reasons) from exc
     except PlanUnavailable as exc:

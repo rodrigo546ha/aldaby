@@ -16,9 +16,20 @@ from housefinder.db.offers import searchable_offer, set_rent_expectation
 from housefinder.db.profiles import latest_profile_id
 from housefinder.profiles import store
 from housefinder.search.rental import OfferRentalAdvice
-from housefinder.search.service import SearchUnavailable, search
+from housefinder.search.service import (
+    ContentCache,
+    Scored,
+    SearchUnavailable,
+    Skipped,
+    score_offer,
+    search,
+)
 
 router = APIRouter(prefix="/search", tags=["búsqueda"])
+
+# Los planes ya calculados de cada oferta (ver ScoreCache): la búsqueda entera, la ficha de una
+# oferta y la vuelta al mapa los reutilizan mientras no cambie nada de lo que los decide
+SCORES: ContentCache[Scored | Skipped] = ContentCache()
 
 
 class RequirementOut(BaseModel):
@@ -87,21 +98,48 @@ def reverse_search(db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
         raise HTTPException(status_code=404, detail="Confirma primero tu perfil en /perfil")
     profile = store.load(db, keys, profile_id, org)
     try:
-        report = search(db, book, rules, profile, org)
+        report = search(db, book, rules, profile, org, cache=SCORES)
     except SearchUnavailable as exc:
         raise HTTPException(status_code=422, detail=exc.reasons) from exc
     return SearchOut(
-        ranked=[ScoredOut(
-            offer_id=s.offer_id, kind=s.kind, title=s.title, url=s.url, auction=s.auction,
-            passes=s.verdict.passes, reasons=list(s.verdict.reasons),
-            metric=figure_out(s.verdict.metric) if s.verdict.metric else None,
-            figures=[figure_out(f) for f in s.figures], notes=list(s.notes),
-            advice=advice_out(s.advice) if s.advice else None,
-            lon=s.lon, lat=s.lat, location_source=s.location_source)
-            for s in report.ranked],
+        ranked=[scored_out(s) for s in report.ranked],
         skipped=[SkippedOut(offer_id=s.offer_id, title=s.title, reason=s.reason)
                  for s in report.skipped],
         market=[figure_out(f) for f in report.market], notes=report.notes)
+
+
+class OfferScoreOut(BaseModel):
+    """El plan del usuario en una oferta, como en la búsqueda; o por qué no se puede calcular."""
+
+    scored: ScoredOut | None
+    skipped: str | None
+
+
+@router.get("/offers/{offer_id}", response_model=OfferScoreOut)
+def offer_score(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: ClientDep,
+                book: ParamBookDep, rules: RuleBookDep) -> OfferScoreOut:
+    """Lo que la ficha de una oferta necesita de la búsqueda, sin puntuar las demás ofertas."""
+    profile_id = latest_profile_id(db, org, client)
+    if profile_id is None:
+        raise HTTPException(status_code=404, detail="Confirma primero tu perfil en /perfil")
+    profile = store.load(db, keys, profile_id, org)
+    try:
+        result = score_offer(db, book, rules, profile, org, offer_id, cache=SCORES)
+    except SearchUnavailable as exc:
+        raise HTTPException(status_code=422, detail=exc.reasons) from exc
+    if isinstance(result, Skipped):
+        return OfferScoreOut(scored=None, skipped=result.reason)
+    return OfferScoreOut(scored=scored_out(result) if result else None, skipped=None)
+
+
+def scored_out(s: Scored) -> ScoredOut:
+    return ScoredOut(
+        offer_id=s.offer_id, kind=s.kind, title=s.title, url=s.url, auction=s.auction,
+        passes=s.verdict.passes, reasons=list(s.verdict.reasons),
+        metric=figure_out(s.verdict.metric) if s.verdict.metric else None,
+        figures=[figure_out(f) for f in s.figures], notes=list(s.notes),
+        advice=advice_out(s.advice) if s.advice else None,
+        lon=s.lon, lat=s.lat, location_source=s.location_source)
 
 
 class RentExpectationIn(BaseModel):

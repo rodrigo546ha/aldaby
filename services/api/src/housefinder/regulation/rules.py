@@ -17,6 +17,7 @@ from typing import Any
 
 from housefinder.core.dated import (
     applies_on,
+    containing,
     load_yaml_records,
     most_specific,
     optional_date,
@@ -62,6 +63,11 @@ class Rule:
 @dataclass
 class RuleBook:
     rules: list[Rule] = field(default_factory=list)
+    # Índice por tipo y territorio: hay miles de reglas municipales (IBI, plusvalía) y recorrerlas
+    # todas en cada consulta se llevaba la mitad del tiempo de la búsqueda inversa
+    _index: dict[tuple[str, str], list[Rule]] = field(
+        default_factory=dict, init=False, repr=False, compare=False)
+    _indexed: int = field(default=-1, init=False, repr=False, compare=False)
 
     @classmethod
     def from_dir(cls, path: Path) -> RuleBook:
@@ -82,15 +88,24 @@ class RuleBook:
     ) -> Rule | None:
         """Regla aplicable más específica para un territorio y una fecha."""
         allowed = {"vigente"} | ({"pendiente_convalidacion"} if include_pending else set())
+        index = self._by_kind_territory()
         return most_specific(
             r
-            for r in self.rules
-            if r.kind == kind
-            and r.status in allowed
+            for place in containing(territory)
+            for r in index.get((kind, place), ())
+            if r.status in allowed
             and r.applies_on(on)
             and (r.verified or allow_unverified)
             and territory_contains(r.territory, territory)
         )
+
+    def _by_kind_territory(self) -> dict[tuple[str, str], list[Rule]]:
+        if self._indexed != len(self.rules):  # se rehace si alguien añade reglas a la lista
+            index: dict[tuple[str, str], list[Rule]] = {}
+            for r in self.rules:
+                index.setdefault((r.kind, r.territory), []).append(r)
+            self._index, self._indexed = index, len(self.rules)
+        return self._index
 
     def pending(
         self, territory: str, on: date, allow_unverified: bool = False

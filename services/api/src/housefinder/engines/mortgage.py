@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
+from functools import lru_cache
 
 from housefinder.core.figures import Figure, SourceRef, combine_sources, money
 from housefinder.engines.rates import MortgageTerms, RatePath, RateSegment, rate_segments
@@ -78,6 +79,15 @@ def amortization_schedule_segments(
     Al empezar cada tramo se recalcula la cuota francesa con el capital pendiente y los
     meses que quedan. La última cuota absorbe el redondeo.
     """
+    # Un plan pide el mismo cuadro decenas de veces (cuota, intereses, TIR, estrés): se calcula
+    # una vez. Es una función pura y las filas son inmutables; la lista se copia para quien llama.
+    return list(_schedule(principal, months, segments))
+
+
+@lru_cache(maxsize=4096)
+def _schedule(
+    principal: Decimal, months: int, segments: tuple[RateSegment, ...]
+) -> tuple[AmortizationRow, ...]:
     if not segments or segments[0].start_month != 0:
         raise ValueError("El primer tramo de tipo debe empezar en el mes 0")
     rate_from = {s.start_month: s.annual_rate for s in segments}
@@ -99,7 +109,7 @@ def amortization_schedule_segments(
             payment_m = payment
         balance = money(balance - amort)
         rows.append(AmortizationRow(month, payment_m, interest, amort, balance))
-    return rows
+    return tuple(rows)
 
 
 @dataclass(frozen=True)

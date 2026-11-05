@@ -180,3 +180,11 @@ def municipality_point(conn: psycopg.Connection, municipality: str,
         (municipality, vintage),
     ).fetchone()
     return (float(row[0]), float(row[1])) if row else None
+
+
+def sources_version(conn: psycopg.Connection) -> str:
+    """Cambia cada vez que se carga o recarga una fuente pública (`sources`): la caché de planes
+    de la búsqueda la lleva en su clave, porque la renta, los supuestos y las referencias de
+    mercado salen de esas tablas."""
+    row = conn.execute("SELECT count(*), max(fetched_at) FROM sources").fetchone()
+    return f"{row[0]}:{row[1]}" if row else ""

@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import type { components } from "../lib/api-types";
 import { Callout } from "./Icon";
 import { Skeleton } from "./Motion";
+import { AppLink, DATA } from "./AppLink";
+import { invalidatePlans } from "../lib/data";
 
 type InterviewOut = components["schemas"]["InterviewOut"];
 type DraftField = components["schemas"]["DraftFieldOut"];
@@ -131,6 +133,7 @@ export function Profile() {
       body: JSON.stringify({ values }),
     });
     if (done) {
+      invalidatePlans(); // el plan de cada oferta sale ya con el perfil nuevo
       const refreshed = await call(`/api/profile/interviews/${interview.id}`);
       if (refreshed) setInterview(refreshed as InterviewOut);
     }
@@ -282,12 +285,12 @@ export function Profile() {
         <div className="draft-actions">
           {confirmed ? (
             <>
-              <a className="button-link primary" href="/mapa">
+              <AppLink className="button-link primary" href="/mapa" data={DATA.map()}>
                 Ver las ofertas que encajan
-              </a>
-              <a className="button-link" href="/busqueda">
+              </AppLink>
+              <AppLink className="button-link" href="/busqueda">
                 Ajustar tus supuestos
-              </a>
+              </AppLink>
             </>
           ) : (
             <>

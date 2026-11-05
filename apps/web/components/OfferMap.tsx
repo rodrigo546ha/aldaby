@@ -9,12 +9,14 @@ import { PMTiles, Protocol } from "pmtiles";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 import type { components } from "../lib/api-types";
+import { useApi } from "../lib/data";
 import { formatValue, type FigureOut } from "../lib/format";
 import { CHANNEL, channelStyle, ending, formatArea, type Channel, type Group } from "../lib/offers";
 import { Amount } from "./FigureView";
 import { Icon } from "./Icon";
 import { Skeleton } from "./Motion";
 import { OfferPhoto } from "./OfferPhoto";
+import { AppLink, DATA } from "./AppLink";
 
 type SearchOut = components["schemas"]["SearchOut"];
 type ScoredOut = components["schemas"]["ScoredOut"];
@@ -304,9 +306,28 @@ function sortBy(sort: Sort): (a: Offer, b: Offer) => number {
 export function OfferMap() {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibre | null>(null);
-  const [catalog, setCatalog] = useState<CatalogOut[] | null>(null);
-  const [catalogError, setCatalogError] = useState<string | null>(null);
-  const [planState, setPlanState] = useState<PlanState>({ status: "cargando" });
+  // Las ofertas y tu plan en cada una, de la caché de la app: volver al mapa es instantáneo
+  const catalogApi = useApi<CatalogOut[]>("/api/offers/catalog");
+  const searchApi = useApi<SearchOut>("/api/search");
+  const catalog = catalogApi.result?.ok ? catalogApi.result.data : null;
+  const catalogError =
+    catalogApi.result && !catalogApi.result.ok
+      ? catalogApi.result.status === 0
+        ? "No se ha podido conectar con la API."
+        : "No se han podido cargar las ofertas. Vuelve a cargar la página."
+      : null;
+  const searched = searchApi.result;
+  const planState = useMemo<PlanState>(() => {
+    if (!searched) return { status: "cargando" };
+    if (searched.ok) return { status: "ok", result: searched.data };
+    const text =
+      typeof searched.detail === "string"
+        ? searched.detail
+        : searched.status === 0
+          ? "No se ha podido calcular tu plan."
+          : "La búsqueda no ha respondido.";
+    return { status: "sin_plan", code: searched.status, text };
+  }, [searched]);
   const [group, setGroup] = useState<Group>("todas");
   const [typeGroup, setTypeGroup] = useState<TypeGroup>("todos");
   const [onlyPass, setOnlyPass] = useState(false);
@@ -320,30 +341,6 @@ export function OfferMap() {
   const [locateError, setLocateError] = useState<string | null>(null);
   const [baseMissing, setBaseMissing] = useState(false);
   const [coverage, setCoverage] = useState<Bounds | null>(null);
-
-  useEffect(() => {
-    fetch("/api/offers/catalog")
-      .then(async (resp) => {
-        if (resp.ok) setCatalog((await resp.json()) as CatalogOut[]);
-        else setCatalogError("No se han podido cargar las ofertas. Vuelve a cargar la página.");
-      })
-      .catch(() => setCatalogError("No se ha podido conectar con la API."));
-    (async () => {
-      try {
-        const resp = await fetch("/api/search");
-        const body = await resp.json().catch(() => ({}));
-        if (resp.ok) setPlanState({ status: "ok", result: body as SearchOut });
-        else
-          setPlanState({
-            status: "sin_plan",
-            code: resp.status,
-            text: typeof body.detail === "string" ? body.detail : "La búsqueda no ha respondido.",
-          });
-      } catch {
-        setPlanState({ status: "sin_plan", code: 0, text: "No se ha podido calcular tu plan." });
-      }
-    })();
-  }, []);
 
   const offers = useMemo<Offer[]>(() => {
     if (!catalog) return [];
@@ -727,9 +724,9 @@ export function OfferMap() {
                   Quitar los filtros
                 </button>
               ) : (
-                <a className="button-link primary" href="/ofertas">
+                <AppLink className="button-link primary" href="/ofertas">
                   Añadir un anuncio
-                </a>
+                </AppLink>
               )}
             </div>
           )}
@@ -749,12 +746,12 @@ export function OfferMap() {
               {[unlocated > 0 && `${unlocated} sin ubicar`, outside > 0 && `${outside} fuera del mapa`].filter(Boolean).join(" · ")}
             </span>
           )}
-          <a className="map-add" href="/ofertas">
+          <AppLink className="map-add" href="/ofertas">
             <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
               <path d="M10 4v12M4 10h12" />
             </svg>
             Añadir un anuncio
-          </a>
+          </AppLink>
         </footer>
       </aside>
     </div>
@@ -916,18 +913,18 @@ function OfferSheet({
         {note && <p className="hint">{note}</p>}
 
         <div className="verdict-actions">
-          <a className="button-link primary" href={`/oferta/${o.offer_id}`}>
+          <AppLink className="button-link primary" href={`/oferta/${o.offer_id}`} data={DATA.offer(o.offer_id)}>
             Ver la ficha
-          </a>
+          </AppLink>
           {o.plan && (
-            <a className="button-link" href={`/plan/${o.offer_id}`}>
+            <AppLink className="button-link" href={`/plan/${o.offer_id}`} data={DATA.plan(o.offer_id)}>
               Ver mi plan
-            </a>
+            </AppLink>
           )}
           {o.status === "por_confirmar" && (
-            <a className="button-link" href={`/ofertas?id=${o.offer_id}`}>
+            <AppLink className="button-link" href={`/ofertas?id=${o.offer_id}`}>
               Confirmar los datos
-            </a>
+            </AppLink>
           )}
           {o.source_url && (
             <a href={o.source_url} target="_blank" rel="noreferrer">
