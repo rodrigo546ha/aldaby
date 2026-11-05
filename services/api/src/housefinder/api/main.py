@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.gzip import GZipMiddleware
@@ -26,9 +28,16 @@ from housefinder.api import (
     valuation,
     waitlist,
 )
-from housefinder.db.connection import DatabaseUnavailable, connect
+from housefinder.db.connection import DatabaseUnavailable, close_pools, connect
 
-app = FastAPI(title="HouseFinder API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    yield
+    close_pools()  # las conexiones del pool (ADR-0058)
+
+
+app = FastAPI(title="HouseFinder API", version="0.1.0", lifespan=lifespan)
 # Las respuestas de cifras son JSON muy repetitivo (fórmulas y fuentes): comprimidas pesan diez
 # veces menos. Solo las de más de 1 KB, y solo si el navegador lo acepta.
 app.add_middleware(GZipMiddleware, minimum_size=1024)

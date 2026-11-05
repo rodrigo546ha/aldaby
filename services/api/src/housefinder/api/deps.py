@@ -16,7 +16,7 @@ from housefinder.accounts.tiers import free_tier, plans_left
 from housefinder.agent.llm import LLMClient, llm_from_env
 from housefinder.crypto.envelope import KeyProvider, provider_from_env
 from housefinder.db.clients import client_ids, client_in_org
-from housefinder.db.connection import Connection, DatabaseUnavailable, connect
+from housefinder.db.connection import Connection, DatabaseUnavailable, connect, pooled
 from housefinder.db.legal import accepted_versions
 from housefinder.db.profiles import get_or_create_organization
 from housefinder.db.tiers import used_plans
@@ -50,8 +50,9 @@ API_ROLE = "housefinder_api"  # sin privilegios de propietario: le aplica Row-Le
 
 
 def get_db() -> Iterator[Connection]:
+    """Una conexión del pool (ADR-0058). Al devolverla se borran el rol y `app.org_id`."""
     try:
-        with connect() as conn:
+        with pooled() as conn:
             conn.execute(f"SET ROLE {API_ROLE}")  # ADR-0028: las políticas por organización
             yield conn
     except DatabaseUnavailable as exc:

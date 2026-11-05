@@ -10,6 +10,8 @@ dependencies = [
   "httpx>=0.27",
   "pyyaml>=6.0",
   "psycopg[binary]>=3.2",
+  # Pool de conexiones de la API (ADR-0058)
+  "psycopg-pool>=3.2",
   "cryptography>=43",
   # Documentos del usuario (ADR-0021): PDF con texto, páginas escaneadas a imagen y OCR local
   "pypdf>=5.0",
