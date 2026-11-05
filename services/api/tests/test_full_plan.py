@@ -90,6 +90,30 @@ def test_reforma_y_avisos_de_estado_y_antiguedad(searchable, org):  # noqa: F811
 
 
 @pytest.mark.db
+def test_sin_cupo_el_asesor_no_cuenta_el_plan(searchable, org):  # noqa: F811
+    # ADR-0041: la herramienta plan_completo pregunta al cupo antes de calcular el plan
+    from test_offer_valuation import confirmed_offer
+
+    from housefinder.advisor.tools import MarkerArguments, offer_tools
+    from housefinder.agent.loop import ToolFailed
+
+    offer = confirmed_offer(searchable, org, "venta", "150000")
+    asked: list[object] = []
+
+    def gate(offer_id):
+        asked.append(offer_id)
+        return "Has usado los 3 planes completos del nivel gratuito."
+
+    with psycopg.connect(searchable) as conn:
+        tools = {t.name: t for t in offer_tools(conn, book(), org, profile(), rules(), gate)}
+        with pytest.raises(ToolFailed, match="planes completos"):
+            tools["plan_completo"].run(MarkerArguments(oferta=offer.hex[:8]))
+        free = {t.name: t for t in offer_tools(conn, book(), org, profile(), rules())}
+        assert free["plan_completo"].run(MarkerArguments(oferta=offer.hex[:8])).figures
+    assert asked == [offer]
+
+
+@pytest.mark.db
 def test_plan_de_una_oferta_que_no_es_suya(searchable, org):  # noqa: F811
     from uuid import uuid4
 

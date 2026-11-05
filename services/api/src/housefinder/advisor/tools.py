@@ -149,8 +149,14 @@ class ValuationArguments(OfferArguments):
         default=10, description="Años de los escenarios de revalorización")
 
 
+PlanGate = Callable[[UUID], str | None]  # None: se puede ver el plan; si no, el motivo
+
+
 def offer_tools(conn: Connection, book: ParamBook, org_id: UUID,
-                profile: UserProfile | None = None, rules: RuleBook | None = None) -> list[Tool]:
+                profile: UserProfile | None = None, rules: RuleBook | None = None,
+                plan_gate: PlanGate | None = None) -> list[Tool]:
+    """`plan_gate`: el cupo del nivel gratuito (ADR-0041). Sin él, el plan completo no se limita
+    (profesionales, terminal y evaluaciones)."""
     def own(offer_id: UUID) -> PrivateOffer:
         offer = get_private_offer(conn, offer_id, org_id)
         if offer is None:
@@ -273,6 +279,9 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID,
         if offer_id is None:
             raise ToolFailed("Esa oferta no está entre las que se pueden puntuar: usa antes "
                              "buscar_ofertas")
+        refusal = plan_gate(offer_id) if plan_gate is not None else None
+        if refusal is not None:
+            raise ToolFailed(refusal)
         try:
             plan = full_plan(conn, book, rules, profile, org_id, offer_id)
         except SearchUnavailable as exc:
@@ -373,7 +382,8 @@ class ExplainedPlan:
 
 def explain_plan(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID,
                  plan: FullPlan, profile: UserProfile, rules: RuleBook,
-                 progress: Callable[[Progress], None] | None = None) -> ExplainedPlan:
+                 progress: Callable[[Progress], None] | None = None,
+                 plan_gate: PlanGate | None = None) -> ExplainedPlan:
     """El asesor explica el plan en fichas con marcadores (ADR-0052) y añade sus argumentos
     (ADR-0025). `answer.output` es un `PlanExplanation` si el texto pasa la comprobación."""
     short = plan.offer_id.hex[:8]
@@ -381,7 +391,7 @@ def explain_plan(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID
                 f"plan_completo con oferta {short}): qué puedo pagar, la hipoteca, lo que me "
                 "queda cada mes, qué pasa si suben los tipos y por qué podría no comprarla.")
     answer = run_agent(llm, INSTRUCTIONS + PLAN_OUTPUT, question,
-                       offer_tools(conn, book, org_id, profile, rules),
+                       offer_tools(conn, book, org_id, profile, rules, plan_gate),
                        output=PlanExplanation, progress=progress)
     if progress is not None:
         progress(Progress("argumentos"))
@@ -400,14 +410,15 @@ CONVERSATION = """
 def ask_about_offer(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID,
                     offer_id: UUID, question: str, history: Sequence[Message] = (),
                     profile: UserProfile | None = None, rules: RuleBook | None = None,
-                    progress: Callable[[Progress], None] | None = None) -> AgentAnswer:
+                    progress: Callable[[Progress], None] | None = None,
+                    plan_gate: PlanGate | None = None) -> AgentAnswer:
     """Una pregunta sobre una oferta en la conversación de su plan (ADR-0063)."""
     short = offer_id.hex[:8]
     framed = (f"Pregunta sobre la oferta {{{{oferta:{short}}}}} (para su plan, usa plan_completo "
               f"con oferta {short}): {question}")
     return run_agent(llm, INSTRUCTIONS + CONVERSATION, framed,
-                     offer_tools(conn, book, org_id, profile, rules), progress=progress,
-                     history=history)
+                     offer_tools(conn, book, org_id, profile, rules, plan_gate),
+                     progress=progress, history=history)
 
 
 def ask(conn: Connection, book: ParamBook, llm: LLMClient, org_id: UUID, question: str,

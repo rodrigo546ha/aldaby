@@ -35,7 +35,15 @@ El usuario no puede preguntar «¿y si lo alquilo por habitaciones?» ni seguir 
 4. **Contexto de la oferta:** la pregunta llega al modelo con el marcador de la oferta y la
    indicación de usar `plan_completo` con ella. Las herramientas son las mismas que en la
    terminal: plan, alquiler, valoración, zona, búsqueda y ofertas guardadas.
-5. **El historial es del usuario y puede intentar dar órdenes.** No abre nada:
+5. **El cupo del nivel gratuito vale también para el asesor (ADR-0041).** Si el usuario pregunta
+   por otra oferta, la herramienta `plan_completo` pregunta antes al cupo
+   (`api/deps.plan_gate`):
+   - una oferta ya abierta no gasta cupo;
+   - una oferta nueva gasta uno y queda anotada, como si se abriera su página;
+   - sin cupo, la herramienta se niega y el asesor se lo dice al usuario.
+
+   Vale igual para la explicación en fichas.
+6. **El historial es del usuario y puede intentar dar órdenes.** No abre nada:
    - la respuesta pasa la misma comprobación, sin cifras fuera de marcadores ni claves inventadas;
    - las herramientas solo leen y solo ven la organización del usuario.
 

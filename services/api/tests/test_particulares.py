@@ -116,5 +116,32 @@ def test_un_particular_tiene_su_perfil_y_tres_planes(client, migrated_database: 
             check_full_plan(conn, org, offers[3], particular=True)
         assert exhausted.value.status_code == 402
         assert not check_full_plan(conn, org, offers[3], particular=False)  # profesional
+        # El asesor (herramienta plan_completo) gasta el mismo cupo: sin planes libres, solo las ya
+        # abiertas; a un profesional no se le limita
+        from housefinder.api.deps import plan_gate
+        gate = plan_gate(conn, org, particular=True)
+        assert gate is not None and gate(offers[0]) is None
+        refusal = gate(offers[3])
+        assert refusal is not None and "planes completos" in refusal
+        assert plan_gate(conn, org, particular=False) is None
         conn.commit()
     assert client.get("/auth/me").json()["free_plans_left"] == 0
+
+
+def test_el_asesor_anota_el_plan_que_cuenta(migrated_database: str):
+    # Con planes libres, el plan completo de otra oferta que cuenta el asesor queda anotado
+    from test_access import account
+
+    from housefinder.api.deps import plan_gate
+
+    org, _ = account(migrated_database, f"p-{uuid4().hex[:6]}@ejemplo.es", role="particular")
+    with psycopg.connect(migrated_database) as conn:
+        offer = conn.execute(
+            "INSERT INTO offers (channel, external_id, kind, raw, raw_sha256) "
+            "VALUES ('prueba', %s, 'lote', '{}', '') RETURNING id", (str(uuid4()),)
+        ).fetchone()[0]
+        conn.commit()
+        gate = plan_gate(conn, org, particular=True)
+        assert gate is not None and gate(offer) is None
+        used = conn.execute("SELECT offer_id FROM plan_uses WHERE org_id = %s", (org,)).fetchall()
+    assert used == [(offer,)]

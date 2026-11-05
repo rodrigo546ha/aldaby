@@ -35,6 +35,7 @@ from housefinder.api.deps import (
     SessionDep,
     check_full_plan,
     is_particular,
+    plan_gate,
 )
 from housefinder.api.figures import FigureOut, SeriesOut, figure_out, series_out
 from housefinder.api.search import RentalAdviceOut, advice_out
@@ -259,6 +260,7 @@ def explanation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: C
                 current: SessionDep) -> StreamingResponse:
     # Lo que puede fallar con un código HTTP (sin perfil, nivel gratuito) va antes de empezar
     profile, plan = _plan(db, keys, org, client, book, rules, offer_id, is_particular(current))
+    gate = plan_gate(db, org, is_particular(current))  # el plan de otra oferta gasta cupo
     events: queue.Queue[str | None] = queue.Queue()
 
     def tell(step: Progress) -> None:
@@ -266,7 +268,8 @@ def explanation(offer_id: UUID, db: DbDep, keys: KeysDep, org: OrgDep, client: C
 
     def work() -> None:
         try:
-            explained = explain_plan(db, book, llm, org, plan, profile, rules, progress=tell)
+            explained = explain_plan(db, book, llm, org, plan, profile, rules, progress=tell,
+                                     plan_gate=gate)
             events.put(_event("resultado", explanation_out(explained).model_dump(mode="json")))
         except Exception as exc:  # el usuario ve una línea; el registro, solo el tipo
             log.error("La explicación del plan falló: %s", type(exc).__name__)
@@ -314,6 +317,7 @@ def question(offer_id: UUID, body: QuestionIn, db: DbDep, keys: KeysDep, org: Or
     """Una pregunta sobre el plan de la oferta. No se guarda: la conversación vive en la web."""
     profile, _ = _plan(db, keys, org, client, book, rules, offer_id, is_particular(current))
     history = [{"role": t.role, "content": t.content} for t in body.history]
+    gate = plan_gate(db, org, is_particular(current))  # el plan de otra oferta gasta cupo
     events: queue.Queue[str | None] = queue.Queue()
 
     def tell(step: Progress) -> None:
@@ -322,7 +326,7 @@ def question(offer_id: UUID, body: QuestionIn, db: DbDep, keys: KeysDep, org: Or
     def work() -> None:
         try:
             answer = ask_about_offer(db, book, llm, org, offer_id, body.question, history,
-                                     profile, rules, progress=tell)
+                                     profile, rules, progress=tell, plan_gate=gate)
             events.put(_event("resultado", answer_out(answer).model_dump(mode="json")))
         except Exception as exc:  # ni la pregunta ni la respuesta van al registro
             log.error("La pregunta al asesor falló: %s", type(exc).__name__)

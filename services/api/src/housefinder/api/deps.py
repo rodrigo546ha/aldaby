@@ -19,7 +19,7 @@ from housefinder.db.clients import client_ids, client_in_org
 from housefinder.db.connection import Connection, DatabaseUnavailable, connect, pooled
 from housefinder.db.legal import accepted_versions
 from housefinder.db.profiles import get_or_create_organization
-from housefinder.db.tiers import used_plans
+from housefinder.db.tiers import record_plan_use, used_plans
 from housefinder.geo.cartociudad import Geocoded, geocode, municipality_codes
 from housefinder.geo.catastro import Parcel, find_parcel
 from housefinder.geo.foral import find_foral_parcel
@@ -258,3 +258,23 @@ def check_full_plan(db: Connection, org: UUID, offer_id: UUID, particular: bool)
     if plans_left(len(used), tier) == 0:
         raise HTTPException(status_code=402, detail=FREE_TIER_EXHAUSTED.format(n=tier.full_plans))
     return True
+
+
+def plan_gate(db: Connection, org: UUID, particular: bool) -> Callable[[UUID], str | None] | None:
+    """El cupo del nivel gratuito para las herramientas del asesor: el plan completo de una oferta
+    contado por el asesor gasta cupo como abrir su página (ADR-0041). Devuelve, para cada oferta,
+    None si se puede (y anota el uso) o el motivo si no. Sin límite (profesionales), None."""
+    if not particular:
+        return None
+
+    def gate(offer_id: UUID) -> str | None:
+        try:
+            record = check_full_plan(db, org, offer_id, particular=True)
+        except HTTPException as exc:
+            return str(exc.detail)
+        if record:
+            record_plan_use(db, org, offer_id)
+            db.commit()
+        return None
+
+    return gate
