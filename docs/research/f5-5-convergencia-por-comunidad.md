@@ -66,7 +66,7 @@ como su provincia» (b = 0) con usar el b global de los años anteriores.
    en Aragón, Asturias, Canarias, Castilla y León, Castilla-La Mancha y Extremadura. En Andalucía,
    Galicia y La Rioja queda casi igual.
 
-## Decisión aplicada
+## Decisión aplicada (aprobada por Rodrigo, 2026-11-05: «Sí, de acuerdo»)
 Se mantiene el diseño que decidió Rodrigo para Madrid (2026-10-31): la convergencia es una
 dimensión del escenario, no una predicción. Con un cambio que piden los datos:
 - **Base, b = 0:** el municipio crece como el ciclo de su comunidad. El b global no predice mejor
