@@ -247,6 +247,31 @@ la derecha. Solo con fechas que da la fuente.
 Panel `--surface` con radio 16 y 24 px de relleno, título en Bricolage a 22 px y, si hace falta,
 una línea de explicación en `--text-muted`.
 
+### Formulario por pasos (`.stepper`)
+Para formularios largos (el simulador):
+- **Arriba:** «Paso n de m», una barra de progreso de 4 px en `--accent-mark` y los pasos como
+  píldoras con su número. El actual va relleno, el hecho con el número en `--success` y el que tiene
+  errores en `--danger`, además de un texto para el lector de pantalla.
+- **En cada paso:** lo obligatorio en una rejilla de dos columnas y lo opcional plegado en «Más
+  datos».
+- **Abajo:** «Anterior» y «Siguiente: (paso)»; en el último, «Calcular el plan».
+- **Al calcular con errores:** un resumen enlazado arriba que recibe el foco, y cada error junto a su
+  campo.
+
+### Campo con unidad (`.input-affix`)
+La unidad (€, %) dentro del campo, a la derecha, en `--text-muted`, sin entrar en el valor. La
+explicación va debajo, enlazada con `aria-describedby`; un ejemplo nunca va como texto de ayuda
+dentro del campo (`placeholder`) si puede confundirse con un dato.
+
+### Buscador de municipio (`.combobox`)
+Patrón combobox de WAI-ARIA: se escribe el nombre y aparecen hasta doce municipios del INE con su
+provincia. Flechas para moverse, Intro para elegir, Escape para cerrar. Guarda el territorio de las
+reglas, no el texto.
+
+### Conversación (`.transcript`)
+La pregunta, a la izquierda en `--surface-2`; tu respuesta, a la derecha con un tinte del latón. La
+pregunta actual lleva un filo de latón. Encima, el recuento de datos obligatorios con su barra.
+
 ### Veredicto, rejilla de cifras, bloques plegables y gráficas
 Siguen como en la v1, con la tipografía nueva: los rótulos en frase normal a 14 px, y las cifras de
 cabecera a 36 px en escritorio y 28 en móvil.
@@ -274,6 +299,22 @@ De arriba abajo:
 7. secciones «La subasta», «El inmueble» y «Fuentes».
 
 En escritorio, tu plan va en una columna fija a la derecha.
+
+### Simulador (`/simulador`)
+Formulario por pasos a la izquierda (hasta 520 px) y tu plan a la derecha, fijo al bajar. Antes de
+calcular, la columna dice qué vas a ver. En móvil, el resultado va debajo y se lleva a la vista al
+calcular.
+
+### Perfil (`/perfil`)
+- **Sin entrevista:** una tarjeta con los tres pasos (contestas, revisas, confirmas) y el aviso de
+  cifrado.
+- **Con entrevista:** la conversación a la izquierda y el borrador a la derecha, cada dato con su
+  origen («De tu respuesta», «Corregido por ti») o «Falta».
+- **Confirmado:** aviso de éxito y «Ver las ofertas que encajan».
+
+### Supuestos (`/busqueda`)
+Una tarjeta con los supuestos sin fuente pública, en rejilla, cada uno con su unidad y para qué
+sirve.
 
 ### Plan (`/plan/[id]`)
 Foto arriba y, debajo, veredicto, temas plegables, simulador de puja y asesor, como en la v1.

@@ -6,6 +6,8 @@ el cálculo está en `housefinder.territory`.
 
 from __future__ import annotations
 
+from typing import Annotated
+
 import httpx
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -13,6 +15,8 @@ from pydantic import BaseModel
 from housefinder.api.deps import DbDep, GeocoderDep
 from housefinder.api.figures import FigureOut, figure_out
 from housefinder.geo.cartociudad import AddressNotFound, AddressTooVague
+from housefinder.offers.locate import load_provinces
+from housefinder.territory.municipalities import load_municipalities, search
 from housefinder.territory.service import (
     Location,
     SectionNotFound,
@@ -83,3 +87,30 @@ def get_territory(
         notes=report.notes,
         attribution=report.attribution,
     )
+
+
+class MunicipalityOut(BaseModel):
+    code: str  # cinco cifras del INE
+    territory: str  # el de las reglas: ES-13-28079
+    name: str
+    province: str
+
+
+@router.get("/territory/municipalities")
+def get_municipalities(
+    q: Annotated[str, Query(min_length=2, max_length=80, description="Nombre o parte")],
+) -> list[MunicipalityOut]:
+    """Municipios por su nombre oficial del INE, para elegir uno sin escribir su código."""
+    provinces = load_provinces()
+    return [MunicipalityOut(code=m.code, territory=m.territory, name=m.name,
+                            province=provinces.name(m.code[:2]) or "")
+            for m in search(q)]
+
+
+@router.get("/territory/municipalities/{code}")
+def get_municipality(code: str) -> MunicipalityOut:
+    found = load_municipalities().get(code)
+    if found is None:
+        raise HTTPException(status_code=404, detail="No existe ese municipio")
+    return MunicipalityOut(code=found.code, territory=found.territory, name=found.name,
+                           province=load_provinces().name(found.code[:2]) or "")

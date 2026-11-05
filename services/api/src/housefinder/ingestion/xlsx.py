@@ -25,20 +25,25 @@ def sheet_names(path: Path) -> list[str]:
         return list(_sheet_paths(book))
 
 
-def iter_rows(path: Path, sheet: str) -> Iterator[dict[str, str]]:
-    """Filas de datos de la hoja `sheet`, con la primera fila como cabecera."""
+def iter_rows(path: Path, sheet: str, header_row: int = 1) -> Iterator[dict[str, str]]:
+    """Filas de datos de la hoja `sheet`, con la fila `header_row` (desde 1) como cabecera; las de
+    antes, un título del libro, no se leen."""
     with zipfile.ZipFile(path) as book:
         paths = _sheet_paths(book)
         if sheet not in paths:
             raise KeyError(f"El libro no tiene la hoja «{sheet}» (tiene {', '.join(paths)})")
         strings = _shared_strings(book)
         header: dict[str, str] | None = None
+        seen = 0
         with book.open(paths[sheet]) as stream:
             for _, element in ET.iterparse(stream):
                 if element.tag != MAIN + "row":
                     continue
                 cells = _cells(element, strings)
                 element.clear()
+                seen += 1
+                if seen < header_row:
+                    continue
                 if header is None:
                     header = cells
                     continue

@@ -55,6 +55,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/territory/municipalities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Municipalities
+         * @description Municipios por su nombre oficial del INE, para elegir uno sin escribir su código.
+         */
+        get: operations["get_municipalities_territory_municipalities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/territory/municipalities/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Municipality */
+        get: operations["get_municipality_territory_municipalities__code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/offers/link": {
         parameters: {
             query?: never;
@@ -2017,6 +2054,17 @@ export interface components {
             /** Free Plans Left */
             free_plans_left?: number | null;
         };
+        /** MunicipalityOut */
+        MunicipalityOut: {
+            /** Code */
+            code: string;
+            /** Territory */
+            territory: string;
+            /** Name */
+            name: string;
+            /** Province */
+            province: string;
+        };
         /** OfferOut */
         OfferOut: {
             /**
@@ -2803,6 +2851,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TerritoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_municipalities_territory_municipalities_get: {
+        parameters: {
+            query: {
+                /** @description Nombre o parte */
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MunicipalityOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_municipality_territory_municipalities__code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MunicipalityOut"];
                 };
             };
             /** @description Validation Error */

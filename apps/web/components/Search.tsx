@@ -4,17 +4,18 @@ import { useEffect, useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
 import { percentToRatio } from "../lib/format";
+import { Callout } from "./Icon";
 
 type ProfileOut = components["schemas"]["ProfileOut"];
 
 // Supuestos de la búsqueda inversa (F6.5, ADR-0023). Las ofertas, con el plan del usuario en cada
 // una, están en el mapa (ADR-0054): aquí solo lo que el usuario pone y no tiene fuente pública.
 const ASSUMPTIONS: { id: string; label: string; kind: "pct" | "eur" | "bool"; hint?: string }[] = [
-  { id: "vacancy_rate", label: "Meses vacío al año", kind: "pct", hint: "% del año" },
-  { id: "management_fee_rate", label: "Gestión si la delegas", kind: "pct", hint: "% de la renta" },
-  { id: "other_purchase_cost_rate", label: "Gestoría y tasación", kind: "pct", hint: "% del precio" },
-  { id: "sale_cost_rate", label: "Gastos de venta", kind: "pct", hint: "% del precio" },
-  { id: "min_monthly_cashflow", label: "Cash flow mínimo al mes", kind: "eur", hint: "€; vacío = 0" },
+  { id: "vacancy_rate", label: "Tiempo vacío al año", kind: "pct", hint: "Del año: el tiempo sin inquilino entre contratos" },
+  { id: "management_fee_rate", label: "Gestión si la delegas", kind: "pct", hint: "De la renta que cobras" },
+  { id: "other_purchase_cost_rate", label: "Gestoría y tasación", kind: "pct", hint: "Del precio de compra" },
+  { id: "sale_cost_rate", label: "Gastos de venta", kind: "pct", hint: "Del precio de venta: agencia y otros" },
+  { id: "min_monthly_cashflow", label: "Cash flow mínimo al mes", kind: "eur", hint: "Lo que quieres que te quede como poco. Vacío, 0 €" },
   { id: "large_holder", label: "¿Tienes más de diez viviendas?", kind: "bool" },
 ];
 
@@ -35,23 +36,31 @@ export function Search() {
 
   if (failure)
     return (
-      <div className="map-empty">
-        <p className="failure">{failure}</p>
-        <a className="button-link primary" href="/perfil">
-          Ir al perfil
-        </a>
-      </div>
+      <section className="section-card assumptions-page">
+        <Callout tone="info">
+          <p>{failure}</p>
+        </Callout>
+        <div className="actions">
+          <a className="button-link primary" href="/perfil">
+            Ir al perfil
+          </a>
+        </div>
+      </section>
     );
   if (!profile) return null;
   return (
-    <>
+    <div className="assumptions-page">
       <Assumptions profile={profile} onSaved={() => setSaved(true)} />
-      {saved && (
-        <p className="hint" role="status">
-          Guardados. <a href="/mapa">Ver las ofertas con estos supuestos</a>.
-        </p>
-      )}
-    </>
+      <div role="status">
+        {saved && (
+          <Callout tone="success">
+            <p>
+              <strong>Guardados.</strong> Tu plan en cada oferta ya los usa. <a href="/mapa">Ver las ofertas</a>
+            </p>
+          </Callout>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -93,17 +102,17 @@ function Assumptions({ profile, onSaved }: { profile: ProfileOut; onSaved: () =>
   }
 
   return (
-    <form className="assumptions" onSubmit={save} aria-labelledby="assumptions-title">
-      <h2 id="assumptions-title">Tus supuestos de búsqueda</h2>
-      <p className="hint">
-        No hay fuente pública para estos: los pones tú. El tipo de la hipoteca, el IBI, la
-        comunidad, los seguros y el mantenimiento se estiman con datos oficiales.
-      </p>
+    <form className="section-card assumptions" onSubmit={save} aria-labelledby="assumptions-title">
+      <header>
+        <h2 id="assumptions-title">Alquiler, compra y venta</h2>
+        <p>El tipo de la hipoteca, el IBI, la comunidad, los seguros y el mantenimiento ya se estiman con datos oficiales.</p>
+      </header>
+      <div className="field-grid">
       {ASSUMPTIONS.map((a) => (
         <div className="field" key={a.id}>
           <label htmlFor={`assumption-${a.id}`}>
             {a.label}
-            {profile.missing_search.includes(a.id) && <span className="origin"> · falta</span>}
+            {profile.missing_search.includes(a.id) && <span className="tag danger field-tag">Falta</span>}
           </label>
           {a.kind === "bool" ? (
             <select
@@ -116,17 +125,32 @@ function Assumptions({ profile, onSaved }: { profile: ProfileOut; onSaved: () =>
               <option value="sí">Sí</option>
             </select>
           ) : (
-            <input
-              id={`assumption-${a.id}`}
-              inputMode="decimal"
-              value={values[a.id] ?? ""}
-              placeholder={a.hint}
-              onChange={(e) => setValues((v) => ({ ...v, [a.id]: e.target.value }))}
-            />
+            <div className="input-affix">
+              <input
+                id={`assumption-${a.id}`}
+                inputMode="decimal"
+                value={values[a.id] ?? ""}
+                aria-describedby={`assumption-${a.id}-hint`}
+                onChange={(e) => setValues((v) => ({ ...v, [a.id]: e.target.value }))}
+              />
+              <span className="affix" aria-hidden="true">
+                {a.kind === "pct" ? "%" : "€"}
+              </span>
+            </div>
+          )}
+          {a.hint && (
+            <small id={`assumption-${a.id}-hint`} className="hint">
+              {a.hint}
+            </small>
           )}
         </div>
       ))}
-      {error && <p className="failure">{error}</p>}
+      </div>
+      {error && (
+        <Callout tone="danger">
+          <p>{error}</p>
+        </Callout>
+      )}
       <div className="actions">
         <button type="submit" disabled={saving}>
           {saving ? "Guardando…" : "Guardar"}

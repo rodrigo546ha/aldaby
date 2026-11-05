@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
+import { Callout } from "./Icon";
+import { Skeleton } from "./Motion";
 
 type InterviewOut = components["schemas"]["InterviewOut"];
 type DraftField = components["schemas"]["DraftFieldOut"];
@@ -17,10 +19,10 @@ const CHOICES: Record<string, [string, string][]> = {
   management: [["activa", "La gestiono yo"], ["pasiva", "La delego"]],
 };
 const SOURCE: Record<string, string> = {
-  respuesta: "de tu respuesta",
-  calculado: "calculado de tu respuesta",
-  usuario: "corregido por ti",
-  documento: "de tu documento",
+  respuesta: "De tu respuesta",
+  calculado: "Calculado de tu respuesta",
+  usuario: "Corregido por ti",
+  documento: "De tu documento",
 };
 const KINDS: [DocumentKind, string][] = [
   ["nomina", "Nómina"],
@@ -51,7 +53,14 @@ export function Profile() {
       const resp = await fetch(url, init);
       if (resp.ok) return resp.status === 204 ? null : await resp.json();
       const body = await resp.json().catch(() => ({}));
-      if (resp.status !== 404) setFailure(typeof body.detail === "string" ? body.detail : "Error");
+      if (resp.status !== 404)
+        setFailure(
+          typeof body.detail === "string"
+            ? body.detail
+            : resp.status >= 500
+              ? "No se ha podido leer ahora. Vuelve a intentarlo en un momento: tu respuesta sigue escrita."
+              : "Revisa lo que has escrito y vuelve a intentarlo.",
+        );
     } catch {
       setFailure("No se ha podido conectar con la API. ¿Está arrancada con make api?");
     }
@@ -69,6 +78,8 @@ export function Profile() {
   }, [call]);
 
   async function start() {
+    if (interview && interview.answers.length > 0 &&
+        !window.confirm("¿Empezar de nuevo? Se borran tus respuestas y los datos sin confirmar.")) return;
     setBusy(true);
     if (interview) await call(`/api/profile/interviews/${interview.id}`, { method: "DELETE" });
     const started = await call("/api/profile/interviews", { method: "POST" });
@@ -126,25 +137,61 @@ export function Profile() {
     setBusy(false);
   }
 
-  if (!loaded) return <p className="empty">Cargando…</p>;
+  if (!loaded) return <Skeleton label="Cargando tu perfil…" shape="text" />;
 
   if (!interview) {
     return (
-      <div className="profile-start">
-        {failure && <p className="failure">{failure}</p>}
+      <section className="section-card profile-start" aria-labelledby="perfil-empezar">
+        <h2 id="perfil-empezar">Tu perfil en una conversación</h2>
+        <ol className="how-steps">
+          <li>
+            <strong>Contestas unas preguntas</strong> con tus palabras: ingresos, ahorro, deudas, edad y qué buscas.
+          </li>
+          <li>
+            <strong>Ves cada dato con la frase de la que sale</strong> y lo corriges si no es así. Puedes añadir una nómina o
+            tu declaración.
+          </li>
+          <li>
+            <strong>Lo confirmas</strong> y con él se calcula tu plan en cada oferta.
+          </li>
+        </ol>
+        <Callout tone="info">
+          <p>Tus ingresos y deudas se guardan cifrados. Los documentos se leen y se descartan: solo queda lo que confirmes.</p>
+        </Callout>
+        {failure && (
+          <Callout tone="danger">
+            <p>{failure}</p>
+          </Callout>
+        )}
         <div className="actions">
           <button type="button" onClick={start} disabled={busy}>
             Empezar
           </button>
         </div>
-      </div>
+      </section>
     );
   }
 
   const confirmed = interview.status === "confirmada";
+  const required = interview.fields.filter((f) => f.required);
+  const filled = (f: DraftField) => (f.field in edits ? edits[f.field].trim() !== "" : asText(f.value).trim() !== "");
+  const done = required.filter(filled).length;
   return (
     <div className="profile">
-      <section className="interview" aria-label="Conversación">
+      <section className="section-card interview" aria-labelledby="conversacion">
+        <header className="interview-head">
+          <h2 id="conversacion">Conversación</h2>
+          {!confirmed && (
+            <p className="interview-progress">
+              {done === required.length ? "Tienes todos los datos obligatorios" : `${done} de ${required.length} datos obligatorios`}
+            </p>
+          )}
+        </header>
+        {!confirmed && (
+          <div className="stepper-progress" aria-hidden="true">
+            <span style={{ width: `${required.length ? (done / required.length) * 100 : 100}%` }} />
+          </div>
+        )}
         <ol className="transcript">
           {interview.answers.map((a, i) => (
             <li key={i}>
@@ -154,38 +201,70 @@ export function Profile() {
           ))}
         </ol>
         {interview.issues.length > 0 && (
-          <ul className="warnings">
-            {interview.issues.map((issue) => (
-              <li key={issue}>{issue}</li>
-            ))}
-          </ul>
+          <Callout tone="warning">
+            <ul className="plain-list">
+              {interview.issues.map((issue) => (
+                <li key={issue}>{issue}</li>
+              ))}
+            </ul>
+          </Callout>
         )}
         {interview.next_question && !confirmed && (
-          <form onSubmit={send} className="field">
-            <label htmlFor="answer">{interview.next_question.text}</label>
+          <form onSubmit={send} className="answer-form">
+            <label htmlFor="answer" className="asked current">
+              {interview.next_question.text}
+            </label>
             <textarea
               id="answer"
               rows={3}
               value={text}
+              placeholder="Escribe con tus palabras; puedes dar varios datos a la vez"
               onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) e.currentTarget.form?.requestSubmit();
+              }}
               disabled={busy}
             />
-            <div className="actions">
-              <button type="submit" disabled={busy || !text.trim()}>
+            <div className="answer-actions">
+              <span className="hint">Cmd o Ctrl + Intro para enviar</span>
+              <button type="submit" disabled={busy || !text.trim()} aria-busy={busy}>
                 {busy ? "Leyendo tu respuesta…" : "Responder"}
               </button>
             </div>
           </form>
         )}
-        {!confirmed && <DocumentUpload interview={interview} call={call} onDone={setInterview} />}
         {!interview.next_question && !confirmed && (
-          <p className="hint">Ya está todo: revisa los datos y confírmalos.</p>
+          <Callout tone="success">
+            <p>Ya está todo. Revisa los datos de tu perfil y confírmalos.</p>
+          </Callout>
         )}
-        {failure && <p className="failure">{failure}</p>}
+        {!confirmed && (
+          <details className="more-fields">
+            <summary>
+              Añadir un documento <span className="more-fields-note">nómina, declaración o extracto</span>
+            </summary>
+            <DocumentUpload interview={interview} call={call} onDone={setInterview} />
+          </details>
+        )}
+        {failure && (
+          <Callout tone="danger">
+            <p>{failure}</p>
+          </Callout>
+        )}
       </section>
 
-      <section className="results" aria-labelledby="draft-title">
-        <h2 id="draft-title">Tu perfil</h2>
+      <section className="section-card draft" aria-labelledby="draft-title">
+        <header>
+          <h2 id="draft-title">Tu perfil</h2>
+          <p>Cada dato dice de dónde sale. Corrígelo aquí si no es así.</p>
+        </header>
+        {confirmed && (
+          <Callout tone="success">
+            <p>
+              <strong>Perfil confirmado y guardado cifrado.</strong> Ya se calcula tu plan en cada oferta.
+            </p>
+          </Callout>
+        )}
         <div className="confirm-grid">
           {interview.fields.map((f) => (
             <FieldEditor
@@ -194,26 +273,38 @@ export function Profile() {
               regions={regions}
               value={f.field in edits ? edits[f.field] : asText(f.value)}
               edited={f.field in edits}
+              missing={f.required && !filled(f)}
               disabled={confirmed || busy}
               onChange={(v) => setEdits((old) => ({ ...old, [f.field]: v }))}
             />
           ))}
         </div>
-        <div className="actions">
+        <div className="draft-actions">
           {confirmed ? (
-            <p className="hint">Perfil confirmado y guardado cifrado.</p>
+            <>
+              <a className="button-link primary" href="/mapa">
+                Ver las ofertas que encajan
+              </a>
+              <a className="button-link" href="/busqueda">
+                Ajustar tus supuestos
+              </a>
+            </>
           ) : (
-            <button type="button" onClick={confirm} disabled={busy || !interview.complete}>
-              Confirmar perfil
-            </button>
+            <>
+              <button type="button" onClick={confirm} disabled={busy || !interview.complete}>
+                Confirmar perfil
+              </button>
+              {!interview.complete && (
+                <span className="hint">
+                  {required.length - done === 1 ? "Falta 1 dato obligatorio." : `Faltan ${required.length - done} datos obligatorios.`}
+                </span>
+              )}
+            </>
           )}
-          <button type="button" className="secondary" onClick={start} disabled={busy}>
+          <button type="button" className="link-button draft-restart" onClick={start} disabled={busy}>
             Empezar de nuevo
           </button>
         </div>
-        {!interview.complete && !confirmed && (
-          <p className="hint">Para confirmar faltan los datos marcados como obligatorios.</p>
-        )}
       </section>
     </div>
   );
@@ -229,21 +320,28 @@ function FieldEditor(props: {
   regions: Region[];
   value: string;
   edited: boolean;
+  missing: boolean;
   disabled: boolean;
   onChange: (value: string) => void;
 }) {
-  const { field, regions, value, edited, disabled, onChange } = props;
+  const { field, regions, value, edited, missing, disabled, onChange } = props;
   const id = `profile-${field.field}`;
   const choices = CHOICES[field.field];
   return (
-    <div className="field">
-      <label htmlFor={id}>
-        {field.label}
-        {field.required && <span className="origin"> · obligatorio</span>}
-        {(edited || field.source) && (
-          <span className="origin"> · {edited ? SOURCE.usuario : SOURCE[field.source!]}</span>
+    <div className={`field draft-field${missing ? " is-missing" : ""}`}>
+      <div className="draft-field-head">
+        <label htmlFor={id}>
+          {field.label}
+          {!field.required && <span className="optional"> · opcional</span>}
+        </label>
+        {missing ? (
+          <span className="tag danger">Falta</span>
+        ) : (
+          (edited || field.source) && (
+            <span className={`tag ${edited ? "warning" : "info"}`}>{edited ? SOURCE.usuario : SOURCE[field.source!]}</span>
+          )
         )}
-      </label>
+      </div>
       {field.field === "residence" ? (
         <select id={id} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
           <option value="">Sin dato</option>
@@ -269,7 +367,7 @@ function FieldEditor(props: {
           value={value}
           disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={field.field === "descendant_birth_years" ? "2015, 2019" : "Sin dato"}
+          placeholder={field.field === "descendant_birth_years" ? "Sin dato (p. ej. 2015, 2019)" : "Sin dato"}
         />
       )}
       {field.evidence && !edited && <p className="quote">«{field.evidence}»</p>}
@@ -311,8 +409,7 @@ function DocumentUpload(props: {
   }
 
   return (
-    <form onSubmit={upload} className="documents" aria-labelledby="documents-title">
-      <h2 id="documents-title">Añadir un documento</h2>
+    <form onSubmit={upload} className="documents" aria-label="Añadir un documento">
       <p className="hint">
         Se lee y se descarta: solo guardamos los datos que confirmes, con la frase de la que salen.
         Los escaneos y las fotos se leen con OCR en este equipo.

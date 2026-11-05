@@ -19,6 +19,7 @@ from uuid import UUID
 
 from housefinder.db.offers import CatalogRow
 from housefinder.offers.locate import Provinces
+from housefinder.territory.municipalities import load_municipalities
 
 Channel = Literal["subasta_judicial", "subasta_administrativa", "subasta_notarial",
                   "venta_directa", "agencia", "tu_anuncio"]
@@ -188,7 +189,10 @@ def catalog_item(row: CatalogRow, provinces: Provinces) -> CatalogItem:
     listing = extracted.get("listing") if isinstance(extracted.get("listing"), dict) else {}
     property_type = next((t for t in (extracted.get("property_type"),
                                       listing.get("property_type")) if isinstance(t, str)), None)
-    town = place_name(_verified(extracted, "municipality") or row.town)
+    # El nombre oficial del INE si está ubicada; si no, el del anuncio, escrito normal
+    official = load_municipalities().get(row.municipality_code or "")
+    town = official.name if official else place_name(
+        _verified(extracted, "municipality") or row.town)
     province = (provinces.name(row.municipality_code[:2]) if row.municipality_code else None) \
         or place_name(_verified(extracted, "province"))
     if town and province and town.casefold() == province.casefold():

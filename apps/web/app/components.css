@@ -264,3 +264,153 @@
 @media (max-width: 380px) { .keyfacts { grid-template-columns: 1fr; } }
 .verdict-address { margin: -4px 0 0; color: var(--text-muted); font-size: var(--text-md); overflow-wrap: anywhere; }
 .plan > .back-link { align-self: flex-start; margin-bottom: calc(var(--sp-6) * -1); }
+
+/* ───────── Campos (v2) ───────── */
+.field label .optional { color: var(--text-muted); font-weight: 400; }
+.field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--sp-5) var(--sp-4); }
+.field-grid > .field.wide, .field-grid > .check { grid-column: 1 / -1; }
+.input-affix { position: relative; }
+.input-affix input { padding-right: 36px !important; }
+.input-affix .affix {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  pointer-events: none;
+}
+.field .error { color: var(--danger); font-size: var(--text-sm); }
+.field input[aria-invalid="true"], .field select[aria-invalid="true"], .combobox input[aria-invalid="true"] { border-color: var(--danger); }
+
+/* Selector de municipio (combobox) */
+.combobox { position: relative; }
+.combobox input {
+  width: 100%;
+  min-height: var(--target);
+  padding: 0 12px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--r-sm);
+  background: var(--bg-sunk);
+  color: var(--text-strong);
+}
+.combobox input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; border-color: transparent; }
+.combobox-list {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  max-height: 280px;
+  margin: 0;
+  padding: var(--sp-1);
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--overlay);
+  box-shadow: var(--shadow-overlay);
+}
+.combobox-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: var(--target-sm);
+  align-items: center;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  color: var(--text-strong);
+  cursor: pointer;
+}
+.combobox-list li[aria-selected="true"] { background: var(--surface-2); }
+.combobox-meta { color: var(--text-muted); font-size: var(--text-sm); }
+
+/* ───────── Formulario por pasos (simulador) ───────── */
+.stepper {
+  gap: var(--sp-5);
+  padding: var(--sp-6);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+.stepper-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; }
+.stepper-count { margin: 0; color: var(--text-muted); font-size: var(--text-sm); font-weight: 500; }
+.stepper-progress { height: 4px; border-radius: var(--r-pill); background: var(--bg-sunk); overflow: hidden; margin-top: calc(var(--sp-3) * -1); }
+.stepper-progress span { display: block; height: 100%; background: var(--accent-mark); transition: width var(--dur-2) var(--ease); }
+.stepper-steps { display: flex; gap: var(--sp-1); margin: 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: none; }
+.stepper-steps::-webkit-scrollbar { display: none; }
+.stepper-steps button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--target-sm);
+  padding: 0 var(--sp-3) 0 var(--sp-1);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.stepper-steps button:hover { background: var(--surface-2); color: var(--text-strong); filter: none; }
+.stepper-n {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-control);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+.stepper-steps button[aria-current="step"] { background: var(--surface-2); color: var(--text-strong); }
+.stepper-steps button[aria-current="step"] .stepper-n { border-color: var(--accent-mark); background: var(--accent-mark); color: var(--text-on-accent); }
+.stepper-steps button.is-done .stepper-n { border-color: var(--success); color: var(--success); }
+.stepper-steps button.has-errors .stepper-n { border-color: var(--danger); color: var(--danger); }
+.stepper-panel { padding: 0; background: none; border-radius: 0; gap: var(--sp-4); animation: rise var(--dur-2) var(--ease) both; }
+.stepper-panel:focus { outline: none; }
+.stepper-panel legend { font-size: var(--text-2xl); letter-spacing: var(--tracking-head); margin-bottom: 0; }
+.stepper-description { margin: 0; color: var(--text-muted); font-size: 0.9375rem; }
+.more-fields { border-top: 1px solid var(--border); padding-top: var(--sp-4); font-size: inherit; color: var(--text); }
+.more-fields > summary { color: var(--text-emphasis); font-size: 0.9375rem; font-weight: 600; min-height: var(--target-sm); }
+.more-fields-note { color: var(--text-muted); font-weight: 400; font-size: var(--text-sm); }
+.more-fields[open] > .field-grid { margin-top: var(--sp-4); }
+.stepper-actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); padding-top: var(--sp-4); border-top: 1px solid var(--border); }
+.stepper-actions button[type="button"]:not(.secondary), .stepper-actions button[type="submit"]:not(.secondary) { margin-left: auto; }
+.error-summary:focus { outline: none; }
+.error-summary:focus-visible .callout { outline: 2px solid var(--focus); outline-offset: 2px; }
+.error-summary .link-button { display: inline; }
+
+.simulator-empty h2 { margin: 0; font-size: var(--text-xl); }
+.check-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); }
+.check-list li { position: relative; padding-left: 28px; line-height: 1.5; }
+.check-list li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  width: 12px;
+  height: 7px;
+  border-left: 2px solid var(--success);
+  border-bottom: 2px solid var(--success);
+  transform: rotate(-45deg);
+}
+@media (max-width: 640px) { .stepper { padding: var(--sp-5) var(--sp-4); } }
+@media (max-width: 920px) { .simulator { grid-template-columns: 1fr; } }
+@media (min-width: 921px) {
+  .simulator > .results { position: sticky; top: var(--sp-6); max-height: calc(100vh - var(--sp-12)); overflow-y: auto; }
+  .stepper { scroll-margin-top: var(--sp-6); }
+}
+.simulator .verdict { padding: var(--sp-6); gap: var(--sp-5); }
+.simulator .verdict-head h2 { font-size: var(--text-xl); }
+.simulator .verdict-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-5) var(--sp-6); }
+.simulator .verdict-value { font-size: var(--text-3xl); }
+
+/* Supuestos (Mi plan) */
+.assumptions-page { display: flex; flex-direction: column; gap: var(--sp-4); max-width: 760px; }
+.assumptions.section-card { padding: var(--sp-6); }
+.field-tag { margin-left: var(--sp-2); font-size: var(--text-xs); padding: 1px 6px; vertical-align: 1px; }
+/* Una columna de rejilla no puede crecer con la fila de pasos: se desplaza dentro */
+.simulator > *, .profile > * { min-width: 0; }
+@media (max-width: 640px), (pointer: coarse) { .answer-actions > .hint { display: none; } .answer-actions { justify-content: flex-end; } }
