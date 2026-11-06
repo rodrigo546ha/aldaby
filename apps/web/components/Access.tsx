@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
+import { Swap } from "./Motion";
 
 // Acceso de la beta (F7.1, ADR-0028): la cookie de sesión la pone la API; aquí solo formularios.
 const MIN_PASSWORD = 12;
@@ -52,7 +53,7 @@ export function Login() {
                value={password} onChange={(e) => setPassword(e.target.value)} />
       </div>
       {error && <p className="failure" role="alert">{error}</p>}
-      <button type="submit" disabled={busy}>{busy ? "Entrando…" : "Entrar"}</button>
+      <button type="submit" disabled={busy}><Swap>{busy ? "Entrando…" : "Entrar"}</Swap></button>
       <p className="hint">¿Has olvidado la contraseña? Pide un enlace nuevo al equipo de Aldaby.</p>
     </form>
   );

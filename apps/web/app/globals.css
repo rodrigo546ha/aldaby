@@ -156,7 +156,7 @@ main {
     height: 2px;
     background: var(--mark);
   }
-  .tabbar a:active svg { transform: scale(0.92); }
+  .tabbar a:active svg { transform: scale(var(--press)); }
 }
 
 .appbar-tools {
@@ -350,7 +350,7 @@ button {
   transition: filter var(--dur-1) var(--ease), transform var(--dur-1) var(--ease), background-color var(--dur-1) var(--ease);
 }
 button:hover { filter: var(--cta-hover); }
-button:active { transform: scale(0.98); }
+button:not(:disabled):active { transform: scale(var(--press)); }
 button:disabled { opacity: 0.5; cursor: not-allowed; filter: none; transform: none; }
 button[disabled]:is([aria-busy="true"]) { cursor: progress; }
 
@@ -811,7 +811,7 @@ td { color: var(--mist); }
   transition: background-color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
 }
 .button-link:hover { background: var(--raised-2); }
-.button-link:active { transform: scale(0.98); }
+.button-link:active { transform: scale(var(--press)); }
 
 /* Temas plegados: el título y sus cifras clave; dentro, todas las cifras y una vez sus fórmulas */
 .plan-blocks { display: flex; flex-direction: column; border-top: 1px solid var(--line-strong); }
@@ -887,13 +887,13 @@ td { color: var(--mist); }
 .tone-2.bar, .tone-2.swatch { background: var(--chart-2); }
 .tone-3.bar, .tone-3.swatch { background: var(--chart-3); }
 
+/* Las barras se revelan con una máscara de izquierda a derecha, sin deformarse (17) */
 .chart .bar {
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform var(--dur-3) var(--ease);
-  transition-delay: calc(var(--i, 0) * 60ms);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path var(--dur-3) var(--ease);
+  transition-delay: calc(min(var(--i, 0), 9) * var(--stagger));
 }
-.chart.is-in .bar { transform: scaleX(1); }
+.chart.is-in .bar { clip-path: inset(0 0 0 0); }
 
 .stacked { display: flex; flex-direction: column; gap: var(--sp-6); }
 .stacked-row { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: var(--sp-3) var(--sp-4); align-items: center; }
@@ -1670,21 +1670,66 @@ main.map-page { max-width: none; padding: 0; }
 
 /* ───────── Movimiento compartido (docs/PROPUESTA_UX.md, U1) ───────── */
 
-/* Los plegables se abren y se cierran por su altura, donde el navegador lo sabe hacer */
+/* Los plegables se abren por su altura (2) y se cierran un 20 % más rápido (15) */
 details::details-content {
   block-size: 0;
   overflow-y: clip;
-  transition: block-size var(--dur-2) var(--ease), content-visibility var(--dur-2) allow-discrete;
+  transition: block-size var(--dur-2-out) var(--ease), content-visibility var(--dur-2-out) allow-discrete;
 }
-details[open]::details-content { block-size: auto; }
+details[open]::details-content {
+  block-size: auto;
+  transition-duration: var(--dur-2);
+}
 
-/* Los resultados llegan en orden, no de golpe */
-.stagger > * { animation: rise var(--dur-3) var(--ease) both; }
-.stagger > :nth-child(2) { animation-delay: 50ms; }
-.stagger > :nth-child(3) { animation-delay: 100ms; }
-.stagger > :nth-child(4) { animation-delay: 150ms; }
-.stagger > :nth-child(5) { animation-delay: 200ms; }
-.stagger > :nth-child(n + 6) { animation-delay: 250ms; }
+/* Lo que se abre se asienta pieza a pieza, 30 ms entre piezas y hasta la cuarta (6) */
+details[open] > :not(summary),
+details[open] > .block-body > * { animation: settle var(--dur-2) var(--ease) both; }
+details[open] > .block-body > :nth-child(2) { animation-delay: var(--stagger); }
+details[open] > .block-body > :nth-child(3) { animation-delay: calc(var(--stagger) * 2); }
+details[open] > .block-body > :nth-child(n + 4) { animation-delay: calc(var(--stagger) * 3); }
+@keyframes settle { from { opacity: 0; transform: translateY(4px); } }
+
+/* Las filas llegan en orden, 30 ms entre filas; a partir de la décima, todas a la vez (3) */
+.stagger > * { --i: 9; animation: rise var(--dur-2) var(--ease) both; animation-delay: calc(var(--i) * var(--stagger)); }
+.stagger > :nth-child(1) { --i: 0; }
+.stagger > :nth-child(2) { --i: 1; }
+.stagger > :nth-child(3) { --i: 2; }
+.stagger > :nth-child(4) { --i: 3; }
+.stagger > :nth-child(5) { --i: 4; }
+.stagger > :nth-child(6) { --i: 5; }
+.stagger > :nth-child(7) { --i: 6; }
+.stagger > :nth-child(8) { --i: 7; }
+.stagger > :nth-child(9) { --i: 8; }
+
+/* Lo que se pulsa encoge un poco: tarjetas y chips, como los botones (4) */
+.listing, .chip, .advisor-chip { transition-property: background-color, border-color, color, transform; transition-duration: var(--dur-1); transition-timing-function: var(--ease); }
+.listing:active, .chip:active, .advisor-chip:active { transform: scale(var(--press)); }
+
+/* Un pulso confirma que algo salió bien: el icono del aviso o el texto «Guardado» (8) */
+.callout.success > .icon, .confirm { animation: confirm var(--dur-3) var(--ease); }
+.confirm { display: inline-block; }
+@keyframes confirm { 40% { transform: scale(1.08); } }
+
+/* El texto de un botón que cambia («Guardar» → «Guardando…»): el nuevo entra mientras el viejo
+   sale, sin un instante en blanco entre los dos (16) */
+.swap { display: inline-grid; }
+.swap > * { grid-area: 1 / 1; }
+.swap-in { animation: swap-in var(--dur-2) var(--ease) both; }
+.swap-out { animation: swap-out var(--dur-2-out) var(--ease) both; }
+@keyframes swap-in { from { opacity: 0; transform: translateY(3px); } }
+@keyframes swap-out { to { opacity: 0; transform: translateY(-3px); } }
+
+/* Iconos que se cruzan con escala y desenfoque: el sol y la luna del tema (18) */
+.icon-swap { display: inline-grid; place-items: center; }
+.icon-swap > * {
+  grid-area: 1 / 1;
+  transition: opacity var(--dur-2) var(--ease), transform var(--dur-2) var(--ease), filter var(--dur-2) var(--ease);
+}
+.icon-swap > [data-hidden] { opacity: 0; transform: scale(0.6); filter: blur(4px); }
+
+/* La foto de una oferta pasa de una pantalla a la siguiente (20, View Transitions) */
+::view-transition-group(*) { animation-duration: var(--dur-3); animation-timing-function: var(--ease-in-out); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--dur-2); }
 
 /* Esperas con la forma de lo que viene */
 .skeleton { display: flex; flex-direction: column; gap: var(--sp-4); padding: var(--sp-2) 0; }
@@ -1714,6 +1759,7 @@ details[open]::details-content { block-size: auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   *, *::before, *::after {
     transition-duration: 0ms !important;
     animation-duration: 0.01ms !important;

@@ -29,6 +29,7 @@ export function OfferPhoto({
   credit = false,
   hideEmpty = false,
   className = "",
+  morph = false,
 }: {
   offerId: string;
   kinds?: Kind[];
@@ -37,6 +38,8 @@ export function OfferPhoto({
   credit?: boolean;
   hideEmpty?: boolean; // sin ninguna imagen, nada (en vez del dibujo del tipo)
   className?: string;
+  // La foto que pasa de una pantalla a la siguiente (DESIGN.md, «Movimiento», 20): una por página
+  morph?: boolean;
 }) {
   const sources = [
     ...images.slice(0, 1).map((src) => ({ src, kind: "anuncio" as const })),
@@ -55,13 +58,20 @@ export function OfferPhoto({
   // Dentro del botón de una tarjeta no cabe un <figure>: sin crédito, un <span>
   const Box = credit ? "figure" : "span";
   return (
-    <Box className={`offer-photo ${className}${loaded ? " is-loaded" : ""}`}>
+    <Box
+      className={`offer-photo ${className}${loaded ? " is-loaded" : ""}`}
+      style={morph ? { viewTransitionName: `foto-${offerId}` } : undefined}
+      data-morph={morph ? "" : undefined}
+      data-ready={morph && loaded ? "" : undefined}
+    >
       {current ? (
         <img
           key={current.src}
           src={current.src}
           alt={credit ? ALT[current.kind] : ""}
-          loading="lazy"
+          // La foto que viaja entre pantallas se carga ya: durante la transición el navegador no pinta y
+          // una carga diferida no llegaría a tiempo
+          loading={morph ? "eager" : "lazy"}
           decoding="async"
           referrerPolicy="no-referrer"
           // Desde la caché del navegador la imagen puede estar lista antes que el onLoad

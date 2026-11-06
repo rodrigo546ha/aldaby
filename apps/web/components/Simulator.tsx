@@ -8,7 +8,7 @@ import { TopicCharts } from "./Charts";
 import { Changes, ExplainHead, Lede, notePoints, Points, SourceList } from "./Explain";
 import { FigureBlock } from "./FigureView";
 import { Callout } from "./Icon";
-import { Skeleton, VerdictFigure } from "./Motion";
+import { Skeleton, Swap, VerdictFigure } from "./Motion";
 import { MunicipalityPicker } from "./MunicipalityPicker";
 
 type InvestmentRequest = components["schemas"]["InvestmentRequest"];
@@ -487,7 +487,7 @@ export function Simulator() {
           )}
           {last ? (
             <button type="submit" disabled={loading} aria-busy={loading}>
-              {loading ? "Calculando…" : "Calcular el plan"}
+              <Swap>{loading ? "Calculando…" : "Calcular el plan"}</Swap>
             </button>
           ) : (
             <button type="button" onClick={forward}>

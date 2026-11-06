@@ -103,3 +103,33 @@ export function VerdictFigure({ figure, title }: { figure: FigureOut; title?: st
     </div>
   );
 }
+
+const SWAP_MS = 220;
+
+/**
+ * El texto de un botón que cambia de estado («Guardar» → «Guardando…»): el nuevo entra mientras el
+ * viejo sale, sin un instante en blanco entre los dos (DESIGN.md, «Movimiento», 16). El viejo no lo
+ * lee el lector de pantalla.
+ */
+export function Swap({ children }: { children: string }) {
+  const [state, setState] = useState({ now: children, before: null as string | null, n: 0 });
+  if (state.now !== children) setState((s) => ({ now: children, before: s.now, n: s.n + 1 }));
+  useEffect(() => {
+    if (state.before === null) return;
+    const t = setTimeout(() => setState((s) => ({ ...s, before: null })), SWAP_MS);
+    return () => clearTimeout(t);
+  }, [state.n, state.before]);
+  if (state.n === 0) return <>{children}</>;
+  return (
+    <span className="swap">
+      {state.before !== null && (
+        <span key={`antes-${state.n}`} className="swap-out" aria-hidden="true">
+          {state.before}
+        </span>
+      )}
+      <span key={`ahora-${state.n}`} className="swap-in">
+        {state.now}
+      </span>
+    </span>
+  );
+}

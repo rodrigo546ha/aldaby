@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { Swap } from "./Motion";
 
 // Lista de espera y nivel gratuito de la página de presentación (F8.1, ADR-0041).
 
@@ -78,7 +79,7 @@ export function Waitlist() {
       </label>
       {failure && <p className="failure" role="alert">{failure}</p>}
       <button type="submit" disabled={!consent || busy}>
-        {busy ? "Apuntando…" : "Apuntarme"}
+        <Swap>{busy ? "Apuntando…" : "Apuntarme"}</Swap>
       </button>
     </form>
   );

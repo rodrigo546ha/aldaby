@@ -100,10 +100,17 @@ export function OfferDetail({ offerId }: { offerId: string }) {
       {photos && (
         <div className="gallery">
           {offer.images.length > 0 && (
-            <OfferPhoto offerId={offer.offer_id} kinds={[]} images={offer.images} credit hideEmpty />
+            <OfferPhoto offerId={offer.offer_id} kinds={[]} images={offer.images} credit hideEmpty morph />
           )}
-          {offer.photos.map((kind) => (
-            <OfferPhoto key={kind} offerId={offer.offer_id} kinds={[kind]} credit hideEmpty />
+          {offer.photos.map((kind, i) => (
+            <OfferPhoto
+              key={kind}
+              offerId={offer.offer_id}
+              kinds={[kind]}
+              credit
+              hideEmpty
+              morph={i === 0 && offer.images.length === 0}
+            />
           ))}
         </div>
       )}
@@ -382,11 +389,11 @@ function PlanCard({ offer, plan }: { offer: CatalogOut; plan: Plan }) {
       </dl>
       {s.reasons.length > 0 && <p className="verdict-reason">{s.reasons.join(". ")}.</p>}
       <div className="verdict-actions">
-        <AppLink className="button-link primary" href={`/plan/${offer.offer_id}`} data={DATA.plan(offer.offer_id)}>
+        <AppLink className="button-link primary" href={`/plan/${offer.offer_id}`} data={DATA.plan(offer.offer_id)} morph>
           Ver mi plan completo
         </AppLink>
         {offer.auction && (
-          <AppLink className="button-link" href={`/plan/${offer.offer_id}#pujas`} data={DATA.plan(offer.offer_id)}>
+          <AppLink className="button-link" href={`/plan/${offer.offer_id}#pujas`} data={DATA.plan(offer.offer_id)} morph>
             Simular mi puja
           </AppLink>
         )}

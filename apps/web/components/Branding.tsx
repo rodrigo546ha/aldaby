@@ -137,7 +137,11 @@ export function BrandingEditor() {
           <textarea rows={4} maxLength={600} {...field("intro")} />
         </div>
         {failure && <p className="failure" role="alert">{failure}</p>}
-        {saved && <p className="hint">Guardado.</p>}
+        {saved && (
+          <p className="hint" role="status">
+            <span className="confirm">Guardado.</span>
+          </p>
+        )}
         <button type="submit">Guardar</button>
       </form>
       <div className="field">

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import type { components } from "../lib/api-types";
 import { Callout } from "./Icon";
 import { Questions } from "./Questions";
-import { Skeleton } from "./Motion";
+import { Skeleton, Swap } from "./Motion";
 import { AppLink, DATA } from "./AppLink";
 import { invalidatePlans } from "../lib/data";
 
@@ -238,7 +238,7 @@ export function Profile() {
               <div className="answer-actions">
                 <span className="hint">Cmd o Ctrl + Intro para enviar</span>
                 <button type="submit" disabled={busy || !text.trim()} aria-busy={busy}>
-                  {busy ? "Leyendo tu respuesta…" : "Responder"}
+                  <Swap>{busy ? "Leyendo tu respuesta…" : "Responder"}</Swap>
                 </button>
               </div>
             </form>
@@ -466,7 +466,7 @@ function DocumentUpload(props: {
       )}
       <div className="actions">
         <button type="submit" className="secondary" disabled={busy || (!file && !pasted.trim())}>
-          {busy ? "Leyendo el documento…" : "Leer documento"}
+          <Swap>{busy ? "Leyendo el documento…" : "Leer documento"}</Swap>
         </button>
       </div>
       {interview.documents.length > 0 && (

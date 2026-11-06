@@ -6,6 +6,7 @@ import type { components } from "../lib/api-types";
 import { LISTING_LABELS, ORIGIN, spanishNumber } from "../lib/format";
 import { FigureView } from "./FigureView";
 import { invalidatePlans } from "../lib/data";
+import { Swap } from "./Motion";
 
 type OfferOut = components["schemas"]["OfferOut"];
 type OfferSummary = components["schemas"]["OfferSummary"];
@@ -326,7 +327,7 @@ function OfferDetail({ offer, onSaved }: { offer: OfferOut; onSaved: (offer: Off
           {failure && <p className="failure">{failure}</p>}
           <div className="actions">
             <button type="submit" disabled={saving}>
-              {saving ? "Guardando…" : "Confirmar datos"}
+              <Swap>{saving ? "Guardando…" : "Confirmar datos"}</Swap>
             </button>
           </div>
         </fieldset>

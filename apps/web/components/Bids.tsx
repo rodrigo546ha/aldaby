@@ -7,6 +7,7 @@ import { amount, formatValue } from "../lib/format";
 import { LineChart } from "./Charts";
 import { ExplainHead, Lede, notePoints, Points } from "./Explain";
 import { FigureView } from "./FigureView";
+import { Swap } from "./Motion";
 
 type BidsOut = components["schemas"]["BidsOut"];
 type ChargeRow = { concept: string; amount: string };
@@ -151,7 +152,7 @@ export function Bids({ offerId, auction }: { offerId: string; auction: boolean }
           Al contado, sin hipoteca
         </label>
         <button type="submit" disabled={busy}>
-          {busy ? "Calculando cada puja…" : "Simular las pujas"}
+          <Swap>{busy ? "Calculando cada puja…" : "Simular las pujas"}</Swap>
         </button>
       </form>
       {failure && <p className="failure">{failure}</p>}

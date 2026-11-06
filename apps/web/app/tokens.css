@@ -122,11 +122,16 @@
   --panel-pad-x: var(--sp-6);
   --panel-pad: var(--sp-6) var(--panel-pad-x);
 
-  /* ── Movimiento ── */
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* ── Movimiento (DESIGN.md, «Movimiento») ── */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);         /* entradas: arranca rápido y se posa, sin rebote */
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);  /* lo que ya se ve y cambia de sitio o de tamaño */
   --dur-1: 120ms; /* respuesta al toque */
-  --dur-2: 220ms; /* cambio de estado */
+  --dur-2: 220ms; /* cambio de estado, desplegables */
   --dur-3: 360ms; /* entrada de página o panel */
+  --dur-2-out: 176ms; /* salidas: un 20 % más cortas que la entrada que deshacen */
+  --dur-3-out: 288ms;
+  --stagger: 30ms; /* entre filas de una lista; tope en la décima */
+  --press: 0.97;   /* lo que se pulsa encoge */
 
   interpolate-size: allow-keywords;
   color-scheme: dark;

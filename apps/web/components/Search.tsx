@@ -7,6 +7,7 @@ import { percentToRatio } from "../lib/format";
 import { Callout } from "./Icon";
 import { AppLink, DATA } from "./AppLink";
 import { invalidatePlans } from "../lib/data";
+import { Swap } from "./Motion";
 
 type ProfileOut = components["schemas"]["ProfileOut"];
 
@@ -156,7 +157,7 @@ function Assumptions({ profile, onSaved }: { profile: ProfileOut; onSaved: () =>
       )}
       <div className="actions">
         <button type="submit" disabled={saving}>
-          {saving ? "Guardando…" : "Guardar"}
+          <Swap>{saving ? "Guardando…" : "Guardar"}</Swap>
         </button>
       </div>
     </form>

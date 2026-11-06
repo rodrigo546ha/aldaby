@@ -852,7 +852,7 @@ function OfferSheet({
   return (
     <section className="offer-sheet" style={channelStyle(o.channel)} aria-labelledby="ficha-titulo">
       <div className="sheet-media">
-        <OfferPhoto offerId={o.offer_id} kinds={o.photos} images={o.images} propertyType={o.property_type} credit className="sheet-photo" />
+        <OfferPhoto offerId={o.offer_id} kinds={o.photos} images={o.images} propertyType={o.property_type} credit className="sheet-photo" morph />
         <button ref={close} type="button" className="sheet-close" onClick={onClose} aria-label="Cerrar la ficha">
           <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
             <path d="M5 5l10 10M15 5 5 15" />
@@ -913,11 +913,11 @@ function OfferSheet({
         {note && <p className="hint">{note}</p>}
 
         <div className="verdict-actions">
-          <AppLink className="button-link primary" href={`/oferta/${o.offer_id}`} data={DATA.offer(o.offer_id)}>
+          <AppLink className="button-link primary" href={`/oferta/${o.offer_id}`} data={DATA.offer(o.offer_id)} morph>
             Ver la ficha
           </AppLink>
           {o.plan && (
-            <AppLink className="button-link" href={`/plan/${o.offer_id}`} data={DATA.plan(o.offer_id)}>
+            <AppLink className="button-link" href={`/plan/${o.offer_id}`} data={DATA.plan(o.offer_id)} morph>
               Ver mi plan
             </AppLink>
           )}

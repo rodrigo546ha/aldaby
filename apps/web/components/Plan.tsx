@@ -101,10 +101,10 @@ export function Plan({ offerId }: { offerId: string }) {
   return (
     <div className="plan stagger">
       <BrandHeader brand={brand} version={brandVersion} />
-      <AppLink className="back-link" href={`/oferta/${offerId}`} data={DATA.offer(offerId)}>
+      <AppLink className="back-link" href={`/oferta/${offerId}`} data={DATA.offer(offerId)} morph>
         <Icon name="back" small /> La oferta
       </AppLink>
-      <OfferPhoto offerId={offerId} credit hideEmpty className="plan-photo" />
+      <OfferPhoto offerId={offerId} credit hideEmpty className="plan-photo" morph />
       <section className="verdict" aria-labelledby="verdict-title">
         <div className="verdict-head">
           <span className={plan.passes ? "status pass" : "status fail"}>

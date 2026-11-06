@@ -202,9 +202,36 @@ y siempre con el nombre del canal al lado.
 
 ### Movimiento
 
-Tres duraciones con la misma curva: 120 ms respuesta al toque, 220 ms cambio de estado, 360 ms
-entrada de página o panel. Solo `transform` y `opacity`. Con movimiento reducido no se anima nada y
-el estado final se ve al instante.
+Tres duraciones: 120 ms respuesta al toque (`--dur-1`), 220 ms cambio de estado y desplegables
+(`--dur-2`), 360 ms entrada de página o panel (`--dur-3`). Con movimiento reducido no se anima nada y
+el estado final se ve al instante, también al cambiar de pantalla.
+
+- **Curvas:** las entradas, con `--ease` (arranca rápido y se posa). Lo que ya se ve y cambia de
+  sitio o de tamaño (la barra de progreso del simulador), con `--ease-in-out`. Ninguna curva se pasa
+  de 1: en la interfaz de diario no hay rebote.
+- **Salidas:** un 20 % más cortas que la entrada que deshacen (`--dur-2-out`, `--dur-3-out`). Un
+  plegable se abre en 220 ms y se cierra en 176.
+- **Listas:** las filas llegan escalonadas, 30 ms entre filas (`--stagger`); a partir de la décima,
+  todas a la vez, para que ninguna lista tarde más de 300 ms en empezar a enseñarse entera.
+- **Lo que se abre se asienta:** el contenido de un plegable entra pieza a pieza, 30 ms entre piezas
+  y hasta la cuarta.
+- **Pulsar:** botones, tarjetas de oferta y chips encogen a `--press` (0,97) mientras se pulsan.
+- **Menús y listas desplegables:** crecen desde el control que los abre (la lista de municipios
+  desde su campo), desde 0,95, y vuelven a él al cerrarse.
+- **Confirmar:** lo que sale bien late una vez (1 → 1,08 → 1): el icono de un aviso de éxito o el
+  «Guardado».
+- **Cambiar de estado sin hueco:** el texto de un botón que cambia («Guardar» → «Guardando…») entra
+  mientras el viejo sale (`Swap`); dos iconos que se cruzan (el sol y la luna del tema) lo hacen con
+  escala y desenfoque.
+- **Gráficas:** las barras y la línea se revelan con una máscara de izquierda a derecha, sin
+  deformarse.
+- **De una pantalla a otra:** la foto de la oferta viaja del mapa a la ficha y de la ficha al plan
+  (View Transitions, `AppLink morph`); una foto con nombre por página. Sin soporte del navegador, la
+  navegación es la de siempre.
+- **Propiedades:** solo `transform` y `opacity`, salvo `clip-path` y `filter` en elementos
+  pequeños (iconos, barras de gráfica, botones), que son baratos ahí.
+- **Arrastres:** mientras se arrastra no hay transición; el control va pegado al puntero (el mapa lo
+  hace por sí solo).
 
 ## Componentes
 

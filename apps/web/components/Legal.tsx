@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import type { components } from "../lib/api-types";
 import { formatDate } from "../lib/format";
 import { Markdown } from "./Markdown";
+import { Swap } from "./Motion";
 
 type Summary = components["schemas"]["LegalSummaryOut"];
 type LegalDocument = components["schemas"]["LegalDocumentOut"];
@@ -145,7 +146,7 @@ export function LegalAcceptance() {
       </label>
       {failure && <p className="failure" role="alert">{failure}</p>}
       <button type="submit" disabled={!agreed || busy}>
-        {busy ? "Guardando…" : "Aceptar y seguir"}
+        <Swap>{busy ? "Guardando…" : "Aceptar y seguir"}</Swap>
       </button>
     </form>
   );

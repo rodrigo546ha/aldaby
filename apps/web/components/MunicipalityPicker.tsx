@@ -107,26 +107,25 @@ export function MunicipalityPicker({
         }}
         onBlur={() => setTimeout(() => setOpen(false), 120)}
       />
-      {shown && (
-        <ul id={listId} role="listbox" className="combobox-list">
-          {options.map((m, i) => (
-            <li
-              key={m.code}
-              id={`${listId}-${i}`}
-              role="option"
-              aria-selected={i === active}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                choose(m);
-              }}
-              onMouseEnter={() => setActive(i)}
-            >
-              <span>{m.name}</span>
-              <span className="combobox-meta">{m.province}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* Siempre montada: así puede salir con su animación hacia el campo (DESIGN.md, «Movimiento») */}
+      <ul id={listId} role="listbox" className="combobox-list" hidden={!shown}>
+        {options.map((m, i) => (
+          <li
+            key={m.code}
+            id={`${listId}-${i}`}
+            role="option"
+            aria-selected={i === active}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              choose(m);
+            }}
+            onMouseEnter={() => setActive(i)}
+          >
+            <span>{m.name}</span>
+            <span className="combobox-meta">{m.province}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -290,6 +290,20 @@
   color: var(--text-strong);
 }
 .combobox input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; border-color: transparent; }
+/* La lista crece desde el campo que la abre y vuelve a él al cerrarse, más rápido (10, 11, 12, 15) */
+.combobox-list {
+  transform-origin: top center;
+  transition:
+    opacity var(--dur-2-out) var(--ease),
+    transform var(--dur-2-out) var(--ease),
+    display var(--dur-2-out) allow-discrete,
+    overlay var(--dur-2-out) allow-discrete;
+}
+.combobox-list:not([hidden]) { transition-duration: var(--dur-2); }
+.combobox-list[hidden] { display: none; opacity: 0; transform: scale(0.95); }
+@starting-style {
+  .combobox-list:not([hidden]) { opacity: 0; transform: scale(0.95); }
+}
 .combobox-list {
   position: absolute;
   z-index: 20;
@@ -331,7 +345,8 @@
 .stepper-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; }
 .stepper-count { margin: 0; color: var(--text-muted); font-size: var(--text-sm); font-weight: 500; }
 .stepper-progress { height: 4px; border-radius: var(--r-pill); background: var(--bg-sunk); overflow: hidden; margin-top: calc(var(--sp-3) * -1); }
-.stepper-progress span { display: block; height: 100%; background: var(--accent-mark); transition: width var(--dur-2) var(--ease); }
+/* La barra ya se ve y cambia de tamaño: ease-in-out (9) */
+.stepper-progress span { display: block; height: 100%; background: var(--accent-mark); transition: width var(--dur-2) var(--ease-in-out); }
 .stepper-steps { display: flex; gap: var(--sp-1); margin: 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: none; }
 .stepper-steps::-webkit-scrollbar { display: none; }
 .stepper-steps button {
