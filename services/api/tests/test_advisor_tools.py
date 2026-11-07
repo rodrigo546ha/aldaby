@@ -54,14 +54,33 @@ def test_el_agente_lista_valora_y_explica_con_marcadores(database, org):  # noqa
     assert any("no es un margen de negociación" in n for n in answer.notes)
 
 
+def test_vale_el_marcador_corto_de_la_conversacion(database, org):  # noqa: F811
+    # ADR-0068: en el historial solo queda {{oferta:…}}; con él se sigue con la misma oferta
+    offer_id = confirmed_offer(database, org, "venta", "400000")
+    scope = f"oferta_{offer_id.hex[:8]}"
+    llm = FakeLLMClient(turns=[
+        call("valorar_oferta", {"oferta_id": offer_id.hex[:8]}, "c1"),
+        ChatTurn(f"Piden {{{{fig:{scope}.offer.asking_price}}}}."),
+        call("valorar_oferta", {"oferta_id": "00000000"}, "c2"),
+        ChatTurn("No encuentro esa oferta."),
+    ])
+    with psycopg.connect(database) as conn:
+        answer = ask(conn, BOOK, llm, org, "¿Y está cara?")
+        assert answer.failure is None and [s.tool for s in answer.steps] == ["valorar_oferta"]
+        ask(conn, BOOK, llm, org, "¿Y la otra?")
+    error = json.loads(llm.chats[-1][-1]["content"])["error"]
+    assert error == "No existe esa oferta entre las del usuario"
+
+
 def test_un_identificador_mal_dice_de_donde_sacarlo(database, org):  # noqa: F811
     llm = FakeLLMClient(turns=[call("zona_de_oferta", {"oferta_id": "Getafe"}, "c1"),
                                ChatTurn("No sé cuál es.")])
     with psycopg.connect(database) as conn:
         ask(conn, BOOK, llm, org, "¿Cómo es la zona de la de Getafe?")
     error = json.loads(llm.chats[-1][-1]["content"])["error"]
-    assert error == ("Argumentos no válidos: oferta_id (Identificador de la oferta, de "
-                     "ofertas_guardadas)")
+    assert error == ("Argumentos no válidos: oferta_id (Identificador de la oferta: búscalo con "
+                     "ofertas_guardadas. Si ya tienes su marcador {{oferta:…}}, valen sus ocho "
+                     "caracteres)")
 
 
 def test_oferta_ajena_o_sin_datos(database, org):  # noqa: F811

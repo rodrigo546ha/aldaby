@@ -116,7 +116,9 @@ CONVERSATIONS = (
              keys=frozenset({"mortgage.stressed_payment", "search.stressed_cashflow"})),
         # El fallo visto en la web: atribuir a la variable las cifras de la fija
         Turn("¿Y con la hipoteca variable?", frozenset({"plan_completo"}),
-             keys=frozenset({"mortgage_comparison.variable.expected_total_interest"})),
+             keys=frozenset({f"mortgage_comparison.variable.{figure}"
+                             for figure in ("first_payment", "expected_total_interest",
+                                            "stressed_max_payment")})),
     )),
     Conversation("Zona y precio en «Mi plan»", offer=False, needs_profile=False, turns=(
         Turn("¿Cómo es la zona de mi oferta de {municipio}?", frozenset({"zona_de_oferta"})),

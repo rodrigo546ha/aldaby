@@ -455,6 +455,16 @@ def get_private_offer(
     return PrivateOffer(*row) if row else None
 
 
+def private_offers_by_marker(
+    conn: psycopg.Connection, org_id: UUID, marker: str
+) -> list[PrivateOffer]:
+    """Las ofertas de la organización cuyo identificador empieza por los ocho caracteres del
+    marcador `{{oferta:…}}` (ADR-0068); con más de una, el que llama decide."""
+    rows = conn.execute(_PRIVATE + " WHERE o.org_id = %s AND o.kind = 'enlace' "
+                        "AND left(o.id::text, 8) = %s LIMIT 2", (org_id, marker)).fetchall()
+    return [PrivateOffer(*r) for r in rows]
+
+
 def list_private_offers(
     conn: psycopg.Connection, org_id: UUID, limit: int = 50
 ) -> list[PrivateOffer]:

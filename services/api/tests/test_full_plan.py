@@ -109,8 +109,14 @@ def test_sin_cupo_el_asesor_no_cuenta_el_plan(searchable, org):  # noqa: F811
         with pytest.raises(ToolFailed, match="planes completos"):
             tools["plan_completo"].run(MarkerArguments(oferta=offer.hex[:8]))
         free = {t.name: t for t in offer_tools(conn, book(), org, profile(), rules())}
-        assert free["plan_completo"].run(MarkerArguments(oferta=offer.hex[:8])).figures
+        result = free["plan_completo"].run(MarkerArguments(oferta=offer.hex[:8]))
     assert asked == [offer]
+    # ADR-0068: con la cuota de la variable, el modelo no tira de la de la fija
+    keys = {f.key for f in result.figures}
+    assert {f"mortgage_comparison.{kind}.{figure}" for kind in ("fija", "variable")
+            for figure in ("first_payment", "expected_total_interest",
+                           "stressed_max_payment")} <= keys
+    assert all(result.descriptions.get(k) for k in keys if k.startswith("mortgage_comparison."))
 
 
 @pytest.mark.db

@@ -27,11 +27,11 @@
     },
     "conversacion": {
       "vueltas": 7,
-      "herramientas": 6,
+      "herramientas": 7,
       "mostrados": 7,
       "a_la_primera": 3,
       "con_cifra_pedida": 3,
-      "cifra_pedida": 2,
+      "cifra_pedida": 3,
       "con_misma_oferta": 1,
       "misma_oferta": 0,
       "cifras_fuera": 0,

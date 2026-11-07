@@ -33,6 +33,7 @@ from housefinder.db.offers import (
     PrivateOffer,
     get_private_offer,
     list_private_offers,
+    private_offers_by_marker,
     search_candidates,
 )
 from housefinder.params.book import ParamBook
@@ -51,8 +52,8 @@ alquilarían, cuánto valen frente a lo que piden, cómo puede evolucionar su pr
 - Usa las herramientas para obtener cada dato; no supongas nada que no te devuelvan.
 - Si el usuario nombra una oferta por su municipio, busca su oferta_id con ofertas_guardadas y
   úsalo: no se lo pidas.
-- Si el usuario pregunta por una oferta que está confirmada y ubicada, valórala directamente:
-  no le pidas que lo confirme.
+- Si pregunta si una oferta está cara o cuánto vale, usa valorar_oferta directamente: si falta
+  confirmarla o ubicarla, la herramienta lo dice. No le pidas al usuario que lo confirme antes.
 - Si una herramienta dice que falta un dato, explícale al usuario qué tiene que confirmar.
 - Explica con frases cortas y claras, en español, y di los límites de cada estimación (rangos y
   supuestos). Los avisos de las herramientas se muestran solos debajo de tu respuesta: no hagas
@@ -64,6 +65,8 @@ alquilarían, cuánto valen frente a lo que piden, cómo puede evolucionar su pr
 - Si pide su plan completo de una oferta, usa plan_completo: explica su capacidad, la hipoteca,
   el cash flow, la prueba de estrés, las normas pendientes y los argumentos para no comprar que
   da el programa, sin dejar ninguno.
+- La cuota, la cuota en estrés y el préstamo del plan son de la hipoteca fija. Si pregunta por la
+  variable, cita las cifras de mortgage_comparison.variable, no las de la fija.
 - Si pregunta cómo alquilar una oferta (habitual, temporada, habitaciones o turístico) o si
   delegar la gestión, usa recomendar_alquiler con el identificador de su marcador: la
   recomendación la hace el programa; tú la explicas con sus motivos y requisitos.
@@ -126,17 +129,24 @@ class NoArguments(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+OFFER_REFERENCE = r"^[0-9a-fA-F]{8}(-?[0-9a-fA-F]{4}){0,3}(-?[0-9a-fA-F]{12})?$"
+
+
 class OfferArguments(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    oferta_id: UUID = Field(description="Identificador de la oferta, de ofertas_guardadas")
+    # El marcador corto también: es lo que queda en el historial de una conversación (ADR-0068)
+    oferta_id: str = Field(pattern=OFFER_REFERENCE,
+                           description="Identificador de la oferta: búscalo con "
+                                       "ofertas_guardadas. Si ya tienes su marcador "
+                                       "{{oferta:…}}, valen sus ocho caracteres")
 
 
 class MarkerArguments(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     oferta: str = Field(
-        pattern=r"^[0-9a-fA-F]{8}(-?[0-9a-fA-F]{4}){0,3}(-?[0-9a-fA-F]{12})?$",
+        pattern=OFFER_REFERENCE,
         description="La oferta: los ocho caracteres de su marcador {{oferta:…}} de "
                     "buscar_ofertas, o su oferta_id de ofertas_guardadas")
 
@@ -157,8 +167,17 @@ def offer_tools(conn: Connection, book: ParamBook, org_id: UUID,
                 plan_gate: PlanGate | None = None) -> list[Tool]:
     """`plan_gate`: el cupo del nivel gratuito (ADR-0041). Sin él, el plan completo no se limita
     (profesionales, terminal y evaluaciones)."""
-    def own(offer_id: UUID) -> PrivateOffer:
-        offer = get_private_offer(conn, offer_id, org_id)
+    def own(reference: str) -> PrivateOffer:
+        """La oferta del usuario por su oferta_id o por los ocho caracteres de su marcador."""
+        digits = reference.replace("-", "").lower()
+        if len(digits) == 32:
+            offer = get_private_offer(conn, UUID(digits), org_id)
+        else:
+            found = private_offers_by_marker(conn, org_id, digits[:8])
+            if len(found) > 1:
+                raise ToolFailed("Hay varias ofertas con ese marcador: usa su oferta_id de "
+                                 "ofertas_guardadas")
+            offer = found[0] if found else None
         if offer is None:
             raise ToolFailed("No existe esa oferta entre las del usuario")
         return offer
@@ -320,8 +339,9 @@ PLAN_FIGURES = ("affordability.max_price", "offer.price", "purchase_costs.total"
                 "mortgage.stressed_payment", "valuation.rent_monthly",
                 "cashflow.monthly_after_tax", "search.stressed_cashflow",
                 "plan.low_rent_cashflow", "term.recommended_years", "irr.rate",
-                "mortgage_comparison.fija.expected_total_interest",
-                "mortgage_comparison.variable.expected_total_interest")
+                *(f"mortgage_comparison.{kind}.{figure}" for kind in ("fija", "variable")
+                  for figure in ("first_payment", "expected_total_interest",
+                                 "stressed_max_payment")))
 STAGES = {"antes": "antes de comprometerte", "compra": "la compra", "despues": "después"}
 
 
@@ -404,6 +424,9 @@ CONVERSATION = """
 - Es una conversación: puedes leer tus respuestas anteriores, pero sus marcadores ya no valen. Si
   vuelves a citar una cifra, pide otra vez la herramienta que la calcula.
 - Contesta solo a la última pregunta.
+- Si la pregunta sigue sobre la oferta de la vuelta anterior, usa los ocho caracteres de su
+  marcador {{oferta:…}} (o del prefijo oferta_… de sus cifras) con la herramienta: no preguntes
+  cuál es.
 """
 
 

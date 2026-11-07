@@ -374,7 +374,11 @@ umbral fijado en F0, y cada estimación con su rango.
       las herramientas 8/8 (`docs/research/f6-9-evaluaciones.md`).
       *Conversaciones (ADR-0067):* tres conversaciones con el historial de la API, que miden si
       vuelve a pedir la herramienta, si cita la cifra de lo que se pregunta y si habla de la misma
-      oferta (`make evaluar`, evaluación `conversacion`).
+      oferta (`make evaluar`, evaluación `conversacion`). La primera pasada destapó dos fallos que
+      se ajustan en ADR-0068: con la variable citaba las cuotas de la fija, y no seguía con la
+      misma oferta porque `valorar_oferta` y `zona_de_oferta` no aceptaban su marcador corto.
+      Con el ajuste, herramientas 7/7 y cifra pedida 3/3. Queda que, en «¿y está cara?», qwen3
+      inventa claves de la valoración y el texto se rechaza.
 
 **Criterio de salida.** Los 10 planes manuales de F0 se reproducen con la herramienta en menos de
 10 minutos cada uno, y ninguna cifra del texto del agente falta en los `Figure` del plan.
