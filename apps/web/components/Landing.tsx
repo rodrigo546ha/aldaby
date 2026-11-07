@@ -53,7 +53,8 @@ export function Waitlist() {
     <form className="waitlist-form" onSubmit={submit}>
       <div className="field">
         <label htmlFor="waitlist-email">Correo</label>
-        <input id="waitlist-email" type="email" autoComplete="email" required value={email}
+        <input id="waitlist-email" name="email" type="email" autoComplete="email" spellCheck={false}
+               required value={email}
                onChange={(e) => setEmail(e.target.value)} />
       </div>
       <fieldset className="waitlist-kind">

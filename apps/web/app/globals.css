@@ -1665,6 +1665,7 @@ main.map-page { max-width: none; padding: 0; }
 @media (max-width: 920px) {
   .waitlist { grid-template-columns: 1fr; padding: var(--sp-12) var(--sp-6); }
   .waitlist > p, .waitlist > h2, .waitlist-form, .waitlist-done { grid-column: 1; grid-row: auto; }
+  .waitlist > p { margin-bottom: var(--sp-8); } /* apilados, la entradilla no se pega al primer campo */
 }
 .landing-disclaimer { color: var(--muted); font-size: var(--text-sm); max-width: 72ch; margin: 0; }
 
