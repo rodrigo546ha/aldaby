@@ -93,6 +93,28 @@ Para comparar modelos de API (`docs/research/f7-proveedor-llm.md`), la temperatu
 
 Un valor que no es número ni `none` falla al arrancar.
 
+## Salida JSON sin esquema, para DeepSeek (2026-11-07)
+La API de DeepSeek (`https://api.deepseek.com`, modelo `deepseek-flash`, que hoy sirve
+DeepSeek-V4.1-Flash) habla la API compatible con OpenAI, pero en `response_format` solo acepta
+`text` o `json_object`, no `json_schema`.
+
+Por eso hay una variable nueva, `LLM_STRUCTURED_OUTPUT`:
+- **`json_schema`:** el valor por defecto, como hasta ahora.
+- **`json_object`:**
+  - el esquema de la salida va al final de las instrucciones de sistema, con la palabra «json» que
+    exige DeepSeek;
+  - el prefijo de cada tarea sigue siendo fijo, así que la caché de la API lo puede aprovechar;
+  - la respuesta se valida igual con Pydantic: lo que no cumple el esquema, incluida la respuesta
+    hecha solo de espacios que DeepSeek puede devolver, sale como `LLMOutputError`.
+
+Otros detalles de DeepSeek:
+- `reasoning_effort: none` apaga el razonamiento, que viene encendido por defecto.
+- Con razonamiento, la temperatura no tiene efecto.
+- Las herramientas funcionan sin el modo estricto, que necesitaría el host `/beta`.
+
+La API de DeepSeek procesa en China. Sirve para evaluar con el juego etiquetado y el perfil
+ficticio de «Desarrollo local», no para datos de usuarios.
+
 ## Opciones consideradas
 - **Seguir con Claude en Bedrock:** mejor calidad de extracción, pero requiere una cuenta de AWS
   propia y envía el texto a un tercero. Descartado por decisión de Rodrigo.

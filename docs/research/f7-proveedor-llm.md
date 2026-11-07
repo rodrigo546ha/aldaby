@@ -249,6 +249,24 @@ make evaluar SALIDA=informes-modelos/gpt-oss-120b.md LLM_BASE_URL=https://ai-gat
 Con el despliegue en Vercel, el resto de ADR-0028 y ADR-0040 también cambia: la API Python, el
 worker, la cola y PostgreSQL con PostGIS no viven en Vercel tal cual. Eso pide su propio ADR.
 
+## 10. DeepSeek con su propia API (2026-11-07)
+
+Rodrigo quiere probar DeepSeek primero.
+- **Modelo:** `deepseek-flash`, que hoy sirve DeepSeek-V4.1-Flash.
+- **Base:** `https://api.deepseek.com`.
+- **Salida:** solo `json_object`, así que se evalúa con `LLM_STRUCTURED_OUTPUT=json_object`
+  (ADR-0014).
+- **Precio:** la tabla oficial es una imagen. El 16/08/2026 entraron precios de hora punta y valle,
+  y en valle cuestan la mitad.
+
+La evaluación solo envía el juego etiquetado (anuncios sintéticos y públicos del BOE) y el perfil
+ficticio «Inversora ficticia (demo)». Procesa en China: para datos de usuarios habría que usar el
+mismo modelo en otro proveedor.
+
+```bash
+make evaluar SALIDA=informes-modelos/deepseek-flash.md LLM_BASE_URL=https://api.deepseek.com LLM_API_KEY='$(DEEPSEEK_API_KEY)' LLM_MODEL_ID=deepseek-flash LLM_STRUCTURED_OUTPUT=json_object LLM_REASONING_EFFORT=none LLM_TIMEOUT_S=180
+```
+
 ## Fuentes
 - Vercel AI Gateway: https://vercel.com/docs/ai-gateway/pricing,
   https://vercel.com/docs/ai-gateway/sdks-and-apis/openai-chat-completions (y sus páginas

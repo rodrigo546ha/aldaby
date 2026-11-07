@@ -28,6 +28,12 @@ DEFAULT_TIMEOUT_S = 600.0  # sin GPU, un anuncio largo tarda minutos
 # Tope de salida de cada turno del agente: una respuesta o una llamada caben de sobra. Sin él, qwen3
 # entró una vez en bucle y generó miles de tokens hasta agotar el tiempo de espera.
 CHAT_MAX_TOKENS = 2048
+# Salida estructurada: `json_schema` (estricta, la del servidor propio y la mayoría de las API) o
+# `json_object` (DeepSeek y otras que no aceptan esquema): entonces el esquema va en las
+# instrucciones y la respuesta se valida igual con Pydantic, así que nada fuera del esquema pasa.
+STRUCTURED_MODES = ("json_schema", "json_object")
+JSON_OBJECT_PROMPT = ("Responde solo con un objeto json válido, sin texto antes ni después, que "
+                      "cumpla este JSON Schema:\n")
 
 
 class LLMOutputError(RuntimeError):
@@ -100,10 +106,14 @@ class OpenAICompatibleLLMClient:
         timeout_s: float = DEFAULT_TIMEOUT_S,
         reasoning_effort: str | None = None,
         temperature: float | None = 0.0,
+        structured_output: str = "json_schema",
         client: httpx.Client | None = None,
     ) -> None:
+        if structured_output not in STRUCTURED_MODES:
+            raise ValueError(f"Salida estructurada no soportada: {structured_output!r}")
         self.base_url = base_url.rstrip("/")
         self.model = model
+        self.structured_output = structured_output
         self.reasoning_effort = reasoning_effort
         # 0 por determinismo (ADR-0014). None no la envía: los modelos Claude 4.7 y posteriores
         # rechazan cualquier valor por debajo de 1.
@@ -113,13 +123,21 @@ class OpenAICompatibleLLMClient:
         self._headers = headers
 
     def structured(self, *, instructions: str, document: str, output: type[T]) -> T:
+        schema = output.model_json_schema()
+        if self.structured_output == "json_object":
+            # El esquema, después de las instrucciones: el prefijo sigue siendo fijo por tarea
+            instructions = (f"{instructions}\n\n{JSON_OBJECT_PROMPT}"
+                            f"{json.dumps(schema, ensure_ascii=False)}")
+            response_format: dict[str, Any] = {"type": "json_object"}
+        else:
+            response_format = {"type": "json_schema", "json_schema": {
+                "name": output.__name__, "strict": True, "schema": schema}}
         body: dict[str, Any] = {
             "model": self.model,
             # Instrucciones fijas primero: el servidor reutiliza el prefijo entre llamadas.
             "messages": [{"role": "system", "content": instructions},
                          {"role": "user", "content": wrap_document(document)}],
-            "response_format": {"type": "json_schema", "json_schema": {
-                "name": output.__name__, "strict": True, "schema": output.model_json_schema()}},
+            "response_format": response_format,
         }
         message = self._complete(body)
         try:
@@ -203,6 +221,7 @@ class FakeLLMClient:
 
 def llm_from_env() -> LLMClient:
     """Cliente según `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL_ID` y `LLM_API_KEY` (ADR-0014).
+    `LLM_STRUCTURED_OUTPUT=json_object` para las API sin `json_schema`, como DeepSeek.
 
     Sin valores por defecto: si falta algo, falla antes de llamar a la red. `LLM_TEMPERATURE`
     vacía vale 0; `none` no la envía.
@@ -221,7 +240,15 @@ def llm_from_env() -> LLMClient:
         timeout_s=float(os.environ.get("LLM_TIMEOUT_S") or DEFAULT_TIMEOUT_S),
         reasoning_effort=os.environ.get("LLM_REASONING_EFFORT") or None,
         temperature=_temperature(os.environ.get("LLM_TEMPERATURE") or ""),
+        structured_output=_structured(os.environ.get("LLM_STRUCTURED_OUTPUT") or ""),
     )
+
+
+def _structured(raw: str) -> str:
+    value = raw.strip().lower() or "json_schema"
+    if value not in STRUCTURED_MODES:
+        raise ValueError(f"LLM_STRUCTURED_OUTPUT debe ser json_schema o json_object: {raw!r}")
+    return value
 
 
 def _temperature(raw: str) -> float | None:

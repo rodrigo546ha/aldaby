@@ -314,6 +314,57 @@ def test_temperatura_no_numerica_falla_antes_de_llamar(monkeypatch):
         llm_from_env()
 
 
+def test_sin_json_schema_el_esquema_va_en_las_instrucciones():
+    # DeepSeek solo acepta json_object: el esquema va en el mensaje de sistema y Pydantic valida
+    http, seen = server(completion(EXTRACTION.model_dump_json()))
+    client = OpenAICompatibleLLMClient("https://api.deepseek.com", "deepseek-flash",
+                                       structured_output="json_object", client=http)
+    assert client.structured(instructions="x", document="doc",
+                             output=DocumentExtraction) == EXTRACTION
+    body = json.loads(seen[0].content)
+    assert body["response_format"] == {"type": "json_object"}
+    system = body["messages"][0]["content"]
+    assert system.startswith("x\n\n") and "json" in system
+    assert json.dumps(DocumentExtraction.model_json_schema(), ensure_ascii=False) in system
+    assert "<documento>\ndoc\n</documento>" in body["messages"][1]["content"]
+
+
+def test_sin_json_schema_lo_que_no_cumple_el_esquema_no_pasa():
+    # DeepSeek puede devolver solo espacios con finish_reason «stop» (su guía de salida JSON)
+    for content in ("   ", '{"lots": "no"}'):
+        http, _ = server(completion(content))
+        client = OpenAICompatibleLLMClient("https://api.deepseek.com", "deepseek-flash",
+                                           structured_output="json_object", client=http)
+        with pytest.raises(LLMOutputError):
+            client.structured(instructions="x", document="d", output=DocumentExtraction)
+
+
+@pytest.mark.parametrize("value, expected", [
+    (None, "json_schema"), ("", "json_schema"), ("json_object", "json_object"),
+    ("JSON_SCHEMA", "json_schema"),
+])
+def test_salida_estructurada_desde_el_entorno(monkeypatch, value, expected):
+    monkeypatch.setenv("LLM_PROVIDER", "openai_compatible")
+    monkeypatch.setenv("LLM_BASE_URL", "http://llm.test/v1")
+    monkeypatch.setenv("LLM_MODEL_ID", "m")
+    if value is None:
+        monkeypatch.delenv("LLM_STRUCTURED_OUTPUT", raising=False)
+    else:
+        monkeypatch.setenv("LLM_STRUCTURED_OUTPUT", value)
+    client = llm_from_env()
+    assert isinstance(client, OpenAICompatibleLLMClient)
+    assert client.structured_output == expected
+
+
+def test_salida_estructurada_desconocida_falla_antes_de_llamar(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "openai_compatible")
+    monkeypatch.setenv("LLM_BASE_URL", "http://llm.test/v1")
+    monkeypatch.setenv("LLM_MODEL_ID", "m")
+    monkeypatch.setenv("LLM_STRUCTURED_OUTPUT", "xml")
+    with pytest.raises(ValueError, match="LLM_STRUCTURED_OUTPUT"):
+        llm_from_env()
+
+
 # --- Anuncios reales que se quedaban sin ubicar (ADR-0033) -------------------------------------
 
 EVALUATION = Path(__file__).parents[1] / "data" / "evaluation" / "anuncios"
