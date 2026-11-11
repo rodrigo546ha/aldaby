@@ -1,8 +1,9 @@
 import Link from "next/link";
 
-import { KnockerRing } from "../components/KnockerRing";
 import { FreeTierLine, Waitlist } from "../components/Landing";
+import { LandingHero, StepsJourney } from "../components/LandingHero";
 import { Logo } from "../components/Logo";
+import { SmoothScroll } from "../components/SmoothScroll";
 import { ThemeToggle } from "../components/Theme";
 
 export const metadata = {
@@ -16,6 +17,7 @@ export const metadata = {
 export default function Landing() {
   return (
     <main className="landing">
+      <SmoothScroll />
       <header className="landing-top">
         <Logo className="landing-logo" />
         <div className="landing-tools">
@@ -26,9 +28,7 @@ export default function Landing() {
         </div>
       </header>
 
-      <section className="hero">
-        <div className="hero-copy">
-          <h1>Llama antes de comprar.</h1>
+      <LandingHero>
           <p className="hero-lead">
             Aldaby calcula lo que te rinde de verdad una vivienda de inversión: con tu hipoteca, tu
             IRPF, tus gastos y tu tiempo. No la rentabilidad del anuncio: la tuya.
@@ -37,12 +37,11 @@ export default function Landing() {
           <a href="#lista" className="hero-cta">
             Apúntate a la lista de espera
           </a>
-        </div>
-        <KnockerRing />
-      </section>
+      </LandingHero>
 
       <section className="steps" aria-labelledby="como">
         <h2 id="como">Cómo funciona</h2>
+        <StepsJourney>
         <ol>
           <li>
             <h3>Tu perfil</h3>
@@ -67,6 +66,7 @@ export default function Landing() {
             </p>
           </li>
         </ol>
+        </StepsJourney>
       </section>
 
       <section className="principles">

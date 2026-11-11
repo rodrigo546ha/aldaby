@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
 // La anilla de la aldaba (docs/marca/) como un toro de puntos que gira despacio en la portada.
-// Decorativa: sin movimiento reducido se queda quieta, y fuera de pantalla no se dibuja.
+// Decorativa: con movimiento reducido se queda quieta, y fuera de pantalla no se dibuja. `shape.flat`
+// va de 0 (el toro inclinado) a 1 (el aro visto de frente): la portada lo liga al desplazamiento.
 
 const RING = 220; // puntos a lo largo de la anilla
 const TUBE = 14; // puntos alrededor del grosor
 const R = 1; // radio de la anilla
 const r = 0.3; // radio del tubo
+const THIN = 0.03; // radio del tubo cuando la anilla se cierra
 
-type Dot = { x: number; y: number; z: number; tone: number };
+type Dot = { cu: number; su: number; cv: number; sv: number; tone: number };
 
 function torus(): Dot[] {
   const dots: Dot[] = [];
@@ -19,18 +21,13 @@ function torus(): Dot[] {
     for (let j = 0; j < TUBE; j++) {
       // Desfase por vuelta: los puntos no forman filas rectas y la anilla se lee como materia
       const v = ((j + (i % 2) * 0.5) / TUBE) * Math.PI * 2;
-      dots.push({
-        x: (R + r * Math.cos(v)) * Math.cos(u),
-        y: (R + r * Math.cos(v)) * Math.sin(u),
-        z: r * Math.sin(v),
-        tone: (Math.sin(u * 2 + 0.6) + 1) / 2,
-      });
+      dots.push({ cu: Math.cos(u), su: Math.sin(u), cv: Math.cos(v), sv: Math.sin(v), tone: (Math.sin(u * 2 + 0.6) + 1) / 2 });
     }
   }
   return dots;
 }
 
-export function KnockerRing() {
+export function KnockerRing({ shape }: { shape?: RefObject<{ flat: number }> }) {
   const canvas = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -62,16 +59,20 @@ export function KnockerRing() {
       const near = style.getPropertyValue("--ring-near").trim() || "#f2c66b";
       const far = style.getPropertyValue("--ring-far").trim() || "#9fd9bf";
       ctx.clearRect(0, 0, size, size);
-      const a = 1.05 + Math.sin(t / 9000) * 0.12; // inclinación hacia el que mira
+      const flat = shape?.current?.flat ?? 0;
+      const tube = r + (THIN - r) * flat;
+      const a = (1.05 + Math.sin(t / 9000) * 0.12) * (1 - flat); // inclinación hacia el que mira
       const b = t / 7000; // giro sobre su eje
       const ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b);
       const scale = size * 0.33;
       const cx = size / 2, cy = size / 2;
       for (const d of dots) {
-        const x1 = d.x * cb - d.y * sb;
-        const y1 = d.x * sb + d.y * cb;
-        const y2 = y1 * ca - d.z * sa;
-        const z2 = y1 * sa + d.z * ca;
+        const ring = R + tube * d.cv;
+        const x0 = ring * d.cu, y0 = ring * d.su, z0 = tube * d.sv;
+        const x1 = x0 * cb - y0 * sb;
+        const y1 = x0 * sb + y0 * cb;
+        const y2 = y1 * ca - z0 * sa;
+        const z2 = y1 * sa + z0 * ca;
         const depth = (z2 + R + r) / (2 * (R + r)); // 0 lejos, 1 cerca
         const p = 2.6 / (2.6 - z2);
         ctx.globalAlpha = 0.18 + depth * 0.72;
@@ -107,7 +108,7 @@ export function KnockerRing() {
       scheme.removeEventListener("change", redraw);
       window.removeEventListener("resize", resize);
     };
-  }, []);
+  }, [shape]);
 
   return <canvas ref={canvas} className="knocker-ring" aria-hidden="true" />;
 }

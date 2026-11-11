@@ -1593,9 +1593,36 @@ main.map-page { max-width: none; padding: 0; }
 }
 .hero-cta:hover { filter: var(--cta-hover); }
 .knocker-ring { width: 100%; aspect-ratio: 1; max-width: 600px; justify-self: center; display: block; }
+/* Las tres cifras del plan de ejemplo, alrededor de la anilla (ADR-0069). Flotan sobre ella: sombra. */
+.hero-ring { position: relative; display: grid; justify-items: center; }
+/* el mismo cuadrado que el lienzo de la anilla, para que las cifras no pisen el pie del ejemplo */
+.hero-figures { position: absolute; top: 0; left: 50%; width: min(100%, 600px); aspect-ratio: 1; transform: translateX(-50%); pointer-events: none; }
+.hero-figure {
+  position: absolute;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-overlay);
+  animation: rise var(--dur-3) var(--ease) backwards;
+  animation-delay: calc(var(--i) * var(--stagger) * 3);
+}
+.hero-figure:nth-child(1) { left: 0; top: 14%; }
+.hero-figure:nth-child(2) { right: 0; top: 4%; }
+.hero-figure:nth-child(3) { right: 6%; bottom: 8%; }
+.hero-figure .verdict-figure { flex-direction: column-reverse; gap: var(--sp-1); }
+.hero-figure .verdict-value { font-size: var(--text-2xl); color: var(--text-strong); }
+.hero-figure.you .verdict-value { color: var(--accent-text); }
+.hero-example { margin: 0; max-width: 52ch; color: var(--text-muted); font-size: var(--text-sm); text-align: center; text-wrap: balance; }
 @media (max-width: 920px) {
   .hero { grid-template-columns: 1fr; min-height: 0; padding: var(--sp-2) 0 var(--sp-16); gap: 0; }
   .knocker-ring { max-width: 200px; order: -1; margin: -16px auto -8px; }
+  /* la anilla, arriba; las cifras del ejemplo, debajo del texto */
+  .hero-ring { display: contents; }
+  .hero-figures { position: static; width: auto; aspect-ratio: auto; transform: none; order: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin-top: var(--sp-10); }
+  .hero-figure { position: static; }
+  .hero-figure.you { grid-column: 1 / -1; }
+  .hero-example { order: 3; margin-top: var(--sp-4); text-align: left; }
   .hero h1 { margin-bottom: var(--sp-5); }
   .hero-lead { font-size: var(--text-lg); }
   .hero-proof { margin-bottom: var(--sp-8); }
@@ -1627,6 +1654,14 @@ main.map-page { max-width: none; padding: 0; }
   letter-spacing: -0.04em;
   color: var(--muted);
   margin-bottom: var(--sp-1);
+}
+/* «Cómo funciona» como recorrido: la línea avanza con el desplazamiento y cada número se enciende */
+.steps-line { display: none; }
+.steps li::before { transition: color var(--dur-2) var(--ease); }
+.steps li.is-on::before { color: var(--text-strong); }
+@media (min-width: 921px) {
+  .steps-line { display: block; height: 2px; margin-bottom: var(--sp-8); background: var(--border); }
+  .steps-line span { display: block; height: 100%; background: var(--accent-mark); transform-origin: 0 50%; }
 }
 .steps h3, .principles h2 { margin: 0; font-size: var(--text-xl); letter-spacing: -0.015em; }
 .steps p, .principles p { margin: 0; color: var(--text); line-height: 1.6; max-width: 46ch; }

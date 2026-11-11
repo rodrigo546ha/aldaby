@@ -232,6 +232,10 @@ el estado final se ve al instante, también al cambiar de pantalla.
   pequeños (iconos, barras de gráfica, botones), que son baratos ahí.
 - **Arrastres:** mientras se arrastra no hay transición; el control va pegado al puntero (el mapa lo
   hace por sí solo).
+- **La portada tiene tres excepciones** (ADR-0069), y solo ella: el desplazamiento es suave (Lenis);
+  la anilla va ligada al desplazamiento y se cierra al bajar (GSAP ScrollTrigger); y el titular entra
+  por líneas en 900 ms, el único movimiento de la web que pasa de 360. Con movimiento reducido no hay
+  ninguna de las tres. El resto de pantallas usa el desplazamiento del sistema.
 
 ## Componentes
 
@@ -346,6 +350,15 @@ reescribe: solo se ordena y se viste.
   puntero.
 
 ## Pantallas
+
+### Portada (`/`)
+El primer pliegue enseña el producto: el titular, la anilla y, alrededor de ella, tres cifras de un
+plan de ejemplo (tu cash flow en latón, la cuota y la TIR). Las cifras las calcula el motor con el
+caso de ejemplo del simulador; debajo, una línea dice qué piso es y, si alguna regla está sin
+verificar, que son provisionales. Las tarjetas de las cifras flotan sobre la anilla, así que llevan
+`--shadow-overlay`. En móvil la anilla va arriba, pequeña, y las cifras debajo del texto. «Cómo
+funciona» es un recorrido: una línea de `--accent-mark` avanza con el desplazamiento y cada número
+se enciende al llegar.
 
 ### Ofertas (`/mapa`)
 Una sola lista de todos los canales (ADR-0054), en mapa o en lista. El panel tiene:

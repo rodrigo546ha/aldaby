@@ -235,6 +235,12 @@ function buildRequest(state: Record<string, string>):
   return { request };
 }
 
+/** El caso de ejemplo como petición a la API: la portada enseña con él su plan de ejemplo (ADR-0069). */
+export function exampleRequest(): InvestmentRequest | null {
+  const built = buildRequest(EXAMPLE);
+  return "request" in built ? built.request : null;
+}
+
 const GROUPS: { title: string; keys: string[]; summary: string[]; topic?: string }[] = [
   {
     title: "Capacidad de compra",

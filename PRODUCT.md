@@ -39,7 +39,8 @@ del profesional.
 - Ninguna cifra la genera un LLM: toda cifra es un `Figure` con fórmula y fuentes, y la web enseña
   «cómo se calcula» y el aviso PROVISIONAL.
 - Textos de usuario en español; importes en euros con formato español.
-- Next.js (App Router) en `apps/web`, sin librerías de UI; estilos en `app/globals.css`.
+- Next.js (App Router) en `apps/web`, sin librerías de componentes; estilos en `app/globals.css`.
+  El movimiento es CSS; GSAP y Lenis entran solo en la portada (ADR-0069).
 
 ## Brand Commitments
 
