@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
+import { Callout } from "./Icon";
 import { Swap } from "./Motion";
 
 // Acceso de la beta (F7.1, ADR-0028): la cookie de sesión la pone la API; aquí solo formularios.
@@ -90,7 +91,13 @@ export function ChoosePassword() {
     setError(typeof body.detail === "string" ? body.detail : "No se ha podido guardar");
   }
 
-  if (!token) return <p className="failure">Falta el enlace: ábrelo tal como te llegó.</p>;
+  if (!token) {
+    return (
+      <Callout tone="danger">
+        <p>Falta el enlace: ábrelo tal como te llegó.</p>
+      </Callout>
+    );
+  }
   if (done) {
     return (
       <p>

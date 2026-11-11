@@ -13,12 +13,19 @@ type ProfileOut = components["schemas"]["ProfileOut"];
 
 // Supuestos de la búsqueda inversa (F6.5, ADR-0023). Las ofertas, con el plan del usuario en cada
 // una, están en el mapa (ADR-0054): aquí solo lo que el usuario pone y no tiene fuente pública.
-const ASSUMPTIONS: { id: string; label: string; kind: "pct" | "eur" | "bool"; hint?: string }[] = [
+// `emptyIsZero`: la búsqueda toma el vacío como 0 €, así que ese supuesto no «falta» aunque no tenga valor.
+const ASSUMPTIONS: {
+  id: string;
+  label: string;
+  kind: "pct" | "eur" | "bool";
+  hint?: string;
+  emptyIsZero?: boolean;
+}[] = [
   { id: "vacancy_rate", label: "Tiempo vacío al año", kind: "pct", hint: "Del año: el tiempo sin inquilino entre contratos" },
   { id: "management_fee_rate", label: "Gestión si la delegas", kind: "pct", hint: "De la renta que cobras" },
   { id: "other_purchase_cost_rate", label: "Gestoría y tasación", kind: "pct", hint: "Del precio de compra" },
   { id: "sale_cost_rate", label: "Gastos de venta", kind: "pct", hint: "Del precio de venta: agencia y otros" },
-  { id: "min_monthly_cashflow", label: "Cash flow mínimo al mes", kind: "eur", hint: "Lo que quieres que te quede como poco. Vacío, 0 €" },
+  { id: "min_monthly_cashflow", label: "Cash flow mínimo al mes", kind: "eur", hint: "Lo que quieres que te quede como poco. Vacío, 0 €", emptyIsZero: true },
   { id: "large_holder", label: "¿Tienes más de diez viviendas?", kind: "bool" },
 ];
 
@@ -116,7 +123,9 @@ function Assumptions({ profile, onSaved }: { profile: ProfileOut; onSaved: () =>
         <div className="field" key={a.id}>
           <label htmlFor={`assumption-${a.id}`}>
             {a.label}
-            {profile.missing_search.includes(a.id) && <span className="tag danger field-tag">Falta</span>}
+            {profile.missing_search.includes(a.id) && !a.emptyIsZero && (
+              <span className="tag danger field-tag">Falta</span>
+            )}
           </label>
           {a.kind === "bool" ? (
             <select

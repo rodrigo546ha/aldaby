@@ -287,7 +287,7 @@ legend {
 input, select, textarea { font: inherit; color: var(--strong); }
 
 .field input, .field select, .field textarea,
-.client-picker select, .rent-expectation input, .client-new input, .branding textarea {
+.client-picker select, .rent-expectation input, .client-new input:not([type="checkbox"]), .branding textarea {
   width: 100%;
   min-height: 42px;
   padding: 0 var(--sp-3);

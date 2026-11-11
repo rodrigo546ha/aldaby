@@ -519,7 +519,7 @@ summary { min-height: 32px; }
 .offer-list .tag { flex: none; align-self: flex-start; font-size: var(--text-xs); }
 
 /* 9 y 10 · Clientes y agencias */
-.client-list li { align-items: center; padding: var(--sp-3) var(--sp-3); margin: 0 calc(var(--sp-3) * -1); border-radius: var(--r-sm); }
+.client-list li { align-items: center; padding: var(--sp-3) var(--sp-3); border-radius: var(--r-sm); }
 .client-list li.is-active { background: var(--surface); box-shadow: inset 3px 0 0 var(--success); }
 .client-list strong { font-size: var(--text-lg); font-weight: 600; color: var(--text-strong); }
 .client-tags { display: inline-flex; gap: var(--sp-2); }
@@ -528,6 +528,43 @@ summary { min-height: 32px; }
 .link.danger:hover, .link-button.danger:hover { color: var(--danger); text-decoration-color: currentColor; }
 .empty-card p { margin: 0; max-width: var(--measure); line-height: var(--leading); }
 .empty-card strong { color: var(--text-strong); }
+/* Los paneles de formulario de estas pantallas llevan el borde de cualquier panel */
+.access-form, .branding-form, .client-new, .offers fieldset, .feed-form fieldset { border: 1px solid var(--border); }
+/* Un enlace suelto que se toca: 36 px de objetivo */
+.link.lone, .link-button.lone { display: inline-flex; align-items: center; min-height: var(--target-sm); }
+/* Agencias: el aviso mide lo que el formulario y la nota no pasa de la medida de lectura */
+.feeds .empty-card { max-width: 720px; }
+.feeds > section > .hint, .feed-form fieldset > .hint { margin: 0; max-width: var(--measure); }
+/* Marca: la muestra del color junto a su código, y el botón del fichero como uno secundario */
+.color-field { display: flex; gap: var(--sp-3); align-items: stretch; }
+.color-swatch {
+  flex: none;
+  width: var(--target);
+  border: 1px solid var(--border-control);
+  border-radius: var(--r-sm);
+  background: var(--bg-sunk);
+}
+.color-swatch.is-empty { border-style: dashed; }
+.field input[type="file"] { padding: var(--sp-2); cursor: pointer; }
+.field input[type="file"]::file-selector-button {
+  margin-right: var(--sp-3);
+  min-height: var(--target-sm);
+  padding: 0 var(--sp-4);
+  border: 1px solid var(--border-control);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text-strong);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+/* El asesor en móvil: la pregunta a todo el ancho y el botón debajo */
+@media (max-width: 640px) {
+  .rent-expectation { grid-template-columns: 1fr; }
+  .rent-expectation button { justify-self: start; }
+  .more-fields > summary { flex-wrap: wrap; row-gap: 0; }
+}
 .verdict-value .figure-unit, .advisor-chip .figure-unit, .sheet-value .figure-unit, .block-key-value .figure-unit,
 .listing-fit .figure-unit, .plan-card dd .figure-unit { font-size: max(0.42em, var(--text-xs)); }
 

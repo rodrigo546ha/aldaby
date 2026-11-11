@@ -116,6 +116,10 @@ export function BrandingEditor() {
       setForm((f) => ({ ...f, [id]: e.target.value })),
   });
 
+  const swatch = /^#[0-9a-f]{6}$/i.test(form.color.trim())
+    ? ({ background: form.color.trim() } as CSSProperties)
+    : undefined;
+
   return (
     <div className="branding">
       <form className="branding-form" onSubmit={save}>
@@ -128,8 +132,23 @@ export function BrandingEditor() {
           <input maxLength={120} placeholder="Teléfono, correo o web" {...field("contact")} />
         </div>
         <div className="field">
+          <label htmlFor="brand-logo">Logotipo (PNG o JPEG, hasta 2 MB)</label>
+          <input id="brand-logo" type="file" accept="image/png,image/jpeg" onChange={upload} />
+          <span className="hint">Se guarda al elegirlo.</span>
+          {brand?.has_logo && (
+            <button type="button" className="link lone"
+                    onClick={() => send("/api/branding/logo", { method: "DELETE" })}>
+              Quitar el logotipo
+            </button>
+          )}
+        </div>
+        <div className="field">
           <label htmlFor="brand-color">Color principal</label>
-          <input placeholder="#1f5f8b" maxLength={7} {...field("color")} />
+          <div className="color-field">
+            {/* La muestra enseña el código tal como está escrito; si vale lo decide la API al guardar */}
+            <span className={swatch ? "color-swatch" : "color-swatch is-empty"} style={swatch} aria-hidden="true" />
+            <input placeholder="#1f5f8b" maxLength={7} {...field("color")} />
+          </div>
           <span className="hint">Tiene que leerse bien sobre blanco: se comprueba al guardar.</span>
         </div>
         <div className="field">
@@ -144,16 +163,6 @@ export function BrandingEditor() {
         )}
         <button type="submit">Guardar</button>
       </form>
-      <div className="field">
-        <label htmlFor="brand-logo">Logotipo (PNG o JPEG, hasta 2 MB)</label>
-        <input id="brand-logo" type="file" accept="image/png,image/jpeg" onChange={upload} />
-        {brand?.has_logo && (
-          <button type="button" className="link"
-                  onClick={() => send("/api/branding/logo", { method: "DELETE" })}>
-            Quitar el logotipo
-          </button>
-        )}
-      </div>
       <h2>Así se verá en tus planes</h2>
       <BrandHeader brand={brand} version={version} />
       {brand && !(brand.display_name || brand.contact || brand.intro || brand.has_logo) && (

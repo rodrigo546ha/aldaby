@@ -205,7 +205,7 @@ function PasteForm({
             </small>
           </div>
         ) : (
-          <button type="button" className="link-button" onClick={() => setPasteText(true)}>
+          <button type="button" className="link-button lone" onClick={() => setPasteText(true)}>
             O pega el texto del anuncio
           </button>
         )}

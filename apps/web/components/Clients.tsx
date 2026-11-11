@@ -146,11 +146,11 @@ export function Clients() {
               </span>
               <span className="client-actions">
                 {!c.active && (
-                  <button type="button" className="link" onClick={() => choose(c)}>
+                  <button type="button" className="link lone" onClick={() => choose(c)}>
                     Trabajar con este
                   </button>
                 )}
-                <button type="button" className="link danger" onClick={() => remove(c)}>
+                <button type="button" className="link lone danger" onClick={() => remove(c)}>
                   Borrar
                 </button>
               </span>

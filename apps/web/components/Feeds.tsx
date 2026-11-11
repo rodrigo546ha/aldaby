@@ -70,7 +70,7 @@ export function Feeds() {
                 </span>
                 <span className="hint">{runSummary(f)}</span>
                 <span className="feed-actions">
-                  <button type="button" className="link danger" onClick={() => void remove(f)}>
+                  <button type="button" className="link lone danger" onClick={() => void remove(f)}>
                     Dar de baja
                   </button>
                 </span>
