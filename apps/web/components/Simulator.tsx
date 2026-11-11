@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import type { components } from "../lib/api-types";
 import { amount, formatValue, label, percentToRatio } from "../lib/format";
-import { TopicCharts } from "./Charts";
+import { TopicCharts, VerdictCascade } from "./Charts";
 import { Changes, ExplainHead, Lede, notePoints, Points, SourceList } from "./Explain";
 import { FigureBlock } from "./FigureView";
 import { Callout } from "./Icon";
@@ -640,6 +640,9 @@ function Results({ result }: { result: InvestmentResponse }) {
             <VerdictFigure key={k} figure={f[k]} />
           ))}
         </div>
+        {f["cashflow.annual_after_tax"] && result.breakdown.length > 1 && (
+          <VerdictCascade breakdown={result.breakdown} total={f["cashflow.annual_after_tax"]} />
+        )}
       </section>
       {!f["irr.rate"] && result.no_irr_reason && (
         <p className="hint">Sin TIR: {result.no_irr_reason}</p>
@@ -654,7 +657,7 @@ function Results({ result }: { result: InvestmentResponse }) {
             keys={group.summary}
           >
             {group.topic && (
-              <TopicCharts topic={group.topic} figures={figures} series={result.series} breakdown={result.breakdown} />
+              <TopicCharts topic={group.topic} figures={figures} series={result.series} />
             )}
           </FigureBlock>
         ))}

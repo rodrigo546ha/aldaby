@@ -236,6 +236,10 @@ el estado final se ve al instante, también al cambiar de pantalla.
   la anilla va ligada al desplazamiento y se cierra al bajar (GSAP ScrollTrigger); y el titular entra
   por líneas en 900 ms, el único movimiento de la web que pasa de 360. Con movimiento reducido no hay
   ninguna de las tres. El resto de pantallas usa el desplazamiento del sistema.
+- **Dos cosas se mueven en bucle, y solo esas:** el aro de una oferta que cierra en menos de tres
+  días, en el mapa (se abre y se apaga cada 2,4 s, y descansa la mitad del ciclo), y la anilla que
+  gira junto a la etapa en la que está el asesor mientras trabaja. Con movimiento reducido, el aro y
+  la anilla se quedan quietos.
 
 ## Componentes
 
@@ -273,6 +277,25 @@ de dos, veredicto si hay plan y dos acciones: **«Ver la ficha»** (principal) y
 ### Datos clave (`.keyfacts`)
 Fila de tres o cuatro cifras grandes (rótulo de 14 px encima, valor en Bricolage a 28 px): precio o
 valor de subasta, depósito, superficie y cuándo acaba. Es lo primero de la ficha.
+
+**Cuenta atrás (`.countdown`).** Si la oferta tiene fecha de cierre y la subasta está abierta,
+«cuándo acaba» es lo que queda: «Cierra en 5 d 01:10:14», con la fecha debajo. Cambia cada segundo
+con cifras tabulares y sin animación. Solo con la fecha y la hora que da la fuente (hora peninsular):
+sin hora, se cuentan los días; con la subasta sin abrir o suspendida, no hay reloj. El lector de
+pantalla oye lo que queda en palabras.
+
+### Cierra pronto
+Una oferta **cierra pronto** si le quedan menos de tres días. Se dice igual en todas partes: la
+etiqueta «Cierra hoy a las 18:00» (o «mañana», o «en 2 días») con el icono del reloj en `--warning`,
+en la tarjeta, en la ficha resumida y en la cabecera de la ficha; el aro que late en su punto del
+mapa (y en el grupo que la contiene); y el recuento del panel («6 cierran en menos de 3 días»).
+
+### Puja máxima (`.maxbid`)
+En la columna «Tu plan» de la ficha de una subasta. Se calcula al pulsar «Calcular mi puja máxima»,
+no al abrir la ficha, porque cuenta como abrir el plan completo (ADR-0041). Enseña tu puja máxima en
+latón a 36 px, una frase que dice qué no incluye (cargas y coste de posesión), tu cash flow al mes a
+cada puja como barras que se descubren de izquierda a derecha (las que no cumplen, apagadas y con
+«no cumple»), cómo se calcula y el enlace al simulador de puja del plan para ajustarla.
 
 ### Lista de datos (`.facts`)
 `dl` en dos columnas (rótulo a 14 px en `--text-muted`, valor a 16 px en `--text-emphasis`), filas
@@ -317,7 +340,21 @@ reglas, no el texto.
 La pregunta, a la izquierda en `--surface-2`; tu respuesta, a la derecha con un tinte del latón. La
 pregunta actual lleva un filo de latón. Encima, el recuento de datos obligatorios con su barra.
 
-### Veredicto, rejilla de cifras, bloques plegables y gráficas
+### Veredicto (`.verdict`)
+Lo primero del plan y del resultado del simulador. Arriba, si encaja o no, el título y la dirección.
+Debajo, en dos columnas en escritorio:
+- **A la izquierda, tu cifra:** tu cash flow tras impuestos en latón a 48 px, y a su lado, más
+  pequeñas y sin latón, lo que pones y la TIR. Debajo, «Tu cash flow si las cosas van peor»: una
+  fila por escenario que ya calcula el motor (subida de tipos, renta baja de la zona), con la cifra
+  de hoy, la flecha y la nueva.
+- **A la derecha, la cascada (`.cascade`):** de la renta del primer año a lo que te queda, una fila
+  por partida (rótulo, barra que flota entre lo acumulado antes y después, importe). Cada fila se
+  toca y enseña debajo, sobre `--bg-sunk`, su fórmula y sus fuentes. El total es una cifra de la API,
+  no una suma hecha en la web. Las barras se revelan en orden, como el resto de gráficas.
+
+En móvil y en el simulador, la cascada va debajo de las cifras.
+
+### Rejilla de cifras, bloques plegables y gráficas
 Siguen como en la v1, con la tipografía nueva: los rótulos en frase normal a 14 px, y las cifras de
 cabecera a 36 px en escritorio y 28 en móvil.
 
@@ -362,7 +399,7 @@ se enciende al llegar.
 
 ### Ofertas (`/mapa`)
 Una sola lista de todos los canales (ADR-0054), en mapa o en lista. El panel tiene:
-1. el recuento y su resumen («286 subastas · 2 encajan con tu plan»);
+1. el recuento y su resumen («286 subastas · 2 encajan con tu plan · 6 cierran en menos de 3 días»);
 2. la búsqueda por municipio, calle o provincia;
 3. el orden (recomendadas, acaban antes, precio de menos a más y de más a menos);
 4. los filtros por forma de venta y por tipo, con su recuento;
@@ -376,7 +413,8 @@ De arriba abajo:
 2. canal y estado, título, dirección y lugar;
 3. fotos (fachada y vista aérea) con su crédito;
 4. datos clave;
-5. tu plan: el veredicto con tres cifras y «Ver mi plan completo», o qué falta para verlo;
+5. tu plan: el veredicto con tres cifras y «Ver mi plan completo», o qué falta para verlo; en una
+   subasta, además, tu puja máxima;
 6. avisos (corrección del BOE, ubicación aproximada, vivienda habitual del deudor);
 7. secciones «La subasta», «El inmueble» y «Fuentes».
 
@@ -399,7 +437,8 @@ Una tarjeta con los supuestos sin fuente pública, en rejilla, cada uno con su u
 sirve.
 
 ### Plan (`/plan/[id]`)
-Foto arriba y, debajo, veredicto, temas plegables, simulador de puja y asesor, como en la v1.
+Foto arriba y, debajo, el veredicto con la cascada, el asesor, el simulador de puja y los temas
+plegables.
 
 ## Accesibilidad (lista de comprobación)
 

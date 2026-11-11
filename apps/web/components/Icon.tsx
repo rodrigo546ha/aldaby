@@ -36,6 +36,12 @@ const PATHS = {
   external: <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />,
   arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
   dot: <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" />,
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </>
+  ),
   pin: (
     <>
       <path d="M12 21s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0c0 5.6-6.5 11-6.5 11Z" />

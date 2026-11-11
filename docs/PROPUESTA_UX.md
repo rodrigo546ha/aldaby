@@ -259,7 +259,8 @@ paneles que se arrastran.
 | Aviso de guardado | Toast que entra desde abajo y se va a los 4 s, sin robar el foco | confirmación sin interrumpir |
 
 Lo que **no** se anima: la carga inicial de páginas de trabajo, el texto corrido y nada en bucle salvo la
-anilla de la portada.
+anilla de la portada, el aro de una oferta que cierra pronto en el mapa y la anilla del asesor mientras
+trabaja (U11 y U13).
 
 ---
 
@@ -277,7 +278,11 @@ Ordenado para que cada fase se pueda usar sola y no espere a la siguiente.
 | **U6** (hecha)| Navegación en 4 destinos y «Pegar un anuncio» como acción del mapa | No | No | pequeño |
 | **U7** (hecha, ADR-0052) | Asesor en fichas con salida estructurada y etapas en directo (el texto no se puede enseñar a trozos: se comprueba entero) | Sí | Sí (esquema de salida) | medio |
 | **U8** (hecha, ADR-0054) | Una sola lista de ofertas de todos los canales, también sin perfil; foto de fachada del Catastro u ortofoto del PNOA; color por forma de venta; solo los datos que deciden; fuera las secciones por canal | Sí | Sí (catálogo e imágenes) | medio |
-| **U9** (hecha, ADR-0069) | Portada con un plan de ejemplo calculado por el motor alrededor de la anilla, la anilla ligada al desplazamiento (GSAP), desplazamiento suave (Lenis) y «Cómo funciona» como recorrido |
+| **U9** (hecha, ADR-0069) | Portada con un plan de ejemplo calculado por el motor alrededor de la anilla, la anilla ligada al desplazamiento (GSAP), desplazamiento suave (Lenis) y «Cómo funciona» como recorrido | No | Sí (dependencias) | medio |
+| **U10** (hecha) | Ficha de subasta: «cuándo acaba» es una cuenta atrás con la fecha y la hora de la fuente, y tu puja máxima se calcula desde la columna «Tu plan», a petición (cuenta como abrir el plan, ADR-0041) | No | No | pequeño |
+| **U11** (hecha) | Mapa: lo que cierra en menos de tres días se dice en el punto (un aro que late), en la tarjeta («Cierra hoy a las 18:00») y en el resumen del panel | No | No | pequeño |
+| **U12** (hecha) | Veredicto del plan y del simulador con la cascada del primer año, fila a fila y con su fórmula al tocarla, y tu cash flow si suben los tipos o la renta es la baja de la zona. La cascada sale del tema «Alquiler y cash flow». El control continuo del Euríbor queda fuera: necesita que la API dé el cash flow a varios tipos | No | No | medio |
+| **U13** (hecha) | Asesor: la etapa en curso lleva la anilla girando; el esqueleto con la forma de las fichas se queda | No | No | pequeño |
 
 Para empezar recomiendo **U1 + U2**: no tocan la API, quitan la mayor parte del texto de entrada y dejan
 el terreno listo para las gráficas y el mapa.

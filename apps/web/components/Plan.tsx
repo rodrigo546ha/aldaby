@@ -7,7 +7,7 @@ import { invalidatePlans, useApi } from "../lib/data";
 import { formatValue, label } from "../lib/format";
 import { Advisor } from "./Advisor";
 import { Bids } from "./Bids";
-import { TopicCharts } from "./Charts";
+import { TopicCharts, VerdictCascade } from "./Charts";
 import { BrandHeader, useBranding } from "./Branding";
 import { Changes, ExplainHead, Lede, notePoints, Points, pointsFrom, Steps } from "./Explain";
 import { FigureBlock } from "./FigureView";
@@ -45,6 +45,11 @@ const VERDICT: { key: string; title: string }[] = [
   { key: "cashflow.monthly_after_tax", title: "Tu cash flow tras impuestos" },
   { key: "cashflow.cash_invested", title: "Lo que pones" },
   { key: "irr.rate", title: "Rentabilidad anual (TIR)" },
+];
+// Lo que pasa con tu cifra si las cosas van peor: dos escenarios que ya calcula el motor
+const WORSE: { key: string; title: string }[] = [
+  { key: "search.stressed_cashflow", title: "Con la subida de tipos" },
+  { key: "plan.low_rent_cashflow", title: "Con la renta baja de la zona" },
 ];
 const RENTAL: Record<string, string> = {
   habitual: "habitual",
@@ -93,6 +98,17 @@ export function Plan({ offerId }: { offerId: string }) {
     const f = all.get(v.key);
     return f ? [{ ...v, figure: f }] : [];
   });
+  const cash = all.get("cashflow.monthly_after_tax");
+  const yearly = all.get("cashflow.annual_after_tax");
+  const cascade = yearly && plan.breakdown.length > 1;
+  const worse = cash
+    ? WORSE.flatMap((w) => {
+        const f = all.get(w.key);
+        return f
+          ? [{ key: w.key, label: w.title, before: formatValue(cash.value, cash.unit), after: formatValue(f.value, f.unit) }]
+          : [];
+      })
+    : [];
   const sections = [...plan.sections].sort(
     (x, y) => (BLOCKS[x.id]?.order ?? 99) - (BLOCKS[y.id]?.order ?? 99),
   );
@@ -116,10 +132,21 @@ export function Plan({ offerId }: { offerId: string }) {
             <p className="verdict-address">{[offer.address, offer.place].filter(Boolean).join(" · ")}</p>
           )}
         </div>
-        <div className="verdict-figures">
-          {verdict.map((v) => (
-            <VerdictFigure key={v.key} figure={v.figure} title={v.title} />
-          ))}
+        <div className={cascade ? "verdict-body with-cascade" : "verdict-body"}>
+          <div className="verdict-side">
+            <div className="verdict-figures">
+              {verdict.map((v) => (
+                <VerdictFigure key={v.key} figure={v.figure} title={v.title} />
+              ))}
+            </div>
+            {worse.length > 0 && (
+              <div className="verdict-worse">
+                <ExplainHead>Tu cash flow si las cosas van peor</ExplainHead>
+                <Changes rows={worse} />
+              </div>
+            )}
+          </div>
+          {cascade && <VerdictCascade breakdown={plan.breakdown} total={yearly} />}
         </div>
         {plan.reasons.length > 0 && (
           <p className="verdict-reason">
@@ -161,7 +188,7 @@ export function Plan({ offerId }: { offerId: string }) {
             figures={s.figures}
             keys={BLOCKS[s.id]?.keys ?? []}
           >
-            <TopicCharts topic={s.id} figures={all} series={plan.series} breakdown={plan.breakdown} />
+            <TopicCharts topic={s.id} figures={all} series={plan.series} />
             {s.id === "compra" && (
               <Renovation
                 offerId={offerId}

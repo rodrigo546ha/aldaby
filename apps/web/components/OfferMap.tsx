@@ -9,6 +9,7 @@ import { PMTiles, Protocol } from "pmtiles";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 import type { components } from "../lib/api-types";
+import { closesSoon, closingLabel, useNow } from "../lib/closing";
 import { useApi } from "../lib/data";
 import { formatValue, type FigureOut } from "../lib/format";
 import { CHANNEL, channelStyle, ending, formatArea, type Channel, type Group } from "../lib/offers";
@@ -160,7 +161,7 @@ function pill(o: Offer): string {
   return o.price ? `${compact.format(Number(o.price))} €` : "";
 }
 
-function geojson(places: Place[]) {
+function geojson(places: Place[], soon: Set<string>) {
   return {
     type: "FeatureCollection" as const,
     features: places.map((p) => ({
@@ -171,19 +172,59 @@ function geojson(places: Place[]) {
         channel: p.channel,
         fit: p.plan ? (p.plan.passes ? 1 : 0) : -1,
         approx: p.approximate ? 1 : 0,
+        soon: soon.has(p.offer_id) ? 1 : 0,
         label: p.approximate ? `≈ ${pill(p)}` : pill(p),
       },
     })),
   };
 }
 
-function addOffers(map: MapLibre, t: Theme, places: Place[]) {
+// Las ofertas que cierran pronto laten: un aro del color del canal que se abre y se apaga cada
+// 2,4 s (DESIGN.md, «Movimiento»). Con movimiento reducido, el aro se queda quieto.
+const PULSE_MS = 2400;
+const PULSE_FRAME_MS = 33;
+const GROUP_RADIUS: maplibregl.ExpressionSpecification = ["step", ["get", "point_count"], 16, 10, 20, 50, 26];
+const POINT_RADIUS = 7;
+
+/** El aro en el instante `time`: se abre durante la primera mitad del ciclo y descansa la otra. */
+function pulseAt(time: number | null): { grow: number; opacity: number } {
+  if (time === null) return { grow: 5, opacity: 0.9 };
+  const k = Math.min(((time % PULSE_MS) / PULSE_MS) * 2, 1);
+  return { grow: 3 + (1 - Math.pow(1 - k, 3)) * 11, opacity: 0.9 * (1 - k) };
+}
+
+function setPulse(map: MapLibre, time: number | null) {
+  if (!map.getLayer("puntos-pronto")) return;
+  const { grow, opacity } = pulseAt(time);
+  map.setPaintProperty("puntos-pronto", "circle-radius", POINT_RADIUS + grow);
+  map.setPaintProperty("puntos-pronto", "circle-stroke-opacity", opacity);
+  map.setPaintProperty("grupos-pronto", "circle-radius", ["+", GROUP_RADIUS, grow]);
+  map.setPaintProperty("grupos-pronto", "circle-stroke-opacity", opacity);
+}
+
+function addOffers(map: MapLibre, t: Theme, places: Place[], soon: Set<string>) {
   map.addSource("ofertas", {
     type: "geojson",
-    data: geojson(places),
+    data: geojson(places, soon),
     cluster: true,
     clusterRadius: 44,
     clusterMaxZoom: 14,
+    // cuántas de las ofertas de un grupo cierran pronto
+    clusterProperties: { soon: ["+", ["get", "soon"]] },
+  });
+  const rest = pulseAt(null);
+  map.addLayer({
+    id: "grupos-pronto",
+    type: "circle",
+    source: "ofertas",
+    filter: ["all", ["has", "point_count"], [">", ["get", "soon"], 0]],
+    paint: {
+      "circle-radius": ["+", GROUP_RADIUS, rest.grow],
+      "circle-color": "rgba(0, 0, 0, 0)",
+      "circle-stroke-color": t.stat,
+      "circle-stroke-width": 2,
+      "circle-stroke-opacity": rest.opacity,
+    },
   });
   map.addLayer({
     id: "grupos",
@@ -194,7 +235,7 @@ function addOffers(map: MapLibre, t: Theme, places: Place[]) {
       "circle-color": t.raised,
       "circle-stroke-color": t.stat,
       "circle-stroke-width": 1.5,
-      "circle-radius": ["step", ["get", "point_count"], 16, 10, 20, 50, 26],
+      "circle-radius": GROUP_RADIUS,
     },
   });
   map.addLayer({
@@ -210,12 +251,25 @@ function addOffers(map: MapLibre, t: Theme, places: Place[]) {
   for (const [c, color] of Object.entries(t.channel)) byChannel.push(c, color || t.mark);
   byChannel.push(t.mark);
   map.addLayer({
+    id: "puntos-pronto",
+    type: "circle",
+    source: "ofertas",
+    filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "soon"], 1]],
+    paint: {
+      "circle-radius": POINT_RADIUS + rest.grow,
+      "circle-color": "rgba(0, 0, 0, 0)",
+      "circle-stroke-color": byChannel as maplibregl.ExpressionSpecification,
+      "circle-stroke-width": 2,
+      "circle-stroke-opacity": rest.opacity,
+    },
+  });
+  map.addLayer({
     id: "puntos",
     type: "circle",
     source: "ofertas",
     filter: ["!", ["has", "point_count"]],
     paint: {
-      "circle-radius": 7,
+      "circle-radius": POINT_RADIUS,
       "circle-color": byChannel as maplibregl.ExpressionSpecification,
       // En el centro de su municipio, no en su sitio: el punto, apagado (y «≈» en la pastilla)
       "circle-opacity": ["case", ["==", ["get", "approx"], 1], 0.4, 1],
@@ -384,6 +438,15 @@ export function OfferMap() {
   const onMap = useMemo(() => shown.filter(located).filter((p) => inside(coverage, p)), [shown, coverage]);
   const onMapRef = useRef<Place[]>([]);
   onMapRef.current = onMap;
+  // Las que cierran en menos de tres días: se mira cada minuto y solo cambia si cambia la lista
+  const now = useNow(60_000);
+  const soonKey = useMemo(
+    () => offers.filter((o) => closesSoon(o, now)).map((o) => o.offer_id).join(","),
+    [offers, now],
+  );
+  const soon = useMemo(() => new Set(soonKey ? soonKey.split(",") : []), [soonKey]);
+  const soonRef = useRef(soon);
+  soonRef.current = soon;
   const hereRef = useRef(here);
   hereRef.current = here;
   const coverageRef = useRef(coverage);
@@ -446,7 +509,7 @@ export function OfferMap() {
     });
     const paint = () => {
       const t = readTheme();
-      addOffers(m, t, onMapRef.current);
+      addOffers(m, t, onMapRef.current, soonRef.current);
       addHere(m, t, hereRef.current);
     };
     m.on("style.load", paint);
@@ -466,6 +529,16 @@ export function OfferMap() {
       m.on("mouseleave", id, () => (m.getCanvas().style.cursor = ""));
     }
     map.current = m;
+    // El latido solo corre si hay algo que cierre pronto a la vista y la pestaña se está viendo
+    let frame = 0;
+    let last = 0;
+    const beat = (time: number) => {
+      frame = requestAnimationFrame(beat);
+      if (time - last < PULSE_FRAME_MS || document.hidden || soonRef.current.size === 0) return;
+      last = time;
+      setPulse(m, time);
+    };
+    if (!still()) frame = requestAnimationFrame(beat);
     const repaint = () => m.setStyle(baseStyle(readTheme()));
     const themes = new MutationObserver(repaint);
     themes.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -474,6 +547,7 @@ export function OfferMap() {
     return () => {
       themes.disconnect();
       scheme.removeEventListener("change", repaint);
+      cancelAnimationFrame(frame);
       m.remove();
       map.current = null;
     };
@@ -482,8 +556,8 @@ export function OfferMap() {
   // Las ofertas (y los filtros) cambian los datos, no el estilo
   useEffect(() => {
     const source = map.current?.getSource("ofertas") as GeoJSONSource | undefined;
-    source?.setData(geojson(onMap));
-  }, [onMap]);
+    source?.setData(geojson(onMap, soon));
+  }, [onMap, soon]);
 
   // Al llegar las ofertas, el mapa las encuadra; si ya diste permiso de ubicación, centra en ti
   const framed = useRef(false);
@@ -558,6 +632,7 @@ export function OfferMap() {
   const chosen = offers.find((p) => p.offer_id === selected) ?? null;
   const passing = shown.filter((p) => p.plan?.passes).length;
   const auctions = shown.filter((p) => p.auction).length;
+  const closingSoon = shown.filter((p) => soon.has(p.offer_id)).length;
   const unlocated = shown.filter((o) => !located(o)).length;
   const outside = shown.filter(located).length - onMap.length;
   const filtered = group !== "todas" || typeGroup !== "todos" || onlyPass || query.trim() !== "";
@@ -597,6 +672,7 @@ export function OfferMap() {
         {chosen && (
           <OfferSheet
             offer={chosen}
+            soon={soon.has(chosen.offer_id) ? closingLabel(chosen, now) : null}
             note={
               !located(chosen)
                 ? "Sin ubicar: no sale en el mapa."
@@ -622,6 +698,7 @@ export function OfferMap() {
               {[
                 auctions > 0 && (auctions === 1 ? "1 subasta" : `${auctions} subastas`),
                 withPlan && (passing === 1 ? "1 encaja con tu plan" : `${passing} encajan con tu plan`),
+                closingSoon > 0 && (closingSoon === 1 ? "1 cierra en menos de 3 días" : `${closingSoon} cierran en menos de 3 días`),
               ]
                 .filter(Boolean)
                 .join(" · ")}
@@ -734,7 +811,7 @@ export function OfferMap() {
           <ol className="listings">
             {shown.map((o) => (
               <li key={o.offer_id}>
-                <Listing offer={o} current={o.offer_id === selected} onSelect={select} />
+                <Listing offer={o} current={o.offer_id === selected} soon={soon.has(o.offer_id) ? closingLabel(o, now) : null} onSelect={select} />
               </li>
             ))}
           </ol>
@@ -766,7 +843,17 @@ function framePadding() {
   return { top: 72, right: 72, bottom: 72, left };
 }
 
-function Listing({ offer: o, current, onSelect }: { offer: Offer; current: boolean; onSelect: (id: string) => void }) {
+function Listing({
+  offer: o,
+  current,
+  soon,
+  onSelect,
+}: {
+  offer: Offer;
+  current: boolean;
+  soon: string | null;
+  onSelect: (id: string) => void;
+}) {
   const cash = fig(o.plan, "cashflow.monthly_after_tax");
   const when = ending(o);
   return (
@@ -776,7 +863,13 @@ function Listing({ offer: o, current, onSelect }: { offer: Offer; current: boole
         <span className="listing-top">
           <span className="ch-badge">{CHANNEL[o.channel].label}</span>
           {o.status === "por_confirmar" && <span className="map-tag quiet">Por confirmar</span>}
-          {when && <span className="listing-when">{when}</span>}
+          {soon ? (
+            <span className="listing-when soon">
+              <Icon name="clock" small /> {soon}
+            </span>
+          ) : (
+            when && <span className="listing-when">{when}</span>
+          )}
         </span>
         <span className="listing-title">{o.title}</span>
         {(o.address || o.place) && (
@@ -815,11 +908,13 @@ function Listing({ offer: o, current, onSelect }: { offer: Offer; current: boole
 
 function OfferSheet({
   offer: o,
+  soon,
   note,
   planHint: hint,
   onClose,
 }: {
   offer: Offer;
+  soon: string | null;
   note: string | null;
   planHint: ReturnType<typeof planHint>;
   onClose: () => void;
@@ -863,6 +958,11 @@ function OfferSheet({
         <div className="listing-top">
           <span className="ch-badge">{CHANNEL[o.channel].label}</span>
           {o.status === "por_confirmar" && <span className="map-tag quiet">Por confirmar</span>}
+          {soon && (
+            <span className="listing-when soon">
+              <Icon name="clock" small /> {soon}
+            </span>
+          )}
         </div>
         <h2 id="ficha-titulo">{o.title}</h2>
         {(o.address || o.place) && (

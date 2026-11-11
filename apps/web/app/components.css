@@ -243,6 +243,53 @@
   white-space: nowrap;
 }
 .plan-card .verdict-reason { font-size: var(--text-base); color: var(--warning); }
+
+/* Lo que queda para el cierre: cifras tabulares que cambian sin moverse de sitio */
+.countdown { display: inline-block; min-width: 7ch; font-variant-numeric: tabular-nums; }
+
+/* Tu puja máxima en la ficha de una subasta: se pide al pulsar y se queda en la columna del plan */
+.maxbid { display: flex; flex-direction: column; gap: var(--sp-4); padding-top: var(--sp-5); border-top: 1px solid var(--border); }
+.maxbid > button { width: 100%; }
+.maxbid > a { align-self: flex-start; color: var(--text-emphasis); font-size: var(--text-base); }
+.maxbid-figure { display: flex; flex-direction: column; gap: var(--sp-1); }
+.maxbid-label { color: var(--text-muted); font-size: var(--text-sm); font-weight: 500; }
+.maxbid-value {
+  color: var(--accent-text);
+  font-family: var(--font-head);
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-head);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.bid-levels {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--sp-2) var(--sp-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+.bid-levels li { display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: center; }
+.bid-price { color: var(--text-muted); text-align: right; white-space: nowrap; }
+.bid-track { height: var(--sp-2); border-radius: var(--r-xs); background: var(--bg-sunk); overflow: hidden; }
+.bid-bar {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-xs);
+  background: var(--success);
+  clip-path: inset(0 100% 0 0);
+  animation: bar-reveal var(--dur-3) var(--ease) forwards;
+  animation-delay: calc(var(--i) * 40ms);
+}
+.bid-cash { color: var(--text-emphasis); text-align: right; white-space: nowrap; }
+.bid-cash small { display: block; color: var(--text-muted); font-size: var(--text-xs); }
+.bid-levels li.fail .bid-bar { background: var(--border-control); }
+.bid-levels li.fail .bid-cash { color: var(--text-muted); }
+@keyframes bar-reveal { to { clip-path: inset(0 0 0 0); } }
 .source-note { margin: 0; color: var(--text-muted); font-size: var(--text-sm); overflow-wrap: anywhere; }
 @media (max-width: 1024px) {
   .offer-page-grid { grid-template-columns: 1fr; }

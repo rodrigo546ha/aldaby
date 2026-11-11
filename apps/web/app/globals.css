@@ -670,11 +670,25 @@ td { color: var(--mist); }
 .advisor-start { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); }
 .advisor-stages { display: flex; flex-direction: column; gap: var(--sp-2); margin: 0; padding: 0; list-style: none; font-size: var(--text-base); color: var(--muted); }
 .advisor-stages li { display: flex; align-items: center; gap: var(--sp-3); animation: rise var(--dur-2) var(--ease) both; }
-.advisor-stages li::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--mark); }
+/* Lo hecho, un punto; lo que hace ahora, la anilla girando. Con movimiento reducido se queda quieta */
+.advisor-stages li::before {
+  content: "";
+  flex: none;
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-mark) 0 3.5px, transparent 4px);
+}
 .advisor-stages li.done::before { opacity: 0.45; }
 .advisor-stages li.current { color: var(--strong); }
-.advisor-stages li.current::before { animation: beat 1.2s var(--ease) infinite; }
-@keyframes beat { 50% { transform: scale(0.55); opacity: 0.5; } }
+.advisor-stages li.current::before {
+  border: 2px solid var(--accent-mark);
+  border-top-color: transparent;
+  background: none;
+  animation: turn 1.2s linear infinite;
+}
+@keyframes turn { to { transform: rotate(360deg); } }
 .advisor { display: flex; flex-direction: column; gap: var(--sp-6); }
 .advisor-summary {
   margin: 0;
@@ -785,6 +799,60 @@ td { color: var(--mist); }
 .verdict-value .figure-unit { font-size: 0.42em; letter-spacing: 0; }
 .verdict-label { color: var(--text-muted); font-size: var(--text-sm); font-weight: 500; }
 .verdict-label .prov-mark { margin-left: var(--sp-2); }
+/* Con la cascada: tu cifra y sus dos compañeras a la izquierda; a la derecha, cómo se llega a ella */
+.verdict-body { display: flex; flex-direction: column; gap: var(--sp-8); min-width: 0; }
+.verdict-side { display: flex; flex-direction: column; gap: var(--sp-8); min-width: 0; }
+.verdict-worse { display: flex; flex-direction: column; gap: var(--sp-3); }
+.verdict-worse .explain-head { margin: 0; }
+.verdict-worse .changes-list { background: var(--surface-2); }
+@media (min-width: 1081px) {
+  .verdict-body.with-cascade { display: grid; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); gap: var(--sp-12); align-items: start; }
+  .with-cascade .verdict-figures { grid-template-columns: 1fr 1fr; gap: var(--sp-6); }
+  .with-cascade .verdict-figure:first-child { grid-column: 1 / -1; }
+  /* Tu cifra es una: las otras dos bajan de tamaño y dejan el latón */
+  .with-cascade .verdict-figure:not(:first-child) .verdict-value { color: var(--text-strong); font-size: var(--text-2xl); }
+  .with-cascade .verdict-figure:not(:first-child) .prov-mark { display: block; margin: var(--sp-1) 0 0; }
+}
+
+/* Cascada del veredicto: cada fila se toca y enseña debajo su fórmula y sus fuentes */
+.cascade { gap: var(--sp-3); margin: 0; min-width: 0; }
+.cascade .chart-title { margin: 0; }
+.cascade-rows { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.cascade-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 200px) minmax(0, 1fr) minmax(96px, auto);
+  gap: var(--sp-4);
+  align-items: center;
+  width: 100%;
+  min-height: var(--target-sm);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: inherit;
+  font-weight: 400;
+  text-align: left;
+}
+.cascade-row:hover { background: var(--surface-hover); filter: none; }
+.cascade-row[aria-expanded="true"] { background: var(--surface-2); }
+.cascade-row[aria-expanded="true"] .chart-row-label { color: var(--text-strong); }
+.cascade-row.total { margin-top: var(--sp-2); border-top: 1px solid var(--border-strong); border-radius: 0 0 var(--r-sm) var(--r-sm); }
+.cascade-row.total .chart-row-label, .cascade-row.total .chart-value { color: var(--text-strong); font-weight: 600; }
+.cascade .bar { position: absolute; top: 3px; bottom: 3px; border-radius: var(--r-xs); }
+.cascade .bar.total { background: var(--stat); }
+.cascade-how {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--bg-sunk);
+  min-width: 0;
+}
+.cascade-how .explain-head, .cascade-how .hint { margin: 0; }
+@media (max-width: 640px) {
+  .cascade-row { grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-1) var(--sp-3); padding: var(--sp-2); }
+  .cascade-row .cascade-track { grid-column: 1 / -1; grid-row: 2; }
+}
 .verdict-reason { margin: 0; max-width: 70ch; color: var(--warn-text); font-size: var(--text-md); line-height: 1.5; }
 .verdict-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-6); }
 .verdict-actions a:not(.button-link) { color: var(--mist); font-size: var(--text-base); }
@@ -995,22 +1063,12 @@ td { color: var(--mist); }
 .line-dot.tone-3.pass { background: var(--chart-3); }
 
 /* Cascada del primer año: cada barra flota entre lo acumulado antes y después */
-.waterfall { display: flex; flex-direction: column; gap: var(--sp-3); }
-.waterfall-row { display: grid; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr) 130px; gap: var(--sp-4); align-items: center; }
-.waterfall-row.total { padding-top: var(--sp-3); border-top: 1px solid var(--line-strong); }
-.waterfall-row.total .chart-row-label, .waterfall-row.total .chart-value { color: var(--strong); font-weight: 500; }
-.waterfall-track {
+.cascade-track {
   position: relative;
   height: 20px;
   background: linear-gradient(var(--line-strong), var(--line-strong)) no-repeat;
   background-size: 1px 100%;
   background-position: var(--zero) 0;
-}
-.waterfall .bar { position: absolute; top: 2px; bottom: 2px; border-radius: var(--r-xs); }
-.waterfall .bar.total { background: var(--stat); }
-@media (max-width: 640px) {
-  .waterfall-row { grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-1) var(--sp-3); }
-  .waterfall-track { grid-column: 1 / -1; grid-row: 2; }
 }
 
 .line-axis { display: flex; justify-content: space-between; gap: var(--sp-3); color: var(--muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
@@ -1170,6 +1228,8 @@ main.map-page { max-width: none; padding: 0; }
 .listing-body { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
 .listing-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-2); margin-bottom: 2px; }
 .listing-when { color: var(--text-emphasis); font-size: var(--text-sm); font-weight: 500; white-space: nowrap; }
+/* Cierra en menos de tres días: lo dice el texto; el reloj y el color lo acompañan */
+.listing-when.soon { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--warning); font-weight: 600; }
 .listing-title {
   color: var(--strong);
   font-size: var(--text-md);

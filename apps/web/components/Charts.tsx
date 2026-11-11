@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 
 import type { components } from "../lib/api-types";
 import { formatValue, type FigureOut } from "../lib/format";
+import { ExplainHead, HowCalculated } from "./Explain";
 
 type SeriesOut = components["schemas"]["SeriesOut"];
 
@@ -305,64 +306,6 @@ export function LineChart({
   );
 }
 
-/**
- * Cascada: de un primer importe a un total, parte a parte (ADR-0050). Cada barra flota entre lo
- * acumulado antes y después; el total es una cifra de la API, no la suma que hace la web.
- */
-export function Waterfall({
-  title,
-  parts,
-  total,
-}: {
-  title: string;
-  parts: { title: string; note?: string; figure: FigureOut; tone: number }[];
-  total: { title: string; figure: FigureOut };
-}) {
-  const shown = parts.filter((p) => n(p.figure) !== 0);
-  if (shown.length < 2) return null;
-  const steps: { from: number; to: number }[] = [];
-  let at = 0;
-  for (const p of shown) {
-    steps.push({ from: at, to: at + n(p.figure) });
-    at += n(p.figure);
-  }
-  const ends = [0, n(total.figure), ...steps.map((x) => x.to)];
-  const lo = Math.min(...ends);
-  const hi = Math.max(...ends);
-  if (!(hi > lo)) return null;
-  const pos = (v: number) => ((v - lo) / (hi - lo)) * 100;
-  const bar = (from: number, to: number) => ({
-    left: `${pos(Math.min(from, to))}%`,
-    width: `${Math.max(pos(Math.max(from, to)) - pos(Math.min(from, to)), 0.4)}%`,
-  });
-  const summary = [...shown.map((p) => `${p.title}: ${text(p.figure)}`), `${total.title}: ${text(total.figure)}`].join(". ");
-  return (
-    <Chart title={title} summary={summary}>
-      <div className="waterfall" style={{ "--zero": `${pos(0)}%` } as CSSProperties}>
-        {shown.map((p, i) => (
-          <div key={p.title} className="waterfall-row">
-            <span className="chart-row-label">
-              {p.title}
-              {p.note && <span className="chart-note">{p.note}</span>}
-            </span>
-            <div className="waterfall-track">
-              <span className={`bar tone-${p.tone}`} style={{ ...bar(steps[i].from, steps[i].to), ...delay(i) }} />
-            </div>
-            <span className="chart-value">{text(p.figure)}</span>
-          </div>
-        ))}
-        <div className="waterfall-row total">
-          <span className="chart-row-label">{total.title}</span>
-          <div className="waterfall-track">
-            <span className="bar total" style={{ ...bar(0, n(total.figure)), ...delay(shown.length) }} />
-          </div>
-          <span className="chart-value">{text(total.figure)}</span>
-        </div>
-      </div>
-    </Chart>
-  );
-}
-
 /** Una o varias series año a año sobre el mismo eje; la principal, más gruesa y en latón. */
 export function SeriesLines({
   title,
@@ -464,35 +407,109 @@ const BREAKDOWN: { key: string; title: string; note?: string; tone: number }[] =
   { key: "tax", title: "IRPF del alquiler", tone: 2 },
 ];
 
+/** Las partes del primer año que hay en el desglose, en su orden y con su tono. */
+function breakdownParts(breakdown: FigureOut[]) {
+  return BREAKDOWN.flatMap((b) => {
+    const f = breakdown.find((x) => x.key === `cashflow.breakdown.${b.key}`);
+    // Un ahorro de IRPF suma: se pinta como ingreso
+    return f ? [{ key: b.key, title: b.title, note: b.note, figure: f, tone: b.key === "tax" && Number(f.value) > 0 ? 1 : b.tone }] : [];
+  });
+}
+
+/**
+ * La cascada del veredicto (DESIGN.md, «Veredicto»): de la renta del primer año a lo que te queda,
+ * fila a fila. Cada fila es una cifra de la API y, al tocarla, enseña su fórmula y sus fuentes; el
+ * total es otra cifra de la API, no una suma hecha aquí. Aquí solo se calculan las posiciones.
+ */
+export function VerdictCascade({ breakdown, total }: { breakdown: FigureOut[]; total: FigureOut }) {
+  const [ref, shown] = useReveal<HTMLDivElement>();
+  const [open, setOpen] = useState<string | null>(null);
+  const parts = breakdownParts(breakdown).filter((p) => n(p.figure) !== 0);
+  if (parts.length < 2) return null;
+  const steps: { from: number; to: number }[] = [];
+  let at = 0;
+  for (const p of parts) {
+    steps.push({ from: at, to: at + n(p.figure) });
+    at += n(p.figure);
+  }
+  const ends = [0, n(total), ...steps.map((x) => x.to)];
+  const lo = Math.min(...ends);
+  const hi = Math.max(...ends);
+  if (!(hi > lo)) return null;
+  const pos = (v: number) => ((v - lo) / (hi - lo)) * 100;
+  const bar = (from: number, to: number) => ({
+    left: `${pos(Math.min(from, to))}%`,
+    width: `${Math.max(pos(Math.max(from, to)) - pos(Math.min(from, to)), 0.4)}%`,
+  });
+  const rows = [
+    ...parts.map((p, i) => ({ ...p, total: false, span: bar(steps[i].from, steps[i].to) })),
+    { key: "total", title: "Te queda en el año", note: undefined, figure: total, tone: 0, total: true, span: bar(0, n(total)) },
+  ];
+  const current = rows.find((r) => r.key === open);
+  return (
+    <div ref={ref} className={shown ? "chart cascade is-in" : "chart cascade"} style={{ "--zero": `${pos(0)}%` } as CSSProperties}>
+      <h3 className="chart-title" id="cascada-titulo">
+        De la renta del primer año a lo que te queda
+      </h3>
+      <ol className="cascade-rows" aria-labelledby="cascada-titulo">
+        {rows.map((r, i) => (
+          <li key={r.key}>
+            <button
+              type="button"
+              className={r.total ? "cascade-row total" : "cascade-row"}
+              aria-expanded={open === r.key}
+              aria-controls="cascada-calculo"
+              onClick={() => setOpen(open === r.key ? null : r.key)}
+            >
+              <span className="chart-row-label">
+                {r.title}
+                {r.note && <span className="chart-note">{r.note}</span>}
+              </span>
+              <span className="cascade-track" aria-hidden="true">
+                <span className={r.total ? "bar total" : `bar tone-${r.tone}`} style={{ ...r.span, ...delay(i) }} />
+              </span>
+              {/* el título ya dice que es el primer año: el importe va sin «al año» */}
+              <span className="chart-value">{formatValue(r.figure.value, "EUR")}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+      <div id="cascada-calculo" className="cascade-how" aria-live="polite">
+        {current ? (
+          <>
+            <ExplainHead>
+              {current.title}: cómo se calcula
+              {current.figure.provisional && <span className="prov-mark"> provisional</span>}
+            </ExplainHead>
+            <HowCalculated figure={current.figure} />
+          </>
+        ) : (
+          <p className="hint">Toca una fila para ver cómo se calcula y de dónde sale.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** Las gráficas de un tema del plan o del simulador, con las cifras que haya de ese tema. */
 export function TopicCharts({
   topic,
   figures,
   series = [],
-  breakdown = [],
 }: {
   topic: string;
   figures: Map<string, FigureOut>;
   series?: SeriesOut[];
-  breakdown?: FigureOut[];
 }) {
   const get = (k: string) => figures.get(k);
   const line = (k: string) => series.find((s) => s.key === k);
   if (topic === "explotacion") {
-    const total = get("cashflow.annual_after_tax");
-    const parts = BREAKDOWN.flatMap((b) => {
-      const f = breakdown.find((x) => x.key === `cashflow.breakdown.${b.key}`);
-      // Un ahorro de IRPF suma: se pinta como ingreso
-      return f ? [{ title: b.title, note: b.note, figure: f, tone: b.key === "tax" && Number(f.value) > 0 ? 1 : b.tone }] : [];
-    });
+    // La cascada del primer año está arriba, en el veredicto (VerdictCascade)
     return (
-      <>
-        {total && <Waterfall title="El primer año, de la renta a lo que te queda" parts={parts} total={{ title: "Te queda en el año", figure: total }} />}
-        <SeriesLines
-          title="Tu cash flow tras impuestos, año a año"
-          lines={[{ label: "Cash flow del año", series: line("cashflow.after_tax_by_year"), main: true }]}
-        />
-      </>
+      <SeriesLines
+        title="Tu cash flow tras impuestos, año a año"
+        lines={[{ label: "Cash flow del año", series: line("cashflow.after_tax_by_year"), main: true }]}
+      />
     );
   }
   const seg = (title: string, k: string): Segment[] => {

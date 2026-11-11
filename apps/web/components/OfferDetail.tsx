@@ -1,10 +1,11 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useState, type CSSProperties, type ReactNode } from "react";
 
 import type { components } from "../lib/api-types";
 import { peek, seed, useApi } from "../lib/data";
-import { formatDate, formatValue, type FigureOut } from "../lib/format";
+import { closing, closingLabel, useNow } from "../lib/closing";
+import { formatDate, formatShortDate, formatValue, type FigureOut } from "../lib/format";
 import {
   CHANNEL,
   channelStyle,
@@ -15,15 +16,17 @@ import {
   type CatalogOut,
 } from "../lib/offers";
 import { Amount } from "./FigureView";
-import { ExplainHead, Lede, Quote, SourceLink } from "./Explain";
+import { Countdown } from "./Countdown";
+import { ExplainHead, HowCalculated, Lede, Quote, SourceLink } from "./Explain";
 import { Callout, Icon } from "./Icon";
-import { Skeleton } from "./Motion";
+import { Skeleton, Swap } from "./Motion";
 import { OfferPhoto } from "./OfferPhoto";
 import { AppLink, DATA } from "./AppLink";
 
 type SearchOut = components["schemas"]["SearchOut"];
 type ScoredOut = components["schemas"]["ScoredOut"];
 type OfferScoreOut = components["schemas"]["OfferScoreOut"];
+type BidsOut = components["schemas"]["BidsOut"];
 
 // Ficha de una oferta (DESIGN.md, «Pantallas»): lo que decide arriba y en grande; tu plan al lado;
 // la subasta, el inmueble y las fuentes debajo. Ninguna cifra se calcula aquí: vienen de la API.
@@ -40,6 +43,7 @@ export function OfferDetail({ offerId }: { offerId: string }) {
   useState(() => seedFromLists(offerId, offerUrl, planUrl));
   const offerApi = useApi<CatalogOut>(offerUrl);
   const planApi = useApi<OfferScoreOut>(planUrl);
+  const now = useNow(60_000);
   const offer = offerApi.result?.ok ? offerApi.result.data : null;
   const failure =
     offerApi.result && !offerApi.result.ok
@@ -70,6 +74,7 @@ export function OfferDetail({ offerId }: { offerId: string }) {
 
   const when = ending(offer);
   const ended = offer.ends_on !== null && offer.ends_on !== undefined && offer.ends_on < new Date().toISOString().slice(0, 10);
+  const soon = ended ? null : closingLabel(offer, now);
   const photos = offer.photos.length > 0 || offer.images.length > 0;
 
   return (
@@ -84,6 +89,10 @@ export function OfferDetail({ offerId }: { offerId: string }) {
           {offer.status === "por_confirmar" && <span className="tag warning">Por confirmar</span>}
           {ended ? (
             <span className="tag">Terminada</span>
+          ) : soon ? (
+            <span className="tag warning">
+              <Icon name="clock" small /> {soon}
+            </span>
           ) : (
             when && <span className="tag">{when}{offer.ends_time ? ` a las ${offer.ends_time}` : ""}</span>
           )}
@@ -115,7 +124,7 @@ export function OfferDetail({ offerId }: { offerId: string }) {
         </div>
       )}
 
-      <KeyFacts offer={offer} when={ended ? "Terminada" : when} />
+      <KeyFacts offer={offer} when={ended ? "Terminada" : when} ended={ended} />
 
       <div className="offer-page-grid">
         <div className="offer-page-main">
@@ -145,12 +154,21 @@ function seedFromLists(offerId: string, offerUrl: string, planUrl: string) {
   }
 }
 
-function KeyFacts({ offer, when }: { offer: CatalogOut; when: string | null }) {
-  const facts: [string, string, string?][] = [];
+function KeyFacts({ offer, when, ended }: { offer: CatalogOut; when: string | null; ended: boolean }) {
+  // Con fecha de cierre y la subasta abierta, lo que queda; si no, la fecha que dé la fuente
+  const close = ended ? null : closing(offer);
+  const verb = offer.channel === "venta_directa" ? "El plazo acaba" : "Cierra";
+  const facts: [string, ReactNode, string?][] = [];
   facts.push([priceLabel(offer), offer.price ? formatValue(offer.price, "EUR") : "Sin precio", offer.price ? undefined : "el anuncio no lo da"]);
   if (offer.deposit) facts.push(["Depósito para pujar", formatValue(offer.deposit, "EUR")]);
   if (offer.built_area_m2) facts.push(["Superficie construida", formatArea(offer.built_area_m2)]);
-  if (when) facts.push([offer.channel === "venta_directa" ? "Plazo" : "Subasta", when.replace(/^(Termina|Hasta) el /, ""), offer.ends_time ? `a las ${offer.ends_time}` : undefined]);
+  if (close && offer.ends_on)
+    facts.push([
+      close.exact ? `${verb} en` : verb,
+      <Countdown key="cierre" closing={close} date={offer.ends_on} />,
+      `el ${formatShortDate(offer.ends_on)}${offer.ends_time ? ` a las ${offer.ends_time}` : ""}`,
+    ]);
+  else if (when) facts.push([offer.channel === "venta_directa" ? "Plazo" : "Subasta", when.replace(/^(Termina|Hasta) el /, ""), offer.ends_time ? `a las ${offer.ends_time}` : undefined]);
   return (
     <dl className="keyfacts">
       {facts.map(([label, value, note]) => (
@@ -392,12 +410,110 @@ function PlanCard({ offer, plan }: { offer: CatalogOut; plan: Plan }) {
         <AppLink className="button-link primary" href={`/plan/${offer.offer_id}`} data={DATA.plan(offer.offer_id)} morph>
           Ver mi plan completo
         </AppLink>
-        {offer.auction && (
-          <AppLink className="button-link" href={`/plan/${offer.offer_id}#pujas`} data={DATA.plan(offer.offer_id)} morph>
-            Simular mi puja
-          </AppLink>
-        )}
       </div>
+      {offer.auction && <MaxBid offer={offer} />}
     </section>
+  );
+}
+
+type BidState = { state: "sin_pedir" } | { state: "cargando" } | { state: "ok"; bids: BidsOut } | { state: "fallo"; text: string };
+
+/**
+ * Tu puja máxima en la ficha de una subasta. La calcula la API, que rehace el plan a cada puja
+ * (ADR-0047); se pide al pulsar, porque cuenta como abrir el plan completo (ADR-0041). Aquí va sin
+ * cargas ni coste de posesión: eso se ajusta en el simulador de puja del plan.
+ */
+function MaxBid({ offer }: { offer: CatalogOut }) {
+  const key = `/api/plans/offers/${offer.offer_id}/bids`;
+  const [bid, setBid] = useState<BidState>(() => {
+    const kept = peek<BidsOut>(key);
+    return kept?.ok ? { state: "ok", bids: kept.data } : { state: "sin_pedir" };
+  });
+
+  async function ask() {
+    setBid({ state: "cargando" });
+    try {
+      const resp = await fetch(key, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ judicial: offer.channel === "subasta_judicial" }),
+      });
+      const body = await resp.json().catch(() => ({}));
+      if (resp.ok) {
+        seed<BidsOut>(key, body as BidsOut);
+        setBid({ state: "ok", bids: body as BidsOut });
+      } else {
+        const detail = Array.isArray(body.detail) ? body.detail.join(". ") : body.detail;
+        setBid({ state: "fallo", text: typeof detail === "string" ? detail : "No se ha podido calcular tu puja máxima." });
+      }
+    } catch {
+      setBid({ state: "fallo", text: "No se ha podido conectar con la API." });
+    }
+  }
+
+  const planLink = (
+    <AppLink href={`/plan/${offer.offer_id}#pujas`} data={DATA.plan(offer.offer_id)} morph>
+      Ajustar con cargas y posesión
+    </AppLink>
+  );
+  if (bid.state !== "ok")
+    return (
+      <div className="maxbid">
+        <button type="button" className="secondary" onClick={ask} disabled={bid.state === "cargando"}>
+          <Swap>{bid.state === "cargando" ? "Calculando cada puja…" : "Calcular mi puja máxima"}</Swap>
+        </button>
+        {bid.state === "fallo" && <p className="failure">{bid.text}</p>}
+      </div>
+    );
+
+  const { bids } = bid;
+  const levels = [...bids.levels].sort((a, b) => Number(a.price.value) - Number(b.price.value));
+  const top = Math.max(...levels.map((l) => Number(l.cashflow.value)), 0);
+  return (
+    <div className="maxbid">
+      {bids.max_bid ? (
+        <>
+          <div className="maxbid-figure">
+            <span className="maxbid-label">
+              Tu puja máxima
+              {bids.max_bid.provisional && <span className="prov-mark"> provisional</span>}
+            </span>
+            <span className="maxbid-value">
+              <Amount text={formatValue(bids.max_bid.value, bids.max_bid.unit)} />
+            </span>
+          </div>
+          <p className="source-note">
+            Por encima, el plan deja de cumplir lo que pides. Va sin cargas ni coste de recuperar la posesión.
+          </p>
+        </>
+      ) : (
+        <p className="failure">Ni con la puja más baja cumple tu plan.</p>
+      )}
+      <ExplainHead>Tu cash flow al mes a cada puja</ExplainHead>
+      <ol className="bid-levels">
+        {levels.map((l, i) => {
+          const cash = Number(l.cashflow.value);
+          return (
+            <li key={l.share} className={l.passes ? "pass" : "fail"} style={{ "--i": i } as CSSProperties}>
+              <span className="bid-price">{formatValue(l.price.value, l.price.unit)}</span>
+              <span className="bid-track" aria-hidden="true">
+                <span className="bid-bar" style={{ width: `${top > 0 && cash > 0 ? Math.max((cash / top) * 100, 2) : 2}%` }} />
+              </span>
+              <span className="bid-cash">
+                {formatValue(l.cashflow.value, "EUR")}
+                {!l.passes && <small>no cumple</small>}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+      {bids.max_bid && (
+        <details className="figure-how">
+          <summary>Cómo se calcula</summary>
+          <HowCalculated figure={bids.max_bid} />
+        </details>
+      )}
+      {planLink}
+    </div>
   );
 }
