@@ -248,7 +248,10 @@ el estado final se ve al instante, también al cambiar de pantalla.
   macizo en claro, texto de 15 px en peso 600, en frase normal, 44 px de alto, radio 8. Uno por
   pantalla.
 - **Secundario** (`button.secondary`, `.button-link`): transparente con `--border-control`.
-- **Enlace** (`.link-button`): texto subrayado.
+- **Enlace** (`.link-button`, `button.link`): texto subrayado. Suelto en una fila o bajo un campo
+  («Borrar», «Dar de baja», «Quitar el logotipo») lleva `.lone` y mide 36 px de alto.
+- **Elegir fichero** (`input[type="file"]`): el botón del navegador con el aspecto del secundario, a
+  36 px. Si el fichero se guarda al elegirlo, lo dice una nota debajo.
 - Foco con anillo; pulsado al 98 %; desactivado al 50 % y sin puntero.
 
 ### Etiqueta de canal (`.ch-badge`)
@@ -313,7 +316,8 @@ la derecha. Solo con fechas que da la fuente.
 
 ### Panel de sección (`.section-card`)
 Panel `--surface` con radio 16 y 24 px de relleno, título en Bricolage a 22 px y, si hace falta,
-una línea de explicación en `--text-muted`.
+una línea de explicación en `--text-muted`. Las tarjetas de formulario (acceso, alta de cliente,
+marca, alta de feed, añadir un anuncio) llevan el mismo borde `--border`.
 
 ### Formulario por pasos (`.stepper`)
 Para formularios largos (el simulador):
@@ -330,6 +334,11 @@ Para formularios largos (el simulador):
 La unidad (€, %) dentro del campo, a la derecha, en `--text-muted`, sin entrar en el valor. La
 explicación va debajo, enlazada con `aria-describedby`; un ejemplo nunca va como texto de ayuda
 dentro del campo (`placeholder`) si puede confundirse con un dato.
+
+### Muestra de color (`.color-swatch`)
+Junto al código de color de la marca: un cuadro de 44 px con `--border-control` y radio 8 que se
+pinta con el código cuando es un `#rrggbb` completo; vacío o a medio escribir, borde discontinuo.
+Enseña lo escrito: si el color vale lo decide la API al guardar.
 
 ### Buscador de municipio (`.combobox`)
 Patrón combobox de WAI-ARIA: se escribe el nombre y aparecen hasta doce municipios del INE con su
@@ -429,7 +438,9 @@ calcular.
 - **Sin entrevista:** una tarjeta con los tres pasos (contestas, revisas, confirmas) y el aviso de
   cifrado.
 - **Con entrevista:** la conversación a la izquierda y el borrador a la derecha, cada dato con su
-  origen («De tu respuesta», «Corregido por ti») o «Falta».
+  origen («De tu respuesta», «Corregido por ti») o «Falta». Los datos obligatorios van a la vista y
+  los opcionales plegados bajo «N datos opcionales», que se abre solo cuando alguno trae valor.
+  «Falta» sale en neutro mientras quedan preguntas y en `--danger` cuando ya no quedan.
 - **Confirmado:** aviso de éxito y «Ver las ofertas que encajan».
 
 ### Supuestos (`/busqueda`)
