@@ -1863,4 +1863,7 @@ details[open] > .block-body > :nth-child(n + 4) { animation-delay: calc(var(--st
     animation-delay: 0ms !important;
     transition-delay: 0ms !important;
   }
+  /* `*` no alcanza al contenido de un plegable. Va en su propia regla: un navegador que no conoce
+     el pseudo-elemento descarta la regla entera, y la de arriba tiene que seguir valiendo */
+  details::details-content { transition-duration: 0ms !important; }
 }
