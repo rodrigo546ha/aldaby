@@ -432,7 +432,7 @@
 .more-fields { border-top: 1px solid var(--border); padding-top: var(--sp-4); font-size: inherit; color: var(--text); }
 .more-fields > summary { color: var(--text-emphasis); font-size: var(--text-base); font-weight: 600; min-height: var(--target-sm); }
 .more-fields-note { color: var(--text-muted); font-weight: 400; font-size: var(--text-sm); }
-.more-fields[open] > .field-grid { margin-top: var(--sp-4); }
+.more-fields[open] > .field-grid, .more-fields[open] > .confirm-grid { margin-top: var(--sp-4); }
 .stepper-actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); padding-top: var(--sp-4); border-top: 1px solid var(--border); }
 .stepper-actions button[type="button"]:not(.secondary), .stepper-actions button[type="submit"]:not(.secondary) { margin-left: auto; }
 .error-summary:focus { outline: none; }

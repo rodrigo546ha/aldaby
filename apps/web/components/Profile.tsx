@@ -49,6 +49,13 @@ export function Profile() {
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [optionalOpen, setOptionalOpen] = useState(false);
+
+  // Los datos opcionales van plegados; se abren solos en cuanto alguno trae dato, para que se revise
+  const optionalFilled = (interview?.fields ?? []).filter((f) => !f.required && isFilled(f, edits)).length;
+  useEffect(() => {
+    if (optionalFilled > 0) setOptionalOpen(true);
+  }, [optionalFilled]);
 
   const call = useCallback(async (url: string, init?: RequestInit) => {
     setFailure(null);
@@ -88,6 +95,7 @@ export function Profile() {
     const started = await call("/api/profile/interviews", { method: "POST" });
     setInterview((started as InterviewOut) ?? null);
     setEdits({});
+    setOptionalOpen(false);
     setBusy(false);
   }
 
@@ -183,8 +191,24 @@ export function Profile() {
 
   const confirmed = interview.status === "confirmada";
   const required = interview.fields.filter((f) => f.required);
-  const filled = (f: DraftField) => (f.field in edits ? edits[f.field].trim() !== "" : asText(f.value).trim() !== "");
+  const optional = interview.fields.filter((f) => !f.required);
+  const filled = (f: DraftField) => isFilled(f, edits);
   const done = required.filter(filled).length;
+  // Mientras quedan preguntas, un dato sin contestar está pendiente; cuando ya no quedan, falta
+  const asked = !interview.next_question;
+  const editor = (f: DraftField) => (
+    <FieldEditor
+      key={f.field}
+      field={f}
+      regions={regions}
+      value={f.field in edits ? edits[f.field] : asText(f.value)}
+      edited={f.field in edits}
+      missing={f.required && !filled(f)}
+      asked={asked}
+      disabled={confirmed || busy}
+      onChange={(v) => setEdits((old) => ({ ...old, [f.field]: v }))}
+    />
+  );
   return (
     <>
       <div className="profile">
@@ -275,20 +299,22 @@ export function Profile() {
               </p>
             </Callout>
           )}
-          <div className="confirm-grid">
-            {interview.fields.map((f) => (
-              <FieldEditor
-                key={f.field}
-                field={f}
-                regions={regions}
-                value={f.field in edits ? edits[f.field] : asText(f.value)}
-                edited={f.field in edits}
-                missing={f.required && !filled(f)}
-                disabled={confirmed || busy}
-                onChange={(v) => setEdits((old) => ({ ...old, [f.field]: v }))}
-              />
-            ))}
-          </div>
+          <div className="confirm-grid">{required.map(editor)}</div>
+          {optional.length > 0 && (
+            <details
+              className="more-fields"
+              open={optionalOpen}
+              onToggle={(e) => setOptionalOpen(e.currentTarget.open)}
+            >
+              <summary>
+                {optional.length === 1 ? "1 dato opcional" : `${optional.length} datos opcionales`}{" "}
+                <span className="more-fields-note">
+                  {optionalFilled > 0 ? `${optionalFilled} con dato` : "afinan el cálculo"}
+                </span>
+              </summary>
+              <div className="confirm-grid">{optional.map(editor)}</div>
+            </details>
+          )}
           <div className="draft-actions">
             {confirmed ? (
               <>
@@ -328,27 +354,30 @@ function asText(value: DraftField["value"]): string {
   return Array.isArray(value) ? value.join(", ") : value;
 }
 
+function isFilled(field: DraftField, edits: Edits): boolean {
+  return (field.field in edits ? edits[field.field] : asText(field.value)).trim() !== "";
+}
+
 function FieldEditor(props: {
   field: DraftField;
   regions: Region[];
   value: string;
   edited: boolean;
   missing: boolean;
+  asked: boolean;
   disabled: boolean;
   onChange: (value: string) => void;
 }) {
-  const { field, regions, value, edited, missing, disabled, onChange } = props;
+  const { field, regions, value, edited, missing, asked, disabled, onChange } = props;
   const id = `profile-${field.field}`;
   const choices = CHOICES[field.field];
   return (
-    <div className={`field draft-field${missing ? " is-missing" : ""}`}>
+    <div className={`field draft-field${missing && asked ? " is-missing" : ""}`}>
       <div className="draft-field-head">
-        <label htmlFor={id}>
-          {field.label}
-          {!field.required && <span className="optional"> · opcional</span>}
-        </label>
+        {/* Sin «· opcional»: los opcionales van juntos bajo un título que ya lo dice */}
+        <label htmlFor={id}>{field.label}</label>
         {missing ? (
-          <span className="tag danger">Falta</span>
+          <span className={asked ? "tag danger" : "tag"}>Falta</span>
         ) : (
           (edited || field.source) && (
             <span className={`tag ${edited ? "warning" : "info"}`}>{edited ? SOURCE.usuario : SOURCE[field.source!]}</span>
